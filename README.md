@@ -74,7 +74,7 @@ I have some personal, selfish reasons for writing a new bot:
 
 Since the software runs 100% locally, the speech recognition model is a local file. You can provide a trained model as an alternative to the off-the-shelf model. See [this blog post](https://huggingface.co/blog/fine-tune-whisper) for an example.
 
-I don't plan to provide a mechanism for players to submit their voice recoridn
+I don't plan to provide a mechanism for players to submit their voice recordings to the main repostitory due to data privacy concerns.
 
 ### Will this work with DCS's built-in VoIP?
 
