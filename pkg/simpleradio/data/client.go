@@ -32,6 +32,7 @@ type dataClient struct {
 }
 
 func NewClient(config srs.ClientConfiguration) (DataClient, error) {
+	slog.Info("connecting to SRS server", "protocol", "tcp", "address", config.Address)
 	address, err := net.ResolveTCPAddr("tcp", config.Address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve SRS server address %v: %w", config.Address, err)
@@ -40,15 +41,16 @@ func NewClient(config srs.ClientConfiguration) (DataClient, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to SRS server %v over TCP: %w", config.Address, err)
 	}
+
 	client := &dataClient{
 		connection: connection,
 		clientInfo: srs.ClientInfo{
 			Name:           config.ClientName,
 			GUID:           config.GUID,
 			Seat:           0,
-			Coalition:      int(config.Coalition),
-			AllowRecording: true,
-			Radios: srs.ClientRadios{
+			Coalition:      0,
+			AllowRecording: false,
+			RadioInfo: srs.RadioInfo{
 				UnitID: 0,
 				Unit:   "",
 				Radios: []srs.Radio{
@@ -57,26 +59,18 @@ func NewClient(config srs.ClientConfiguration) (DataClient, error) {
 						Modulation:       config.Frequency.Modulation,
 						IsEncrypted:      false,
 						EncryptionKey:    0,
-						GuardFrequency:   243.0,
+						GuardFrequency:   1.0,
 						ShouldRetransmit: false,
-						Volume:           1.0,
 					},
 				},
+				IFF:     srs.NewIFF(),
+				Ambient: srs.NewAmbient(),
 			},
+			Position: &srs.Position{},
 		},
 		externalAWACSModePassword: config.ExternalAWACSModePassword,
 		otherClients:              map[string]string{},
 	}
-
-	if err := client.sync(); err != nil {
-		defer client.close()
-		return nil, err
-	}
-	if err := client.connectExternalAWACSMode(); err != nil {
-		defer client.close()
-		return nil, err
-	}
-
 	return client, nil
 }
 
@@ -86,15 +80,6 @@ func (c *dataClient) Run(ctx context.Context) error {
 			slog.Error("error closing data client", "error", err)
 		}
 	}()
-
-	slog.Info("sending initial sync message")
-	if err := c.sync(); err != nil {
-		return fmt.Errorf("initial sync failed: %w", err)
-	}
-	slog.Info("sending initial radio update message")
-	if err := c.updateRadios(); err != nil {
-		return fmt.Errorf("initial radio update failed: %w", err)
-	}
 
 	messageChan := make(chan srs.Message)
 	errorChan := make(chan error)
@@ -124,6 +109,19 @@ func (c *dataClient) Run(ctx context.Context) error {
 			}
 		}
 	}()
+
+	slog.Info("sending initial sync message")
+	if err := c.sync(); err != nil {
+		return fmt.Errorf("initial sync failed: %w", err)
+	}
+	slog.Info("sending initial update message")
+	if err := c.update(); err != nil {
+		return fmt.Errorf("initial update failed: %w", err)
+	}
+	slog.Info("connecting to external AWACS mode")
+	if err := c.connectExternalAWACSMode(); err != nil {
+		return fmt.Errorf("external AWACS mode failed: %w", err)
+	}
 
 	for {
 		select {
@@ -155,10 +153,7 @@ func (c *dataClient) handleMessage(message srs.Message) {
 	case srs.MessageExternalAWACSModeDisconnect:
 		logMessageAndIgnore(message)
 	case srs.MessageSync:
-		slog.Info("syncronizing clients")
-		for _, info := range message.Clients {
-			c.syncClient(info)
-		}
+		c.syncClients(message.Clients)
 	case srs.MessageUpdate:
 		c.syncClient(message.Client)
 	case srs.MessageRadioUpdate:
@@ -168,8 +163,8 @@ func (c *dataClient) handleMessage(message srs.Message) {
 	case srs.MessageExternalAWACSModePassword:
 		// WTF is this???
 		c.Send(srs.Message{
-			Type:   srs.MessageRadioUpdate,
-			Client: c.clientInfo,
+			Type:    srs.MessageRadioUpdate,
+			Clients: []srs.ClientInfo{c.clientInfo},
 		})
 	default:
 		slog.Warn("received unrecognized message", "payload", message)
@@ -180,8 +175,19 @@ func logMessageAndIgnore(message srs.Message) {
 	slog.Debug("received message", "payload", message)
 }
 
-func (c *dataClient) syncClient(other srs.ClientInfo) {
-	logger := slog.With("guid", other.GUID, "name", other.Name, "coalition", other.Coalition, "radios", other.Radios)
+func (c *dataClient) syncClients(others []srs.ClientInfo) {
+	slog.Info("syncronizing clients", "count", len(others))
+	for _, info := range others {
+		c.syncClient(&info)
+	}
+}
+
+func (c *dataClient) syncClient(other *srs.ClientInfo) {
+	if other == nil {
+		slog.Warn("syncClient called using nil client. ignoring...")
+		return
+	}
+	logger := slog.With("guid", other.GUID, "name", other.Name, "coalition", other.Coalition, "radios", other.RadioInfo)
 
 	logger.Debug("syncronizing client")
 
@@ -194,8 +200,8 @@ func (c *dataClient) syncClient(other srs.ClientInfo) {
 	isSameCoalition := other.Coalition == c.clientInfo.Coalition
 
 	var isSameFrequency bool
-	for _, otherRadio := range other.Radios.Radios {
-		for _, thisRadio := range c.clientInfo.Radios.Radios {
+	for _, otherRadio := range other.RadioInfo.Radios {
+		for _, thisRadio := range c.clientInfo.RadioInfo.Radios {
 			slog.Debug(
 				"checking client radio",
 				"guid", other.GUID,
@@ -237,6 +243,7 @@ func (c *dataClient) Send(message srs.Message) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal message to JSON: %w", err)
 	}
+	b = append(b, byte('\n'))
 	slog.Debug("sending message", "message", message)
 	_, err = c.connection.Write(b)
 	if err != nil {
@@ -247,24 +254,32 @@ func (c *dataClient) Send(message srs.Message) error {
 
 func (c *dataClient) newMessage(t srs.MessageType) srs.Message {
 	return srs.Message{
-		Version: "v0.0.0-dev",
+		Version: "2.1.0.1", // stubbing fake SRS version
 		Type:    t,
-		Client:  c.clientInfo,
 	}
 }
 
 func (c *dataClient) sync() error {
 	message := c.newMessage(srs.MessageSync)
-	message.Client = c.clientInfo
+	message.Client = &c.clientInfo
 	if err := c.Send(message); err != nil {
 		return fmt.Errorf("sync failed: %w", err)
 	}
 	return nil
 }
 
+func (c *dataClient) update() error {
+	message := c.newMessage(srs.MessageUpdate)
+	message.Client = &c.clientInfo
+	if err := c.Send(message); err != nil {
+		return fmt.Errorf("update failed: %w", err)
+	}
+	return nil
+}
+
 func (c *dataClient) updateRadios() error {
 	message := c.newMessage(srs.MessageRadioUpdate)
-	message.Client = c.clientInfo
+	message.Client = &c.clientInfo
 	if err := c.Send(message); err != nil {
 		return fmt.Errorf("radio update failed: %w", err)
 	}
@@ -273,6 +288,13 @@ func (c *dataClient) updateRadios() error {
 
 func (c *dataClient) connectExternalAWACSMode() error {
 	message := c.newMessage(srs.MessageExternalAWACSModePassword)
+	message.Client = &srs.ClientInfo{
+		GUID:           c.clientInfo.GUID,
+		Name:           c.clientInfo.Name,
+		Coalition:      c.clientInfo.Coalition,
+		AllowRecording: c.clientInfo.AllowRecording,
+		Position:       c.clientInfo.Position,
+	}
 	message.ExternalAWACSModePassword = c.externalAWACSModePassword
 	if err := c.Send(message); err != nil {
 		return fmt.Errorf("failed to authenticate with EAM password: %w", err)
