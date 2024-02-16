@@ -2,8 +2,6 @@ package types
 
 import (
 	"time"
-
-	"github.com/Microsoft/go-winio/pkg/guid"
 )
 
 // Frequency describes an audio transmission channel. This struct is only for use in [VoicePacket]. For client information, use [Radio] instead.
@@ -39,7 +37,7 @@ const (
 // ClientConfiguration is configuration used to construct the audio and data clients
 type ClientConfiguration struct {
 	// GUID corresponds to [ClientInfo.GUID]
-	GUID guid.GUID
+	GUID string
 	// Address is the network address of the SRS server, including port
 	Address string
 	// ConnectionTimeout is the connection timeout for connecting to the SRS server

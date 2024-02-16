@@ -13,8 +13,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/Microsoft/go-winio/pkg/guid"
-
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 )
 
@@ -33,9 +31,8 @@ type AudioClient interface {
 
 // audioClient implements w
 type audioClient struct {
-	configuration srs.ClientConfiguration
-	guid          guid.GUID
-	radios        srs.ClientRadios
+	guid   string
+	radios srs.ClientRadios
 
 	connection *net.UDPConn
 	// lastReceived is the most recent time audio was received. This is used to guess when a transmission is complete.
@@ -57,12 +54,12 @@ func NewClient(config srs.ClientConfiguration, radios srs.ClientRadios) (AudioCl
 		return nil, fmt.Errorf("failed to connect to SRS server %v over UDP: %w", config.Address, err)
 	}
 	return &audioClient{
-		configuration: config,
-		connection:    connection,
-		radios:        radios,
-		lastReceived:  time.Now(),
-		audioTxQueue:  make(chan Audio),
-		audioRxQueue:  make(chan Audio),
+		guid:         config.GUID,
+		connection:   connection,
+		radios:       radios,
+		lastReceived: time.Now(),
+		audioTxQueue: make(chan Audio),
+		audioRxQueue: make(chan Audio),
 	}, nil
 }
 
@@ -80,7 +77,7 @@ func (c *audioClient) ping(ctx context.Context) {
 			return
 		case <-ticker.C:
 			slog.Debug("sending UDP ping")
-			n, err := c.connection.Write([]byte(c.guid.String()))
+			n, err := c.connection.Write([]byte(c.guid))
 			if err != nil {
 				slog.Error("error writing ping", "error", err)
 			}

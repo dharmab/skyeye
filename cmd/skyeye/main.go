@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Microsoft/go-winio/pkg/guid"
 	"github.com/dharmab/skyeye/internal/application"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
+	"github.com/lithammer/shortuuid"
 )
 
 func main() {
@@ -60,8 +60,7 @@ func main() {
 	defer whisperModel.Close()
 
 	slog.Info("generating client GUID")
-	clientGUID, err := guid.NewV4()
-	exitOnErr(err)
+	clientGUID := shortuuid.New()
 
 	config := application.Configuration{
 		DCSGRPCAddress:               *DCSGRPCAddress,

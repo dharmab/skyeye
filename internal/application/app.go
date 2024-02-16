@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Microsoft/go-winio/pkg/guid"
 	"github.com/dharmab/skyeye/pkg/dcs"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/simpleradio/audio"
@@ -29,7 +28,7 @@ type Configuration struct {
 	// SRSClientName is the name of the bot that will appear in the client list and in in-game transmissions
 	SRSClientName string
 	// SRSClientGUID is a client-provided GUID which the server uses to distinguish clients
-	SRSClientGUID guid.GUID
+	SRSClientGUID string
 	// SRSExternalAWACSModePassword is the password for connecting to the SimpleRadio Standalone server using External AWACS Mode
 	SRSExternalAWACSModePassword string
 	// SRSFrequency is the radio frequency the bot will listen to and talk on in MHz

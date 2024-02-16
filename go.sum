@@ -1,7 +1,5 @@
 github.com/DCS-gRPC/go-bindings v0.7.1 h1:IAq8RoazjaLMuFkFEWq8iLfpB81mzfziAv/59XaOBWc=
 github.com/DCS-gRPC/go-bindings v0.7.1/go.mod h1:LgNYPDakyG3E1czIQ/6lj2UVTyGS50ZAR4vglWPC084=
-github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
-github.com/Microsoft/go-winio v0.6.1/go.mod h1:LRdKpFKfdobln8UmuiYcKPot9D2v6svN5+sAH+4kjUM=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240210081059-02b4c52c1289 h1:GTy9z3BnjUeie/LAqoU6bSLgZhJd3pFSqKUb977PdGw=
@@ -18,6 +16,10 @@ github.com/golang/protobuf v1.5.3/go.mod h1:XVQd3VNwM+JqD3oG2Ue2ip4fOMUkwXdXDdiu
 github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+github.com/google/uuid v1.4.0 h1:MtMxsa51/r9yyhkyLsVeVt0B+BGQZzpQiTQ4eHZ8bc4=
+github.com/google/uuid v1.4.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/lithammer/shortuuid v3.0.0+incompatible h1:NcD0xWW/MZYXEHa6ITy6kaXN5nwm/V115vj2YXfhS0w=
+github.com/lithammer/shortuuid v3.0.0+incompatible/go.mod h1:FR74pbAuElzOUuenUHTK2Tciko1/vKuIKS9dSkDrA4w=
 github.com/pion/opus v0.0.0-20240105012622-483adc6e6efc h1:6KlJJg2upx738fr16VZiaBgkn4qGiHWp+9EAvdzlVC0=
 github.com/pion/opus v0.0.0-20240105012622-483adc6e6efc/go.mod h1:m8ODxkLrcNvLY6BPvOj7yLxK1wMQWA+2jqKcsrZ293U=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

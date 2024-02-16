@@ -44,7 +44,7 @@ func NewClient(config srs.ClientConfiguration) (DataClient, error) {
 		connection: connection,
 		clientInfo: srs.ClientInfo{
 			Name:           config.ClientName,
-			GUID:           config.GUID.String(),
+			GUID:           config.GUID,
 			Seat:           0,
 			Coalition:      int(config.Coalition),
 			AllowRecording: true,
