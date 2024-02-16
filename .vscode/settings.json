@@ -4,4 +4,14 @@
         "C_INCLUDE_PATH": "third_party/whisper.cpp/",
         "LIBRARY_PATH": "third_party/whisper.cpp/"
     },
+    "logViewer.watch": [
+        {
+            "title": "DCS SRS Server",
+            "pattern": "C:\\Program Files\\DCS-SimpleRadio-Standalone\\serverlog.txt"
+        },
+        {
+            "title": "DCS SRS Clients List",
+            "pattern": "C:\\Program Files\\DCS-SimpleRadio-Standalone\\clients-list.json"
+        }
+    ]
 }
