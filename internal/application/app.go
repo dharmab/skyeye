@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -76,7 +77,7 @@ func NewApplication(ctx context.Context, config Configuration) (Application, err
 				Encryption: 0,
 			},
 		},
-		srs.ClientRadios{
+		srs.RadioInfo{
 			Radios: []srs.Radio{{
 				Frequency:  config.SRSFrequency,
 				Modulation: srs.ModulationAM,
@@ -84,7 +85,7 @@ func NewApplication(ctx context.Context, config Configuration) (Application, err
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to construct appliation: %w", err)
+		return nil, fmt.Errorf("failed to construct application: %w", err)
 	}
 
 	app := &app{
@@ -107,7 +108,9 @@ func (a *app) Run(ctx context.Context) error {
 	go func() {
 		slog.Info("running SRS client")
 		if err := a.srsClient.Run(ctx); err != nil {
-			slog.Error("error running SRS client", "error", err)
+			if !errors.Is(err, context.Canceled) {
+				slog.Error("error running SRS client", "error", err)
+			}
 		}
 	}()
 

@@ -23,7 +23,7 @@ type client struct {
 	dataClient  data.DataClient
 }
 
-func NewClient(config types.ClientConfiguration, radios types.ClientRadios) (Client, error) {
+func NewClient(config types.ClientConfiguration, radios types.RadioInfo) (Client, error) {
 	dataClient, err := data.NewClient(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct SRS data client: %w", err)
@@ -46,13 +46,13 @@ func (c *client) Run(ctx context.Context) error {
 	errorChan := make(chan error)
 
 	go func() {
-		slog.Info("Running SRS data client")
+		slog.Info("running SRS data client")
 		if err := c.dataClient.Run(ctx); err != nil {
 			errorChan <- err
 		}
 	}()
 	go func() {
-		slog.Info("Running SRS audio client")
+		slog.Info("running SRS audio client")
 		if err := c.audioClient.Run(ctx); err != nil {
 			errorChan <- err
 		}

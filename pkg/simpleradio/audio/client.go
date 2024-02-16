@@ -7,6 +7,7 @@ package audio
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -32,7 +33,7 @@ type AudioClient interface {
 // audioClient implements w
 type audioClient struct {
 	guid   string
-	radios srs.ClientRadios
+	radios srs.RadioInfo
 
 	connection *net.UDPConn
 	// lastReceived is the most recent time audio was received. This is used to guess when a transmission is complete.
@@ -44,7 +45,8 @@ type audioClient struct {
 	rxOverDuration time.Duration
 }
 
-func NewClient(config srs.ClientConfiguration, radios srs.ClientRadios) (AudioClient, error) {
+func NewClient(config srs.ClientConfiguration, radios srs.RadioInfo) (AudioClient, error) {
+	slog.Info("connecting to SRS server", "protocol", "udp", "address", config.Address)
 	address, err := net.ResolveUDPAddr("udp", config.Address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve SRS server address %v: %w", config.Address, err)
@@ -70,18 +72,22 @@ const PingInterval = 15 * time.Second
 // https://gitlab.com/overlordbot/srs-bot/-/blob/master/OverlordBot.SimpleRadio/Network/AudioClient.cs
 func (c *audioClient) ping(ctx context.Context) {
 	ticker := time.NewTicker(PingInterval)
+	slog.Info("starting pings", "interval", PingInterval.String())
 	for {
 		select {
 		case <-ctx.Done():
 			slog.Info("stopping pings due to context cancelation")
 			return
 		case <-ticker.C:
-			slog.Debug("sending UDP ping")
+			slog.Debug("sending UDP ping", "guid", c.guid)
 			n, err := c.connection.Write([]byte(c.guid))
-			if err != nil {
+			if errors.Is(err, net.ErrClosed) {
+				slog.Warn("ping skipped due to closed connection")
+			} else if err != nil {
 				slog.Error("error writing ping", "error", err)
+			} else {
+				slog.Debug("sent UDP ping", "guid", c.guid, "bytes", n)
 			}
-			slog.Debug("sent UDP ping", "bytes", n)
 		}
 	}
 }
@@ -98,6 +104,10 @@ func (c *audioClient) receivePackets(ctx context.Context, ch chan<- VoicePacket)
 
 		buf := make([]byte, 1500)
 		n, err := c.connection.Read(buf)
+		if errors.Is(err, net.ErrClosed) {
+			slog.Warn("stopping packet receiver due to closed connection")
+			return
+		}
 		switch {
 		case n == 0:
 			slog.Debug("0 bytes read from UDP connection", "error", err)
