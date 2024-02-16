@@ -60,7 +60,7 @@ Run SkyEye by passing command line flags to `skyeye.exe`. You can run `./skyeye.
 ./skyeye.exe \
   -dcs-grpc-server-address=your-dcs-grpc-server-ip:50051 \
   -srs-server-address=your-srs-server-ip:5002 \
-  -srs-earm-password=yourSRSEAMpassword \
+  -srs-eam-password=yourSRSEAMpassword \
   -whisper-model=ggml-medium.en.bin
 ```
 
