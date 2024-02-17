@@ -66,6 +66,7 @@ func NewClient(config srs.ClientConfiguration, radios srs.RadioInfo) (AudioClien
 }
 
 const PingInterval = 15 * time.Second
+const GUIDLength = 22
 
 // ping is a loop which sends the client GUID to the server every 15 seconds to keep our connection alive
 //
@@ -85,8 +86,10 @@ func (c *audioClient) ping(ctx context.Context) {
 				slog.Warn("ping skipped due to closed connection")
 			} else if err != nil {
 				slog.Error("error writing ping", "error", err)
+			} else if n != GUIDLength {
+				slog.Debug("wrote unexpected number of bytes while sending UDP ping", "bytes", n, "expected", GUIDLength)
 			} else {
-				slog.Debug("sent UDP ping", "guid", c.guid, "bytes", n)
+				slog.Debug("sent UDP ping", "guid", c.guid)
 			}
 		}
 	}
@@ -115,11 +118,11 @@ func (c *audioClient) receivePackets(ctx context.Context, ch chan<- VoicePacket)
 			// no op?
 		case err != nil:
 			slog.Warn("error reading from UDP connection", "error", err)
-		case n < 22:
+		case n < GUIDLength:
 			slog.Debug("UDP packet smaller than expected", "bytes", n)
-		case n == 22:
-			slog.Debug("received UDP ping")
-		case n > 22:
+		case n == GUIDLength:
+			slog.Debug("received UDP ping", "guid", buf[0:GUIDLength-1])
+		case n > GUIDLength:
 			ch <- newVoicePacketFrom(buf)
 		}
 	}
