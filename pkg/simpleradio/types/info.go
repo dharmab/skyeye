@@ -9,7 +9,7 @@ type ClientInfo struct {
 	// Seat is the seat number for multicrew aircraft. For bots, set this to 0.
 	Seat int `json:"Seat"`
 	// Coalition is the side that the client will act on
-	Coalition int `json:"Coalition"`
+	Coalition Coalition `json:"Coalition"`
 	// AllowRecording indicates consent to record audio server-side. For bots, this should usually be set to True.
 	AllowRecording bool      `json:"AllowRecord"`
 	RadioInfo      RadioInfo `json:"RadioInfo"`

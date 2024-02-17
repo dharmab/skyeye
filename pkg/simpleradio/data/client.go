@@ -48,18 +48,18 @@ func NewClient(config srs.ClientConfiguration) (DataClient, error) {
 			Name:           config.ClientName,
 			GUID:           config.GUID,
 			Seat:           0,
-			Coalition:      0,
+			Coalition:      config.Coalition,
 			AllowRecording: false,
 			RadioInfo: srs.RadioInfo{
 				UnitID: 0,
-				Unit:   "",
+				Unit:   "External AWACS",
 				Radios: []srs.Radio{
 					{
 						Frequency:        config.Frequency.Frequency,
 						Modulation:       config.Frequency.Modulation,
 						IsEncrypted:      false,
 						EncryptionKey:    0,
-						GuardFrequency:   1.0,
+						GuardFrequency:   243.0,
 						ShouldRetransmit: false,
 					},
 				},
@@ -114,10 +114,11 @@ func (c *dataClient) Run(ctx context.Context) error {
 	if err := c.sync(); err != nil {
 		return fmt.Errorf("initial sync failed: %w", err)
 	}
-	slog.Info("sending initial update message")
-	if err := c.update(); err != nil {
-		return fmt.Errorf("initial update failed: %w", err)
+	slog.Info("sending initial radio update message")
+	if err := c.updateRadios(); err != nil {
+		return fmt.Errorf("initial radio update failed: %w", err)
 	}
+
 	slog.Info("connecting to external AWACS mode")
 	if err := c.connectExternalAWACSMode(); err != nil {
 		return fmt.Errorf("external AWACS mode failed: %w", err)
@@ -187,53 +188,49 @@ func (c *dataClient) syncClient(other *srs.ClientInfo) {
 		slog.Warn("syncClient called using nil client. ignoring...")
 		return
 	}
-	logger := slog.With("guid", other.GUID, "name", other.Name, "coalition", other.Coalition, "radios", other.RadioInfo)
+	clientLogger := slog.With("guid", other.GUID, "name", other.Name, "coalition", other.Coalition, "radios", other.RadioInfo)
 
-	logger.Debug("syncronizing client")
+	clientLogger.Debug("syncronizing client")
 
 	if other.GUID == c.clientInfo.GUID {
 		// why, of course I know him. he's me!
-		logger.Debug("skipped client due to same GUID")
+		clientLogger.Debug("skipped client due to same GUID")
 		return
 	}
-
-	isSameCoalition := other.Coalition == c.clientInfo.Coalition
 
 	var isSameFrequency bool
 	for _, otherRadio := range other.RadioInfo.Radios {
 		for _, thisRadio := range c.clientInfo.RadioInfo.Radios {
-			slog.Debug(
-				"checking client radio",
+			radioLogger := slog.With(
 				"guid", other.GUID,
 				"name", other.Name,
 				"frequency", otherRadio.Frequency,
 				"modulation", otherRadio.Modulation,
 				"encryption", otherRadio.IsEncrypted,
 			)
-			if thisRadio.Frequency == otherRadio.Frequency && thisRadio.Modulation == otherRadio.Modulation {
-				// Frequency and modulation matches
-				if !thisRadio.IsEncrypted && !otherRadio.IsEncrypted {
-					// No encryption
-					isSameFrequency = true
-				} else if thisRadio.IsEncrypted && otherRadio.IsEncrypted && thisRadio.EncryptionKey == otherRadio.EncryptionKey {
-					// Encryption enabled on both radios and key matches
-					isSameFrequency = true
-				}
+
+			doesFrequencyMatch := float64(thisRadio.Frequency) == float64(otherRadio.Frequency/1000000)
+			doesModulationMatch := thisRadio.Modulation == otherRadio.Modulation
+			doesEncryptionMatch := (!thisRadio.IsEncrypted && !otherRadio.IsEncrypted) || (thisRadio.IsEncrypted && otherRadio.IsEncrypted && thisRadio.EncryptionKey == otherRadio.EncryptionKey)
+			radioLogger.Debug("checking client radio", "frequencyMatches", doesFrequencyMatch, "modulationMatches", doesModulationMatch, "encryptionMatches", doesEncryptionMatch)
+			if doesFrequencyMatch && doesModulationMatch && doesEncryptionMatch {
+				isSameFrequency = true
 			}
 		}
 	}
 
+	isSameCoalition := (c.clientInfo.Coalition == other.Coalition) || srs.IsSpectator(other.Coalition)
+	clientLogger.Debug("checking client", "coalitionMatches", isSameCoalition, "frequencyMatches", isSameFrequency)
 	if isSameCoalition && isSameFrequency {
-		logger.Debug("storing client with matching radio")
+		clientLogger.Debug("storing client with matching radio")
 		c.otherClients[other.GUID] = other.Name
-
 	} else {
 		_, ok := c.otherClients[other.GUID]
 		if ok {
-			logger.Debug("deleting client without matching radio")
+			clientLogger.Debug("deleting client without matching radio")
 			delete(c.otherClients, other.GUID)
 		} else {
-			logger.Debug("skipped client without matching radio")
+			clientLogger.Debug("skipped client without matching radio")
 		}
 	}
 }
