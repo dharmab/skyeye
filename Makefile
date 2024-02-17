@@ -33,6 +33,10 @@ $(SKYEYE_EXE): $(SKYEYE_SOURCES) $(WHISPER_CPP_PATH)/libwhisper.a $(WHISPER_CPP_
 .PHONY: build
 build: $(SKYEYE_EXE)
 
+.PHONY: test
+test:
+	go test ./...
+
 .PHONY: mostlyclean
 mostlyclean:
 	rm -f "$(SKYEYE_EXE)"
