@@ -21,6 +21,7 @@ const (
 type IFFMode int
 
 const IFFModeDisabled = -1
+const IFFMicDisabled = -1
 
 // https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/master/DCS-SR-Common/DCSState/IFF.cs
 type IFF struct {
@@ -41,6 +42,6 @@ func NewIFF() IFF {
 		Mode2:       IFFModeDisabled,
 		Mode3:       IFFModeDisabled,
 		Mode4:       false,
-		Mic:         -1,
+		Mic:         IFFMicDisabled,
 	}
 }
