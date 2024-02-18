@@ -26,12 +26,12 @@ type dataClient struct {
 	externalAWACSModePassword string
 	// otherClients is a map of GUIDs to client names
 	// filtered to our coalition and frequency
-	otherClients map[string]string
+	otherClients map[srs.GUID]string
 	// lastReceived is the most recent time data was received. If this exceeds a data timeout, we have likely been disconnected from the server.
 	lastReceived time.Time
 }
 
-func NewClient(config srs.ClientConfiguration) (DataClient, error) {
+func NewClient(guid srs.GUID, config srs.ClientConfiguration) (DataClient, error) {
 	slog.Info("connecting to SRS server", "protocol", "tcp", "address", config.Address)
 	address, err := net.ResolveTCPAddr("tcp", config.Address)
 	if err != nil {
@@ -46,7 +46,7 @@ func NewClient(config srs.ClientConfiguration) (DataClient, error) {
 		connection: connection,
 		clientInfo: srs.ClientInfo{
 			Name:           config.ClientName,
-			GUID:           config.GUID,
+			GUID:           guid,
 			Seat:           0,
 			Coalition:      config.Coalition,
 			AllowRecording: false,
@@ -69,7 +69,7 @@ func NewClient(config srs.ClientConfiguration) (DataClient, error) {
 			Position: &srs.Position{},
 		},
 		externalAWACSModePassword: config.ExternalAWACSModePassword,
-		otherClients:              map[string]string{},
+		otherClients:              map[srs.GUID]string{},
 	}
 	return client, nil
 }
@@ -209,7 +209,7 @@ func (c *dataClient) syncClient(other *srs.ClientInfo) {
 				"encryption", otherRadio.IsEncrypted,
 			)
 
-			doesFrequencyMatch := float64(thisRadio.Frequency) == float64(otherRadio.Frequency/1000000)
+			doesFrequencyMatch := float64(thisRadio.Frequency) == float64(otherRadio.Frequency)
 			doesModulationMatch := thisRadio.Modulation == otherRadio.Modulation
 			doesEncryptionMatch := (!thisRadio.IsEncrypted && !otherRadio.IsEncrypted) || (thisRadio.IsEncrypted && otherRadio.IsEncrypted && thisRadio.EncryptionKey == otherRadio.EncryptionKey)
 			radioLogger.Debug("checking client radio", "frequencyMatches", doesFrequencyMatch, "modulationMatches", doesModulationMatch, "encryptionMatches", doesEncryptionMatch)

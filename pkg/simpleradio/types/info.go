@@ -3,7 +3,7 @@ package types
 // ClientInfo is information about the client included in the message
 type ClientInfo struct {
 	// GUID is some kind of unique ID for the client (???)
-	GUID string `json:"ClientGuid"`
+	GUID GUID `json:"ClientGuid"`
 	// Name is the name that will appear in the client list and in in-game transmissions
 	Name string `json:"Name"`
 	// Seat is the seat number for multicrew aircraft. For bots, set this to 0.

@@ -24,12 +24,13 @@ type client struct {
 }
 
 func NewClient(config types.ClientConfiguration, radios types.RadioInfo) (Client, error) {
-	dataClient, err := data.NewClient(config)
+	guid := types.NewGUID()
+	dataClient, err := data.NewClient(guid, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct SRS data client: %w", err)
 	}
 
-	audioClient, err := audio.NewClient(config, radios)
+	audioClient, err := audio.NewClient(guid, config, radios)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct SRS audio client: %w", err)
 	}

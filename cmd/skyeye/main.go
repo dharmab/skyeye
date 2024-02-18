@@ -15,7 +15,6 @@ import (
 	"github.com/dharmab/skyeye/internal/application"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
-	"github.com/lithammer/shortuuid/v3"
 )
 
 func main() {
@@ -38,7 +37,7 @@ func main() {
 	SRSConnectionTimeout := flag.Duration("srs-connection-timeout", 10*time.Second, "")
 	SRSClientName := flag.String("srs-client-name", "SkyEye", "SRS client name. Appears in the client list and in in-game transmissions")
 	SRSExternalAWACSModePassword := flag.String("srs-eam-password", "", "SRS external AWACS mode password")
-	SRSFrequency := flag.Float64("srs-frequency", 133.0, "AWACS frequency")
+	SRSFrequency := flag.Float64("srs-frequency", 251000000.0, "AWACS frequency in Hertz")
 	SRSCoalition := flag.String("srs-coalition", "blue", "SRS Coalition (either blue or red)")
 	WhisperModelPath := flag.String("whisper-model", "", "Path to whisper.cpp model")
 
@@ -86,16 +85,12 @@ func main() {
 	}
 	defer whisperModel.Close()
 
-	slog.Info("generating client GUID")
-	clientGUID := shortuuid.New()
-
 	config := application.Configuration{
 		DCSGRPCAddress:               *DCSGRPCAddress,
 		GRPCConnectionTimeout:        *GRPCConnectionTimeout,
 		SRSAddress:                   *SRSAddress,
 		SRSConnectionTimeout:         *SRSConnectionTimeout,
 		SRSClientName:                *SRSClientName,
-		SRSClientGUID:                clientGUID,
 		SRSExternalAWACSModePassword: *SRSExternalAWACSModePassword,
 		SRSFrequency:                 *SRSFrequency,
 		SRSCoalition:                 coalition,

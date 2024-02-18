@@ -49,25 +49,24 @@ type VoicePacket struct {
 // newVoicePacketFrom converts a voice packet from bytes to struct
 func newVoicePacketFrom(b []byte) VoicePacket {
 	p := VoicePacket{
-		PacketLength:             binary.BigEndian.Uint16(b[0:2]),
-		AudioSegmentLength:       binary.BigEndian.Uint16(b[2:4]),
-		FrequenciesSegmentLength: binary.BigEndian.Uint16(b[4:6]),
+		PacketLength:             binary.LittleEndian.Uint16(b[0:2]),
+		AudioSegmentLength:       binary.LittleEndian.Uint16(b[2:4]),
+		FrequenciesSegmentLength: binary.LittleEndian.Uint16(b[4:6]),
 	}
+	// slog.Debug("packet", "struct", p)
 
 	audioSegmentOffset := 6
 	audioBytesOffset := audioSegmentOffset + 2
+	p.AudioLength = binary.LittleEndian.Uint16(b[audioSegmentOffset:audioBytesOffset])
 	frequenciesOffset := audioBytesOffset + int(p.AudioLength)
+	p.AudioBytes = b[audioBytesOffset:frequenciesOffset]
 	fixedSegmentOffset := frequenciesOffset + int(p.FrequenciesSegmentLength)
 
-	p.AudioLength = binary.BigEndian.Uint16(b[audioSegmentOffset:audioBytesOffset])
-	p.AudioBytes = b[audioBytesOffset:frequenciesOffset]
-
-	for i := frequenciesOffset; i <= frequenciesOffset+int(p.FrequenciesSegmentLength); {
-
+	for i := frequenciesOffset; i <= frequenciesOffset+int(p.FrequenciesSegmentLength); i = i + 110 {
 		frequency := srs.Frequency{
-			Frequency:  math.Float64frombits(binary.BigEndian.Uint64(b[i : i+8])),
-			Modulation: b[i+8],
-			Encryption: b[i+9],
+			Frequency:  math.Float64frombits(binary.LittleEndian.Uint64(b[i : i+8])),
+			Modulation: b[i+9],
+			Encryption: b[i+10],
 		}
 
 		p.Frequencies = append(p.Frequencies, frequency)
@@ -79,8 +78,8 @@ func newVoicePacketFrom(b []byte) VoicePacket {
 	originalGUIDOffset := retrasmissionCountOffset + 1
 	guidOffset := originalGUIDOffset + 22
 
-	p.UnitID = binary.BigEndian.Uint32(b[unitIDOffset:packetIDOffset])
-	p.PacketID = binary.BigEndian.Uint64(b[packetIDOffset:retrasmissionCountOffset])
+	p.UnitID = binary.LittleEndian.Uint32(b[unitIDOffset:packetIDOffset])
+	p.PacketID = binary.LittleEndian.Uint64(b[packetIDOffset:retrasmissionCountOffset])
 	p.RetransmissionCount = b[retrasmissionCountOffset]
 	p.OriginalGUID = b[originalGUIDOffset:guidOffset]
 	p.GUID = b[guidOffset : guidOffset+22]

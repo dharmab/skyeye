@@ -28,8 +28,6 @@ type Configuration struct {
 	SRSConnectionTimeout time.Duration
 	// SRSClientName is the name of the bot that will appear in the client list and in in-game transmissions
 	SRSClientName string
-	// SRSClientGUID is a client-provided GUID which the server uses to distinguish clients
-	SRSClientGUID string
 	// SRSExternalAWACSModePassword is the password for connecting to the SimpleRadio Standalone server using External AWACS Mode
 	SRSExternalAWACSModePassword string
 	// SRSFrequency is the radio frequency the bot will listen to and talk on in MHz
@@ -65,7 +63,6 @@ func NewApplication(ctx context.Context, config Configuration) (Application, err
 	slog.Info("constructing SRS client")
 	srsClient, err := simpleradio.NewClient(
 		srs.ClientConfiguration{
-			GUID:                      config.SRSClientGUID,
 			Address:                   config.SRSAddress,
 			ConnectionTimeout:         config.SRSConnectionTimeout,
 			ClientName:                config.SRSClientName,
@@ -119,6 +116,7 @@ func (a *app) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case sample := <-a.srsClient.Receive():
+			slog.Debug("receiving sample from SRS client")
 			a.recognizeAudio(sample)
 		}
 	}
