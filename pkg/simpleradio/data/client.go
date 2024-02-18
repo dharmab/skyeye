@@ -51,18 +51,9 @@ func NewClient(guid srs.GUID, config srs.ClientConfiguration) (DataClient, error
 			Coalition:      config.Coalition,
 			AllowRecording: false,
 			RadioInfo: srs.RadioInfo{
-				UnitID: 0,
-				Unit:   "External AWACS",
-				Radios: []srs.Radio{
-					{
-						Frequency:        config.Frequency.Frequency,
-						Modulation:       config.Frequency.Modulation,
-						IsEncrypted:      false,
-						EncryptionKey:    0,
-						GuardFrequency:   243.0,
-						ShouldRetransmit: false,
-					},
-				},
+				UnitID:  0,
+				Unit:    "External AWACS",
+				Radios:  []srs.Radio{config.Radio},
 				IFF:     srs.NewIFF(),
 				Ambient: srs.NewAmbient(),
 			},
@@ -261,15 +252,6 @@ func (c *dataClient) sync() error {
 	message.Client = &c.clientInfo
 	if err := c.Send(message); err != nil {
 		return fmt.Errorf("sync failed: %w", err)
-	}
-	return nil
-}
-
-func (c *dataClient) update() error {
-	message := c.newMessage(srs.MessageUpdate)
-	message.Client = &c.clientInfo
-	if err := c.Send(message); err != nil {
-		return fmt.Errorf("update failed: %w", err)
 	}
 	return nil
 }

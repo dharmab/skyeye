@@ -3,8 +3,6 @@ package audio
 import (
 	"encoding/binary"
 	"math"
-
-	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 )
 
 // VoicePacket is a network packet containing:
@@ -74,7 +72,7 @@ func newVoicePacketFrom(b []byte) VoicePacket {
 	fixedSegmentOffset := frequenciesOffset + int(p.FrequenciesSegmentLength)
 
 	for i := frequenciesOffset; i <= frequenciesOffset+int(p.FrequenciesSegmentLength); i = i + 110 {
-		frequency := srs.Frequency{
+		frequency := Frequency{
 			Frequency:  math.Float64frombits(binary.LittleEndian.Uint64(b[i : i+8])),
 			Modulation: b[i+9],
 			Encryption: b[i+10],

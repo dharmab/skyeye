@@ -18,8 +18,8 @@ type ClientConfiguration struct {
 	ExternalAWACSModePassword string
 	// Coalition corresponds to [ClientInfo.Coalition]
 	Coalition Coalition
-	// Frequency is the [Frequency] to listen and talk on
-	Frequency Frequency
+	// Raduio is the [Radio] to listen and talk on
+	Radio Radio
 	// AllowRecording corresponds to [ClientInfo.AllowRecording]
 	AllowRecording bool
 }

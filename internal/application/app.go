@@ -68,10 +68,9 @@ func NewApplication(ctx context.Context, config Configuration) (Application, err
 			ClientName:                config.SRSClientName,
 			ExternalAWACSModePassword: config.SRSExternalAWACSModePassword,
 			Coalition:                 config.SRSCoalition,
-			Frequency: srs.Frequency{
+			Radio: srs.Radio{
 				Frequency:  config.SRSFrequency,
 				Modulation: srs.ModulationAM,
-				Encryption: 0,
 			},
 		},
 		srs.RadioInfo{
