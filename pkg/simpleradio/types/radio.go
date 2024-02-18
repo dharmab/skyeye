@@ -1,16 +1,5 @@
 package types
 
-// Frequency describes an audio transmission channel. This struct is only for use in [VoicePacket]. For client information, use [Radio] instead.
-type Frequency struct {
-	// Frequency is the transmission freqeuncy in MHz.
-	// Example: 249.500MHz is encoded as 249.5
-	Frequency float64
-	// Modulation is the transmission modulation mode.
-	Modulation byte
-	// Encryption is the transmission encryption mode.
-	Encryption byte
-}
-
 // Values from https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/master/DCS-SR-Common/DCSState/RadioInformation.cs
 const (
 	// ModulationAM is Amplitude Modulation
@@ -31,8 +20,8 @@ const (
 )
 
 type Radio struct {
-	// Frequency is the transmission freqeuncy in MHz.
-	// Example: 249.500MHz is encoded as 249.5
+	// Frequency is the transmission frequency in Hz.
+	// Example: 249.500MHz is encoded as 249500000.0
 	Frequency float64 `json:"freq"`
 	// Modulation is the transmission modulation mode.
 	Modulation byte `json:"modulation"`

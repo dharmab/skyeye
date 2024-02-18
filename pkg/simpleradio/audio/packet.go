@@ -31,7 +31,7 @@ type VoicePacket struct {
 
 	/* Frequencies Segment */
 	// Frequencies is an array of information for each frequency+modulation+encryption combination the audio is transmitted on.
-	Frequencies []srs.Frequency
+	Frequencies []Frequency
 
 	/* Fixed Segment */
 	// UnitID is the ID of the in-game unit (?)
@@ -44,6 +44,17 @@ type VoicePacket struct {
 	OriginalGUID []byte
 	// 22 bytes ASCII string
 	GUID []byte
+}
+
+// Frequency describes an audio transmission channel. This struct is only for use in [VoicePacket]. For client information, use [srs.Radio] instead.
+type Frequency struct {
+	// Frequency is the transmission frequency in Hz.
+	// Example: 249.500MHz is encoded as 249500000.0
+	Frequency float64
+	// Modulation is the transmission modulation mode.
+	Modulation byte
+	// Encryption is the transmission encryption mode.
+	Encryption byte
 }
 
 // newVoicePacketFrom converts a voice packet from bytes to struct
