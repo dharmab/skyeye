@@ -1,3 +1,4 @@
+// package application is the main package for the SkyEye application.
 package application
 
 import (
@@ -14,9 +15,11 @@ import (
 	"github.com/dharmab/skyeye/pkg/simpleradio/audio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 
+	"github.com/ebitengine/oto/v3"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
 
+// Configuration for the SkyEye application.
 type Configuration struct {
 	// DCSGRPCAddress is the network address of the DCS-gRPC server (including port)
 	DCSGRPCAddress string
@@ -30,7 +33,7 @@ type Configuration struct {
 	SRSClientName string
 	// SRSExternalAWACSModePassword is the password for connecting to the SimpleRadio Standalone server using External AWACS Mode
 	SRSExternalAWACSModePassword string
-	// SRSFrequency is the radio frequency the bot will listen to and talk on in MHz
+	// SRSFrequency is the radio frequency the bot will listen to and talk on in Hz
 	SRSFrequency float64
 	// SRSCoalition is the coalition that the bot will act on
 	SRSCoalition srs.Coalition
@@ -38,16 +41,26 @@ type Configuration struct {
 	WhisperModel whisper.Model
 }
 
+// Application is the interface for running the SkyEye application.
 type Application interface {
+	// Run runs the SkyEye application. It should be called exactly once.
 	Run(context.Context) error
 }
 
+// app implements the Application.
 type app struct {
+	// dcsClient is a DCS-gRPC client
 	dcsClient dcs.DCSClient
+	// srsClient is a SimpleRadio Standalone client
 	srsClient simpleradio.Client
-	whisper   whisper.Model
+	// whisper is a whisper.cpp model used for Speech To Text
+	whisper whisper.Model
+	// otoCtx is an oto context used for playing audio. This is only used for debugging purposes.
+	// I should remove this when the SRS integration is stabilized.
+	otoCtx oto.Context
 }
 
+// NewApplication constructs a new Application.
 func NewApplication(ctx context.Context, config Configuration) (Application, error) {
 	slog.Info("constructing DCS client")
 	dcsClient, err := dcs.NewDCSClient(
@@ -73,12 +86,6 @@ func NewApplication(ctx context.Context, config Configuration) (Application, err
 				Modulation: srs.ModulationAM,
 			},
 		},
-		srs.RadioInfo{
-			Radios: []srs.Radio{{
-				Frequency:  config.SRSFrequency,
-				Modulation: srs.ModulationAM,
-			}},
-		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct application: %w", err)
@@ -92,6 +99,7 @@ func NewApplication(ctx context.Context, config Configuration) (Application, err
 	return app, nil
 }
 
+// Run implements Application.Run.
 func (a *app) Run(ctx context.Context) error {
 	defer func() {
 		slog.Info("closing connection to DCS-gRPC server")
@@ -116,11 +124,17 @@ func (a *app) Run(ctx context.Context) error {
 			return nil
 		case sample := <-a.srsClient.Receive():
 			slog.Debug("receiving sample from SRS client")
-			a.recognizeAudio(sample)
+			text, err := a.recognizeAudio(sample)
+			if err != nil {
+				slog.Error("error recongizing audio sample", "error", err)
+			} else {
+				slog.Info("recognized audio", "text", text)
+			}
 		}
 	}
 }
 
+// recognizeAudio recognizes audio using the whisper model. This needs to be moved into a separate package...
 func (a *app) recognizeAudio(sample audio.Audio) (string, error) {
 	wCtx, err := a.whisper.NewContext()
 	if err != nil {

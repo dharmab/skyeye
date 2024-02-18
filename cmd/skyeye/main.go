@@ -18,9 +18,10 @@ import (
 )
 
 func main() {
-
+	// Set up an application-scoped context and a cancel function to shut down the application.
 	ctx, cancel := context.WithCancel(context.Background())
 
+	// Set up a signal handler to shut down the application when an interrupt or TERM signal is received.
 	interuptChan := make(chan os.Signal, 1)
 	signal.Notify(interuptChan, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -30,6 +31,8 @@ func main() {
 		time.Sleep(time.Second)
 		os.Exit(0)
 	}()
+
+	// Parse configuration from CLI flags.
 	LogLevel := flag.String("log-level", "info", "logging level (debug=-4, info=0, warn=4, error=8)")
 	DCSGRPCAddress := flag.String("dcs-grpc-server-address", "localhost:50051", "address of the DCS-gRPC server")
 	GRPCConnectionTimeout := flag.Duration("grpc-connection-timeout", 2*time.Second, "gRPC connection timeout")
@@ -78,6 +81,7 @@ func main() {
 		exitOnErr(errors.New("srs-coalition must be either blue or red"))
 	}
 
+	// Load whisper.cpp model
 	slog.Info("loading whisper model", "path", *WhisperModelPath)
 	whisperModel, err := whisper.New(*WhisperModelPath)
 	if err != nil {
@@ -85,6 +89,7 @@ func main() {
 	}
 	defer whisperModel.Close()
 
+	// Configure and run the application.
 	config := application.Configuration{
 		DCSGRPCAddress:               *DCSGRPCAddress,
 		GRPCConnectionTimeout:        *GRPCConnectionTimeout,
@@ -104,6 +109,7 @@ func main() {
 	exitOnErr(err)
 }
 
+// exitOnErr logs the error and exits the application if the error is not nil.
 func exitOnErr(err error) {
 	if err != nil {
 		slog.With("error", err).Error("application exiting with error")

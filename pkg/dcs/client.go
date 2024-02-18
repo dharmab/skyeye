@@ -1,3 +1,4 @@
+// package dcs provides a client for the DCS-gRPC server. This client can be used to query and manipulate the sim.
 package dcs
 
 import (
@@ -15,11 +16,13 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+// ClientConfiguration configures the DCS-gRPC client.
 type ClientConfiguration struct {
 	Address           string
 	ConnectionTimeout time.Duration
 }
 
+// DCSClient wraps the DCS-gRPC client.
 type DCSClient interface {
 	WorldClient() world.WorldServiceClient
 	MissionClient() mission.MissionServiceClient
@@ -29,13 +32,20 @@ type DCSClient interface {
 	Close() error
 }
 
+// dcsClient implements DCSClient.
 type dcsClient struct {
-	connection      *grpc.ClientConn
-	worldClient     world.WorldServiceClient
-	missionClient   mission.MissionServiceClient
+	// connection is the gRPC client connection to DCS-gRPC, and indirectly, the DCS World server.
+	connection *grpc.ClientConn
+	// worldClient a client for the sim world state. This includes the theatre name, airbases, and map markers.
+	worldClient world.WorldServiceClient
+	// missionClient is a client for mission scenario data. This includes commands to manipulate the Communications menu.
+	missionClient mission.MissionServiceClient
+	// coalitionClient is a client for coalition data. This includes the bullseye, groups and player units on the blue and red coalitions..
 	coalitionClient coalition.CoalitionServiceClient
-	groupClient     group.GroupServiceClient
-	unitClient      unit.UnitServiceClient
+	// groupClient is a client for getting the units within a group.
+	groupClient group.GroupServiceClient
+	// unitClient is a client for querying a unit's name, description and position.
+	unitClient unit.UnitServiceClient
 }
 
 func NewDCSClient(ctx context.Context, config ClientConfiguration) (DCSClient, error) {
@@ -55,32 +65,39 @@ func NewDCSClient(ctx context.Context, config ClientConfiguration) (DCSClient, e
 	}, nil
 }
 
+// connectToDCSGRPC connects to the DCS-gRPC server at the given address. This is kind of anti-idomatic Go and should be refactored...
 func connectToDCSGRPC(ctx context.Context, address string, timeout time.Duration) (*grpc.ClientConn, error) {
 	connectionCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	return grpc.DialContext(connectionCtx, address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 }
 
+// WorldClient returns a WorldServiceClient, which can be used to query the sim world state. This includes the theatre name, airbases, and map markers.
 func (c *dcsClient) WorldClient() world.WorldServiceClient {
 	return c.worldClient
 }
 
+// MissionClient returns a MissionServiceClient, which can be used to query and manipulate the mission scenario. This includes commands to manipulate the Communications menu.
 func (c *dcsClient) MissionClient() mission.MissionServiceClient {
 	return c.missionClient
 }
 
+// CoalitionClient returns a CoalitionServiceClient, which can be used to query coalition data. This includes the bullseye, groups and player units on the blue and red coalitions.
 func (c *dcsClient) CoalitionClient() coalition.CoalitionServiceClient {
 	return c.coalitionClient
 }
 
+// GroupClient returns a GroupServiceClient, which can be used to query the units within a group.
 func (c *dcsClient) GroupClient() group.GroupServiceClient {
 	return c.groupClient
 }
 
+// UnitClient returns a UnitServiceClient, which can be used to query a unit's name, description and position.
 func (c *dcsClient) UnitClient() unit.UnitServiceClient {
 	return c.unitClient
 }
 
+// Close closes the DCS-gRPC client connection. This is anti-idomatic Go and should be refactored...
 func (c *dcsClient) Close() error {
 	return c.connection.Close()
 }

@@ -1,41 +1,62 @@
 package types
 
-// https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/master/DCS-SR-Common/DCSState/Transponder.cs
+// This file contains types related to the SRS Transponder: https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/master/DCS-SR-Common/DCSState/Transponder.cs
+// These types are not used by Skyeye, but are included for completeness.
+
+// IFFControlMode is used by the SRS client as part of the configuration for how the player sets Transponder codes.
 type IFFControlMode int
 
 const (
-	IFFControlModeCockpit  = 0
-	IFFControlModeOverlay  = 1
+	// IFFControlModeCockpit corresponds to IFFControlMode.COCKPIT in SRS
+	IFFControlModeCockpit = 0
+	// IFFControlModeOverlay corresponds to IFFControlMode.OVERLAY in SRS
+	IFFControlModeOverlay = 1
+	// IFFControlModeDisabled corresponds to IFFControlMode.DISABLED in SRS
 	IFFControlModeDisabled = 2
 )
 
-// https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/master/DCS-SR-Common/DCSState/Transponder.cs
+// IFFStatus is used by the SRS client to indicate the output of the IFF system.
 type IFFStatus int
 
 const (
-	IFFStatusOff    = 0
+	// IFFStatusOff corresponds to IFFStatus.OFF in SRS
+	IFFStatusOff = 0
+	// IFFStatusNormal corresponds to IFFStatus.NORMAL in SRS
 	IFFStatusNormal = 1
-	IFFStatusIdent  = 2
+	// IFFStatusIdent corresponds to IFFStatus.IDENT in SRS
+	IFFStatusIdent = 2
 )
 
+// IFFMode is used by the SRS client to indicate the mode of the IFF system.
 type IFFMode int
 
+// IFFModeDisabled is a special value used by the SRS client to indicate that a given transponder mode is disabled.
 const IFFModeDisabled = -1
+
+// IFFMicDisabled is... I actually have no idea what this does.
 const IFFMicDisabled = -1
 
-// https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/master/DCS-SR-Common/DCSState/IFF.cs
-type IFF struct {
+// Transponder represents an aircraft's transponder.
+type Transponder struct {
+	// ControlMode is the mode in which the player sets Transponder codes.
 	ControlMode IFFControlMode `json:"control"`
-	Status      IFFStatus      `json:"status"`
-	Mode1       IFFMode        `json:"mode1"`
-	Mode2       IFFMode        `json:"mode2"`
-	Mode3       IFFMode        `json:"mode3"`
-	Mode4       bool           `json:"mode4"`
-	Mic         int            `json:"mic"`
+	// Status is the Transponder output state.
+	Status IFFStatus `json:"status"`
+	// Mode1 is a two digit military IFF code.
+	Mode1 IFFMode `json:"mode1"`
+	// Mode 2 is a four digit military IFF code.
+	Mode2 IFFMode `json:"mode2"`
+	// Mode 3 is a four digit military/civilian transponder code, also known as Mode A or Mode 3/A. This is the code that ATC uses to identify aircraft on radar.
+	Mode3 IFFMode `json:"mode3"`
+	// Mode 4 is an encrypted military IFF code. In SRS, it's a simple on/off state.
+	Mode4 bool `json:"mode4"`
+	// Mic is a mystery, wrapped in an enigma, shrouded in a riddle.
+	Mic int `json:"mic"`
 }
 
-func NewIFF() IFF {
-	return IFF{
+// NewIFF returns a new Transponder with all fields set to reasonable defaults.
+func NewIFF() Transponder {
+	return Transponder{
 		ControlMode: IFFControlModeDisabled,
 		Status:      IFFStatusOff,
 		Mode1:       IFFModeDisabled,
