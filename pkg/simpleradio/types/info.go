@@ -17,9 +17,9 @@ type ClientInfo struct {
 }
 
 type RadioInfo struct {
-	Radios  []Radio `json:"radios,omitempty"`
-	Unit    string  `json:"unit"`
-	UnitID  uint64  `json:"unitId"`
-	IFF     IFF     `json:"iff"`
-	Ambient Ambient `json:"ambient"`
+	Radios  []Radio     `json:"radios,omitempty"`
+	Unit    string      `json:"unit"`
+	UnitID  uint64      `json:"unitId"`
+	IFF     Transponder `json:"iff"`
+	Ambient Ambient     `json:"ambient"`
 }

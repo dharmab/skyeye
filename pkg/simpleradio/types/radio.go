@@ -1,6 +1,10 @@
 package types
 
-// Values from https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/master/DCS-SR-Common/DCSState/RadioInformation.cs
+// This file implements types from https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/master/DCS-SR-Common/DCSState/RadioInformation.cs
+
+// Modulation indicates the technology used to send a transmission.
+type Modulation byte
+
 const (
 	// ModulationAM is Amplitude Modulation
 	ModulationAM = 0
@@ -14,6 +18,7 @@ const (
 	// ModulationSATCOM is satellite voice channels (unused?)
 	ModulationSATCOM = 5
 	// ModulationMIDS is Multifunction Information Distribution System (datalink digital voice channels)
+	// These are used by F/A-18C for VOC A and VOC B
 	ModulationMIDS = 6
 	// ModulationSINCGARS is Single Channel Ground and Airborne Radio System (https://en.wikipedia.org/wiki/SINCGARS, unused?)
 	ModulationSINCGARS = 7
@@ -24,7 +29,7 @@ type Radio struct {
 	// Example: 249.500MHz is encoded as 249500000.0
 	Frequency float64 `json:"freq"`
 	// Modulation is the transmission modulation mode.
-	Modulation byte `json:"modulation"`
+	Modulation Modulation `json:"modulation"`
 	// IsEncryption indicates if the transmission is encrypted.
 	IsEncrypted bool `json:"enc"`
 	// EncruptionKey is the encryption key used to encrypted transmissions.

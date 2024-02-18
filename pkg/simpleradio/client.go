@@ -1,6 +1,5 @@
+// package simpleradio contains a bespoke SimpleRadio-Standalone client.
 package simpleradio
-
-// https://gitlab.com/overlordbot/srs-bot/-/blob/master/OverlordBot.SimpleRadio/Client.cs
 
 import (
 	"context"
@@ -12,25 +11,32 @@ import (
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 )
 
+// Client is a SimpleRadio-Standalone client.
 type Client interface {
+	// Run starts the SimpleRadio-Standalone client. It should be called exactly once.
 	Run(context.Context) error
+	// Receive returns a channel that receives transmissions over the radio. Each transmission is F32LE PCM audio data.
 	Receive() <-chan audio.Audio
+	// Transmit sends a transmission over the radio. The audio data should be in F32LE PCM format.
 	Transmit(audio.Audio) error
 }
 
+// client implements the SRS Client.
 type client struct {
+	// dataClient is a client for the SRS data protocol.
+	dataClient data.DataClient
+	// audioClient is a client for the SRS audio protocol.
 	audioClient audio.AudioClient
-	dataClient  data.DataClient
 }
 
-func NewClient(config types.ClientConfiguration, radios types.RadioInfo) (Client, error) {
+func NewClient(config types.ClientConfiguration) (Client, error) {
 	guid := types.NewGUID()
 	dataClient, err := data.NewClient(guid, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct SRS data client: %w", err)
 	}
 
-	audioClient, err := audio.NewClient(guid, config, radios)
+	audioClient, err := audio.NewClient(guid, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct SRS audio client: %w", err)
 	}
@@ -43,9 +49,11 @@ func NewClient(config types.ClientConfiguration, radios types.RadioInfo) (Client
 	return client, nil
 }
 
+// Run implements Client.Run.
 func (c *client) Run(ctx context.Context) error {
 	errorChan := make(chan error)
 
+	// TODO return a ready channel and wait for each. This resolves a minor race condition on startup
 	go func() {
 		slog.Info("running SRS data client")
 		if err := c.dataClient.Run(ctx); err != nil {
@@ -70,10 +78,12 @@ func (c *client) Run(ctx context.Context) error {
 	}
 }
 
+// Receive implements Client.Receive.
 func (c *client) Receive() <-chan audio.Audio {
 	return c.audioClient.Receive()
 }
 
+// Transmit implements Client.Transmit.
 func (c *client) Transmit(sample audio.Audio) error {
 	return c.audioClient.Transmit(sample)
 }

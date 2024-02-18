@@ -12,26 +12,31 @@ import (
 	"net"
 	"time"
 
-	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
+	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 )
 
+// DataClient is a client for the SRS data protocol.
 type DataClient interface {
+	// Run starts the SRS data client. It should be called exactly once.
 	Run(context.Context) error
-	Send(srs.Message) error
+	// Send sends a message to the SRS server.
+	Send(types.Message) error
 }
 
 type dataClient struct {
-	connection                *net.TCPConn
-	clientInfo                srs.ClientInfo
+	// connection is the TCP connection to the SRS server.
+	connection *net.TCPConn
+	// clientInfo is the client information for this client. It is what players will see in the SRS client list, and the in-game overlay when this client transmits.
+	clientInfo types.ClientInfo
+	// externalAWACSModePassword is the password for authenticating as an external AWACS in the SRS server.
 	externalAWACSModePassword string
-	// otherClients is a map of GUIDs to client names
-	// filtered to our coalition and frequency
-	otherClients map[srs.GUID]string
+	// otherClients is a map of GUIDs to client names, which the bot will use to filter out other clients that are not in the same coalition and frequency.
+	otherClients map[types.GUID]string
 	// lastReceived is the most recent time data was received. If this exceeds a data timeout, we have likely been disconnected from the server.
 	lastReceived time.Time
 }
 
-func NewClient(guid srs.GUID, config srs.ClientConfiguration) (DataClient, error) {
+func NewClient(guid types.GUID, config types.ClientConfiguration) (DataClient, error) {
 	slog.Info("connecting to SRS server", "protocol", "tcp", "address", config.Address)
 	address, err := net.ResolveTCPAddr("tcp", config.Address)
 	if err != nil {
@@ -44,27 +49,28 @@ func NewClient(guid srs.GUID, config srs.ClientConfiguration) (DataClient, error
 
 	client := &dataClient{
 		connection: connection,
-		clientInfo: srs.ClientInfo{
+		clientInfo: types.ClientInfo{
 			Name:           config.ClientName,
 			GUID:           guid,
 			Seat:           0,
 			Coalition:      config.Coalition,
 			AllowRecording: false,
-			RadioInfo: srs.RadioInfo{
+			RadioInfo: types.RadioInfo{
 				UnitID:  0,
 				Unit:    "External AWACS",
-				Radios:  []srs.Radio{config.Radio},
-				IFF:     srs.NewIFF(),
-				Ambient: srs.NewAmbient(),
+				Radios:  []types.Radio{config.Radio},
+				IFF:     types.NewIFF(),
+				Ambient: types.NewAmbient(),
 			},
-			Position: &srs.Position{},
+			Position: &types.Position{},
 		},
 		externalAWACSModePassword: config.ExternalAWACSModePassword,
-		otherClients:              map[srs.GUID]string{},
+		otherClients:              map[types.GUID]string{},
 	}
 	return client, nil
 }
 
+// Run implements DataClient.Run.
 func (c *dataClient) Run(ctx context.Context) error {
 	defer func() {
 		if err := c.close(); err != nil {
@@ -72,7 +78,7 @@ func (c *dataClient) Run(ctx context.Context) error {
 		}
 	}()
 
-	messageChan := make(chan srs.Message)
+	messageChan := make(chan types.Message)
 	errorChan := make(chan error)
 
 	go func() {
@@ -84,7 +90,7 @@ func (c *dataClient) Run(ctx context.Context) error {
 			line, err := reader.ReadBytes(byte('\n'))
 			switch err {
 			case nil:
-				var message srs.Message
+				var message types.Message
 				jsonErr := json.Unmarshal(line, &message)
 				if jsonErr != nil {
 					slog.Warn("failed to unmarshal message", "text", line, "error", jsonErr)
@@ -133,48 +139,52 @@ func (c *dataClient) Run(ctx context.Context) error {
 	}
 }
 
-func (c *dataClient) handleMessage(message srs.Message) {
+// handleMessage routes a given message to the appropriate handler.
+func (c *dataClient) handleMessage(message types.Message) {
 	slog.Debug("handling message", "message", message)
 	switch message.Type {
-	case srs.MessagePing:
+	case types.MessagePing:
 		logMessageAndIgnore(message)
-	case srs.MessageServerSettings:
+	case types.MessageServerSettings:
 		logMessageAndIgnore(message)
-	case srs.MessageVersionMismatch:
+	case types.MessageVersionMismatch:
 		logMessageAndIgnore(message)
-	case srs.MessageExternalAWACSModeDisconnect:
+	case types.MessageExternalAWACSModeDisconnect:
 		logMessageAndIgnore(message)
-	case srs.MessageSync:
+	case types.MessageSync:
 		c.syncClients(message.Clients)
-	case srs.MessageUpdate:
+	case types.MessageUpdate:
 		c.syncClient(message.Client)
-	case srs.MessageRadioUpdate:
+	case types.MessageRadioUpdate:
 		c.syncClient(message.Client)
-	case srs.MessageClientDisconnect:
+	case types.MessageClientDisconnect:
 		c.syncClient(message.Client)
-	case srs.MessageExternalAWACSModePassword:
+	case types.MessageExternalAWACSModePassword:
 		// WTF is this???
-		c.Send(srs.Message{
-			Type:    srs.MessageRadioUpdate,
-			Clients: []srs.ClientInfo{c.clientInfo},
+		c.Send(types.Message{
+			Type:    types.MessageRadioUpdate,
+			Clients: []types.ClientInfo{c.clientInfo},
 		})
 	default:
 		slog.Warn("received unrecognized message", "payload", message)
 	}
 }
 
-func logMessageAndIgnore(message srs.Message) {
+// logMessageAndIgnore logs a message at DEBUG level.
+func logMessageAndIgnore(message types.Message) {
 	slog.Debug("received message", "payload", message)
 }
 
-func (c *dataClient) syncClients(others []srs.ClientInfo) {
+// syncClients calls syncClient for each client in the given slice.
+func (c *dataClient) syncClients(others []types.ClientInfo) {
 	slog.Info("syncronizing clients", "count", len(others))
 	for _, info := range others {
 		c.syncClient(&info)
 	}
 }
 
-func (c *dataClient) syncClient(other *srs.ClientInfo) {
+// syncClient checks if the given client matches this client's coalition and radios, and if so, stores it in the otherClients map. Non-matching clients are removed from the map if previously stored.
+func (c *dataClient) syncClient(other *types.ClientInfo) {
 	if other == nil {
 		slog.Warn("syncClient called using nil client. ignoring...")
 		return
@@ -210,7 +220,7 @@ func (c *dataClient) syncClient(other *srs.ClientInfo) {
 		}
 	}
 
-	isSameCoalition := (c.clientInfo.Coalition == other.Coalition) || srs.IsSpectator(other.Coalition)
+	isSameCoalition := (c.clientInfo.Coalition == other.Coalition) || types.IsSpectator(other.Coalition)
 	clientLogger.Debug("checking client", "coalitionMatches", isSameCoalition, "frequencyMatches", isSameFrequency)
 	if isSameCoalition && isSameFrequency {
 		clientLogger.Debug("storing client with matching radio")
@@ -226,7 +236,8 @@ func (c *dataClient) syncClient(other *srs.ClientInfo) {
 	}
 }
 
-func (c *dataClient) Send(message srs.Message) error {
+// Send implements DataClient.Send.
+func (c *dataClient) Send(message types.Message) error {
 	b, err := json.Marshal(message)
 	if err != nil {
 		return fmt.Errorf("failed to marshal message to JSON: %w", err)
@@ -240,15 +251,17 @@ func (c *dataClient) Send(message srs.Message) error {
 	return nil
 }
 
-func (c *dataClient) newMessage(t srs.MessageType) srs.Message {
-	return srs.Message{
+// newMessage is a helper that initializes a new message with the client's version and the given message type.
+func (c *dataClient) newMessage(t types.MessageType) types.Message {
+	return types.Message{
 		Version: "2.1.0.1", // stubbing fake SRS version
 		Type:    t,
 	}
 }
 
+// sync sends a sync message to the SRS server containing this client's information.
 func (c *dataClient) sync() error {
-	message := c.newMessage(srs.MessageSync)
+	message := c.newMessage(types.MessageSync)
 	message.Client = &c.clientInfo
 	if err := c.Send(message); err != nil {
 		return fmt.Errorf("sync failed: %w", err)
@@ -256,8 +269,9 @@ func (c *dataClient) sync() error {
 	return nil
 }
 
+// updateRadios sends a radio update message to the SRS server containing this client's information.
 func (c *dataClient) updateRadios() error {
-	message := c.newMessage(srs.MessageRadioUpdate)
+	message := c.newMessage(types.MessageRadioUpdate)
 	message.Client = &c.clientInfo
 	if err := c.Send(message); err != nil {
 		return fmt.Errorf("radio update failed: %w", err)
@@ -265,9 +279,10 @@ func (c *dataClient) updateRadios() error {
 	return nil
 }
 
+// connectExternalAWACSMode sends an external AWACS mode password message to the SRS server to authenticate as an external AWACS.
 func (c *dataClient) connectExternalAWACSMode() error {
-	message := c.newMessage(srs.MessageExternalAWACSModePassword)
-	message.Client = &srs.ClientInfo{
+	message := c.newMessage(types.MessageExternalAWACSModePassword)
+	message.Client = &types.ClientInfo{
 		GUID:           c.clientInfo.GUID,
 		Name:           c.clientInfo.Name,
 		Coalition:      c.clientInfo.Coalition,
@@ -281,6 +296,7 @@ func (c *dataClient) connectExternalAWACSMode() error {
 	return nil
 }
 
+// close closes the TCP connection to the SRS server. This is anti-idomatic Go and should be refactored.
 func (c *dataClient) close() error {
 	if err := c.connection.Close(); err != nil {
 		return fmt.Errorf("error closing TCP connection to SRS: %w", err)

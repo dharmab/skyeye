@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestIsSpectator tests the IsSpectator function with valid and nonsense Coalition IDs.
 func TestIsSpectator(t *testing.T) {
 	require.True(t, IsSpectator(0))
 	require.False(t, IsSpectator(CoalitionBlue))
