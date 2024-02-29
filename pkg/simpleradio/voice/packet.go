@@ -104,15 +104,19 @@ type Frequency struct {
 
 // newVoicePacketFrom converts a voice packet from bytes to struct
 func NewVoicePacketFrom(b []byte) VoicePacket {
+	// The packet length is the first 2 bytes of the packet.
 	packetLength := binary.LittleEndian.Uint16(b[0:2])
 	slog.Debug("decoded voice packet length header", "value", packetLength)
 
+	// The fixed segment is at the end of the packet, and each field has a well-known length.
+	// Therefore, we can easily decode the fixed segment by working backwards from the end of the packet.
 	originIDPtr := packetLength - types.GUIDLength
 	relayIDPtr := originIDPtr - types.GUIDLength
 	hopsPtr := relayIDPtr - 1
 	packetIDPtr := hopsPtr - 8
 	unitIDPtr := packetIDPtr - 4
 
+	// Store the packet headers and fixed segment in a VoicePacket struct.
 	packet := VoicePacket{
 		/* Headers */
 		PacketLength:             packetLength,
@@ -128,6 +132,7 @@ func NewVoicePacketFrom(b []byte) VoicePacket {
 	slog.Debug("decoded voice packet headers and fixed segment", "struct", packet)
 
 	/* Audio Segment */
+	// The audio segment is the next segment after the headers. It always starts at byte 6 and is AudioSegmentLength bytes long.
 	audioSegmentPtr := 6
 	audioSegment := b[audioSegmentPtr : audioSegmentPtr+int(packet.AudioSegmentLength)]
 	packet.AudioBytes = make([]byte, len(audioSegment))
@@ -135,8 +140,10 @@ func NewVoicePacketFrom(b []byte) VoicePacket {
 	slog.Debug("decoded voice packet audio bytes", "length", len(packet.AudioBytes))
 
 	/* Frequencies Segment */
+	// The frequencies segment is the next segment after the audio segment. It always starts at byte 6+AudioSegmentLength and is FrequenciesSegmentLength bytes long.
 	frequenciesSegmentPtr := int(6 + packet.AudioSegmentLength)
 	frequenciesSegment := b[frequenciesSegmentPtr : frequenciesSegmentPtr+int(packet.FrequenciesSegmentLength)]
+	// Each frequency is 10 bytes long, so we can iterate over the segment in 10 byte chunks to decode each frequency.
 	for i := 0; i < len(frequenciesSegment); i = i + 10 {
 		modulationPtr := i + 8
 		encryptionPtr := modulationPtr + 1
@@ -150,6 +157,8 @@ func NewVoicePacketFrom(b []byte) VoicePacket {
 		packet.Frequencies = append(packet.Frequencies, frequency)
 	}
 	slog.Debug("decoded voice packet frequencies segment", "frequencies", packet.Frequencies)
+
+	// That wasn't so bad, was it?
 
 	return packet
 }
