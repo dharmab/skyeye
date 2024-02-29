@@ -44,8 +44,8 @@ Current status:
 - ✅ OpenAPI Whisper speech recognition prototyped and proven viable
 - ✅ Speech recognition partially implemented
 - ✅ Mimic3 speech output prototyped and proven viable
-- 🚧 SRS integration not complete
-- 🚧 Speech recognition implementation not complete
+- 🚧 SRS integration mostly complete, needs more testing and robustness
+- 🚧 Speech recognition implementation functional, but needs more work
 - 🚧 Text input and outputs not yet implemented
 - 🚧 GCI controller logic not yet implemented
 - 🚧 Speech output not yet implemented
