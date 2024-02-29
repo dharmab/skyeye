@@ -78,19 +78,28 @@ func (c *audioClient) Run(ctx context.Context) error {
 		}
 	}()
 
+	// We need to send pings to the server to keep our connection alive. The server won't send us any audio until it receives a ping from us.
 	go c.sendPings(ctx)
 
+	// udpPingRxChan is a channel for received ping packets.
 	udpPingRxChan := make(chan []byte, 0xF)
 
+	// Handle incoming pings - mostly for debugging. We don't need to echo them back.
 	go c.receivePings(ctx, udpPingRxChan)
 
-	udpVoiceRxChan := make(chan []byte, 64*0xFFFFF)           // TODO configurable packet buffer size
+	// udpVoiceRxChan is a channel for received voice packets.
+	udpVoiceRxChan := make(chan []byte, 64*0xFFFFF) // TODO configurable packet buffer size
+	// voiceBytesChan is a channel for VoicePacket structs decoded from UDP voice packets.
 	voiceBytesChan := make(chan []voice.VoicePacket, 0xFFFFF) // TODO configurable tranmission buffer size
+
+	// receive voice packets and decode them. This is the logic for receiving audio from the SRS server.
 	go c.receiveVoice(ctx, udpVoiceRxChan, voiceBytesChan)
 	go c.decodeVoice(ctx, voiceBytesChan)
 
+	// Start listening for incoming UDP packets and routing them to receivePings and receiveVoice.
 	go c.receiveUDP(ctx, udpPingRxChan, udpVoiceRxChan)
 
+	// Sit and wait, until the context is canceled.
 	<-ctx.Done()
 	c.close()
 	return nil

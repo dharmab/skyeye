@@ -199,6 +199,7 @@ func (c *dataClient) syncClient(other *types.ClientInfo) {
 		return
 	}
 
+	// isSameFrequency is true if the other client has a radio with the same frequency, modulation, and encryption settings as this client
 	var isSameFrequency bool
 	for _, otherRadio := range other.RadioInfo.Radios {
 		for _, thisRadio := range c.clientInfo.RadioInfo.Radios {
@@ -220,8 +221,11 @@ func (c *dataClient) syncClient(other *types.ClientInfo) {
 		}
 	}
 
+	// isSameCoalition is true if the other client is in the same coalition as this client, or if the other client is a spectator.
 	isSameCoalition := (c.clientInfo.Coalition == other.Coalition) || types.IsSpectator(other.Coalition)
 	clientLogger.Debug("checking client", "coalitionMatches", isSameCoalition, "frequencyMatches", isSameFrequency)
+
+	// if the other client has a matching radio and is not in an opposing coalition, store it in otherClients. Otherwise, banish it to the shadow realm.
 	if isSameCoalition && isSameFrequency {
 		clientLogger.Debug("storing client with matching radio")
 		c.otherClients[other.GUID] = other.Name
@@ -230,6 +234,7 @@ func (c *dataClient) syncClient(other *types.ClientInfo) {
 		if ok {
 			clientLogger.Debug("deleting client without matching radio")
 			delete(c.otherClients, other.GUID)
+			// TODO memory leak here due to continually adding and removing clients from the map. https://100go.co/28-maps-memory-leaks/
 		} else {
 			clientLogger.Debug("skipped client without matching radio")
 		}
@@ -238,6 +243,7 @@ func (c *dataClient) syncClient(other *types.ClientInfo) {
 
 // Send implements DataClient.Send.
 func (c *dataClient) Send(message types.Message) error {
+	// Sending a message means writing a JSON-serialized message to the TCP connection, followed by a newline.
 	b, err := json.Marshal(message)
 	if err != nil {
 		return fmt.Errorf("failed to marshal message to JSON: %w", err)
