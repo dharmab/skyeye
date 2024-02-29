@@ -2,8 +2,6 @@
 // See also: https://gitlab.com/overlordbot/srs-bot/-/blob/master/OverlordBot.SimpleRadio/Network/AudioClient.cs
 package audio
 
-// https://gitlab.com/overlordbot/srs-bot/-/blob/master/OverlordBot.SimpleRadio/Network/AudioClient.cs
-
 import (
 	"context"
 	"fmt"
@@ -31,9 +29,11 @@ type AudioClient interface {
 
 // audioClient implements [AudioClient]
 type audioClient struct {
-	guid  types.GUID
+	// guid is used to identify this client to the SRS server.
+	guid types.GUID
+	// radio is the SRS radio this client will receive and transmit on.
 	radio types.Radio
-
+	// connection is the UDP connection to the SRS server.
 	connection *net.UDPConn // todo move connection mgmt into Run()
 	// rxChan is a channel where received audio is published. A read-only version is available publicly.
 	rxchan chan Audio
@@ -84,8 +84,8 @@ func (c *audioClient) Run(ctx context.Context) error {
 
 	go c.receivePings(ctx, udpPingRxChan)
 
-	udpVoiceRxChan := make(chan []byte, 64*0xFFFFF) // TODO configurable audio buffer size
-	voiceBytesChan := make(chan []voice.VoicePacket, 0xFFFFF)
+	udpVoiceRxChan := make(chan []byte, 64*0xFFFFF)           // TODO configurable packet buffer size
+	voiceBytesChan := make(chan []voice.VoicePacket, 0xFFFFF) // TODO configurable tranmission buffer size
 	go c.receiveVoice(ctx, udpVoiceRxChan, voiceBytesChan)
 	go c.decodeVoice(ctx, voiceBytesChan)
 
