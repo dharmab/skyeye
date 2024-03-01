@@ -18,8 +18,10 @@ const (
 // Message is the JSON schema of SRS protocol messages. The SRS data protocol sends these messages, one per line, in JSON format over the TCP connection.
 // The order of fields in this type matches the order of fields in the official SRS client, just in case a different order were to trigger some obscure bug.
 type Message struct {
+	// Version is the SRS client version.
+	Version string `json:"Version"`
 	// Client is used in messages that reference a single client.
-	Client *ClientInfo `json:"Client,omitempty"`
+	Client ClientInfo `json:"Client,omitempty"`
 	// Clients is used in messages that reference multiple clients.
 	Clients []ClientInfo `json:"Clients,omitempty"`
 	// ServerSettings is a map of server settings and their values. It sometimes appears in Sync messages.
@@ -28,6 +30,4 @@ type Message struct {
 	ExternalAWACSModePassword string `json:"ExternalAWACSModePassword,omitempty"`
 	// Type is the type of the message.
 	Type MessageType `json:"MsgType"`
-	// Version is the SRS client version.
-	Version string `json:"Version"`
 }

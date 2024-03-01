@@ -3,9 +3,7 @@ package debug
 
 import (
 	"bytes"
-	"encoding/binary"
 	"log/slog"
-	"math"
 	"time"
 
 	"github.com/ebitengine/oto/v3"
@@ -17,7 +15,7 @@ func NewOtoContext() (*oto.Context, error) {
 		// hardcoded to prevent import cycle
 		SampleRate:   16000,
 		ChannelCount: 1,
-		Format:       oto.FormatFloat32LE,
+		Format:       oto.FormatSignedInt16LE,
 	})
 	<-readyChan
 	return ctx, err
@@ -43,13 +41,4 @@ func PlayAudio(ctx *oto.Context, pcm []byte) {
 		time.Sleep(1000 * time.Millisecond)
 	}
 	slog.Info("done playing sample")
-}
-
-// F32toBytes converts a slice of float32 to a slice of bytes. This is useful for converting from F32LE to S16Le.
-func F32toBytes(in []float32) []byte {
-	out := make([]byte, 0)
-	for _, f := range in {
-		out = binary.LittleEndian.AppendUint32(out, math.Float32bits(f))
-	}
-	return out
 }

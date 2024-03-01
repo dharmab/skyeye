@@ -5,17 +5,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/dcs"
+	"github.com/dharmab/skyeye/pkg/recognizer"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
-	"github.com/dharmab/skyeye/pkg/simpleradio/audio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
+	"github.com/dharmab/skyeye/pkg/synthesizer"
 
-	"github.com/ebitengine/oto/v3"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
 
@@ -53,11 +51,10 @@ type app struct {
 	dcsClient dcs.DCSClient
 	// srsClient is a SimpleRadio Standalone client
 	srsClient simpleradio.Client
-	// whisper is a whisper.cpp model used for Speech To Text
-	whisper whisper.Model
-	// otoCtx is an oto context used for playing audio. This is only used for debugging purposes.
-	// I should remove this when the SRS integration is stabilized.
-	otoCtx oto.Context
+	// recognizer provides speech-to-text recognition
+	recognizer recognizer.Recognizer
+	// synthesizer provides text-to-speech synthesis
+	synthesizer synthesizer.Sythesizer
 }
 
 // NewApplication constructs a new Application.
@@ -82,8 +79,9 @@ func NewApplication(ctx context.Context, config Configuration) (Application, err
 			ExternalAWACSModePassword: config.SRSExternalAWACSModePassword,
 			Coalition:                 config.SRSCoalition,
 			Radio: srs.Radio{
-				Frequency:  config.SRSFrequency,
-				Modulation: srs.ModulationAM,
+				Frequency:        config.SRSFrequency,
+				Modulation:       srs.ModulationAM,
+				ShouldRetransmit: true,
 			},
 		},
 	)
@@ -91,10 +89,20 @@ func NewApplication(ctx context.Context, config Configuration) (Application, err
 		return nil, fmt.Errorf("failed to construct application: %w", err)
 	}
 
+	slog.Info("constructing speech-to-text recognizer")
+	recognizer := recognizer.NewWhisperRecognizer(config.WhisperModel)
+
+	slog.Info("constructing text-to-speech syhthesizer")
+	synthesizer, err := synthesizer.NewPiperSpeaker(synthesizer.FeminineVoice)
+	if err != nil {
+		return nil, fmt.Errorf("failed to construct application: %w", err)
+	}
+
 	app := &app{
-		dcsClient: dcsClient,
-		srsClient: srsClient,
-		whisper:   config.WhisperModel,
+		dcsClient:   dcsClient,
+		srsClient:   srsClient,
+		recognizer:  recognizer,
+		synthesizer: synthesizer,
 	}
 	return app, nil
 }
@@ -118,13 +126,36 @@ func (a *app) Run(ctx context.Context) error {
 		}
 	}()
 
+	time.Sleep(2 * time.Second)
+	slog.Info("generating sunrise message")
+	sunriseSample, err := a.synthesizer.Say(fmt.Sprintf(
+		"All players, GCI %s sunrise on %s",
+		a.srsClient.Name(),
+		synthesizer.PronounceDecimal(a.srsClient.FrequencyMHz(), 3, ""),
+	))
+	if err != nil {
+		return fmt.Errorf("failed to generate sunrise message: %w", err)
+	}
+	//debug.PlayAudio(&a.otoCtx, audiotools.F32toS16LEBytes(sunriseSample))
+
+	slog.Info("transmitting sunrise message")
+	a.srsClient.Transmit(sunriseSample)
+
+	time.Sleep(6 * time.Second)
+
+	threatSample, err := a.synthesizer.Say("Raven fife one, threat, bullseye two fife niner, 59, 22000, track southwest, hostile, foxbat, two ship")
+	if err != nil {
+		return fmt.Errorf("failed to generate sunrise message: %w", err)
+	}
+	a.srsClient.Transmit(threatSample)
+
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case sample := <-a.srsClient.Receive():
-			slog.Debug("receiving sample from SRS client")
-			text, err := a.recognizeAudio(sample)
+			slog.Info("recognizing audio sample received from SRS client")
+			text, err := a.recognizer.Recognize(sample)
 			if err != nil {
 				slog.Error("error recongizing audio sample", "error", err)
 			} else {
@@ -132,37 +163,4 @@ func (a *app) Run(ctx context.Context) error {
 			}
 		}
 	}
-}
-
-// recognizeAudio recognizes audio using the whisper model. This needs to be moved into a separate package...
-func (a *app) recognizeAudio(sample audio.Audio) (string, error) {
-	wCtx, err := a.whisper.NewContext()
-	if err != nil {
-		return "", fmt.Errorf("error creating new speech-to-text context: %w", err)
-	}
-	slog.Info("processing sample")
-	err = wCtx.Process(sample, nil, nil)
-	if err != nil {
-		return "", fmt.Errorf("error processing audio sample: %w", err)
-	}
-
-	var textBuilder strings.Builder
-	for {
-		segment, err := wCtx.NextSegment()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			panic(err)
-		}
-
-		slog.Info(
-			"processed segment",
-			"start", segment.Start,
-			"end", segment.End,
-			"text", segment.Text,
-		)
-		textBuilder.WriteString(fmt.Sprintf("%s\n", segment.Text))
-	}
-	return textBuilder.String(), nil
 }

@@ -24,7 +24,7 @@ Run `pacman -Syu --needed git base-devel`. If prompted to select a package from 
 
 Clone this Git repository somewhere, and navigate to it in the MSYS2 UCRT terminal. Your `C:\` is available at `/c`, so you can access your Documents folder with `cd '/c/Documents and Settings/yourusername/Documents/'`. Similarly, your `D:\` will be at `/d` if present, and so on.
 
-Run `make install-dependencies` to install the C++ and Go compilers.
+Run `make install-dependencies` to install the C++ and Go compilers as well as some build dependencies.
 
 Run `make` to build `SkyEye.exe`.
 
@@ -35,7 +35,7 @@ Full guide/Makefile updates TODO
 Basically run this:
 
 ```sh
-pacman -Syu base-devel go
+pacman -Syu base-devel go opus libsoxr
 make whisper
 CGO_ENABLED=1 C_INCLUDE_PATH=third_party/whisper.cpp LIBRARY_PATH=third_party/whisper.cpp go build ./cmd/skyeye
 ```
@@ -52,7 +52,7 @@ Install [DCS-SRS](http://dcssimpleradio.com/). This can be on a different comput
 
 Launch the DCS server and SRS server. Load a mission on the DCS server. TODO better guide for this stuff.
 
-Download an OpenAI Whisper model from [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). The larger models have better accuracy but worse performance. I recommend trying a "medium.en" model as a starting point. You can put this model next to `skyeye.exe`.
+You will need to download an OpenAI Whisper model. The main source of these models is [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main)] The larger models have better accuracy but higher memory consumption and take longer to recognize text. There are also faster distilled models available [here](https://huggingface.co/distil-whisper/distil-medium.en#whispercpp), [although these have some quality trade-offs with the library used in this software.](https://github.com/ggerganov/whisper.cpp/tree/master/models#distilled-models). Whichever model you choose, put the next to `skyeye.exe`.
 
 Run SkyEye by passing command line flags to `skyeye.exe`. You can run `./skyeye.exe -help` for some hints. A simple example:
 
@@ -74,7 +74,7 @@ Install [Visual Studio Code](https://code.visualstudio.com/).
 
 Configure Visual Studio Code for [Go development](https://learn.microsoft.com/en-us/azure/developer/go/configure-visual-studio-code) and [GCC with MinGW](https://code.visualstudio.com/docs/cpp/config-mingw).
 
-For convenience, add MSYS2  to Visual Studio Code's integrated terminal. Open your User `settings.json`, use IntelliSense to complete `terminal.integrated.profiles.windows`, and add this object to the array:
+For convenience, add MSYS2 to Visual Studio Code's integrated terminal. Open your User `settings.json`, use IntelliSense to complete `terminal.integrated.profiles.windows`, and add this object to the array:
 
 ```json
 "MSYS2": {
@@ -90,10 +90,11 @@ For convenience, add MSYS2  to Visual Studio Code's integrated terminal. Open yo
 }
 ```
 
+I don't have this project set up to build/run/debug through VSC yet.
+
 ### Linux
 
 🐧 Use your favorite editor.
 
 
-
-TODO guide to project the architecture, file and package layout, entrypoiny
+TODO guide to project architecture, file and package layout, entrypoints

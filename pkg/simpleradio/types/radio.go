@@ -1,5 +1,7 @@
 package types
 
+import "math"
+
 // This file implements types from https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/master/DCS-SR-Common/DCSState/RadioInformation.cs
 
 // Modulation indicates the technology used to send a transmission.
@@ -13,17 +15,18 @@ const (
 	// ModulationIntercom is intercom (used for multi-crew)
 	ModulationIntercom = 2
 	ModulationDisabled = 3
-	// ModulationIntercom is HAVE QUICK (https://en.wikipedia.org/wiki/Have_Quick, unused?)
+	// ModulationIntercom is HAVE QUICK (https://en.wikipedia.org/wiki/Have_Quick, unused)
 	ModulationHAVEQUICK = 4
-	// ModulationSATCOM is satellite voice channels (unused?)
+	// ModulationSATCOM is satellite voice channels (unused)
 	ModulationSATCOM = 5
 	// ModulationMIDS is Multifunction Information Distribution System (datalink digital voice channels)
 	// These are used by F/A-18C for VOC A and VOC B
 	ModulationMIDS = 6
-	// ModulationSINCGARS is Single Channel Ground and Airborne Radio System (https://en.wikipedia.org/wiki/SINCGARS, unused?)
+	// ModulationSINCGARS is Single Channel Ground and Airborne Radio System (https://en.wikipedia.org/wiki/SINCGARS, unused)
 	ModulationSINCGARS = 7
 )
 
+// Radio describes one of a client's radios.
 type Radio struct {
 	// Frequency is the transmission frequency in Hz.
 	// Example: 249.500MHz is encoded as 249500000.0
@@ -37,4 +40,17 @@ type Radio struct {
 	// GuardFrequency is a second frequency the client can receive.
 	GuardFrequency   float64 `json:"secFreq"`
 	ShouldRetransmit bool    `json:"retransmit"`
+}
+
+// IsSameFrequency is true if the other radio has the same frequency, modulation, and encryption settings as this radio.
+func (r Radio) IsSameFrequency(other Radio) bool {
+	isSame := false
+	// 1KHz range acceptable
+	doesFrequencyMatch := math.Abs(float64(r.Frequency)-float64(other.Frequency)) <= 500.0
+	doesModulationMatch := r.Modulation == other.Modulation
+	doesEncryptionMatch := (!r.IsEncrypted && !other.IsEncrypted) || (r.IsEncrypted && other.IsEncrypted && r.EncryptionKey == other.EncryptionKey)
+	if doesFrequencyMatch && doesModulationMatch && doesEncryptionMatch {
+		isSame = true
+	}
+	return isSame
 }

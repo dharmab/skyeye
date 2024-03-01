@@ -33,7 +33,7 @@ type IFFMode int
 // IFFModeDisabled is a special value used by the SRS client to indicate that a given transponder mode is disabled.
 const IFFModeDisabled = -1
 
-// IFFMicDisabled is... I actually have no idea what this does.
+// IFFMicDisabled is a special value used by the SRS client to indicate that the mic-triggered ident mode is disabled.
 const IFFMicDisabled = -1
 
 // Transponder represents an aircraft's transponder.
@@ -50,7 +50,7 @@ type Transponder struct {
 	Mode3 IFFMode `json:"mode3"`
 	// Mode 4 is an encrypted military IFF code. In SRS, it's a simple on/off state.
 	Mode4 bool `json:"mode4"`
-	// Mic is a mystery, wrapped in an enigma, shrouded in a riddle.
+	// Mic is used by some aircraft that can auto-ident while the Mic switch is pressed.
 	Mic int `json:"mic"`
 }
 

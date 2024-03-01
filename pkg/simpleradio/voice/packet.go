@@ -3,6 +3,7 @@ package voice
 
 import (
 	"encoding/binary"
+	"fmt"
 	"log/slog"
 	"math"
 
@@ -91,18 +92,105 @@ type VoicePacket struct {
 }
 
 // Frequency describes an audio transmission channel. This struct is only for use in [VoicePacket]. For client information, use [types.Radio] instead.
-// Length: 10
+// Length: 10 bytes
 type Frequency struct {
 	// Frequency is the transmission frequency in Hz.
 	// Example: 249.500MHz is encoded as 249500000.0
+	//
+	// Length: 8 bytes
 	Frequency float64
 	// Modulation is the transmission modulation mode.
+	//
+	// Length: 1 byte
 	Modulation byte
 	// Encryption is the transmission encryption mode.
+	//
+	// Length: 1 byte
 	Encryption byte
 }
 
-// newVoicePacketFrom converts a voice packet from bytes to struct
+const (
+	// headerSegmentLength is the length of the header segment in bytes.
+	headerSegmentLength = 6
+	// fixedSegmentLength is the length of the fixed segment in bytes.
+	fixedSegmentLength = 58
+	// frequencyLength is the length of a Frequency in bytes.
+	frequencyLength = 10
+)
+
+func NewVoicePacket(audioBytes []byte, frequencies []Frequency, unitID uint32, packetID uint64, hops byte, relay []byte, origin []byte) VoicePacket {
+	audioSegmentLength := uint16(len(audioBytes))
+	frequenciesSegmentLength := uint16(len(frequencies) * frequencyLength)
+	return VoicePacket{
+		PacketLength:             headerSegmentLength + audioSegmentLength + frequenciesSegmentLength + fixedSegmentLength,
+		AudioSegmentLength:       audioSegmentLength,
+		FrequenciesSegmentLength: frequenciesSegmentLength,
+		AudioBytes:               audioBytes,
+		Frequencies:              frequencies,
+		UnitID:                   unitID,
+		PacketID:                 packetID,
+		Hops:                     hops,
+		RelayGUID:                relay,
+		OriginGUID:               origin,
+	}
+}
+
+// Encode serializes a VoicePacket into a byte array.
+func (vp *VoicePacket) Encode() []byte {
+	b := make([]byte, vp.PacketLength)
+
+	/* Header Segment */
+	binary.LittleEndian.PutUint16(b[0:2], vp.PacketLength)
+	binary.LittleEndian.PutUint16(b[2:4], vp.AudioSegmentLength)
+	binary.LittleEndian.PutUint16(b[4:6], vp.FrequenciesSegmentLength)
+
+	/* Audio Segment */
+	copy(b[headerSegmentLength:headerSegmentLength+len(vp.AudioBytes)], vp.AudioBytes)
+
+	/* Frequencies Segment */
+	for i, f := range vp.Frequencies {
+		offset := headerSegmentLength + int(vp.AudioSegmentLength) + i*frequencyLength
+		binary.LittleEndian.PutUint64(b[offset:offset+8], math.Float64bits(f.Frequency))
+		b[offset+8] = f.Modulation
+		b[offset+9] = f.Encryption
+	}
+
+	/* Fixed Segment */
+	fixedSegmentPtr := vp.PacketLength - fixedSegmentLength + 1
+	unitIDPtr := fixedSegmentPtr
+	packetIDPtr := unitIDPtr + 4
+	binary.LittleEndian.PutUint32(b[unitIDPtr:packetIDPtr], vp.UnitID)
+
+	hopsPtr := packetIDPtr + 8
+	binary.LittleEndian.PutUint64(b[packetIDPtr:hopsPtr], vp.PacketID)
+	b[hopsPtr] = vp.Hops
+
+	relayIDPtr := hopsPtr + 1
+	originIDPtr := relayIDPtr + types.GUIDLength
+	copy(b[relayIDPtr:originIDPtr], vp.RelayGUID)
+	copy(b[originIDPtr:vp.PacketLength], vp.OriginGUID)
+
+	return b
+}
+
+var _ fmt.Stringer = &VoicePacket{}
+
+func (vp *VoicePacket) String() string {
+	return fmt.Sprintf(
+		"VoicePacket{PacketLength: %d, AudioSegmentLength: %d, FrequenciesSegmentLength: %d, UnitID: %d, PacketID: %d, Hops: %d, RelayGUID: %s, OriginGUID: %s, Frequencies: %v}",
+		vp.PacketLength,
+		vp.AudioSegmentLength,
+		vp.FrequenciesSegmentLength,
+		vp.UnitID,
+		vp.PacketID,
+		vp.Hops,
+		vp.RelayGUID,
+		vp.OriginGUID,
+		vp.Frequencies,
+	)
+}
+
+// newVoicePacketFrom deserializes a voice packet from bytes to struct
 func NewVoicePacketFrom(b []byte) VoicePacket {
 	// The packet length is the first 2 bytes of the packet.
 	packetLength := binary.LittleEndian.Uint16(b[0:2])
@@ -133,7 +221,7 @@ func NewVoicePacketFrom(b []byte) VoicePacket {
 
 	/* Audio Segment */
 	// The audio segment is the next segment after the headers. It always starts at byte 6 and is AudioSegmentLength bytes long.
-	audioSegmentPtr := 6
+	audioSegmentPtr := headerSegmentLength
 	audioSegment := b[audioSegmentPtr : audioSegmentPtr+int(packet.AudioSegmentLength)]
 	packet.AudioBytes = make([]byte, len(audioSegment))
 	copy(packet.AudioBytes, audioSegment)
@@ -143,13 +231,13 @@ func NewVoicePacketFrom(b []byte) VoicePacket {
 	// The frequencies segment is the next segment after the audio segment. It always starts at byte 6+AudioSegmentLength and is FrequenciesSegmentLength bytes long.
 	frequenciesSegmentPtr := int(6 + packet.AudioSegmentLength)
 	frequenciesSegment := b[frequenciesSegmentPtr : frequenciesSegmentPtr+int(packet.FrequenciesSegmentLength)]
-	// Each frequency is 10 bytes long, so we can iterate over the segment in 10 byte chunks to decode each frequency.
-	for i := 0; i < len(frequenciesSegment); i = i + 10 {
+	// Iterate over the frequencies segment and decode each frequency.
+	for i := 0; i < len(frequenciesSegment); i = i + frequencyLength {
 		modulationPtr := i + 8
 		encryptionPtr := modulationPtr + 1
 		frequency := Frequency{
 			Frequency: math.Float64frombits(
-				binary.LittleEndian.Uint64(frequenciesSegment[i : i+8]),
+				binary.LittleEndian.Uint64(frequenciesSegment[i:modulationPtr]),
 			),
 			Modulation: frequenciesSegment[modulationPtr],
 			Encryption: frequenciesSegment[encryptionPtr],
