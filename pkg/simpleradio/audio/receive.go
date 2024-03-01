@@ -74,8 +74,7 @@ func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out ch
 	// buf is a buffer of voice packets which are collected until the end of a transmission is detected.
 	buf := make([]voice.VoicePacket, 0)
 	// t is a ticker which triggers the check for the end of a transmission.
-	// TODO make this duration configurable.
-	t := time.NewTicker(50 * time.Millisecond)
+	t := time.NewTicker(frameLength)
 	for {
 		select {
 		case b := <-in:
@@ -103,22 +102,26 @@ func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out ch
 			// isNewerPacket is true if the packet's packet number is greater than the last received packet's packet number.
 			isNewerPacket := vp.PacketID > uint64(c.lastRx.packetNumber)
 
-			// hasMatchingRadio is true if the packet's frequencies contain a frequency which matches the client's radio's frequency, modulation, and encryption settings.
-			hasMatchingRadio := false
+			// isSameFrequency is true if the packet's frequencies contain a frequency which matches the client's radio's frequency, modulation, and encryption settings.
+			var isSameFrequency bool
 			for _, f := range vp.Frequencies {
-				doesFrequencyMatch := f.Frequency == c.radio.Frequency
-				doesModulationMatch := types.Modulation(f.Modulation) == c.radio.Modulation
-				doesEncryptionMatch := f.Encryption == c.radio.EncryptionKey
-				if doesFrequencyMatch && doesModulationMatch && doesEncryptionMatch {
-					hasMatchingRadio = true
+				radio := types.Radio{
+					Frequency:     f.Frequency,
+					Modulation:    types.Modulation(f.Modulation),
+					IsEncrypted:   f.Encryption != 0,
+					EncryptionKey: f.Encryption,
+				}
+				if c.radio.IsSameFrequency(radio) {
+					isSameFrequency = true
+					break
 				}
 			}
 
 			// isMatchingPacket is true if the packet is either:
 			// - the first packet of a new transmission
 			// - a newer packet from the same origin and with matching radio frequencies as the last received packet
-			isMatchingPacket := hasMatchingRadio && (isNewPacket || (isNewerPacket && isSameOrigin))
-			slog.Debug("checked packet", "isMatchingPacket", isMatchingPacket, "isNewPacket", isNewPacket, "isNewerPacket", isNewerPacket, "isSameOrigin", isSameOrigin, "hasMatchingRadio", hasMatchingRadio)
+			isMatchingPacket := isSameFrequency && (isNewPacket || (isNewerPacket && isSameOrigin))
+			slog.Debug("checked packet", "isMatchingPacket", isMatchingPacket, "isNewPacket", isNewPacket, "isNewerPacket", isNewerPacket, "isSameOrigin", isSameOrigin, "hasMatchingRadio", isSameFrequency)
 
 			// If the packet fits, buffer it and update the lastRx state.
 			if isMatchingPacket {

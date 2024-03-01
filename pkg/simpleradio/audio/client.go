@@ -19,15 +19,17 @@ type Audio []float32
 
 // AudioClient is an SRS audio client configured to receive and transmit on a specific SRS frequency.
 type AudioClient interface {
+	// Frequency returns the SRS frequency this client is configured to receive and transmit on in Hz.
+	Frequency() float64
 	// Run executes the control loops of the SRS audio client. It should be called exactly once. When the context is canceled or if the client encounters a non-recoverable error, the client will close its resources.
 	Run(context.Context) error
-	// Transmit plays the given audio on the audio client's SRS frequency.
-	Transmit(Audio) error
+	// Transmit queues the given audio to play on the audio client's SRS frequency.
+	Transmit(Audio)
 	// Receive returns a channel which receives audio from the audio client's SRS frequency.
 	Receive() <-chan Audio
 }
 
-// audioClient implements [AudioClient]
+// audioClient implements AudioClient.
 type audioClient struct {
 	// guid is used to identify this client to the SRS server.
 	guid types.GUID
@@ -37,16 +39,23 @@ type audioClient struct {
 	connection *net.UDPConn // todo move connection mgmt into Run()
 	// rxChan is a channel where received audio is published. A read-only version is available publicly.
 	rxchan chan Audio
-	// txChan is a channel where audio to be transmitted is bufffered.
+	// txChan is a channel where audio to be transmitted is buffered.
 	txChan chan Audio
 
-	// lastRx is used to track the last received audio packet so we can tell when a transmission has (probably) ended.
+	// lastRx tracks the last received audio packet so we can tell when a transmission has (probably) ended.
 	lastRx rxState
+	// packetNumber is incremented for each voice packet transmitted.
+	packetNumber uint64
 }
 
+// rxState contains the state of the current received transmission.
 type rxState struct {
-	origin       types.GUID
-	deadline     time.Time
+	// origin is the GUID of a client we are currently listening to. We can only listen to one client at a time, and whoever started broadcasting first wins.
+	origin types.GUID
+	// deadline is extended every time another voice packet is received. When we pass the deadline, the transmission is considered over.
+	deadline time.Time
+	// packetNumber is the number of the last received voice packet. We only record a packet if its packet number is larger than the last received packet's, and skip any that were dropped or delivered out of order.
+	// If we were more ambitious we would reassemble the packets and use Opus's forward error correction to recover from lost packets... too bad!
 	packetNumber uint64
 }
 
@@ -64,10 +73,17 @@ func NewClient(guid types.GUID, config types.ClientConfiguration) (AudioClient, 
 		guid:       guid,
 		radio:      config.Radio,
 		connection: connection,
-		txChan:     make(chan Audio),
-		rxchan:     make(chan Audio),
-		lastRx:     rxState{},
+		// TODO configurable buffer size
+		txChan:       make(chan Audio),
+		rxchan:       make(chan Audio),
+		lastRx:       rxState{},
+		packetNumber: 1,
 	}, nil
+}
+
+// Frequency implements AudioClient.Frequency
+func (c *audioClient) Frequency() float64 {
+	return c.radio.Frequency
 }
 
 // Run implements AudioClient.Run
@@ -89,12 +105,19 @@ func (c *audioClient) Run(ctx context.Context) error {
 
 	// udpVoiceRxChan is a channel for received voice packets.
 	udpVoiceRxChan := make(chan []byte, 64*0xFFFFF) // TODO configurable packet buffer size
-	// voiceBytesChan is a channel for VoicePacket structs decoded from UDP voice packets.
-	voiceBytesChan := make(chan []voice.VoicePacket, 0xFFFFF) // TODO configurable tranmission buffer size
+	// voiceBytesRxChan is a channel for VoicePackets deserialized from UDP voice packets.
+	voiceBytesRxChan := make(chan []voice.VoicePacket, 0xFFFFF) // TODO configurable tranmission buffer size
 
 	// receive voice packets and decode them. This is the logic for receiving audio from the SRS server.
-	go c.receiveVoice(ctx, udpVoiceRxChan, voiceBytesChan)
-	go c.decodeVoice(ctx, voiceBytesChan)
+	go c.receiveVoice(ctx, udpVoiceRxChan, voiceBytesRxChan)
+	go c.decodeVoice(ctx, voiceBytesRxChan)
+
+	// voicePacketsTxChan is a channel for transmissions which are ready to send.
+	voicePacketsTxChan := make(chan []voice.VoicePacket, 0xFFFFF) // TODO configurable transmission buffer size
+
+	// transmit queued audio. This is the logic for sending audio to the SRS server.
+	go c.encodeVoice(ctx, voicePacketsTxChan)
+	go c.transmit(ctx, voicePacketsTxChan)
 
 	// Start listening for incoming UDP packets and routing them to receivePings and receiveVoice.
 	go c.receiveUDP(ctx, udpPingRxChan, udpVoiceRxChan)
@@ -111,8 +134,8 @@ func (c *audioClient) Receive() <-chan Audio {
 }
 
 // Transmit implements AudioClient.Transmit
-func (c *audioClient) Transmit(sample Audio) error {
-	return nil
+func (c *audioClient) Transmit(sample Audio) {
+	c.txChan <- sample
 }
 
 // close closes the UDP connection to the SRS server. This might be nonsensical because UDP is connectionless. \_(ツ)_/¯

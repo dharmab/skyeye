@@ -13,12 +13,18 @@ import (
 
 // Client is a SimpleRadio-Standalone client.
 type Client interface {
+	// Name returns the name of the client as it appears in the SRS client list and in in-game transmissions.
+	Name() string
+	// Frequency returns the radio frequency the client is configured to receive and transmit on in Hz.
+	Frequency() float64
+	// FrequencyMHz returns Client.Frequency in MHz.
+	FrequencyMHz() float64
 	// Run starts the SimpleRadio-Standalone client. It should be called exactly once.
 	Run(context.Context) error
 	// Receive returns a channel that receives transmissions over the radio. Each transmission is F32LE PCM audio data.
 	Receive() <-chan audio.Audio
-	// Transmit sends a transmission over the radio. The audio data should be in F32LE PCM format.
-	Transmit(audio.Audio) error
+	// Transmit queues a transmission to send over the radio. The audio data should be in F32LE PCM format.
+	Transmit(audio.Audio)
 }
 
 // client implements the SRS Client.
@@ -49,17 +55,35 @@ func NewClient(config types.ClientConfiguration) (Client, error) {
 	return client, nil
 }
 
+// Name implements Client.Name.
+func (c *client) Name() string {
+	return c.dataClient.Name()
+}
+
+// Frequency implements Client.Frequency.
+func (c *client) Frequency() float64 {
+	return c.audioClient.Frequency()
+}
+
+// FrequencyMHz implements Client.FrequencyMHz.
+func (c *client) FrequencyMHz() float64 {
+	return c.Frequency() / 1e6
+}
+
 // Run implements Client.Run.
 func (c *client) Run(ctx context.Context) error {
 	errorChan := make(chan error)
 
 	// TODO return a ready channel and wait for each. This resolves a minor race condition on startup
+	dataReadyCh := make(chan any)
 	go func() {
 		slog.Info("running SRS data client")
-		if err := c.dataClient.Run(ctx); err != nil {
+		if err := c.dataClient.Run(ctx, dataReadyCh); err != nil {
 			errorChan <- err
 		}
 	}()
+	<-dataReadyCh
+
 	go func() {
 		slog.Info("running SRS audio client")
 		if err := c.audioClient.Run(ctx); err != nil {
@@ -84,6 +108,6 @@ func (c *client) Receive() <-chan audio.Audio {
 }
 
 // Transmit implements Client.Transmit.
-func (c *client) Transmit(sample audio.Audio) error {
-	return c.audioClient.Transmit(sample)
+func (c *client) Transmit(sample audio.Audio) {
+	c.audioClient.Transmit(sample)
 }

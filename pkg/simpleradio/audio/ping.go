@@ -10,18 +10,18 @@ import (
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 )
 
-// TODO make PingInterval configurable
-const PingInterval = 15 * time.Second
+// pingInterval determines how often we should ping the SRS server over UDP.
+const pingInterval = 15 * time.Second
 
-// sendPings is a loop which sends the client GUID to the server every 15 seconds to keep our connection alive.
+// sendPings is a loop which sends the client GUID to the server at regular intervals to keep our connection alive.
 func (c *audioClient) sendPings(ctx context.Context) {
-	slog.Info("starting pings", "interval", PingInterval.String())
+	slog.Info("starting pings", "interval", pingInterval.String())
 	go func() {
 		time.Sleep(1 * time.Second)
 		c.SendPing()
 	}()
 
-	ticker := time.NewTicker(PingInterval)
+	ticker := time.NewTicker(pingInterval)
 	for {
 		select {
 		case <-ticker.C:
@@ -34,6 +34,7 @@ func (c *audioClient) sendPings(ctx context.Context) {
 }
 
 // SendPing sends a single ping to the SRS server. "One ping only, Vasily."
+// The SRS server won't send us any audio until it receives a ping from us, so this is useful to initialize VoIP.
 func (c *audioClient) SendPing() {
 	slog.Debug("sending UDP ping", "guid", c.guid)
 	n, err := c.connection.Write([]byte(c.guid))

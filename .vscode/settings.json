@@ -6,12 +6,16 @@
     },
     "logViewer.watch": [
         {
-            "title": "DCS SRS Server",
+            "title": "DCS SRS Server Log",
             "pattern": "C:\\Program Files\\DCS-SimpleRadio-Standalone\\serverlog.txt"
         },
         {
             "title": "DCS SRS Clients List",
             "pattern": "C:\\Program Files\\DCS-SimpleRadio-Standalone\\clients-list.json"
+        },
+        {
+            "title": "DCS SRS Transmission Log",
+            "pattern": "C:\\Program Files\\DCS-SimpleRadio-Standalone\\*-transmissionlog.csv"
         }
     ]
 }

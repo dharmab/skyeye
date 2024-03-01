@@ -57,3 +57,6 @@ third_party/whisper.cpp
 
 # whisper.cpp models
 *.bin
+
+# Local dev scripts ignored by default
+scripts/

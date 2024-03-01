@@ -3,7 +3,7 @@ default: build
 
 .PHONY: install-dependencies
 install-dependencies:
-	pacman -Syu --needed git base-devel $(MINGW_PACKAGE_PREFIX)-toolchain $(MINGW_PACKAGE_PREFIX)-go $(MINGW_PACKAGE_PREFIX)-opus
+	pacman -Syu --needed git base-devel $(MINGW_PACKAGE_PREFIX)-toolchain $(MINGW_PACKAGE_PREFIX)-go $(MINGW_PACKAGE_PREFIX)-opus $(MINGW_PACKAGE_PREFIX)-libsoxr
 
 WHISPER_CPP_PATH = third_party/whisper.cpp
 WHISPER_CPP_VERSION = v1.5.4
@@ -30,6 +30,10 @@ BUILD_TAGS = -tags nolibopusfile
 
 $(SKYEYE_EXE): $(SKYEYE_SOURCES) $(WHISPER_CPP_PATH)/libwhisper.a $(WHISPER_CPP_PATH)/whisper.h
 	$(BUILD_VARS) $(MSYS2_GO) build $(BUILD_TAGS) ./cmd/skyeye/
+
+.PHONY: test-voice-round-trip
+test-voice-round-trip:
+	$(BUILD_VARS) $(MSYS2_GO) run $(BUILD_TAGS) ./cmd/test-voice-round-trip/
 
 .PHONY: build
 build: $(SKYEYE_EXE)
