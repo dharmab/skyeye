@@ -62,13 +62,14 @@ Current status:
 - ✅ Speech recognition - bot can recognize what humans are saying on SRS and turn it into text
 - ✅ Speech synthesis - bot can turn text into human-like speech and say it on SRS
 - ✅ DCS-gRPC - Prototyped connection to DCS via DCS-gRPC and reading game world state
+- ✅ Basic CI pipeline configured
 - 🚧 Text input and in-game subtitles not yet implemented
 - 🚧 GCI controller request parser not yet implemented
 - 🚧 Game world state interface not yet implemented
 - 🚧 GCI controller logic not yet implemented
 - 🚧 GCI controller response composer not yet implemented
 - 🚧 Limited test coverage
-- 🚧 CI/CD pipeline not built
+- 🚧 CI/CD pipeline does not publish builds to GitHub Releases
 - 🚧 Documentation not written
 - 🚧 Observability is sporadic
 
