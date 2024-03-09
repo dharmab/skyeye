@@ -1,0 +1,52 @@
+name: Go
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+          args: --build-tags nolibopusfile
+          skip-pkg-cache: true
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Test
+        run: |
+          go run gotest.tools/gotestsum -- -tags nolibopusfile ./...
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: "1"
+    strategy:
+      matrix:
+        os:
+          - linux
+          - windows
+        arch:
+          - amd64
+          - arm64
+        exclude:
+          - os: windows
+            arch: arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Build
+        run: go build -tags nolibopusfile ./...

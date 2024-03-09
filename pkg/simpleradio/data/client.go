@@ -165,9 +165,11 @@ func (c *dataClient) handleMessage(message types.Message) {
 	case types.MessageClientDisconnect:
 		c.syncClient(message.Client)
 	case types.MessageExternalAWACSModePassword:
-		// WTF is this???
 		if message.Client.Coalition == c.clientInfo.Coalition {
-			c.updateRadios()
+			slog.Info("received external AWACS mode password message", "client", message.Client)
+			if err := c.updateRadios(); err != nil {
+				slog.Error("failed to update radios", "error", err)
+			}
 		}
 	default:
 		slog.Warn("received unrecognized message", "payload", message)
@@ -260,14 +262,6 @@ func (c *dataClient) newMessageWithClient(t types.MessageType) types.Message {
 	message := c.newMessage(t)
 	message.Client = c.clientInfo
 	return message
-}
-
-func (c *dataClient) update() error {
-	message := c.newMessageWithClient(types.MessageUpdate)
-	if err := c.Send(message); err != nil {
-		return fmt.Errorf("update failed: %w", err)
-	}
-	return nil
 }
 
 // updateRadios sends a radio update message to the SRS server containing this client's information.
