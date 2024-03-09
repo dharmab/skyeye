@@ -35,11 +35,11 @@ Unlike previous GCI bots, SkyEye uses Speech-To-Text and Text-To-Speech technolo
 
 Skyeye would not be possible without these people and projects, for whom I am deeply appreciative:
 
-* [DCS-SRS] by @ciribob. Ciribob also patiently answered many of my questions on SRS internals and provided helpful debugging tips whenever I ran into a block in the SRS integration.
+* [DCS-SRS](https://github.com/ciribob/DCS-SimpleRadioStandalone) by @ciribob. Ciribob also patiently answered many of my questions on SRS internals and provided helpful debugging tips whenever I ran into a block in the SRS integration.
 * [DCS-gRPC](https://github.com/DCS-gRPC) provides the interface into DCS World. 
 * @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against Skyeye during early development, and Jones himself was also patient with my questions on Discord.
 * @ggerganov's [whisper.cpp](https://github.com/ggerganov/whisper.cpp) models provides text-to-speech.
-* [Piper] by the [Rhasspy] voice assistance community is used for speech-to-text.
+* [Piper](https://github.com/rhasspy/piper) by the [Rhasspy](https://rhasspy.readthedocs.io/en/latest/) voice assistant project is used for speech-to-text.
 * The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for Skyeye.
 * @popey's dataset provides the masculine voice for Skyeye.
 * @amitybell's [embedded Piper module](https://github.com/amitybell/piper) makes distribution and implementation of Piper a breeze.
