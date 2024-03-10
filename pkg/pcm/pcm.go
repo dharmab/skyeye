@@ -69,6 +69,3 @@ func S16LEBytesToF32LE(in []byte) []float32 {
 	}
 	return out
 }
-
-// Mirror of OPUS_APPLICATION_VOIP from the Opus API
-const OpusApplicationVoIP = 2048
