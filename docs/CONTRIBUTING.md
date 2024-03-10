@@ -16,6 +16,8 @@ Requirements to develop SkyEye:
 
 ### Windows
 
+I apologize upfront for how involved the setup is on Windows. I tried putting it all in Docker but Docker Desktop's latency is terrible and the bot wasn't able to transmit audio consistently. Oh well...
+
 [Install MSYS2](https://www.msys2.org/#installation).
 
 Run the MSYS2 UCRT application from the start menu.
@@ -24,35 +26,38 @@ Run `pacman -Syu --needed git base-devel`. If prompted to select a package from 
 
 Clone this Git repository somewhere, and navigate to it in the MSYS2 UCRT terminal. Your `C:\` is available at `/c`, so you can access your Documents folder with `cd '/c/Documents and Settings/yourusername/Documents/'`. Similarly, your `D:\` will be at `/d` if present, and so on.
 
-Run `make install-dependencies` to install the C++ and Go compilers as well as some build dependencies.
+Run `make install-msys2-dependencies` to install the C++ and Go compilers as well as some build dependencies.
 
-Run `make` to build `SkyEye.exe`.
+Run `make` to build `skyeye.exe`.
 
 ### Arch Linux
 
-Full guide/Makefile updates TODO
+Clone this Git repository somewhere, and navigate to it in your favorite terminal.
 
-Basically run this:
+Run one of the following to install dependency libraries:
 
 ```sh
-pacman -Syu base-devel go opus libsoxr
-make whisper
-CGO_ENABLED=1 C_INCLUDE_PATH=third_party/whisper.cpp LIBRARY_PATH=third_party/whisper.cpp go build ./cmd/skyeye
+# Arch Linux
+make install-arch-linux-dependencies
+# Debian/Ubuntu
+make install-debian-dependencies
 ```
 
-And everywhere this guide mentions `skyeye.exe`, remove `.exe`
+Run `make` to build `skyeye`.
+
+Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
 
 ## Run
 
 Install the [DCS World Dedicated Server](https://www.digitalcombatsimulator.com/en/downloads/world/server/). This can be on a different computer.
 
-Install [DCS gRPC Server](https://github.com/DCS-gRPC/rust-server) on the same machine as your DCS server and configure your DCS server to run DCS gRPC.
+Install [DCS gRPC Server](https://github.com/DCS-gRPC/rust-server) on the same machine as your DCS dedicated server and configure your DCS dedicated server to run DCS gRPC.
 
 Install [DCS-SRS](http://dcssimpleradio.com/). This can be on a different computer.
 
 Launch the DCS server and SRS server. Load a mission on the DCS server. TODO better guide for this stuff.
 
-You will need to download an OpenAI Whisper model. The main source of these models is [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main)] The larger models have better accuracy but higher memory consumption and take longer to recognize text. There are also faster distilled models available [here](https://huggingface.co/distil-whisper/distil-medium.en#whispercpp), [although these have some quality trade-offs with the library used in this software.](https://github.com/ggerganov/whisper.cpp/tree/master/models#distilled-models). Whichever model you choose, put the next to `skyeye.exe`.
+You will need to download an OpenAI Whisper model. The main source of these models is [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main)] The larger models have better accuracy but higher memory consumption and take longer to recognize text. There are also faster distilled models available [here](https://huggingface.co/distil-whisper/distil-medium.en#whispercpp), [although these have some quality trade-offs with the library used in this software.](https://github.com/ggerganov/whisper.cpp/tree/master/models#distilled-models). Whichever model you choose, put the model next to `skyeye.exe`.
 
 Run SkyEye by passing command line flags to `skyeye.exe`. You can run `./skyeye.exe -help` for some hints. A simple example:
 
@@ -90,11 +95,10 @@ For convenience, add MSYS2 to Visual Studio Code's integrated terminal. Open you
 }
 ```
 
-I don't have this project set up to build/run/debug through VSC yet.
+I don't have this project set up to build/run/debug through VSC yet- but it's possible to do interactive debugging so by running `skyeye.exe` through `dlv --headless --listen=:2345 exec skyeye.exe...` and then attaching VSC to a remote debugger on port 2345.
 
 ### Linux
 
 🐧 Use your favorite editor.
-
 
 TODO guide to project architecture, file and package layout, entrypoints
