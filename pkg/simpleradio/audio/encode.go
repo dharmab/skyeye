@@ -4,10 +4,12 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/dharmab/skyeye/pkg/pcm"
 	"github.com/dharmab/skyeye/pkg/simpleradio/voice"
 	"gopkg.in/hraban/opus.v2"
 )
+
+// Mirror of OPUS_APPLICATION_VOIP from the Opus API
+const opusApplicationVoIP = 2048
 
 // encodeVoice encodes audio from txChan and publishes an entire transmission's worth of voice packets to packetCh.
 func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.VoicePacket) {
@@ -15,7 +17,7 @@ func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.V
 		select {
 		case audio := <-c.txChan:
 			slog.Debug("encoding transmission from PCM data", "length", len(audio))
-			encoder, err := opus.NewEncoder(sampleRate, channels, pcm.OpusApplicationVoIP)
+			encoder, err := opus.NewEncoder(sampleRate, channels, opusApplicationVoIP)
 			if err != nil {
 				slog.Error("failed to create Opus encoder", "error", err)
 				continue
