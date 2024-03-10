@@ -1,0 +1,49 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "docker-compose-up",
+            "type": "docker-compose",
+            "dockerCompose": {
+                "up": {
+                    "detached": false,
+                    "build": true,
+                    "services": [
+                        "skyeye"
+                    ],
+                },
+                "files": [
+                    "${workspaceFolder}/docker-compose.yaml"
+                ],
+            }
+        },
+        {
+            "label": "docker-compose-debug-up",
+            "type": "docker-compose",
+            "dockerCompose": {
+                "up": {
+                    "detached": true,
+                    "build": true,
+                    "services": [
+                        "debug"
+                    ],
+                    "customOptions": "--wait"
+                },
+                "files": [
+                    "${workspaceFolder}/docker-compose.yaml"
+                ],
+            },
+            "isBackground": true,
+        },
+        {
+            "label": "docker-compose-down",
+            "type": "docker-compose",
+            "dockerCompose": {
+                "down": {},
+                "files": [
+                    "${workspaceFolder}/docker-compose.yaml"
+                ]
+            }
+        }
+    ]
+}

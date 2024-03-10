@@ -1,0 +1,32 @@
+services:
+  debug:
+    build: .
+    command:
+      - go
+      - run
+      - github.com/go-delve/delve/cmd/dlv
+      - exec
+      - --headless=true
+      - --listen=0.0.0.0:2345
+      - ./skyeye
+      - --
+      - -log-level=debug
+      - -dcs-grpc-server-address=host.docker.internal:50051
+      - -srs-server-address=host.docker.internal:5002
+      - -srs-eam-password=local
+      - -whisper-model=/models/ggml-medium.en.bin
+    ports:
+      - "2345:2345"
+    volumes:
+      - ./models:/models:ro
+  skyeye:
+    build: .
+    command:
+      - ./skyeye
+      - -log-level=debug
+      - -dcs-grpc-server-address=host.docker.internal:50051
+      - -srs-server-address=host.docker.internal:5002
+      - -srs-eam-password=local
+      - -whisper-model=/models/ggml-medium.en.bin
+    volumes:
+      - ./models:/models:ro

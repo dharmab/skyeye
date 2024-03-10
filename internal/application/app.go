@@ -136,7 +136,6 @@ func (a *app) Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to generate sunrise message: %w", err)
 	}
-	//debug.PlayAudio(&a.otoCtx, audiotools.F32toS16LEBytes(sunriseSample))
 
 	slog.Info("transmitting sunrise message")
 	a.srsClient.Transmit(sunriseSample)
