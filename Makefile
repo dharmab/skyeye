@@ -59,7 +59,7 @@ test:
 
 .PHONY: mostlyclean
 mostlyclean:
-	rm -f "$(SKYEYE_EXE)"
+	rm -f "$(SKYEYE_EXE)" "$(SKYEYE_ELF)"
 
 .PHONY: clean
 clean: mostlyclean
