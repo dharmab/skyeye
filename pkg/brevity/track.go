@@ -1,10 +1,11 @@
 package brevity
 
-// CardinalDirection is a compass direction.
-type CardinalDirection int
+// Track is a compass direction.
+type Track int
 
 const (
-	North CardinalDirection = iota
+	UnknownDirection Track = -1
+	North            Track = iota
 	Northeast
 	East
 	Southeast

@@ -42,7 +42,7 @@ type DeclareRequest interface {
 	// Altitude of the contact above sea level, rounded to the nearest thousands of feet.
 	Altitude() unit.Length
 	// Track direction. Optional, used to discriminate between multiple contacts at the same location.
-	Track() CardinalDirection
+	Track() Track
 }
 
 // DeclareResponse is a response to a DECLARE call.

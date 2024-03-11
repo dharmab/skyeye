@@ -12,6 +12,7 @@ require (
 	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240210081059-02b4c52c1289
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6
+	github.com/rodaine/numwords v0.0.0-20200910203654-405f4a455f79
 	github.com/stretchr/testify v1.8.4
 	github.com/zaf/resample v1.5.0
 	google.golang.org/grpc v1.61.0

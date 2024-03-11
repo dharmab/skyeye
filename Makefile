@@ -47,15 +47,21 @@ MSYS2_GOPATH = /mingw64
 MSYS2_GOROOT = /mingw64/lib/go
 MSYS2_GO = /mingw64/bin/go
 
+ifeq ($(OS),Windows_NT)
+GO = $(MSYS2_GO)
+else
+GO = go
+endif
+
 $(SKYEYE_EXE): $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
-	GOROOT="$(MSYS2_GOROOT)" GOPATH="$(MSYS2_GOPATH)" $(BUILD_VARS) $(MSYS2_GO) build $(BUILD_TAGS) ./cmd/skyeye/
+	GOROOT="$(MSYS2_GOROOT)" GOPATH="$(MSYS2_GOPATH)" $(BUILD_VARS) $(GO) build $(BUILD_TAGS) ./cmd/skyeye/
 
 $(SKYEYE_ELF): $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
-	$(BUILD_VARS) go build $(BUILD_TAGS) ./cmd/skyeye/
+	$(BUILD_VARS) $(GO) build $(BUILD_TAGS) ./cmd/skyeye/
 
 .PHONY: test
 test:
-	$(BUILD_VARS) go test $(BUILD_TAGS) ./...
+	$(BUILD_VARS) $(GO) test $(BUILD_TAGS) ./...
 
 .PHONY: mostlyclean
 mostlyclean:

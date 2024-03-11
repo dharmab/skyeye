@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/internal/application"
+	"github.com/dharmab/skyeye/internal/conf"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
@@ -90,7 +91,7 @@ func main() {
 	defer whisperModel.Close()
 
 	// Configure and run the application.
-	config := application.Configuration{
+	config := conf.Configuration{
 		DCSGRPCAddress:               *DCSGRPCAddress,
 		GRPCConnectionTimeout:        *GRPCConnectionTimeout,
 		SRSAddress:                   *SRSAddress,
