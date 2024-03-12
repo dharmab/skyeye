@@ -1,10 +1,5 @@
 name: Setup
 description: Set up Skyeye build environment
-inputs:
-  whisper-cpp-version:
-    description: 'The version of whisper.cpp to use'
-    required: true
-    default: 'v1.5.4'
 runs:
   using: composite
   steps:
@@ -16,38 +11,8 @@ runs:
       uses: awalsh128/cache-apt-pkgs-action@v1.4.2
       with:
         packages: |
+          gcc-aarch64-linux-gnu
+          gcc-mingw-w64
           libasound2-dev
           libopus-dev
           libsoxr-dev
-    - name: Restore whisper.cpp artifacts
-      id: cache-whisper-restore
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          third_party/whisper.cpp/libwhisper.a
-          third_party/whisper.cpp/*.h
-        key: whisper-${{ inputs.whisper-cpp-version }}-${{ matrix.os }}-${{ matrix.arch }}-cache
-    - name: Checkout whisper.cpp
-      if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
-      uses: actions/checkout@v4
-      with:
-        repository: ggerganov/whisper.cpp
-        path: third_party/whisper.cpp
-        ref: ${{ inputs.whisper-cpp-version }}
-    - name: Build whisper.cpp
-      if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
-      shell: bash
-      run: make -C third_party/whisper.cpp/bindings/go whisper
-    - name: Set whisper paths
-      shell: bash
-      run: |
-        echo "C_INCLUDE_PATH=${{ github.workspace }}/third_party/whisper.cpp/" >> $GITHUB_ENV
-        echo "LIBRARY_PATH=${{ github.workspace }}/third_party/whisper.cpp/" >> $GITHUB_ENV
-    - name: Save whisper.cpp artifacts
-      id: cache-whisper-save
-      uses: actions/cache/save@v4
-      with:
-        path: |
-          third_party/whisper.cpp/libwhisper.a
-          third_party/whisper.cpp/*.h
-        key: ${{ steps.cache-whisper-restore.outputs.cache-primary-key }}
