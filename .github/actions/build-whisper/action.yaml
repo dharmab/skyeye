@@ -1,0 +1,51 @@
+name: Setup
+description: Build whisper.cpp
+inputs:
+  whisper-cpp-version:
+    description: 'The version of whisper.cpp to use'
+    required: true
+    default: 'v1.5.4'
+  os:
+    description: 'The operating system to build for'
+    required: true
+    default: 'linux'
+  shell:
+    description: 'The shell to use'
+    required: true
+    default: 'bash'
+runs:
+  using: composite
+  steps:
+    - name: Restore whisper.cpp artifacts
+      id: cache-whisper-restore
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          third_party/whisper.cpp/libwhisper.a
+          third_party/whisper.cpp/*.h
+        key: whisper-${{ inputs.whisper-cpp-version }}-${{ inputs.os }}-amd64-cache
+    - name: Checkout whisper.cpp
+      if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
+      uses: actions/checkout@v4
+      with:
+        repository: ggerganov/whisper.cpp
+        path: third_party/whisper.cpp
+        ref: ${{ inputs.whisper-cpp-version }}
+    - name: Build whisper.cpp
+      if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
+      shell: ${{ inputs.shell }}
+      run: make -C third_party/whisper.cpp/bindings/go whisper
+    - name: Set whisper paths
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "C_INCLUDE_PATH=${{ github.workspace }}/third_party/whisper.cpp/" >> $GITHUB_ENV
+        echo "LIBRARY_PATH=${{ github.workspace }}/third_party/whisper.cpp/" >> $GITHUB_ENV
+    - name: Save whisper.cpp artifacts
+      if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
+      id: cache-whisper-save
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          third_party/whisper.cpp/libwhisper.a
+          third_party/whisper.cpp/*.h
+        key: ${{ steps.cache-whisper-restore.outputs.cache-primary-key }}
