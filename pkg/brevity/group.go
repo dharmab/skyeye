@@ -1,6 +1,8 @@
 package brevity
 
-import "github.com/martinlindhe/unit"
+import (
+	"github.com/martinlindhe/unit"
+)
 
 // Group describes any number of air contacts within 3 nautical miles in azimuth and range of each other.
 // Groups are distinguished by either a unique name or a location. This implementation only uses location.
@@ -18,8 +20,10 @@ type Group interface {
 	Bullseye() Bullseye
 	// Altitude is the group's altitude above sea level. This may be nil for BOGEY DOPE, SNAPLOCK, and THREAT calls.
 	Altitude() unit.Length
-	// Track is the group's track direction. This may be nil for BOGEY DOPE, SNAPLOCK, and THREAT calls.
-	Track() unit.Angle
+	// Track is the group's track direction. This may be UnknownDirection for BOGEY DOPE, SNAPLOCK, and THREAT calls.
+	Track() Track
+	// Aspect is the group's aspect angle. This may be nil for BOGEY DOPE, SNAPLOCK, and some THREAT calls.
+	Aspect() Aspect
 	// BRAA is an alternate format for the group's location. This is nil except for BOGEY DOPE, SNAPLOCK, and some THREAT calls.
 	BRAA() BRAA
 	// Declaration of the group's friend or foe status.

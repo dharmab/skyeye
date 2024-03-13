@@ -1,16 +1,16 @@
 package brevity
 
 // Track is a compass direction.
-type Track int
+type Track string
 
 const (
-	UnknownDirection Track = -1
-	North            Track = iota
-	Northeast
-	East
-	Southeast
-	South
-	Southwest
-	West
-	Northwest
+	UnknownDirection Track = "unknown"
+	North            Track = "north"
+	Northeast        Track = "northeast"
+	East             Track = "east"
+	Southeast        Track = "southeast"
+	South            Track = "south"
+	Southwest        Track = "southwest"
+	West             Track = "west"
+	Northwest        Track = "northwest"
 )

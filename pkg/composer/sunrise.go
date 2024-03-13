@@ -1,10 +1,14 @@
 package composer
 
-import "github.com/dharmab/skyeye/pkg/brevity"
+import (
+	"fmt"
+
+	"github.com/dharmab/skyeye/pkg/brevity"
+)
 
 func (c *composer) ComposeSunriseCall(brevity.SunriseCall) NaturalLanguageResponse {
 	return NaturalLanguageResponse{
-		Subtitle: "SUNRISE not yet implemented",
-		Speech:   "Sorry, I don't know how to make a SUNRISE call. I'm still learning!",
+		Subtitle: fmt.Sprintf("All players: GCI %s (bot) sunrise on %.3fMHz", c.callsign, c.frequency.Megahertz()),
+		Speech:   fmt.Sprintf("All players, GCI %s sunrise on %s", c.callsign, PronounceDecimal(c.frequency.Megahertz(), 3, "point")),
 	}
 }
