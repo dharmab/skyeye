@@ -2,7 +2,6 @@ package composer
 
 import (
 	"github.com/dharmab/skyeye/pkg/brevity"
-	"github.com/martinlindhe/unit"
 )
 
 // Composer converts brevity responses from structured forms into natural language.
@@ -29,8 +28,7 @@ type NaturalLanguageResponse struct {
 }
 
 type composer struct {
-	callsign  string
-	frequency unit.Frequency
+	callsign string
 }
 
 func New() Composer {
