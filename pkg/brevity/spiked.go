@@ -16,10 +16,21 @@ type SpikedRequest interface {
 type SpikedResponse interface {
 	// Callsign of the friendly aircraft calling SPIKED.
 	Callsign() string
+
 	// True if the spike was correlated to a contact. False otherwise.
 	Status() bool
-	// Group which was correlated to the spike. If Status is false, this may be nil.
-	Group() Group
+
+	// Range to the correlated contact. If Status is false, this may be zero.
+	Range() unit.Length
+	// Altitude of the correlated contact. If Status is false, this may be zero.
+	Altitude() unit.Length
+	// Aspect of the correlated contact. If Status is false, this may be UnknownAspect.
+	Aspect() Aspect
+	// Declaration of the correlated contact. If Status is false, this may be Clean.
+	Declaration() Declaration
+	// Number of contacts in the correlated group. If Status is false, this may be zero.
+	Contacts() int
+
 	// Reported spike bearing. This is used if the response did not correlate to a group.
 	Bearing() unit.Angle
 }

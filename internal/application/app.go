@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/internal/conf"
+	"github.com/dharmab/skyeye/pkg/composer"
 	"github.com/dharmab/skyeye/pkg/dcs"
 	"github.com/dharmab/skyeye/pkg/recognizer"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
@@ -108,7 +109,7 @@ func (a *app) Run(ctx context.Context) error {
 	sunriseSample, err := a.synthesizer.Say(fmt.Sprintf(
 		"All players, GCI %s sunrise on %s",
 		a.srsClient.Name(),
-		synthesizer.PronounceDecimal(a.srsClient.FrequencyMHz(), 3, ""),
+		composer.PronounceDecimal(a.srsClient.FrequencyMHz(), 3, ""),
 	))
 	if err != nil {
 		return fmt.Errorf("failed to generate sunrise message: %w", err)

@@ -1,10 +1,15 @@
 package composer
 
-import "github.com/dharmab/skyeye/pkg/brevity"
+import (
+	"fmt"
 
-func (c *composer) ComposePictureResponse(brevity.PictureResponse) NaturalLanguageResponse {
+	"github.com/dharmab/skyeye/pkg/brevity"
+)
+
+func (c *composer) ComposePictureResponse(r brevity.PictureResponse) NaturalLanguageResponse {
+	g := c.ComposeCoreInformationFormat(r.Groups())
 	return NaturalLanguageResponse{
-		Subtitle: "PICTURE not yet implemented",
-		Speech:   "Sorry, I don't know how to respond to PICTURE yet. I'm still learning!",
+		Subtitle: fmt.Sprintf("%s, %s", c.callsign, g.Subtitle),
+		Speech:   fmt.Sprintf("%s, %s", c.callsign, g.Speech),
 	}
 }

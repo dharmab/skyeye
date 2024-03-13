@@ -1,10 +1,15 @@
 package composer
 
-import "github.com/dharmab/skyeye/pkg/brevity"
+import (
+	"fmt"
 
-func (c *composer) ComposeBogeyDopeResponse(brevity.BogeyDopeResponse) NaturalLanguageResponse {
+	"github.com/dharmab/skyeye/pkg/brevity"
+)
+
+func (c *composer) ComposeBogeyDopeResponse(r brevity.BogeyDopeResponse) NaturalLanguageResponse {
+	groups := c.ComposeCoreInformationFormat([]brevity.Group{r.Group()})
 	return NaturalLanguageResponse{
-		Subtitle: "BOGEY DOPE not yet implemented",
-		Speech:   "Sorry, I don't know how to respond to BOGEY DOPE yet. I'm still learning!",
+		Subtitle: fmt.Sprintf("%s, %s", r.Callsign(), groups.Subtitle),
+		Speech:   fmt.Sprintf("%s, %s", r.Callsign(), groups.Speech),
 	}
 }

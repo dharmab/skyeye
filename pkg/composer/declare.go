@@ -1,10 +1,22 @@
 package composer
 
-import "github.com/dharmab/skyeye/pkg/brevity"
+import (
+	"fmt"
+	"slices"
 
-func (c *composer) ComposeDeclareResponse(brevity.DeclareResponse) NaturalLanguageResponse {
+	"github.com/dharmab/skyeye/pkg/brevity"
+)
+
+func (c *composer) ComposeDeclareResponse(r brevity.DeclareResponse) NaturalLanguageResponse {
+	if slices.Contains([]brevity.Declaration{brevity.Furball, brevity.Unable, brevity.Clean}, r.Declaration()) {
+		return NaturalLanguageResponse{
+			Subtitle: fmt.Sprintf("%s, %s.", r.Callsign(), r.Declaration()),
+			Speech:   fmt.Sprintf("%s, %s", r.Callsign(), r.Declaration()),
+		}
+	}
+	g := c.ComposeCoreInformationFormat([]brevity.Group{r.Group()})
 	return NaturalLanguageResponse{
-		Subtitle: "DECLARE not yet implemented",
-		Speech:   "Sorry, I don't know how to respond to DECLARE yet. I'm still learning!",
+		Subtitle: fmt.Sprintf("%s, %s", r.Callsign(), g.Subtitle),
+		Speech:   fmt.Sprintf("%s, %s", r.Callsign(), g.Speech),
 	}
 }

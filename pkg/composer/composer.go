@@ -1,6 +1,9 @@
 package composer
 
-import "github.com/dharmab/skyeye/pkg/brevity"
+import (
+	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/martinlindhe/unit"
+)
 
 // Composer converts brevity responses from structured forms into natural language.
 // It is nondeterministic; the same input may randomly produce different output, to add variety and personality to the bot's respones.
@@ -25,7 +28,10 @@ type NaturalLanguageResponse struct {
 	Speech string
 }
 
-type composer struct{}
+type composer struct {
+	callsign  string
+	frequency unit.Frequency
+}
 
 func New() Composer {
 	return &composer{}
