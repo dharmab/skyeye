@@ -8,38 +8,37 @@ import (
 )
 
 func (c *composer) ComposeFadedCall(call brevity.FadedCall) NaturalLanguageResponse {
-	var subtitleBuilder strings.Builder
-	var speechBuilder strings.Builder
+	var subtitle, speech strings.Builder
 
 	writeBoth := func(s string) {
-		subtitleBuilder.WriteString(s)
-		speechBuilder.WriteString(s)
+		subtitle.WriteString(s)
+		speech.WriteString(s)
 	}
 
-	g := call.Group()
+	group := call.Group()
 
-	if g.Contacts() == 1 {
+	if group.Contacts() == 1 {
 		writeBoth("single contact")
 	} else {
-		writeBoth(fmt.Sprintf("%d contacts", g.Contacts()))
+		writeBoth(fmt.Sprintf("%d contacts", group.Contacts()))
 	}
 	writeBoth(" faded bullseye")
-	bullseye := c.ComposeBullseye(g.Bullseye())
-	subtitleBuilder.WriteString(fmt.Sprintf(" %s", bullseye.Subtitle))
-	speechBuilder.WriteString(fmt.Sprintf(" %s", bullseye.Speech))
+	bullseye := c.ComposeBullseye(group.Bullseye())
+	subtitle.WriteString(fmt.Sprintf(" %s", bullseye.Subtitle))
+	speech.WriteString(fmt.Sprintf(" %s", bullseye.Speech))
 
-	if g.Track() != brevity.UnknownDirection {
-		writeBoth(fmt.Sprintf(", track %s", g.Track()))
+	if group.Track() != brevity.UnknownDirection {
+		writeBoth(fmt.Sprintf(", track %s", group.Track()))
 	}
 
-	if g.Type() != "" {
-		writeBoth(fmt.Sprintf(", %s", g.Type()))
+	if group.Type() != "" {
+		writeBoth(fmt.Sprintf(", %s", group.Type()))
 	}
 
-	subtitleBuilder.WriteString(".")
+	subtitle.WriteString(".")
 
 	return NaturalLanguageResponse{
-		Subtitle: subtitleBuilder.String(),
-		Speech:   speechBuilder.String(),
+		Subtitle: subtitle.String(),
+		Speech:   speech.String(),
 	}
 }

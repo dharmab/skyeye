@@ -14,6 +14,8 @@ import (
 //
 // Reference: ATP 3-52.4 Chapter IV section 2
 type Group interface {
+	// Threat indicates if the THREAT criteria is met.
+	Threat() bool
 	// Contacts is the number of contacts in the group.
 	Contacts() int
 	// Bullseye is the location of the group. This may be nil for BOGEY DOPE, SNAPLOCK, and THREAT calls.

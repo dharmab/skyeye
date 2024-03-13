@@ -10,12 +10,11 @@ import (
 // ComposeCoreInformationFormat communicates information about groups.
 // Reference: ATP 3-52.4 chapter IV section 3
 func (c *composer) ComposeCoreInformationFormat(groups []brevity.Group) NaturalLanguageResponse {
-	var speechBuilder strings.Builder
-	var subtitleBuilder strings.Builder
+	var speech, subtitle strings.Builder
 
 	writeBoth := func(s string) {
-		speechBuilder.WriteString(s)
-		subtitleBuilder.WriteString(s)
+		speech.WriteString(s)
+		subtitle.WriteString(s)
 	}
 
 	// Total number of groups
@@ -28,76 +27,81 @@ func (c *composer) ComposeCoreInformationFormat(groups []brevity.Group) NaturalL
 			writeBoth(" ")
 		}
 		groupResponse := c.ComposeGroup(group)
-		speechBuilder.WriteString(groupResponse.Speech)
-		subtitleBuilder.WriteString(groupResponse.Subtitle)
+		speech.WriteString(groupResponse.Speech)
+		subtitle.WriteString(groupResponse.Subtitle)
 		writeBoth(".")
 	}
 
 	return NaturalLanguageResponse{
-		Subtitle: subtitleBuilder.String(),
-		Speech:   speechBuilder.String(),
+		Subtitle: subtitle.String(),
+		Speech:   speech.String(),
 	}
 }
 
-func (c *composer) ComposeGroup(g brevity.Group) NaturalLanguageResponse {
-	var speechBuilder strings.Builder
-	var subtitleBuilder strings.Builder
+func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
+	var speech, subtitle strings.Builder
 
 	writeBoth := func(s string) {
-		speechBuilder.WriteString(s)
-		subtitleBuilder.WriteString(s)
+		speech.WriteString(s)
+		subtitle.WriteString(s)
+	}
+
+	label := "Group"
+	if group.Threat() {
+		label = "Group threat"
 	}
 
 	// Group location, altitude, and track direction or specific aspect
-	if g.Bullseye() != nil {
-		bullseye := c.ComposeBullseye(g.Bullseye())
-		speechBuilder.WriteString(fmt.Sprintf("group %s, %d", bullseye.Speech, int(g.Altitude().Feet())))
-		subtitleBuilder.WriteString(fmt.Sprintf("Group %s/%d", bullseye.Subtitle, int(g.Altitude().Feet())))
-		if g.Track() != brevity.UnknownDirection {
-			writeBoth(fmt.Sprintf(", track %s", g.Track()))
+	if group.Bullseye() != nil {
+		bullseye := c.ComposeBullseye(group.Bullseye())
+
+		speech.WriteString(fmt.Sprintf("%s %s, %d", label, bullseye.Speech, int(group.Altitude().Feet())))
+		subtitle.WriteString(fmt.Sprintf("%s %s/%d", label, bullseye.Subtitle, int(group.Altitude().Feet())))
+		if group.Track() != brevity.UnknownDirection {
+			writeBoth(fmt.Sprintf(", track %s", group.Track()))
 		}
-	} else if g.BRAA() != nil {
-		braa := c.ComposeBRAA(g.BRAA())
-		speechBuilder.WriteString(fmt.Sprintf("group %s, %d", braa.Speech, int(g.Altitude().Feet())))
-		subtitleBuilder.WriteString(fmt.Sprintf("group %s, %d", braa.Subtitle, int(g.Altitude().Feet())))
-		if g.Aspect() != brevity.UnknownAspect {
-			writeBoth(fmt.Sprintf(", %s", g.Aspect()))
+	} else if group.BRAA() != nil {
+		braa := c.ComposeBRAA(group.BRAA())
+		speech.WriteString(fmt.Sprintf("%s %s, %d", label, braa.Speech, int(group.Altitude().Feet())))
+		subtitle.WriteString(fmt.Sprintf("%s %s, %d", label, braa.Subtitle, int(group.Altitude().Feet())))
+		if group.Aspect() != brevity.UnknownAspect {
+			writeBoth(fmt.Sprintf(", %s", group.Aspect()))
 		}
 	}
 
 	// Declaration
-	writeBoth(fmt.Sprintf(", %s", g.Declaration()))
+	writeBoth(fmt.Sprintf(", %s", group.Declaration()))
 
 	// Fill-in information
 
 	// Heavy and number of contacts
-	if g.Heavy() {
+	if group.Heavy() {
 		writeBoth(", heavy")
 	}
-	contacts := c.ComposeContacts(g.Contacts())
-	subtitleBuilder.WriteString(contacts.Subtitle)
-	speechBuilder.WriteString(contacts.Speech)
+	contacts := c.ComposeContacts(group.Contacts())
+	subtitle.WriteString(contacts.Subtitle)
+	speech.WriteString(contacts.Speech)
 
 	// Platform/type
-	if g.Type() != "" {
-		writeBoth(fmt.Sprintf(", %s", g.Type()))
+	if group.Type() != "" {
+		writeBoth(fmt.Sprintf(", %s", group.Type()))
 	}
 
 	// High
-	if g.High() {
+	if group.High() {
 		writeBoth(", high")
 	}
 
 	// Fast or very fast
-	if g.Fast() {
+	if group.Fast() {
 		writeBoth(", fast")
-	} else if g.VeryFast() {
+	} else if group.VeryFast() {
 		writeBoth(", very fast")
 	}
 
 	return NaturalLanguageResponse{
-		Subtitle: subtitleBuilder.String(),
-		Speech:   speechBuilder.String(),
+		Subtitle: subtitle.String(),
+		Speech:   speech.String(),
 	}
 }
 

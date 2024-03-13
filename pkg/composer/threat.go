@@ -1,10 +1,15 @@
 package composer
 
-import "github.com/dharmab/skyeye/pkg/brevity"
+import (
+	"fmt"
 
-func (c *composer) ComposeThreatCall(brevity.ThreatCall) NaturalLanguageResponse {
+	"github.com/dharmab/skyeye/pkg/brevity"
+)
+
+func (c *composer) ComposeThreatCall(call brevity.ThreatCall) NaturalLanguageResponse {
+	group := c.ComposeGroup(call.Group())
 	return NaturalLanguageResponse{
-		Subtitle: "THREAT not yet implemented",
-		Speech:   "Sorry, I don't know how to make a THREAT call yet. I'm still learning!",
+		Subtitle: fmt.Sprintf("%s, %s", call.Callsign(), group.Subtitle),
+		Speech:   fmt.Sprintf("%s, %s", call.Callsign(), group.Speech),
 	}
 }
