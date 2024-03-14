@@ -8,7 +8,8 @@ import (
 
 type Controller interface {
 	// Run starts the controller's control loops. It should be called exactly once. It blocks until the context is canceled.
-	Run(context.Context)
+	// The controller publishes responses to the given channel.
+	Run(context.Context, chan<- any)
 	// HandleAlphaCheck handles an ALPHA CHECK by reporting the position of the requesting aircraft.
 	HandleAlphaCheck(brevity.AlphaCheckRequest)
 	// HandleBogeyDope handles a BOGEY DOPE by reporting the closest enemy group to the requesting aircraft.
@@ -23,24 +24,23 @@ type Controller interface {
 	HandleSnaplock(brevity.SnaplockRequest)
 	// HandleSpiked handles a SPIKED by reporting any enemy groups in the direction of the radar spike.
 	HandleSpiked(brevity.SpikedRequest)
-	// ResponseChannel returns a channel that the controller queues calls and responses on. The types received on this channel are Call and Response types defined in the brevity package.
-	ResponseChannel() <-chan any
 }
 
 type controller struct {
-	responseChan chan any
+	out chan<- any
 }
 
 func New() Controller {
-	return &controller{
-		responseChan: make(chan any),
-	}
+	return &controller{}
 }
 
 // Run implements Controller.Run.
-func (c *controller) Run(context.Context) {}
+func (c *controller) Run(ctx context.Context, out chan<- any) {
+	c.out = out
 
-// ResponseChannel implements Controller.ResponseChannel.
-func (c *controller) ResponseChannel() <-chan any {
-	return c.responseChan
+	for range ctx.Done() {
+		return
+	}
+
+	// TODO control loops for FADED and THREAT
 }

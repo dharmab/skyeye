@@ -15,6 +15,8 @@ type bogeyDopeRequest struct {
 
 var _ brevity.BogeyDopeRequest = &bogeyDopeRequest{}
 
+func (r *bogeyDopeRequest) BogeyDope() {}
+
 func (r *bogeyDopeRequest) Callsign() string {
 	return r.callsign
 }

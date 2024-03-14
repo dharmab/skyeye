@@ -15,6 +15,8 @@ type pictureRequest struct {
 
 var _ brevity.PictureRequest = &pictureRequest{}
 
+func (r *pictureRequest) Picture() {}
+
 func (r *pictureRequest) Callsign() string {
 	return r.callsign
 }

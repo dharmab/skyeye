@@ -4,6 +4,7 @@ package brevity
 // Aspect is implied to be Beam or greater.
 // Reference ATP 3-52.4 Chapter V section 20
 type SnaplockRequest interface {
+	Snaplock()
 	// Callsign of the friendly aircraft requesting the SNAPLOCK.
 	Callsign() string
 	// BRA is the location of the contact.
@@ -13,6 +14,7 @@ type SnaplockRequest interface {
 // SnaplockResponse is a response to a SNAPLOCK call.
 // Reference ATP 3-52.4 Chapter V section 20
 type SnaplockResponse interface {
+	Snaplock()
 	// Callsign of the friendly aircraft requesting the SNAPLOCK.
 	Callsign() string
 	// Status is true if the SNAPLOCK was correlated to a group, otherwise false.

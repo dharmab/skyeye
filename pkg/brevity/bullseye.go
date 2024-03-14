@@ -18,23 +18,21 @@ type Bullseye interface {
 var _ Bullseye = &bullseye{}
 
 type bullseye struct {
-	bearing  unit.Angle
-	distance unit.Length
+	bearingDegrees int
+	distanceNM     int
 }
 
 func NewBullseye(bearing unit.Angle, distance unit.Length) Bullseye {
 	return &bullseye{
-		bearing:  bearing,
-		distance: distance,
+		bearingDegrees: int(math.Round(bearing.Degrees())),
+		distanceNM:     int(math.Round(distance.NauticalMiles())),
 	}
 }
 
 func (b *bullseye) Bearing() unit.Angle {
-	a := math.Round(b.bearing.Degrees())
-	return unit.Angle(a) * unit.Degree
+	return unit.Angle(b.bearingDegrees) * unit.Degree
 }
 
 func (b *bullseye) Distance() unit.Length {
-	d := math.Round(b.distance.NauticalMiles())
-	return unit.Length(d) * unit.NauticalMile
+	return unit.Length(b.distanceNM) * unit.NauticalMile
 }

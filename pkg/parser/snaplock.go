@@ -13,6 +13,8 @@ type snaplockRequest struct {
 
 var _ brevity.SnaplockRequest = &snaplockRequest{}
 
+func (r *snaplockRequest) Snaplock() {}
+
 func (r *snaplockRequest) Callsign() string {
 	return r.callsign
 }

@@ -8,6 +8,8 @@ type alphaCheckRequest struct {
 
 var _ brevity.AlphaCheckRequest = &alphaCheckRequest{}
 
+func (r *alphaCheckRequest) AlphaCheck() {}
+
 func (r *alphaCheckRequest) Callsign() string {
 	return r.callsign
 }
