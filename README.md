@@ -72,13 +72,12 @@ Current status:
 - ✅ DCS-gRPC - Prototyped connection to DCS via DCS-gRPC and reading game world state
 - 🚧 Accessibility: Keyboard input not yet implemented
 - 🚧 Accessibility: In-game subtitles not yet implemented
-- 🚧 Text input and in-game subtitles not yet implemented
-- 🚧 Game world state interface not yet implemented
-- 🚧 GCI controller logic not yet implemented
-- 🚧 Some unit test coverage is implemented, but expansion is needed
-- 🚧 CI/CD pipeline does not publish builds to GitHub Releases
-- 🚧 Documentation not written
-- 🚧 Observability is sporadic - better logging and tracing is needed
+- 🚧 Controller: Game world state interface not yet implemented
+- 🚧 Controller: GCI controller logic not yet implemented
+- 🚧 Testing: Some unit test coverage is implemented, but expansion is needed
+- 🚧 Release: CI/CD pipeline does not publish builds to GitHub Releases
+- 🚧 Documentation: Documentation not written
+- 🚧 Observability: Better logging and tracing is needed
 
 ### What kind of hardware does it require?
 
