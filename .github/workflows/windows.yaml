@@ -12,15 +12,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
           install: |
             base-devel
             mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-go
             mingw-w64-x86_64-opus
             mingw-w64-x86_64-libsoxr
+          # Inherit path to reuse Go from actions/setup-go
+          # https://github.com/numworks/setup-msys2/issues/13#issuecomment-558872375
+          path-type: inherit
       - name: Build whisper.cpp
         uses: ./.github/actions/build-whisper
         with:
