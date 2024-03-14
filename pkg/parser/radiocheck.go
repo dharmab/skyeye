@@ -8,6 +8,8 @@ type radioCheckRequest struct {
 
 var _ brevity.RadioCheckRequest = &radioCheckRequest{}
 
+func (r *radioCheckRequest) RadioCheck() {}
+
 func (r *radioCheckRequest) Callsign() string {
 	return r.callsign
 }

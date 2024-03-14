@@ -15,6 +15,8 @@ type spikedRequest struct {
 
 var _ brevity.SpikedRequest = &spikedRequest{}
 
+func (r *spikedRequest) Spiked() {}
+
 func (r *spikedRequest) Callsign() string {
 	return r.callsign
 }

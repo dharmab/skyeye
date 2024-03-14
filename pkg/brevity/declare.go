@@ -35,6 +35,7 @@ const (
 // DeclareRequest is a DECLARE call.
 // Reference: ATP 3-52.4 Chapter V section 6
 type DeclareRequest interface {
+	Declare()
 	// Callsign of the friendly aircraft requesting DECLARE.
 	Callsign() string
 	// Location of the contact.
@@ -48,6 +49,7 @@ type DeclareRequest interface {
 // DeclareResponse is a response to a DECLARE call.
 // Reference: ATP 3-52.4 Chapter V section 6
 type DeclareResponse interface {
+	Declare()
 	// Callsign of the friendly aircraft requesting DECLARE.
 	Callsign() string
 	// Declaration of the contact.

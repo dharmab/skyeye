@@ -11,6 +11,7 @@ const (
 // BogeyDopeRequest is a request for a BOGEY DOPE.
 // Reference: ATP 3-52.4 Chapter V section 11
 type BogeyDopeRequest interface {
+	BogeyDope()
 	// Callsign of the friendly aircraft requesting the BOGEY DOPE.
 	Callsign() string
 	// Filter for the type of aircraft to include in the BOGEY DOPE.
@@ -18,6 +19,7 @@ type BogeyDopeRequest interface {
 }
 
 type BogeyDopeResponse interface {
+	BogeyDope()
 	// Callsign of the friendly aircraft requesting the BOGEY DOPE.
 	Callsign() string
 	// Group which is closest to the fighter.

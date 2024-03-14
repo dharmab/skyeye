@@ -17,6 +17,8 @@ type declareRequest struct {
 
 var _ brevity.DeclareRequest = &declareRequest{}
 
+func (r *declareRequest) Declare() {}
+
 func (r *declareRequest) Callsign() string {
 	return r.callsign
 }
