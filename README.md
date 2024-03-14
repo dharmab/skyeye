@@ -6,24 +6,24 @@ Unlike previous GCI bots, SkyEye uses Speech-To-Text and Text-To-Speech technolo
 
 ## Goals
 
+* Implement `ALPHA CHECK`, `BOGEY DOPE`, `DECLARE`, `FADED`, `PICTURE`, `RADIO CHECK`, `SNAPLOCK`, `SPIKED` and `THREAT` calls
 * Run entirely locally on reasonable consumer hardware
 * Use modern speech synthesis that sounds like a human (Goodbye, Microsoft SAM! Hello, [Piper](https://rhasspy.github.io/piper-samples)!)
 * Hybridize real-world [air control communication](https://www.alsa.mil/Portals/9/Documents/mttps/acc_2021.pdf) and [brevity](https://rdl.train.army.mil/catalog-ws/view/100.ATSC/5773E259-8F90-4694-97AD-81EFE6B73E63-1414757496033/atp1-02x1.pdf) with pragmatism
 * Proactively inform and update players instead of using static tripwire rules
-* Implement PICTURE and DECLARE/SNAPSHOT calls
-* Support text-based input and provide subtitles for output
-* Allow multiple GCI bots to run on the same DCS and SRS instance with different callsigns and frequencies
+* Support accessible interfaces in addition to voice and audio, including keyboard based input and in-game subtitles
 * Excellent documentation for developers, server administrators and players
 * Be easy for a beginner programmer to customize
 * Have useful test coverage, especially of controller logic
 * Support Windows x86-64, Linux x86-64 and Linux ARM
+* Allow multiple GCI bots to run on the same DCS and SRS instance with different callsigns and frequencies
 * Minimize maintenance burden. Ship a static binary with as many pinned dependencies as possible, so this software continues to function with reduced maintainer activity
 
 ## Anti-Goals
 
-* Follow [grug-brained principles](https://grugbrain.dev/). Avoid unecessary design patterns like factories, dependency injection frameworks, and large inheritance hierarchies
-* Focused feature set. Don't try to match other bots 1:1 on features like ATC or DCT integration
-* [Say "no" to complex features.](https://grugbrain.dev/#grug-on-saying-no) Provide the basics, and sufficient documentation for others to fork and customize for their use case
+* Follow [grug-brained principles](https://grugbrain.dev/). Avoid unecessary design patterns. Keep it simple!
+* Focused feature set. Don't try to match other bots 1:1 on feature set.
+* [Say "no" to complex features.](https://grugbrain.dev/#grug-on-saying-no) Provide the basics, and sufficient documentation for others to fork and customize for their use case,
 
 ## Getting Started
 
@@ -39,6 +39,7 @@ Skyeye would not be possible without these people and projects, for whom I am de
 * [DCS-gRPC](https://github.com/DCS-gRPC) provides the interface into DCS World. 
 * @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against Skyeye during early development, and Jones himself was also patient with my questions on Discord.
 * @ggerganov's [whisper.cpp](https://github.com/ggerganov/whisper.cpp) models provides text-to-speech.
+* @rodaine's [numwords](https://github.com/rodaine/numwords) module is invaluable for parsing numeric quantities from voice input.
 * [Piper](https://github.com/rhasspy/piper) by the [Rhasspy](https://rhasspy.readthedocs.io/en/latest/) voice assistant project is used for speech-to-text.
 * The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for Skyeye.
 * @popey's dataset provides the masculine voice for Skyeye.
@@ -46,6 +47,8 @@ Skyeye would not be possible without these people and projects, for whom I am de
 * The [Opus codec](https://opus-codec.org/) and the [`hraban/opus`](https://github.com/hraban/opus) module provides audio compression for the SRS protocol.
 * @lithammer's [shortuuid](https://github.com/lithammer/shortuuid) module provides a GUID implementation compatible with the SRS protocols.
 * @zaf's [resample](https://github.com/zaf/resample) module helps with audio format conversion between Piper and SRS.
+* @martinlindhe's [unit](https://github.com/martinlindhe/unit) module provides easy angular, length and frequency unit conversion.
+* [MSYS2](https://www.msys2.org/) provides a Windows build environment.
 * [Oto](https://github.com/ebitengine/oto) is helpful for debugging audio format conversion problems.
 * [Team Lima Kilo](https://github.com/team-limakilo/) and the Flashpoint Levant community provided morale-boosting energy and feedback.
 * And of course, [DCS World](https://www.digitalcombatsimulator.com/en/) is produced by Eagle Dynamics.
@@ -54,24 +57,28 @@ Skyeye would not be possible without these people and projects, for whom I am de
 
 ### Is this ready?
 
-No, it's still in development. I work on it about one night a week. At this rate I hope it will be ready by early 2025.
+No- but stay tuned! Progress is speeding up.
+
+I work on it about one night a week. At this rate I hope it will be ready later in 2024.
 
 Current status:
 
 - ✅ SRS integration - bot can listen to and talk on an SRS channel
 - ✅ Speech recognition - bot can recognize what humans are saying on SRS and turn it into text
+- ✅ Brevity parsing - bot can decode tactical brevity
+- ✅ Brevity composition - bot can phrase radio calls using tactical brevity
 - ✅ Speech synthesis - bot can turn text into human-like speech and say it on SRS
+- ✅ CI/CD pipeline configured for linting, testing and building on Linux and Windows
 - ✅ DCS-gRPC - Prototyped connection to DCS via DCS-gRPC and reading game world state
-- ✅ Basic CI pipeline configured
+- 🚧 Accessibility: Keyboard input not yet implemented
+- 🚧 Accessibility: In-game subtitles not yet implemented
 - 🚧 Text input and in-game subtitles not yet implemented
-- 🚧 GCI controller request parser not yet implemented
 - 🚧 Game world state interface not yet implemented
 - 🚧 GCI controller logic not yet implemented
-- 🚧 GCI controller response composer not yet implemented
-- 🚧 Limited test coverage
+- 🚧 Some unit test coverage is implemented, but expansion is needed
 - 🚧 CI/CD pipeline does not publish builds to GitHub Releases
 - 🚧 Documentation not written
-- 🚧 Observability is sporadic
+- 🚧 Observability is sporadic - better logging and tracing is needed
 
 ### What kind of hardware does it require?
 
@@ -90,14 +97,14 @@ I have some personal, selfish reasons for writing a new bot:
 1. I use Go, Python and Linux professionally so this is more relevant to my career development than .NET development
 1. I want to learn more about practical network programming with coroutine-based concurrency
 1. I believe the TRIPWIRE functionality in OverlordBot is damaging to the community and want to eradicate it.
-1. I want to defeat the sense of fatalism about GCI bot development in the community. It's not enough to band-aid an unmaintained project- I want to prove we can still innovate
-1. The requirements to submit a merge request to the official OverlordBot repository required more work than writing my own bot from scratch (sorry Jones)
+1. I want to innovate and deliver new features that would be breaking changes to the OverlordBot community.
+1. Given my lack of .NET development skills, it is faster for me to write new software using technologies to which I am "native" rather than contribute to OverlordBot.
 
 ### Why aren't you implementing TRIPWIRE?
 
 TRIPWIRE encourages players to think about themselves in a small bubble. It also clutters the channel with information in a format only useful to a specific player. It encourages players to act as lone wolves rather than as members of a team.
 
-Instead, I will implement THREAT brevity. THREAT provides similar benefit to a player as a TRIPWIRE- it warns you when a hostile aircraft is a danger to you. The advantages:
+Instead, I am implementing THREAT brevity. THREAT provides similar benefit to a player as a TRIPWIRE- it warns you when a hostile aircraft is a danger to you. The advantages:
 
 - THREAT calls do not require you to individually register with the bot. The bot can see the radar, and it can see which players are currently on the frequency. Therefore, it can automatically make THREAT calls to players on frequency.
 - Locations in THREAT calls can be given in either BRAA or BULLSEYE format, depending on whether the call is relevant to a single aircraft or multiple aircraft.
