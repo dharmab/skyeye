@@ -34,27 +34,25 @@ const (
 
 // DeclareRequest is a DECLARE call.
 // Reference: ATP 3-52.4 Chapter V section 6
-type DeclareRequest interface {
-	Declare()
+type DeclareRequest struct {
 	// Callsign of the friendly aircraft requesting DECLARE.
-	Callsign() string
+	Callsign string
 	// Location of the contact.
-	Location() Bullseye
+	Location Bullseye
 	// Altitude of the contact above sea level, rounded to the nearest thousands of feet.
-	Altitude() unit.Length
+	Altitude unit.Length
 	// Track direction. Optional, used to discriminate between multiple contacts at the same location.
-	Track() Track
+	Track Track
 }
 
 // DeclareResponse is a response to a DECLARE call.
 // Reference: ATP 3-52.4 Chapter V section 6
-type DeclareResponse interface {
-	Declare()
+type DeclareResponse struct {
 	// Callsign of the friendly aircraft requesting DECLARE.
-	Callsign() string
+	Callsign string
 	// Declaration of the contact.
-	Declaration() Declaration
+	Declaration Declaration
 	// Group that was identified, if a specific one was identifiable.
 	// This may be nil if Declaration is Furball, Unable, or Clean.
-	Group() Group
+	Group Group
 }

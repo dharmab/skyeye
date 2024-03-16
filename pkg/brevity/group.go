@@ -19,7 +19,7 @@ type Group interface {
 	// Contacts is the number of contacts in the group.
 	Contacts() int
 	// Bullseye is the location of the group. This may be nil for BOGEY DOPE, SNAPLOCK, and THREAT calls.
-	Bullseye() Bullseye
+	Bullseye() *Bullseye
 	// Altitude is the group's altitude above sea level. This may be nil for BOGEY DOPE, SNAPLOCK, and THREAT calls.
 	Altitude() unit.Length
 	// Track is the group's track direction. This may be UnknownDirection for BOGEY DOPE, SNAPLOCK, and THREAT calls.
@@ -32,8 +32,9 @@ type Group interface {
 	Declaration() Declaration
 	// Heavy is true if the group contacts 3 or more contacts.
 	Heavy() bool
-	// Type is the NATO reporting name of the group's aircraft platform (for Soviet/Russian/Chinese aircraft) or
-	Type() string
+	// Platform is the NATO reporting name of the group's aircraft platform (for Soviet/Russian/Chinese aircraft) or
+	// an alternative name for other aircraft.
+	Platform() string
 	// High is true if the aircraft altitude is above 40,000 feet.
 	High() bool
 	// Fast is true if the group's speed is 600-900kts ground speed or 1.0-1.5 Mach.

@@ -7,9 +7,16 @@ import (
 )
 
 func (c *composer) ComposeBogeyDopeResponse(r brevity.BogeyDopeResponse) NaturalLanguageResponse {
-	groups := c.ComposeCoreInformationFormat([]brevity.Group{r.Group()})
+	if r.Group == nil {
+		reply := fmt.Sprintf("%s, %s", r.Callsign, brevity.Clean)
+		return NaturalLanguageResponse{
+			Subtitle: reply,
+			Speech:   reply,
+		}
+	}
+	groups := c.ComposeCoreInformationFormat([]brevity.Group{r.Group})
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", r.Callsign(), groups.Subtitle),
-		Speech:   fmt.Sprintf("%s, %s", r.Callsign(), groups.Speech),
+		Subtitle: fmt.Sprintf("%s, %s", r.Callsign, groups.Subtitle),
+		Speech:   fmt.Sprintf("%s, %s", r.Callsign, groups.Speech),
 	}
 }

@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/DCS-gRPC/go-bindings/dcs/v0/common"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/composer"
 	"github.com/dharmab/skyeye/pkg/controller"
 	"github.com/dharmab/skyeye/pkg/dcs"
 	"github.com/dharmab/skyeye/pkg/parser"
+	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/recognizer"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
@@ -82,9 +84,11 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	parser := parser.New()
 
 	slog.Info("constructing GCI controller")
-	controller := controller.New()
+	rdr := radar.New()
+	controller := controller.New(rdr, common.Coalition_COALITION_BLUE)
 
 	slog.Info("constructing text composer")
+
 	composer := composer.New()
 
 	slog.Info("constructing text-to-speech synthesizer")
@@ -168,8 +172,8 @@ func (a *app) recognize(ctx context.Context, out chan<- string) {
 			text, err := a.recognizer.Recognize(sample)
 			if err != nil {
 				slog.Error("error recongizing audio sample", "error", err)
-			} else if text == "" {
-				slog.Debug("unable to recongnize any words in audio sample")
+			} else if text == "" || text == "[BLANK AUDIO]\n" {
+				slog.Info("unable to recongnize any words in audio sample")
 			} else {
 				slog.Info("recognized audio", "text", text)
 				out <- text
@@ -192,7 +196,7 @@ func (a *app) parse(ctx context.Context, in <-chan string, out chan<- any) {
 				slog.Info("parsed text", "group", request)
 				out <- request
 			} else {
-				slog.Debug("unable to parse text", "text", text)
+				slog.Info("unable to parse text", "text", text)
 			}
 		}
 	}
@@ -210,29 +214,29 @@ func (a *app) control(ctx context.Context, in <-chan any, out chan<- any) {
 		case brev := <-in:
 			slog.Info("routing request to controller", "request", brev)
 			switch request := brev.(type) {
-			case brevity.AlphaCheckRequest:
+			case *brevity.AlphaCheckRequest:
 				slog.Info("routing ALPHA CHECK request to controller", "request", request)
 				a.controller.HandleAlphaCheck(request)
-			case brevity.BogeyDopeRequest:
+			case *brevity.BogeyDopeRequest:
 				slog.Info("routing BOGEY DOPE request to controller", "request", request)
 				a.controller.HandleBogeyDope(request)
-			case brevity.DeclareRequest:
+			case *brevity.DeclareRequest:
 				slog.Info("routing DECLARE request to controller", "request", request)
 				a.controller.HandleDeclare(request)
-			case brevity.PictureRequest:
+			case *brevity.PictureRequest:
 				slog.Info("routing PICTURE request to controller", "request", request)
 				a.controller.HandlePicture(request)
-			case brevity.RadioCheckRequest:
+			case *brevity.RadioCheckRequest:
 				slog.Info("routing RADIO CHECK request to controller", "request", request)
 				a.controller.HandleRadioCheck(request)
-			case brevity.SnaplockRequest:
+			case *brevity.SnaplockRequest:
 				slog.Info("routing SNAPLOCK request to controller", "request", request)
 				a.controller.HandleSnaplock(request)
-			case brevity.SpikedRequest:
+			case *brevity.SpikedRequest:
 				slog.Info("routing SPIKED request to controller", "request", request)
 				a.controller.HandleSpiked(request)
 			default:
-				slog.Error("unable to route request to handler", "request", request)
+				slog.Error("unable to route request to handler", "request", request, "type", fmt.Sprintf("%T", request))
 			}
 		}
 	}

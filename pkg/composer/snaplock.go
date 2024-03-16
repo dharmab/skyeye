@@ -8,33 +8,33 @@ import (
 )
 
 func (c *composer) ComposeSnaplockResponse(r brevity.SnaplockResponse) NaturalLanguageResponse {
-	isLocationMissing := r.Group().BRAA() == nil
-	isDeclarationUnable := r.Group().Declaration() == brevity.Unable
-	isDeclarationFurball := r.Group().Declaration() == brevity.Furball
+	isLocationMissing := r.Group.BRAA() == nil
+	isDeclarationUnable := r.Group.Declaration() == brevity.Unable
+	isDeclarationFurball := r.Group.Declaration() == brevity.Furball
 	if isLocationMissing || isDeclarationUnable || isDeclarationFurball {
-		reply := fmt.Sprintf("%s, %s", r.Callsign(), brevity.Unable)
+		reply := fmt.Sprintf("%s, %s", r.Callsign, brevity.Unable)
 		return NaturalLanguageResponse{
 			Subtitle: reply,
 			Speech:   reply,
 		}
 	}
 
-	if r.Status() {
+	if r.Status {
 		var subtitleBuilder strings.Builder
 		var speechBuilder strings.Builder
-		braa := c.ComposeBRAA(r.Group().BRAA())
-		contacts := c.ComposeContacts(r.Group().Contacts())
+		braa := c.ComposeBRAA(r.Group.BRAA())
+		contacts := c.ComposeContacts(r.Group.Contacts())
 		subtitleBuilder.WriteString(fmt.Sprintf(
 			"%s, %s, %s",
-			r.Callsign(),
+			r.Callsign,
 			braa.Subtitle,
-			r.Group().Declaration(),
+			r.Group.Declaration(),
 		))
 		speechBuilder.WriteString(fmt.Sprintf(
 			"%s, %s, %s",
-			r.Callsign(),
+			r.Callsign,
 			braa.Speech,
-			r.Group().Declaration(),
+			r.Group.Declaration(),
 		))
 		if contacts.Subtitle != "" {
 			subtitleBuilder.WriteString(fmt.Sprintf(", %s", contacts.Subtitle))
@@ -48,7 +48,7 @@ func (c *composer) ComposeSnaplockResponse(r brevity.SnaplockResponse) NaturalLa
 		}
 	}
 
-	reply := fmt.Sprintf("%s, %s", r.Callsign(), brevity.Clean)
+	reply := fmt.Sprintf("%s, %s", r.Callsign, brevity.Clean)
 	return NaturalLanguageResponse{
 		Subtitle: reply,
 		Speech:   reply,

@@ -7,12 +7,12 @@ import (
 )
 
 func (c *composer) ComposeSpikedResponse(r brevity.SpikedResponse) NaturalLanguageResponse {
-	if r.Status() {
-		reply := fmt.Sprintf("%s, spike range %d, %d, %s, %s", r.Callsign(), int(r.Range().NauticalMiles()), int(r.Altitude().Feet()), r.Aspect(), r.Declaration())
-		if r.Contacts() == 1 {
+	if r.Status {
+		reply := fmt.Sprintf("%s, spike range %d, %d, %s, %s", r.Callsign, int(r.Range.NauticalMiles()), int(r.Altitude.Feet()), r.Aspect, r.Declaration)
+		if r.Contacts == 1 {
 			reply = fmt.Sprintf("%s, single contact.", reply)
 		} else {
-			reply = fmt.Sprintf("%s, %d contacts.", reply, r.Contacts())
+			reply = fmt.Sprintf("%s, %d contacts.", reply, r.Contacts)
 		}
 		return NaturalLanguageResponse{
 			Subtitle: reply,
@@ -20,7 +20,7 @@ func (c *composer) ComposeSpikedResponse(r brevity.SpikedResponse) NaturalLangua
 		}
 	}
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s clean %d.", r.Callsign(), c.callsign, int(r.Bearing().Degrees())),
-		Speech:   fmt.Sprintf("%s, %s clean %s", r.Callsign(), c.callsign, PronounceInt(int(r.Bearing().Degrees()))),
+		Subtitle: fmt.Sprintf("%s, %s clean %d.", r.Callsign, c.callsign, int(r.Bearing.Degrees())),
+		Speech:   fmt.Sprintf("%s, %s clean %s", r.Callsign, c.callsign, PronounceInt(int(r.Bearing.Degrees()))),
 	}
 }

@@ -11,6 +11,7 @@ type Composer interface {
 	ComposeBogeyDopeResponse(brevity.BogeyDopeResponse) NaturalLanguageResponse
 	ComposeDeclareResponse(brevity.DeclareResponse) NaturalLanguageResponse
 	ComposeFadedCall(brevity.FadedCall) NaturalLanguageResponse
+	ComposeNegativeRadarContactResponse(brevity.NegativeRadarContactResponse) NaturalLanguageResponse
 	ComposePictureResponse(brevity.PictureResponse) NaturalLanguageResponse
 	ComposeRadioCheckResponse(brevity.RadioCheckResponse) NaturalLanguageResponse
 	ComposeSnaplockResponse(brevity.SnaplockResponse) NaturalLanguageResponse

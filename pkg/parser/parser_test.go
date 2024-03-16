@@ -43,23 +43,23 @@ func TestParserSadPaths(t *testing.T) {
 func TestParserAlphaCheck(t *testing.T) {
 	testCases := []parserTestCase{
 		{
-			text: "ANYFACE, HORNET 1, MISSION NUMBER 5-1-1-1, CHECKING IN AS FRAGGED, REQUEST ALPHA CHECK DEPOT",
-			expectedRequest: &alphaCheckRequest{
-				callsign: "hornet 1",
+			text: "ANYFACE, HORNET 1, CHECKING IN AS FRAGGED, REQUEST ALPHA CHECK DEPOT",
+			expectedRequest: &brevity.AlphaCheckRequest{
+				Callsign: "hornet 1",
 			},
 			expectedOk: true,
 		},
 		{
 			text: "anyface intruder 11 alpha check",
-			expectedRequest: &alphaCheckRequest{
-				callsign: "intruder 1 1",
+			expectedRequest: &brevity.AlphaCheckRequest{
+				Callsign: "intruder 1 1",
 			},
 			expectedOk: true,
 		},
 		{
-			text: "anyface intruder 11 mission number 5111, checking in as fragged, request alpha check bullseye",
-			expectedRequest: &alphaCheckRequest{
-				callsign: "intruder 1 1",
+			text: "anyface intruder 11, checking in as fragged, request alpha check bullseye",
+			expectedRequest: &brevity.AlphaCheckRequest{
+				Callsign: "intruder 1 1",
 			},
 			expectedOk: true,
 		},
@@ -71,25 +71,25 @@ func TestParserBogeyDope(t *testing.T) {
 	testCases := []parserTestCase{
 		{
 			text: "ANYFACE, EAGLE 1 BOGEY DOPE",
-			expectedRequest: &bogeyDopeRequest{
-				callsign: "eagle 1",
-				filter:   brevity.Everything,
+			expectedRequest: &brevity.BogeyDopeRequest{
+				Callsign: "eagle 1",
+				Filter:   brevity.Everything,
 			},
 			expectedOk: true,
 		},
 		{
 			text: "anyface intruder 11 bogey dope fighters",
-			expectedRequest: &bogeyDopeRequest{
-				callsign: "intruder 1 1",
-				filter:   brevity.Airplanes,
+			expectedRequest: &brevity.BogeyDopeRequest{
+				Callsign: "intruder 1 1",
+				Filter:   brevity.Airplanes,
 			},
 			expectedOk: true,
 		},
 		{
 			text: "anyface intruder 11 bogey dope just helos",
-			expectedRequest: &bogeyDopeRequest{
-				callsign: "intruder 1 1",
-				filter:   brevity.Helicopters,
+			expectedRequest: &brevity.BogeyDopeRequest{
+				Callsign: "intruder 1 1",
+				Filter:   brevity.Helicopters,
 			},
 			expectedOk: true,
 		},
@@ -101,14 +101,14 @@ func TestParserDeclare(t *testing.T) {
 	testCases := []parserTestCase{
 		{
 			text: "ANYFACE, EAGLE 1 DECLARE BULLSEYE 230/12, TWELVE THOUSAND",
-			expectedRequest: &declareRequest{
-				callsign: "eagle 1",
-				bullseye: brevity.NewBullseye(
-					230*unit.Degree,
-					12*unit.NauticalMile,
+			expectedRequest: &brevity.DeclareRequest{
+				Callsign: "eagle 1",
+				Location: *brevity.NewBullseye(
+					unit.Angle(230)*unit.Degree,
+					unit.Length(12)*unit.NauticalMile,
 				),
-				altitude: 12000 * unit.Foot,
-				track:    brevity.UnknownDirection,
+				Altitude: 12000 * unit.Foot,
+				Track:    brevity.UnknownDirection,
 			},
 			expectedOk: true,
 		},
@@ -120,17 +120,17 @@ func TestParserPicture(t *testing.T) {
 	testCases := []parserTestCase{
 		{
 			text: "anyface, intruder 1-1 request picture",
-			expectedRequest: &pictureRequest{
-				callsign: "intruder 1 1",
-				radius:   conf.DefaultPictureRadius,
+			expectedRequest: &brevity.PictureRequest{
+				Callsign: "intruder 1 1",
+				Radius:   conf.DefaultPictureRadius,
 			},
 			expectedOk: true,
 		},
 		{
 			text: "anyface, intruder 1-1 picture radius 30",
-			expectedRequest: &pictureRequest{
-				callsign: "intruder 1 1",
-				radius:   30 * unit.NauticalMile,
+			expectedRequest: &brevity.PictureRequest{
+				Callsign: "intruder 1 1",
+				Radius:   30 * unit.NauticalMile,
 			},
 			expectedOk: true,
 		},
@@ -141,44 +141,79 @@ func TestParserPicture(t *testing.T) {
 func TestParserRadioCheck(t *testing.T) {
 	testCases := []parserTestCase{
 		{
+			text: "Any Face Intruder 1-1 ready a check",
+			expectedRequest: &brevity.RadioCheckRequest{
+				Callsign: "intruder 1 1",
+			},
+			expectedOk: true,
+		},
+		{
+			text: "anyface Wildcat11 radio check out.",
+			expectedRequest: &brevity.RadioCheckRequest{
+				Callsign: "wildcat 1 1",
+			},
+			expectedOk: true,
+		},
+		{
+			text: "Any face, Wildcat11, radio check",
+			expectedRequest: &brevity.RadioCheckRequest{
+				Callsign: "wildcat 1 1",
+			},
+			expectedOk: true,
+		},
+		{
+			text: "Any Face In shooter 1-1 Radio Check.",
+			expectedRequest: &brevity.RadioCheckRequest{
+				Callsign: "inshooter 1 1",
+			},
+			expectedOk: true,
+		},
+		{
 			text: "anyface intruder 11 radio check",
-			expectedRequest: &radioCheckRequest{
-				callsign: "intruder 1 1",
+			expectedRequest: &brevity.RadioCheckRequest{
+				Callsign: "intruder 1 1",
 			},
 			expectedOk: true,
 		},
 		{
 			text: "anyface intruder 1-1 radio check",
-			expectedRequest: &radioCheckRequest{
-				callsign: "intruder 1 1",
+			expectedRequest: &brevity.RadioCheckRequest{
+				Callsign: "intruder 1 1",
 			},
 			expectedOk: true,
 		},
 		{
 			text: "anyface intruder fife one radio check",
-			expectedRequest: &radioCheckRequest{
-				callsign: "intruder 5 1",
+			expectedRequest: &brevity.RadioCheckRequest{
+				Callsign: "intruder 5 1",
 			},
 			expectedOk: true,
 		},
 		{
 			text: "anyface intruder 11 request radio check",
-			expectedRequest: &radioCheckRequest{
-				callsign: "intruder 1 1",
+			expectedRequest: &brevity.RadioCheckRequest{
+				Callsign: "intruder 1 1",
 			},
 			expectedOk: true,
 		},
 		{
 			text: "anyface intruder 11 radio check 133 point zero",
-			expectedRequest: &radioCheckRequest{
-				callsign: "intruder 1 1",
+			expectedRequest: &brevity.RadioCheckRequest{
+				Callsign: "intruder 1 1",
 			},
 			expectedOk: true,
 		},
 		{
 			text: "anyface intruder 11 radio check on button five",
-			expectedRequest: &radioCheckRequest{
-				callsign: "intruder 1 1",
+			expectedRequest: &brevity.RadioCheckRequest{
+				Callsign: "intruder 1 1",
+			},
+			expectedOk: true,
+		},
+		{
+			text: "anyface work out 2 1 radio check",
+			expectedRequest: &brevity.RadioCheckRequest{
+				Callsign: "workout 2 1",
 			},
 			expectedOk: true,
 		},
@@ -190,9 +225,9 @@ func TestParserSpiked(t *testing.T) {
 	testCases := []parserTestCase{
 		{
 			text: "ANYFACE, EAGLE 1 SPIKED 2-7-0",
-			expectedRequest: &spikedRequest{
-				callsign:       "eagle 1",
-				bearingDegrees: 270,
+			expectedRequest: &brevity.SpikedRequest{
+				Callsign: "eagle 1",
+				Bearing:  unit.Angle(270) * unit.Degree,
 			},
 			expectedOk: true,
 		},
@@ -205,9 +240,9 @@ func TestParserSnaplock(t *testing.T) {
 	testCases := []parserTestCase{
 		{
 			text: "ANYFACE, FREEDOM 31, SNAPLOCK 125/10, EIGHT THOUSAND",
-			expectedRequest: &snaplockRequest{
-				callsign: "freedom 3 1",
-				bra: brevity.NewBRA(
+			expectedRequest: &brevity.SnaplockRequest{
+				Callsign: "freedom 3 1",
+				BRA: brevity.NewBRA(
 					125*unit.Degree,
 					10*unit.NauticalMile,
 					8000*unit.Foot,

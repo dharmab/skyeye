@@ -7,9 +7,9 @@ import (
 )
 
 func (c *composer) ComposeThreatCall(call brevity.ThreatCall) NaturalLanguageResponse {
-	group := c.ComposeGroup(call.Group())
+	group := c.ComposeGroup(call.Group)
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", call.Callsign(), group.Subtitle),
-		Speech:   fmt.Sprintf("%s, %s", call.Callsign(), group.Speech),
+		Subtitle: fmt.Sprintf("%s, %s", call.Callsign, group.Subtitle),
+		Speech:   fmt.Sprintf("%s, %s", call.Callsign, group.Speech),
 	}
 }

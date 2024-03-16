@@ -8,24 +8,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
-type bogeyDopeRequest struct {
-	callsign string
-	filter   brevity.BogeyFilter
-}
-
-var _ brevity.BogeyDopeRequest = &bogeyDopeRequest{}
-
-func (r *bogeyDopeRequest) BogeyDope() {}
-
-func (r *bogeyDopeRequest) Callsign() string {
-	return r.callsign
-}
-
-func (r *bogeyDopeRequest) Filter() brevity.BogeyFilter {
-	return r.filter
-}
-
-var bogeyFilterMap = map[string]brevity.BogeyFilter{
+var bogeyFilterMap = map[string]brevity.ContactCategory{
 	"airplane":    brevity.Airplanes,
 	"planes":      brevity.Airplanes,
 	"fighter":     brevity.Airplanes,
@@ -36,7 +19,7 @@ var bogeyFilterMap = map[string]brevity.BogeyFilter{
 	"rotary wing": brevity.Helicopters,
 }
 
-func (p *parser) parseBogeyDope(callsign string, scanner *bufio.Scanner) (brevity.BogeyDopeRequest, bool) {
+func (p *parser) parseBogeyDope(callsign string, scanner *bufio.Scanner) (*brevity.BogeyDopeRequest, bool) {
 	filter := brevity.Everything
 	s := scanner.Text()
 	for scanner.Scan() {
@@ -48,5 +31,5 @@ func (p *parser) parseBogeyDope(callsign string, scanner *bufio.Scanner) (brevit
 			break
 		}
 	}
-	return &bogeyDopeRequest{callsign, filter}, true
+	return &brevity.BogeyDopeRequest{Callsign: callsign, Filter: filter}, true
 }
