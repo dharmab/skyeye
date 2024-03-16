@@ -7,26 +7,26 @@ import (
 )
 
 func (c *composer) ComposeAlphaCheckResponse(r brevity.AlphaCheckResponse) NaturalLanguageResponse {
-	if r.Status() {
+	if r.Status {
 		return NaturalLanguageResponse{
 			Subtitle: fmt.Sprintf(
 				"%s, %s, contact, alpha check bullseye %d/%d",
-				r.Callsign(),
+				r.Callsign,
 				c.callsign,
-				int(r.Location().Bearing().Degrees()),
-				int(r.Location().Distance().NauticalMiles()),
+				int(r.Location.Bearing().Degrees()),
+				int(r.Location.Distance().NauticalMiles()),
 			),
 			Speech: fmt.Sprintf(
 				"%s, %s, contact, alpha check bullseye %s, %d",
-				r.Callsign(),
+				r.Callsign,
 				c.callsign,
-				PronounceInt(int(r.Location().Bearing().Degrees())),
-				int(r.Location().Distance().NauticalMiles()),
+				PronounceInt(int(r.Location.Bearing().Degrees())),
+				int(r.Location.Distance().NauticalMiles()),
 			),
 		}
 	}
 
-	reply := fmt.Sprintf("%s, negative contact", r.Callsign())
+	reply := fmt.Sprintf("%s, negative contact", r.Callsign)
 	return NaturalLanguageResponse{
 		Subtitle: reply,
 		Speech:   reply,

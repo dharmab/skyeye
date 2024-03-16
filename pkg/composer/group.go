@@ -52,8 +52,8 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 	}
 
 	// Group location, altitude, and track direction or specific aspect
-	if group.Bullseye() != nil {
-		bullseye := c.ComposeBullseye(group.Bullseye())
+	if bullseye := group.Bullseye(); bullseye != nil {
+		bullseye := c.ComposeBullseye(*bullseye)
 
 		speech.WriteString(fmt.Sprintf("%s %s, %d", label, bullseye.Speech, int(group.Altitude().Feet())))
 		subtitle.WriteString(fmt.Sprintf("%s %s/%d", label, bullseye.Subtitle, int(group.Altitude().Feet())))
@@ -82,9 +82,9 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 	subtitle.WriteString(contacts.Subtitle)
 	speech.WriteString(contacts.Speech)
 
-	// Platform/type
-	if group.Type() != "" {
-		writeBoth(fmt.Sprintf(", %s", group.Type()))
+	// Platform
+	if group.Platform() != "" {
+		writeBoth(fmt.Sprintf(", %s", group.Platform()))
 	}
 
 	// High

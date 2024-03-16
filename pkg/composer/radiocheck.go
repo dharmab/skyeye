@@ -9,7 +9,7 @@ import (
 
 func (c *composer) ComposeRadioCheckResponse(r brevity.RadioCheckResponse) NaturalLanguageResponse {
 	var replies []string
-	if r.Status() {
+	if r.Status {
 		replies = []string{
 			"%s, 5 by 5.",
 			"%s, 5 by 5!",
@@ -35,7 +35,7 @@ func (c *composer) ComposeRadioCheckResponse(r brevity.RadioCheckResponse) Natur
 	}
 
 	f := replies[rand.Intn(len(replies))]
-	s := fmt.Sprintf(f, r.Callsign())
+	s := fmt.Sprintf(f, r.Callsign)
 	return NaturalLanguageResponse{
 		Subtitle: s,
 		Speech:   s,

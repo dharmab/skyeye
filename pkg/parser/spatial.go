@@ -11,32 +11,32 @@ import (
 
 var bullseyeWords = []string{"bullseye", "bulls", "eye"}
 
-func (p *parser) parseBullseye(scanner *bufio.Scanner) (brevity.Bullseye, bool) {
+func (p *parser) parseBullseye(scanner *bufio.Scanner) *brevity.Bullseye {
 	for slices.Contains(bullseyeWords, scanner.Text()) {
 		ok := scanner.Scan()
 		if !ok {
-			return nil, false
+			return nil
 		}
 	}
 
 	b, ok := p.parseBearing(scanner)
 	if !ok {
-		return nil, false
+		return nil
 	}
 
 	for scanner.Text() == "for" {
 		ok := scanner.Scan()
 		if !ok {
-			return nil, false
+			return nil
 		}
 	}
 
 	r, ok := p.parseRange(scanner)
 	if !ok {
-		return nil, false
+		return nil
 	}
 
-	return brevity.NewBullseye(b, r), true
+	return brevity.NewBullseye(b, r)
 }
 
 var braaWords = []string{"bra", "brah", "braa"}
@@ -110,33 +110,33 @@ func (p *parser) parseAltitude(scanner *bufio.Scanner) (unit.Length, bool) {
 	return unit.Length(d) * unit.Foot, true
 }
 
-func (p *parser) parseTrack(scanner *bufio.Scanner) (brevity.Track, bool) {
+func (p *parser) parseTrack(scanner *bufio.Scanner) brevity.Track {
 	for scanner.Text() == "track" {
 		ok := scanner.Scan()
 		if !ok {
-			return brevity.UnknownDirection, false
+			return brevity.UnknownDirection
 		}
 	}
 
 	switch scanner.Text() {
 	case "north":
-		return brevity.North, true
+		return brevity.North
 	case "northeast":
-		return brevity.Northeast, true
+		return brevity.Northeast
 	case "east":
-		return brevity.East, true
+		return brevity.East
 	case "southeast":
-		return brevity.Southeast, true
+		return brevity.Southeast
 	case "south":
-		return brevity.South, true
+		return brevity.South
 	case "southwest":
-		return brevity.Southwest, true
+		return brevity.Southwest
 	case "west":
-		return brevity.West, true
+		return brevity.West
 	case "northwest":
-		return brevity.Northwest, true
+		return brevity.Northwest
 	default:
-		return brevity.UnknownDirection, false
+		return brevity.UnknownDirection
 	}
 }
 

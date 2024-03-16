@@ -3,9 +3,12 @@ package parser
 import (
 	"bufio"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"strings"
+	"unicode"
 
+	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/rodaine/numwords"
 )
 
@@ -22,10 +25,17 @@ type parser struct {
 }
 
 func New() Parser {
-	return &parser{}
+	return &parser{
+		callsign: "skyeye",
+	}
 }
 
-const anyface = "anyface"
+const anyface string = "anyface"
+
+var anyfaceWords = []string{
+	"any face",
+	"any phase",
+}
 
 type requestWord string
 
@@ -38,6 +48,13 @@ const (
 	spiked     requestWord = "spiked"
 	snaplock   requestWord = "snaplock"
 )
+
+var alternateRequestWords = map[string]requestWord{
+	"ready 1 check":   radioCheck,
+	"read your check": radioCheck,
+	"radio chat":      radioCheck,
+	"radio jack":      radioCheck,
+}
 
 func requestWords() []requestWord {
 	return []requestWord{alphaCheck, bogeyDope, declare, picture, radioCheck, spiked, snaplock}
@@ -65,6 +82,7 @@ func (p *parser) Parse(tx string) (any, bool) {
 	// Check for a wake word (GCI callsign)
 	_, ok := p.parseWakeWord(scanner)
 	if !ok {
+		slog.Info("no wake word found in text", "text", tx)
 		return nil, false
 	}
 
@@ -79,14 +97,26 @@ func (p *parser) Parse(tx string) (any, bool) {
 		}
 
 		segment = fmt.Sprintf("%s %s", segment, scanner.Text())
+
+		for k, v := range alternateRequestWords {
+			if strings.Contains(segment, k) {
+				segment = strings.Replace(segment, k, string(v), 1)
+				break
+			}
+		}
+
 		for _, word := range requestWords() {
 			if strings.HasSuffix(segment, string(word)) {
 				rWord = word
 				// Try to parse a callsign from the second segment.
 				callsignSegment := strings.TrimSuffix(segment, string(word))
+				callsignSegment = p.sanitize(callsignSegment)
 				callsign, ok = parseCallsign(callsignSegment)
 				if !ok {
 					// TODO send "say again" response?
+					return nil, false
+				}
+				if len(callsign) > 30 {
 					return nil, false
 				}
 				_ = scanner.Scan()
@@ -100,7 +130,7 @@ func (p *parser) Parse(tx string) (any, bool) {
 	switch rWord {
 	case alphaCheck:
 		// ALPHA CHECK, as implemented by this bot, is a simple request.
-		return &alphaCheckRequest{callsign: callsign}, true
+		return &brevity.AlphaCheckRequest{Callsign: callsign}, true
 	case bogeyDope:
 		return p.parseBogeyDope(callsign, scanner)
 	case declare:
@@ -109,7 +139,7 @@ func (p *parser) Parse(tx string) (any, bool) {
 		return p.parsePicture(callsign, scanner)
 	case radioCheck:
 		// RADIO CHECK is a simple request.
-		return &radioCheckRequest{callsign: callsign}, true
+		return &brevity.RadioCheckRequest{Callsign: callsign}, true
 	case spiked:
 		return p.parseSpiked(callsign, scanner)
 	case snaplock:
@@ -118,20 +148,27 @@ func (p *parser) Parse(tx string) (any, bool) {
 	return nil, false
 }
 
-var sanitizerRex = regexp.MustCompile(`[\p{P}]+`)
+var sanitizerRex = regexp.MustCompile(`[^\p{L}\p{N} ]+`)
 
-// sanitize lowercases the input and replaces all punctuation with spaces.
+// sanitize lowercases the input and replaces punctuation with spaces.
 func (p *parser) sanitize(s string) string {
 	s = strings.ToLower(s)
 	s = numwords.ParseString(s)
 	s = sanitizerRex.ReplaceAllString(s, " ")
+	for _, words := range anyfaceWords {
+		if strings.HasPrefix(s, words) {
+			s = strings.Replace(s, words, "anyface", 1)
+			break
+		}
+	}
+	slog.Info("sanitized text", "text", s)
 	return s
 }
 
 var numberWords = map[string]int{
-	"0":     0,
-	"zero":  0,
-	"o":     0,
+	"0":    0,
+	"zero": 0,
+	//"o":     0,
 	"oh":    0,
 	"1":     1,
 	"one":   1,
@@ -165,9 +202,18 @@ var numberWords = map[string]int{
 //
 // - A number consisting of any digits
 //
-// Garbage in between the digits is ignored. The result is normalize so that each digit is space-delimited.
+// Garbage in between the digits is ignored. The result is normalized so that each digit is space-delimited.
 
 func parseCallsign(tx string) (callsign string, isValid bool) {
+	tx = strings.Trim(tx, " ")
+	for i, char := range tx {
+		if unicode.IsDigit(char) {
+			newTx := fmt.Sprintf("%s %s", tx[:i], tx[i:])
+			slog.Info("separating letters and digits", "text", tx, "separated", newTx)
+			tx = newTx
+			break
+		}
+	}
 	var scanner = bufio.NewScanner(strings.NewReader(tx))
 	scanner.Split(bufio.ScanWords)
 
@@ -189,8 +235,9 @@ func parseCallsign(tx string) (callsign string, isValid bool) {
 	for scanner.Scan() {
 		nextToken := scanner.Text()
 		// Handle single digit
-		callsign, ok = appendNumber(callsign, nextToken)
+		s, ok := appendNumber(callsign, nextToken)
 		if ok {
+			callsign = s
 			isValid = true
 		} else {
 			// Handle case where multiple digits are not space-delimited
@@ -199,9 +246,10 @@ func parseCallsign(tx string) (callsign string, isValid bool) {
 				if ok {
 					callsign = s
 					isValid = true
-				} else {
-					return
 				}
+			}
+			if !isValid {
+				callsign = fmt.Sprintf("%s%s", callsign, nextToken)
 			}
 		}
 	}

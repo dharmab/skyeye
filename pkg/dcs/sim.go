@@ -4,45 +4,73 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
+	"github.com/DCS-gRPC/go-bindings/dcs/v0/coalition"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/common"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/mission"
+	"github.com/dharmab/skyeye/pkg/trackfile"
 	measure "github.com/martinlindhe/unit"
+	"github.com/paulmach/orb"
 )
 
+type Updated struct {
+	Aircraft trackfile.Aircraft
+	Frame    trackfile.Frame
+}
+
+type Faded struct {
+	Timestamp time.Time
+	UnitID    uint32
+}
+
 type Sim interface {
+	// Stream aircraft updates from the sim to the provided channels.
+	// The first channel receives updates for active aircraft.
+	// The second channel receives messages when an aircraft disappears.
+	// This function blocks until the context is cancelled.
+	Stream(context.Context, chan<- Updated, chan<- Faded) error
+	// Bullseye returns the coalition's bullseye center.
+	Bullseye(context.Context) (*orb.Point, error)
 }
 
 type sim struct {
-	missionClient mission.MissionServiceClient
+	missionClient   mission.MissionServiceClient
+	coalitionClient coalition.CoalitionServiceClient
+	coalition       common.Coalition
 }
 
 var _ Sim = &sim{}
 
-func NewSim(missionClient mission.MissionServiceClient) Sim {
+func NewSim(missionClient mission.MissionServiceClient, coalitionClient coalition.CoalitionServiceClient, coalition common.Coalition) Sim {
 	return &sim{
-		missionClient: missionClient,
+		missionClient:   missionClient,
+		coalitionClient: coalitionClient,
+		coalition:       coalition,
 	}
 }
 
 const pollingInterval = 5 * time.Second
 
-func (s *sim) StreamAircraft(ctx context.Context, aircraftChan chan<- Aircraft, fadedChan chan<- Faded) error {
+func (s *sim) Stream(ctx context.Context, aircraftChan chan<- Updated, fadedChan chan<- Faded) error {
+	var wg sync.WaitGroup
 	for _, category := range []common.GroupCategory{common.GroupCategory_GROUP_CATEGORY_AIRPLANE, common.GroupCategory_GROUP_CATEGORY_HELICOPTER} {
+		wg.Add(1)
 		go func() {
 			err := s.StreamUnitCategory(ctx, category, aircraftChan, fadedChan)
 			if err != nil {
-				// TODO surface error
 				slog.Error("error streaming units", "error", err)
 			}
+			wg.Done()
 		}()
 	}
 
+	<-ctx.Done()
 	return nil
 }
 
-func (s *sim) StreamUnitCategory(ctx context.Context, category common.GroupCategory, aircraftChan chan<- Aircraft, fadedChan chan<- Faded) error {
+func (s *sim) StreamUnitCategory(ctx context.Context, category common.GroupCategory, aircraftChan chan<- Updated, fadedChan chan<- Faded) error {
 	pollRate := uint32(pollingInterval.Seconds())
 	streamRequest := mission.StreamUnitsRequest{
 		Category:   category,
@@ -69,33 +97,67 @@ func (s *sim) StreamUnitCategory(ctx context.Context, category common.GroupCateg
 	}
 }
 
-func (s *sim) handleStreamUnitResponse(r *mission.StreamUnitsResponse, aircraftChan chan<- Aircraft, fadedChan chan<- Faded) {
+func (s *sim) handleStreamUnitResponse(r *mission.StreamUnitsResponse, aircraftChan chan<- Updated, fadedChan chan<- Faded) {
+	// Handle updates for faded aircraft
 	goneResp := r.GetGone()
 	if goneResp != nil {
-		fadedChan <- &faded{
-			timestamp: time.Now(),
-			unitID:    goneResp.GetId(),
-		}
-		return
+		s.handleFaded(goneResp, fadedChan)
+	} else if r.GetUnit() != nil {
+		s.handleUpdate(r.GetUnit(), aircraftChan)
+	} else {
+		slog.Warn("unable to handle response", "response", r)
 	}
-	unitResp := r.GetUnit()
-	if unitResp == nil {
-		slog.Warn("unable to handle nil unit response")
-		return
+}
+
+func (s *sim) handleFaded(r *mission.StreamUnitsResponse_UnitGone, out chan<- Faded) {
+	f := Faded{
+		Timestamp: time.Now(),
+		UnitID:    r.Id,
+	}
+	slog.Info("received faded aircraft update", "update", f)
+	out <- f
+}
+
+func (s *sim) handleUpdate(u *common.Unit, out chan<- Updated) {
+	var name string
+	if u.PlayerName != nil && *u.PlayerName != "" {
+		name = *u.PlayerName
+	} else {
+		name = fmt.Sprintf("%s ID%d", u.Name, u.Id)
 	}
 
-	position := unitResp.GetPosition()
+	position := u.Position
+	point := orb.Point{position.Lon, position.Lat}
+	alt := measure.Length(position.Alt) * measure.Meter
+	hdg := measure.Angle(u.Velocity.Heading) * measure.Degree
+	gs := measure.Speed(u.Velocity.Speed) * measure.MetersPerSecond
 
-	aircraftChan <- &aircraft{
-		timestamp: time.Now(),
-		unitID:    unitResp.GetId(),
-		name:      unitResp.GetName(),
-		coalition: unitResp.GetCoalition(),
-		platform:  unitResp.GetType(),
-		latitude:  measure.Angle(position.Lat) * measure.Degree,
-		longitude: measure.Angle(position.Lon) * measure.Degree,
-		altitude:  measure.Length(position.Alt) * measure.Meter,
-		heading:   measure.Angle(unitResp.Velocity.Heading) * measure.Degree,
-		speed:     measure.Speed(unitResp.Velocity.Speed) * measure.MetersPerSecond,
+	update := Updated{
+		Aircraft: trackfile.Aircraft{
+			UnitID:     u.Id,
+			Name:       name,
+			Coalition:  u.Coalition,
+			EditorType: u.Type,
+		},
+		Frame: trackfile.Frame{
+			Timestamp: time.Now(),
+			Point:     point,
+			Altitude:  alt,
+			Heading:   hdg,
+			Speed:     gs,
+		},
 	}
+	slog.Info("received aircraft update", "update", update)
+	out <- update
+}
+
+func (s *sim) Bullseye(ctx context.Context) (*orb.Point, error) {
+	resp, err := s.coalitionClient.GetBullseye(ctx, &coalition.GetBullseyeRequest{
+		Coalition: s.coalition,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get bullseye: %w", err)
+	}
+	position := resp.Position
+	return &orb.Point{position.Lon, position.Lat}, nil
 }
