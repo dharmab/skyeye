@@ -70,21 +70,23 @@ Current status:
 - ✅ Speech synthesis - bot can turn text into human-like speech and say it on SRS
 - ✅ CI/CD pipeline configured for linting, testing and building on Linux and Windows
 - ✅ DCS-gRPC - Prototyped connection to DCS via DCS-gRPC and reading game world state
+- 🚧 Controller: Game world state interface implemenation in progress
+- 🚧 Controller: GCI controller logic implementation in progress
 - 🚧 Accessibility: Keyboard input not yet implemented
 - 🚧 Accessibility: In-game subtitles not yet implemented
-- 🚧 Controller: Game world state interface not yet implemented
-- 🚧 Controller: GCI controller logic not yet implemented
 - 🚧 Testing: Some unit test coverage is implemented, but expansion is needed
+- 🚧 Performance: Software runs very well on a standalone dedicated system but performance optimization is needed to run alongside DCS on same machine
 - 🚧 Release: CI/CD pipeline does not publish builds to GitHub Releases
 - 🚧 Documentation: Documentation not written
 - 🚧 Observability: Better logging and tracing is needed
 
 ### What kind of hardware does it require?
 
-I'm not sure yet but it shouldn't be too bad. Currently the dev build takes about 4GB of RAM and takes ~5s to recognize audio on an AMD 5900X, but I have done essentially no performance optimization yet and I expect those requirements to drop significantly. Some areas to improve:
+I'm not sure yet but it shouldn't be too bad. Currently the dev build takes about 4GB of RAM and takes a few seconds to recognize audio on an AMD 5900X, but I have done essentially no performance optimization yet and I expect those requirements to drop significantly. Some areas to improve:
 
 * I'm making unecessary copies of data all over the place - this is usually the default practice in Go unless you either need the receiving function to mutate the passed object, you need to do so for concurrency safety, or you can provably improve performance. I plan to revisit this when the bot is closer to release.
 * I'm using a fairly large, off the shelf general purpose Whisper model in my development environment. There's some exciting research into faster [distilled models](https://github.com/huggingface/distil-whisper) and custom trained models that will be revisited in a few months. I also strongly suspect a combination of advances in AI and Moore's Law will significantly improve Speech-To-Text performance within the next year or so.
+* I need to investigate tuning Go performance parameters. In particular, the software runs poorly when you try to play DCS at the same time on the same machine, I suspect due to CPU contention.
 
 ### Why not update OverlordBot?
 
