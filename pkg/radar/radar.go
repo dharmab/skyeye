@@ -26,6 +26,8 @@ type Radar interface {
 
 var _ Radar = &scope{}
 
+//go:generate go run go.uber.org/mock/mockgen -destination=../mocks/mock_radar.go -package=mocks github.com/dharmab/skyeye/pkg/radar Radar
+
 type scope struct {
 	simUpdates   <-chan dcs.Updated
 	simFades     <-chan dcs.Faded
