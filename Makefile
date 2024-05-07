@@ -53,19 +53,24 @@ else
 GO = go
 endif
 
-$(SKYEYE_EXE): $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
+.PHONY: generate
+generate:
+	$(BUILD_VARS) $(GO) generate $(BUILD_TAGS) ./...
+
+$(SKYEYE_EXE): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 	GOROOT="$(MSYS2_GOROOT)" GOPATH="$(MSYS2_GOPATH)" $(BUILD_VARS) $(GO) build $(BUILD_TAGS) ./cmd/skyeye/
 
-$(SKYEYE_ELF): $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
+$(SKYEYE_ELF): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 	$(BUILD_VARS) $(GO) build $(BUILD_TAGS) ./cmd/skyeye/
 
 .PHONY: test
-test:
+test: generate
 	$(BUILD_VARS) $(GO) test $(BUILD_TAGS) ./...
 
 .PHONY: mostlyclean
 mostlyclean:
 	rm -f "$(SKYEYE_EXE)" "$(SKYEYE_ELF)"
+	find . -type f -name 'mock_*.go' -delete
 
 .PHONY: clean
 clean: mostlyclean
