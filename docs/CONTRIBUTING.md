@@ -4,7 +4,7 @@ Requirements to develop SkyEye:
 
 - Windows or Linux PC
   - If on Windows, willing to learn to use Visual Studio Code
-  - This could probably work on macOS similar to how it works on Linux. Cross-compilation may or may not work on Apple Silicon- I'm not sure.
+  - Does not build on macOS due to [this issue](https://github.com/amitybell/piper/issues/1)
 - Beginner level skills in the Go programming language. If you already know another programming language, [A Tour of Go](https://go.dev/tour) can get you up to speed in an afternoon.
 - Comfortable with Git
 - Familiar with *nix command line basics (not much, mostly `cd` and `make`)
@@ -30,7 +30,9 @@ Run `make install-msys2-dependencies` to install the C++ and Go compilers as wel
 
 Run `make` to build `skyeye.exe`.
 
-### Arch Linux
+### macOS/Linux
+
+macOS: Install [Homebrew](https://brew.sh/).
 
 Clone this Git repository somewhere, and navigate to it in your favorite terminal.
 
@@ -41,6 +43,8 @@ Run one of the following to install dependency libraries:
 make install-arch-linux-dependencies
 # Debian/Ubuntu
 make install-debian-dependencies
+# macOS
+make install-macos-dependencies
 ```
 
 Run `make` to build `skyeye`.

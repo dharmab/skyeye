@@ -111,7 +111,7 @@ func (p *parser) Parse(tx string) (any, bool) {
 				// Try to parse a callsign from the second segment.
 				callsignSegment := strings.TrimSuffix(segment, string(word))
 				callsignSegment = p.sanitize(callsignSegment)
-				callsign, ok = parseCallsign(callsignSegment)
+				callsign, ok = ParseCallsign(callsignSegment)
 				if !ok {
 					// TODO send "say again" response?
 					return nil, false
@@ -196,15 +196,14 @@ var numberWords = map[string]int{
 	"niner": 9,
 }
 
-// parseCallsign attempts to parse a callsign in one of the following formats:
+// ParseCallsign attempts to parse a callsign in one of the following formats:
 //
 // - A single word, followed by a number consisting of any digits
 //
 // - A number consisting of any digits
 //
 // Garbage in between the digits is ignored. The result is normalized so that each digit is space-delimited.
-
-func parseCallsign(tx string) (callsign string, isValid bool) {
+func ParseCallsign(tx string) (callsign string, isValid bool) {
 	tx = strings.Trim(tx, " ")
 	for i, char := range tx {
 		if unicode.IsDigit(char) {

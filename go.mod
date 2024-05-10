@@ -16,6 +16,7 @@ require (
 	github.com/paulmach/orb v0.11.1
 	github.com/rodaine/numwords v0.0.0-20200910203654-405f4a455f79
 	github.com/stretchr/testify v1.8.4
+	github.com/xeonx/proj4 v0.0.0-20151223112312-c52078bad901
 	github.com/zaf/resample v1.5.0
 	go.uber.org/mock v0.4.0
 	google.golang.org/grpc v1.61.0
@@ -40,6 +41,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/xeonx/geom v0.0.0-20151223130215-76a21efc1ce4
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
