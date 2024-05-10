@@ -3,8 +3,8 @@ package controller
 import (
 	"time"
 
-	"github.com/DCS-gRPC/go-bindings/dcs/v0/common"
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/dharmab/skyeye/pkg/dcs"
 	"github.com/dharmab/skyeye/pkg/trackfile"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -13,44 +13,32 @@ import (
 
 // TestHandleBogeyDopeNoContact tests the controller's handling of a BOGEY DOPE request when the requestor callsign is not found on the scope.
 func (suite *ControllerTestSuite) TestHandleBogeyDopeNoContact() {
-	callsign := "hornet 11"
+	callsign := "hornet 1 1"
 
-	suite.radar.EXPECT().
-		FindCallsign(callsign).
-		Return(nil)
+	suite.radar.RunOnce()
 
-	go suite.ctrl.HandleBogeyDope(&brevity.BogeyDopeRequest{Callsign: callsign})
+	go suite.ctrl.HandleBogeyDope(&brevity.BogeyDopeRequest{Callsign: callsign, Filter: brevity.Everything})
 	response := <-suite.outCh
 
-	require.IsType(suite.T(), brevity.BogeyDopeResponse{}, response)
-	require.Equal(suite.T(), callsign, response.(brevity.BogeyDopeResponse).Callsign)
-	require.Nil(suite.T(), response.(brevity.BogeyDopeResponse).Group)
+	require.IsType(suite.T(), brevity.NegativeRadarContactResponse{}, response)
+	require.Equal(suite.T(), callsign, response.(brevity.NegativeRadarContactResponse).Callsign)
 }
 
 // TestHandleBogeyDopeClean tests the controller's handling of a BOGEY DOPE request when there are no red contacts in the airspace.
 func (suite *ControllerTestSuite) TestHandleBogeyDopeClean() {
-	callsign := "hornet 11"
-
-	blueTrackfile := quickTrackFile(1, "hornet 11 | Sample", common.Coalition_COALITION_BLUE)
-	blueTrackfile.Update(trackfile.Frame{
-		Timestamp: time.Now(),
-		Point:     orb.Point{0, 0},
-		Altitude:  20000 * unit.Foot,
-		Heading:   0 * unit.Degree,
-		Speed:     300 * unit.Knot,
-	})
-
-	suite.radar.EXPECT().
-		FindCallsign(callsign).
-		Return(blueTrackfile)
-
-	suite.radar.EXPECT().
-		FindNearestGroup(
-			blueTrackfile.LastKnown().Point,
-			common.Coalition_COALITION_RED,
-			brevity.Everything,
-		).
-		Return(nil)
+	callsign := "hornet 1 1"
+	requestor := blueHornet(1, "hornet 11 | Requestor")
+	suite.updates <- dcs.Updated{
+		Aircraft: requestor,
+		Frame: trackfile.Frame{
+			Timestamp: time.Now(),
+			Point:     orb.Point{0, 0},
+			Altitude:  20000 * unit.Foot,
+			Heading:   0 * unit.Degree,
+			Speed:     300 * unit.Knot,
+		},
+	}
+	suite.radar.RunOnce()
 
 	go suite.ctrl.HandleBogeyDope(&brevity.BogeyDopeRequest{Callsign: callsign})
 	response := <-suite.outCh
@@ -61,41 +49,34 @@ func (suite *ControllerTestSuite) TestHandleBogeyDopeClean() {
 }
 
 // TestHandleBogeyDopeSingleContact tests the case:
-// - Blue requestor is at origin
-// - A single red contact is at 0, 40
+// - Blue requestor is near bulleye
+// - A single red contact is 40 nmi north (outside threat range)
 func (suite *ControllerTestSuite) TestHandleBogeyDopeSingleContact() {
-	callsign := "hornet 11"
+	callsign := "hornet 1 1"
+	requestor := blueHornet(1, "hornet 11 | Requestor")
+	suite.updates <- dcs.Updated{
+		Aircraft: requestor,
+		Frame: trackfile.Frame{
+			Timestamp: time.Now(),
+			Point:     orb.Point{3, 0},
+			Altitude:  20000 * unit.Foot,
+			Heading:   0 * unit.Degree,
+			Speed:     300 * unit.Knot,
+		},
+	}
 
-	blueTrackfile := quickTrackFile(1, "hornet 11 | Requestor", common.Coalition_COALITION_BLUE)
-	blueTrackfile.Update(trackfile.Frame{
-		Timestamp: time.Now(),
-		Point:     orb.Point{0, 0},
-		Altitude:  20000 * unit.Foot,
-		Heading:   0 * unit.Degree,
-		Speed:     300 * unit.Knot,
-	})
-
-	redTrackfile := quickTrackFile(2, "bug 11 | Enemy 1", common.Coalition_COALITION_RED)
-	redTrackfile.Contact.EditorType = flankerEditorType
-	redTrackfile.Update(trackfile.Frame{
-		Timestamp: time.Now(),
-		Point:     orb.Point{0, 40},
-		Altitude:  18211 * unit.Foot,
-		Heading:   180 * unit.Degree,
-		Speed:     350 * unit.Knot,
-	})
-
-	suite.radar.EXPECT().
-		FindCallsign(callsign).
-		Return(blueTrackfile)
-
-	suite.radar.EXPECT().
-		FindNearestGroup(
-			blueTrackfile.LastKnown().Point,
-			common.Coalition_COALITION_RED,
-			brevity.Everything,
-		).
-		Return(redTrackfile)
+	contact := redFlanker(2, "bug 11 | Enemy 1")
+	suite.updates <- dcs.Updated{
+		Aircraft: contact,
+		Frame: trackfile.Frame{
+			Timestamp: time.Now(),
+			Point:     orb.Point{3, 40},
+			Altitude:  18211 * unit.Foot,
+			Heading:   180 * unit.Degree,
+			Speed:     350 * unit.Knot,
+		},
+	}
+	suite.radar.RunOnce()
 
 	go suite.ctrl.HandleBogeyDope(&brevity.BogeyDopeRequest{Callsign: callsign})
 	response := <-suite.outCh
@@ -107,7 +88,7 @@ func (suite *ControllerTestSuite) TestHandleBogeyDopeSingleContact() {
 	require.False(suite.T(), group.Threat())
 	require.Equal(suite.T(), 1, group.Contacts())
 	require.Nil(suite.T(), group.Bullseye())
-	require.Equal(suite.T(), 18000*unit.Foot, group.Altitude())
+	require.Equal(suite.T(), 18000*unit.Foot, group.Altitude()) // Rounds to nearest 1000 feet
 	require.Equal(suite.T(), brevity.South, group.Track())
 	require.Equal(suite.T(), brevity.Hot, group.Aspect())
 	braa := group.BRAA()
