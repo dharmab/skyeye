@@ -28,8 +28,15 @@ type ControllerTestSuite struct {
 	outCh chan any
 }
 
+const (
+	hornetPlatformDesignation  = "F/A-18"
+	flankerPlatformDesignation = "Su-27"
+)
+
 var (
-	hornetEditorType = encyclopedia.New().AircraftByPlatformDesignation("F/A-18")[0].EditorType
+	hornetEditorType     = encyclopedia.New().AircraftByPlatformDesignation(hornetPlatformDesignation)[0].EditorType
+	flankerEditorType    = encyclopedia.New().AircraftByPlatformDesignation(flankerPlatformDesignation)[0].EditorType
+	flankerReportingName = encyclopedia.New().AircraftByPlatformDesignation(flankerPlatformDesignation)[0].NATOReportingName
 )
 
 func (suite *ControllerTestSuite) SetupSuite() {
