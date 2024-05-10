@@ -5,7 +5,9 @@ import (
 	"testing"
 
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/common"
+	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/mocks"
+	"github.com/dharmab/skyeye/pkg/trackfile"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 )
@@ -26,6 +28,10 @@ type ControllerTestSuite struct {
 	outCh chan any
 }
 
+var (
+	hornetEditorType = encyclopedia.New().AircraftByPlatformDesignation("F/A-18")[0].EditorType
+)
+
 func (suite *ControllerTestSuite) SetupSuite() {
 	suite.mctrl = gomock.NewController(suite.T())
 	suite.radar = mocks.NewMockRadar(suite.mctrl)
@@ -43,4 +49,13 @@ func (suite *ControllerTestSuite) TearDownSuite() {
 
 func TestControllerTestSuite(t *testing.T) {
 	suite.Run(t, new(ControllerTestSuite))
+}
+
+func quickTrackFile(unitID uint32, name string, coalition common.Coalition) *trackfile.Trackfile {
+	return trackfile.NewTrackfile(trackfile.Aircraft{
+		UnitID:     unitID,
+		Name:       name,
+		Coalition:  coalition,
+		EditorType: hornetEditorType,
+	})
 }
