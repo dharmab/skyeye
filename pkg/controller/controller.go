@@ -5,9 +5,9 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/DCS-gRPC/go-bindings/dcs/v0/common"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/radar"
+	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/trackfile"
 )
 
@@ -34,11 +34,11 @@ type Controller interface {
 type controller struct {
 	out        chan<- any
 	scope      radar.Radar
-	coalition  common.Coalition
+	coalition  types.Coalition
 	trackfiles map[string]*trackfile.Trackfile
 }
 
-func New(r radar.Radar, coalition common.Coalition) Controller {
+func New(r radar.Radar, coalition types.Coalition) Controller {
 	return &controller{
 		scope:      r,
 		coalition:  coalition,
@@ -64,11 +64,11 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 	// TODO control loops for FADED and THREAT
 }
 
-func (c *controller) hostileCoalition() common.Coalition {
-	if c.coalition == common.Coalition_COALITION_BLUE {
-		return common.Coalition_COALITION_RED
+func (c *controller) hostileCoalition() types.Coalition {
+	if c.coalition == types.CoalitionBlue {
+		return types.CoalitionRed
 	}
-	return common.Coalition_COALITION_BLUE
+	return types.CoalitionRed
 }
 
 func (c *controller) expireTrackfiles() {

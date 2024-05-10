@@ -3,8 +3,8 @@ package trackfile
 import (
 	"time"
 
-	"github.com/DCS-gRPC/go-bindings/dcs/v0/common"
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/gammazero/deque"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -19,7 +19,7 @@ type Aircraft struct {
 	// If this is a player's aircraft, it will be the player's in-game name.
 	Name string
 	// Coalition the aircraft belongs to.
-	Coalition common.Coalition
+	Coalition types.Coalition
 	// The string for the aircraft type in DCS. This is sometimes a weird string like FA18C_hornet, A-10C_2, or F-15ESE.
 	// Use github.com/dharmab/skyeye/pkg/encyclopedia to look up the real world type.
 	EditorType string

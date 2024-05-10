@@ -11,7 +11,7 @@ func (c *composer) ComposeSpikedResponse(r brevity.SpikedResponse) NaturalLangua
 		reply := fmt.Sprintf("%s, spike range %d, %d, %s, %s", r.Callsign, int(r.Range.NauticalMiles()), int(r.Altitude.Feet()), r.Aspect, r.Declaration)
 		if r.Contacts == 1 {
 			reply = fmt.Sprintf("%s, single contact.", reply)
-		} else {
+		} else if r.Contacts > 1 {
 			reply = fmt.Sprintf("%s, %d contacts.", reply, r.Contacts)
 		}
 		return NaturalLanguageResponse{

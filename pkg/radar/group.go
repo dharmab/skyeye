@@ -16,27 +16,33 @@ type group struct {
 	isThreat bool
 	contacts []*trackfile.Trackfile
 	bullseye orb.Point
+	braa     brevity.BRAA
 	platform string
+	aspect   *brevity.Aspect
 }
 
-var _ brevity.Group = group{}
+var _ brevity.Group = &group{}
 
-func newGroupUsingBullseye(bullseye orb.Point) group {
-	return group{
+func newGroupUsingBullseye(bullseye orb.Point) *group {
+	return &group{
 		bullseye: bullseye,
 		contacts: make([]*trackfile.Trackfile, 0),
 	}
 }
 
-func (g group) Threat() bool {
+func (g *group) Threat() bool {
 	return g.isThreat
 }
 
-func (g group) Contacts() int {
+func (g *group) SetThreat(isThreat bool) {
+	g.isThreat = isThreat
+}
+
+func (g *group) Contacts() int {
 	return len(g.contacts)
 }
 
-func (g group) Bullseye() *brevity.Bullseye {
+func (g *group) Bullseye() *brevity.Bullseye {
 	mp := orb.MultiPoint{}
 	for _, tf := range g.contacts {
 		mp = append(mp, tf.Track.Front().Point)
@@ -48,7 +54,7 @@ func (g group) Bullseye() *brevity.Bullseye {
 	return brevity.NewBullseye(bearing, distance)
 }
 
-func (g group) Altitude() unit.Length {
+func (g *group) Altitude() unit.Length {
 	var sum unit.Length
 	for _, tf := range g.contacts {
 		sum += tf.Track.Front().Altitude
@@ -58,38 +64,50 @@ func (g group) Altitude() unit.Length {
 	return rounded
 }
 
-func (g group) Track() brevity.Track {
-	return brevity.UnknownDirection
+func (g *group) Track() brevity.Track {
+	return brevity.TrackFromBearing(g.contacts[0].LastKnown().Heading)
 }
 
-func (g group) Aspect() brevity.Aspect {
-	return brevity.UnknownAspect
+func (g *group) TrackAngle() unit.Angle {
+	// TODO interpolate from all members
+	return g.contacts[0].LastKnown().Heading
 }
 
-func (g group) BRAA() brevity.BRAA {
-	return nil
+func (g *group) Aspect() brevity.Aspect {
+	if g.aspect == nil {
+		return brevity.UnknownAspect
+	}
+	return *g.aspect
 }
 
-func (g group) Declaration() brevity.Declaration {
+func (g *group) SetAspect(aspect *brevity.Aspect) {
+	g.aspect = aspect
+}
+
+func (g *group) BRAA() brevity.BRAA {
+	return g.braa
+}
+
+func (g *group) Declaration() brevity.Declaration {
 	return brevity.Unable
 }
 
-func (g group) Heavy() bool {
+func (g *group) Heavy() bool {
 	return len(g.contacts) >= 3
 }
 
-func (g group) Platform() string {
+func (g *group) Platform() string {
 	return g.platform
 }
 
-func (g group) High() bool {
+func (g *group) High() bool {
 	return g.Altitude() > 40000*unit.Foot
 }
 
-func (g group) Fast() bool {
+func (g *group) Fast() bool {
 	return false
 }
 
-func (g group) VeryFast() bool {
+func (g *group) VeryFast() bool {
 	return false
 }

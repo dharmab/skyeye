@@ -11,25 +11,25 @@ const (
 	Bogey Declaration = "bogey"
 	// Friendly indicates the contact is a positively identified friendly.
 	// Reference: ATP 1-02.1 Chapter I Table 2
-	Friendly = "friendly"
+	Friendly Declaration = "friendly"
 	// Neutral indicates the contact is a positively identified aircraft whose characteristics, behavior, origin or nationality indicate it is neither supporting nor opposing friendly forces.
 	// Reference: ATP 1-02.1 Chapter I Table 2
-	Neutral = "neutral"
+	Neutral Declaration = "neutral"
 	// Bandit indicates the contact is a positively idenfieid enemy in accordance with theater identification criteria. It does not imply direction or authority to engage.
 	// Reference: ATP 1-02.1 Chapter I Table 2
-	Bandit = "bandit"
+	Bandit Declaration = "bandit"
 	// Hostile indicates the contact is a identified as an enemy upon which clearance to fire is authorized in accordance with theater rules of engagement.
 	// Reference: ATP 1-02.1 Chapter I Table 2
-	Hostile = "hostile"
+	Hostile Declaration = "hostile"
 	// DeclarationFurball indicates that non-friendly and friendly aircraft are inside of 5 nauctical miles of each other.
 	// Reference: ATP 1-02.1 Chapter I Table 2
-	Furball = "furball"
+	Furball Declaration = "furball"
 	// Unable indications that the responder is unable to provide a declaration as requested.
 	// Reference: ATP 1-02.1 Chapter I Table 2
-	Unable = "unable"
+	Unable Declaration = "unable"
 	// Clean indicates there is no sensor information on the contact.
 	// Reference: ATP 1-02.1 Chapter I Table 2
-	Clean = "clean"
+	Clean Declaration = "clean"
 )
 
 // DeclareRequest is a DECLARE call.

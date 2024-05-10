@@ -10,6 +10,7 @@ import (
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/coalition"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/common"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/mission"
+	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/trackfile"
 	measure "github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -25,6 +26,11 @@ type Faded struct {
 	UnitID    uint32
 }
 
+type Bullseye struct {
+	Coalition types.Coalition
+	Point     orb.Point
+}
+
 type Sim interface {
 	// Stream aircraft updates from the sim to the provided channels.
 	// The first channel receives updates for active aircraft.
@@ -32,7 +38,7 @@ type Sim interface {
 	// This function blocks until the context is cancelled.
 	Stream(context.Context, chan<- Updated, chan<- Faded) error
 	// Bullseye returns the coalition's bullseye center.
-	Bullseye(context.Context) (*orb.Point, error)
+	Bullseye(context.Context) (*Bullseye, error)
 }
 
 type sim struct {
@@ -132,11 +138,18 @@ func (s *sim) handleUpdate(u *common.Unit, out chan<- Updated) {
 	hdg := measure.Angle(u.Velocity.Heading) * measure.Degree
 	gs := measure.Speed(u.Velocity.Speed) * measure.MetersPerSecond
 
+	var coalition types.Coalition
+	if u.Coalition == common.Coalition_COALITION_BLUE {
+		coalition = types.CoalitionBlue
+	} else {
+		coalition = types.CoalitionRed
+	}
+
 	update := Updated{
 		Aircraft: trackfile.Aircraft{
 			UnitID:     u.Id,
 			Name:       name,
-			Coalition:  u.Coalition,
+			Coalition:  coalition,
 			EditorType: u.Type,
 		},
 		Frame: trackfile.Frame{
@@ -151,7 +164,7 @@ func (s *sim) handleUpdate(u *common.Unit, out chan<- Updated) {
 	out <- update
 }
 
-func (s *sim) Bullseye(ctx context.Context) (*orb.Point, error) {
+func (s *sim) Bullseye(ctx context.Context) (*Bullseye, error) {
 	resp, err := s.coalitionClient.GetBullseye(ctx, &coalition.GetBullseyeRequest{
 		Coalition: s.coalition,
 	})
@@ -159,5 +172,16 @@ func (s *sim) Bullseye(ctx context.Context) (*orb.Point, error) {
 		return nil, fmt.Errorf("failed to get bullseye: %w", err)
 	}
 	position := resp.Position
-	return &orb.Point{position.Lon, position.Lat}, nil
+
+	var coalition types.Coalition
+	if s.coalition == common.Coalition_COALITION_BLUE {
+		coalition = types.CoalitionBlue
+	} else {
+		coalition = types.CoalitionRed
+	}
+
+	return &Bullseye{
+		Coalition: coalition,
+		Point:     orb.Point{position.Lon, position.Lat},
+	}, nil
 }

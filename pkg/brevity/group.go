@@ -16,6 +16,8 @@ import (
 type Group interface {
 	// Threat indicates if the THREAT criteria is met.
 	Threat() bool
+	// SetThreat sets the THREAT status.
+	SetThreat(bool)
 	// Contacts is the number of contacts in the group.
 	Contacts() int
 	// Bullseye is the location of the group. This may be nil for BOGEY DOPE, SNAPLOCK, and THREAT calls.
@@ -24,7 +26,7 @@ type Group interface {
 	Altitude() unit.Length
 	// Track is the group's track direction. This may be UnknownDirection for BOGEY DOPE, SNAPLOCK, and THREAT calls.
 	Track() Track
-	// Aspect is the group's aspect angle. This may be nil for BOGEY DOPE, SNAPLOCK, and some THREAT calls.
+	// Aspect is the group's aspect angle relative to another aircraft. This may be nil for BOGEY DOPE, SNAPLOCK, and some THREAT calls.
 	Aspect() Aspect
 	// BRAA is an alternate format for the group's location. This is nil except for BOGEY DOPE, SNAPLOCK, and some THREAT calls.
 	BRAA() BRAA
