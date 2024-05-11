@@ -12,6 +12,6 @@ func (c *controller) HandleBogeyDope(r *brevity.BogeyDopeRequest) {
 		return
 	}
 	requestorLocation := requestorTrackfile.LastKnown().Point
-	nearestGroup := c.scope.FindNearestGroup(requestorLocation, c.hostileCoalition(), r.Filter)
+	nearestGroup := c.scope.FindNearestGroupWithBRAA(requestorLocation, c.hostileCoalition(), r.Filter)
 	c.out <- brevity.BogeyDopeResponse{Callsign: r.Callsign, Group: nearestGroup}
 }

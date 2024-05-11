@@ -14,6 +14,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/trackfile"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/geo"
 	"github.com/paulmach/orb/planar"
 )
 
@@ -25,7 +26,8 @@ type Radar interface {
 	FindCallsign(string) *trackfile.Trackfile
 	FindUnit(uint32) *trackfile.Trackfile
 	GetBullseye() *orb.Point
-	FindNearestGroup(orb.Point, common.Coalition, brevity.ContactCategory) brevity.Group
+	FindNearestGroupWithBRAA(orb.Point, common.Coalition, brevity.ContactCategory) brevity.Group
+	FindNearestGroupWithBullseye(orb.Point, common.Coalition, brevity.ContactCategory) brevity.Group
 }
 
 var _ Radar = &scope{}
@@ -125,27 +127,56 @@ func (s *scope) GetBullseye() *orb.Point {
 	return s.bullseye
 }
 
-func (s *scope) FindNearestGroup(location orb.Point, coalition common.Coalition, filter brevity.ContactCategory) brevity.Group {
+func (s *scope) FindNearestGroupWithBRAA(location orb.Point, coalition common.Coalition, filter brevity.ContactCategory) brevity.Group {
+	nearestTrackfile := s.FindNearestTrackfile(location, coalition, filter)
+	group := s.findGroupForAircraft(nearestTrackfile)
+	groupLocation := nearestTrackfile.LastKnown().Point
+	bearing := unit.Angle(geo.Bearing(location, groupLocation)) * unit.Degree
+	rang := unit.Length(planar.Distance(location, groupLocation)) * unit.Meter
+	altitude := nearestTrackfile.LastKnown().Altitude
+	aspect := brevity.AspectFromAngle(bearing, nearestTrackfile.LastKnown().Heading)
+	group.braa = brevity.NewBRAA(
+		bearing,
+		rang,
+		altitude,
+		aspect,
+	)
+	group.aspect = &aspect
+	group.isThreat = rang < brevity.MandatoryThreatDistance
+	return group
+}
+
+func (s *scope) FindNearestGroupWithBullseye(location orb.Point, coalition common.Coalition, filter brevity.ContactCategory) brevity.Group {
+	nearestTrackfile := s.FindNearestTrackfile(location, coalition, filter)
+	group := s.findGroupForAircraft(nearestTrackfile)
+	groupLocation := nearestTrackfile.LastKnown().Point
+	aspect := brevity.AspectFromAngle(unit.Angle(geo.Bearing(location, groupLocation))*unit.Degree, nearestTrackfile.LastKnown().Heading)
+	group.aspect = &aspect
+	rang := unit.Length(planar.Distance(location, groupLocation)) * unit.Meter
+	group.isThreat = rang < brevity.MandatoryThreatDistance
+	return group
+}
+
+func (s *scope) FindNearestTrackfile(location orb.Point, coalition common.Coalition, filter brevity.ContactCategory) *trackfile.Trackfile {
 	var nearestTrackfile *trackfile.Trackfile
 	nearestDistance := unit.Length(math.MaxFloat64)
 	for _, tf := range s.contacts {
 		if tf.Contact.Coalition == coalition {
 			data, ok := s.aircraftData[tf.Contact.EditorType]
 			// If the aircraft is not in the encyclopedia, assume it matches
-			matchesFilter := !ok || data.Category == filter
+			matchesFilter := !ok || data.Category == filter || filter == brevity.Everything
 			if matchesFilter {
-				isNearer := planar.Distance(tf.Track.Front().Point, location) < nearestDistance.Meters()
+				isNearer := planar.Distance(tf.LastKnown().Point, location) < nearestDistance.Meters()
 				if nearestTrackfile == nil || isNearer {
 					nearestTrackfile = tf
 				}
 			}
 		}
 	}
-
-	return s.findGroupForAircraft(nearestTrackfile)
+	return nearestTrackfile
 }
 
-func (s *scope) findGroupForAircraft(trackfile *trackfile.Trackfile) brevity.Group {
+func (s *scope) findGroupForAircraft(trackfile *trackfile.Trackfile) *group {
 	if trackfile == nil {
 		return nil
 	}
@@ -164,7 +195,7 @@ func (s *scope) findGroupForAircraft(trackfile *trackfile.Trackfile) brevity.Gro
 // - are within 1 nautical mile in 2D distance of each other
 //
 // - are within 1000 feet in altitude of each other
-func (s *scope) addNearbyAircraftToGroup(this *trackfile.Trackfile, group group) {
+func (s *scope) addNearbyAircraftToGroup(this *trackfile.Trackfile, group *group) {
 	spreadInterval := unit.Length(1) * unit.NauticalMile
 	stackInterval := unit.Length(1000) * unit.Foot
 	for _, other := range s.contacts {

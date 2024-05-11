@@ -87,7 +87,6 @@ func (suite *ControllerTestSuite) TestHandleBogeyDopeSingleContact() {
 	require.NotNil(suite.T(), group)
 	require.False(suite.T(), group.Threat())
 	require.Equal(suite.T(), 1, group.Contacts())
-	require.Nil(suite.T(), group.Bullseye())
 	require.Equal(suite.T(), 18000*unit.Foot, group.Altitude()) // Rounds to nearest 1000 feet
 	require.Equal(suite.T(), brevity.South, group.Track())
 	require.Equal(suite.T(), brevity.Hot, group.Aspect())
