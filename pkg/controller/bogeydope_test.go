@@ -85,7 +85,7 @@ func (suite *ControllerTestSuite) TestHandleBogeyDopeSingleContact() {
 	require.Equal(suite.T(), callsign, response.(brevity.BogeyDopeResponse).Callsign)
 	group := response.(brevity.BogeyDopeResponse).Group
 	require.NotNil(suite.T(), group)
-	require.False(suite.T(), group.Threat())
+	require.False(suite.T(), group.Threat(), "group should not be classified as a threat")
 	require.Equal(suite.T(), 1, group.Contacts())
 	require.Equal(suite.T(), 18000*unit.Foot, group.Altitude()) // Rounds to nearest 1000 feet
 	require.Equal(suite.T(), brevity.South, group.Track())
@@ -95,9 +95,9 @@ func (suite *ControllerTestSuite) TestHandleBogeyDopeSingleContact() {
 	require.Equal(suite.T(), 0, braa.Bearing)
 	require.Equal(suite.T(), 40, braa.Range)
 	require.Equal(suite.T(), brevity.Hostile, group.Declaration())
-	require.False(suite.T(), group.Heavy())
+	require.False(suite.T(), group.Heavy(), "group should not be classified as heavy")
 	require.Equal(suite.T(), flankerReportingName, group.Platform())
-	require.False(suite.T(), group.High())
-	require.False(suite.T(), group.Fast())
-	require.False(suite.T(), group.VeryFast())
+	require.False(suite.T(), group.High(), "group should not be classified as high")
+	require.False(suite.T(), group.Fast(), "group should not be classified as fast")
+	require.False(suite.T(), group.VeryFast(), "group should not be classified as very fast")
 }

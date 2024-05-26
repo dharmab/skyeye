@@ -10,6 +10,7 @@ import (
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/coalition"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/common"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/mission"
+	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/trackfile"
 	measure "github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -132,11 +133,18 @@ func (s *sim) handleUpdate(u *common.Unit, out chan<- Updated) {
 	hdg := measure.Angle(u.Velocity.Heading) * measure.Degree
 	gs := measure.Speed(u.Velocity.Speed) * measure.MetersPerSecond
 
+	var coalition types.Coalition
+	if u.Coalition == common.Coalition_COALITION_BLUE {
+		coalition = types.CoalitionBlue
+	} else {
+		coalition = types.CoalitionRed
+	}
+
 	update := Updated{
 		Aircraft: trackfile.Aircraft{
 			UnitID:     u.Id,
 			Name:       name,
-			Coalition:  u.Coalition,
+			Coalition:  coalition,
 			EditorType: u.Type,
 		},
 		Frame: trackfile.Frame{

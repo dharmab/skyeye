@@ -1,0 +1,411 @@
+{
+  "coalition": {
+    "blue": {
+      "bullseye": {
+        "x": -291014,
+        "y": 617414
+      },
+      "country": [
+        {
+          "id": 21,
+          "name": "Australia",
+          "plane": {
+            "group": [
+              {
+                "communication": true,
+                "frequency": 124,
+                "groupId": 11,
+                "hidden": false,
+                "modulation": 0,
+                "name": "Hornet 1-1 | Player",
+                "radioSet": false,
+                "route": {
+                  "points": [
+                    {
+                      "ETA": 0,
+                      "ETA_locked": true,
+                      "action": "Turning Point",
+                      "alt": 2000,
+                      "alt_type": "BARO",
+                      "formation_template": "",
+                      "speed": 200,
+                      "speed_locked": true,
+                      "type": "Turning Point",
+                      "task": {
+                        "id": "ComboTask",
+                        "params": {
+                          "tasks": []
+                        }
+                      },
+                      "x": -244988.25844463054,
+                      "y": 637573.0904237331
+                    }
+                  ]
+                },
+                "start_time": 0,
+                "tasks": [],
+                "units": [
+                  {
+                    "alt": 2000,
+                    "alt_type": "BARO",
+                    "callsign": {
+                      "1": 1,
+                      "2": 1,
+                      "3": 1,
+                      "name": "Enfield11"
+                    },
+                    "heading": 0,
+                    "psi": 0,
+                    "name": "F-15C",
+                    "skill": "High",
+                    "speed": 200,
+                    "livery_id": "default",
+                    "type": "F-15C",
+                    "unitId": 2,
+                    "payload": {
+                      "chaff": 120,
+                      "flare": 60,
+                      "fuel": 6103,
+                      "gun": 100,
+                      "pylons": []
+                    },
+                    "x": -244988.25844463054,
+                    "y": 637573.0904237331
+                  }
+                ],
+                "x": -244988.25844463054,
+                "y": 637573.0904237331
+              }
+            ]
+          }
+        }
+      ],
+      "name": "blue",
+      "nav_points": []
+    },
+    "neutrals": {
+      "bullseye": {
+        "x": 0,
+        "y": 0
+      },
+      "country": [],
+      "name": "neutrals",
+      "nav_points": []
+    },
+    "red": {
+      "bullseye": {
+        "x": 11557,
+        "y": 371700
+      },
+      "country": [
+        {
+          "id": 18,
+          "name": "Abkhazia",
+          "plane": {
+            "group": [
+              {
+                "communication": true,
+                "frequency": 124,
+                "groupId": 12,
+                "hidden": false,
+                "modulation": 0,
+                "name": "Group_Su-27",
+                "radioSet": false,
+                "route": {
+                  "points": [
+                    {
+                      "ETA": 0,
+                      "ETA_locked": true,
+                      "action": "Turning Point",
+                      "alt": 2000,
+                      "alt_type": "BARO",
+                      "formation_template": "",
+                      "speed": 200,
+                      "speed_locked": true,
+                      "type": "Turning Point",
+                      "task": {
+                        "id": "ComboTask",
+                        "params": {
+                          "tasks": []
+                        }
+                      },
+                      "x": -171995.7915194556,
+                      "y": 628592.1507975198
+                    }
+                  ]
+                },
+                "start_time": 0,
+                "tasks": [],
+                "units": [
+                  {
+                    "alt": 2000,
+                    "alt_type": "BARO",
+                    "callsign": 110,
+                    "heading": -3.141592653589793,
+                    "psi": 3.141592653589793,
+                    "name": "Su-27",
+                    "skill": "High",
+                    "speed": 200,
+                    "livery_id": "default",
+                    "type": "Su-27",
+                    "unitId": 3,
+                    "payload": {
+                      "chaff": 96,
+                      "flare": 96,
+                      "fuel": 9400,
+                      "gun": 100,
+                      "pylons": []
+                    },
+                    "x": -171995.7915194556,
+                    "y": 628592.1507975198
+                  }
+                ],
+                "x": -171995.7915194556,
+                "y": 628592.1507975198
+              }
+            ]
+          }
+        }
+      ],
+      "name": "red",
+      "nav_points": []
+    }
+  },
+  "coalitions": {
+    "blue": [
+      21,
+      23,
+      11,
+      25,
+      8,
+      80,
+      28,
+      26,
+      13,
+      30,
+      5,
+      16,
+      6,
+      31,
+      32,
+      15,
+      20,
+      12,
+      40,
+      41,
+      44,
+      9,
+      46,
+      10,
+      3,
+      4,
+      1,
+      2
+    ],
+    "neutrals": [
+      70,
+      83,
+      65,
+      86,
+      64,
+      63,
+      76,
+      84,
+      90,
+      29,
+      62,
+      78,
+      87,
+      61,
+      33,
+      60,
+      17,
+      34,
+      35,
+      69,
+      36,
+      59,
+      37,
+      71,
+      79,
+      58,
+      57,
+      56,
+      55,
+      88,
+      38,
+      73,
+      39,
+      89,
+      54,
+      77,
+      72,
+      42,
+      85,
+      75,
+      45,
+      53,
+      22,
+      52,
+      66,
+      51,
+      74,
+      82,
+      7,
+      68,
+      50,
+      49,
+      48,
+      67
+    ],
+    "red": [
+      18,
+      24,
+      27,
+      81,
+      0,
+      43,
+      19,
+      47
+    ]
+  },
+  "currentKey": 124,
+  "date": {
+    "Day": 21,
+    "Month": 6,
+    "Year": 2016
+  },
+  "descriptionBlueTask": "DictKey_descriptionBlueTask_3",
+  "descriptionNeutralsTask": "DictKey_descriptionNeutralsTask_4",
+  "descriptionRedTask": "DictKey_descriptionRedTask_2",
+  "descriptionText": "DictKey_descriptionText_1",
+  "failures": [],
+  "forcedOptions": [],
+  "goals": [],
+  "groundControl": {
+    "isPilotControlVehicles": false,
+    "passwords": {
+      "artillery_commander": [],
+      "forward_observer": [],
+      "instructor": [],
+      "observer": []
+    },
+    "roles": {
+      "artillery_commander": {
+        "blue": 0,
+        "neutrals": 0,
+        "red": 0
+      },
+      "forward_observer": {
+        "blue": 0,
+        "neutrals": 0,
+        "red": 0
+      },
+      "instructor": {
+        "blue": 0,
+        "neutrals": 0,
+        "red": 0
+      },
+      "observer": {
+        "blue": 0,
+        "neutrals": 0,
+        "red": 0
+      }
+    }
+  },
+  "map": {
+    "centerX": -355000,
+    "centerY": 618000,
+    "zoom": 1000000
+  },
+  "maxDictId": 5,
+  "pictureFileNameB": [],
+  "pictureFileNameN": [],
+  "pictureFileNameR": [],
+  "requiredModules": [],
+  "result": {
+    "blue": {
+      "actions": [],
+      "conditions": [],
+      "func": []
+    },
+    "offline": {
+      "actions": [],
+      "conditions": [],
+      "func": []
+    },
+    "red": {
+      "actions": [],
+      "conditions": [],
+      "func": []
+    },
+    "total": 0
+  },
+  "sortie": "DictKey_sortie_5",
+  "start_time": 28800,
+  "theatre": "Caucasus",
+  "trig": {
+    "actions": [],
+    "conditions": [],
+    "custom": [],
+    "customStartup": [],
+    "events": [],
+    "flag": [],
+    "func": [],
+    "funcStartup": []
+  },
+  "triggers": {
+    "zones": []
+  },
+  "trigrules": [],
+  "version": 22,
+  "weather": {
+    "atmosphere_type": 0,
+    "clouds": {
+      "base": 2500,
+      "density": 0,
+      "iprecptns": 0,
+      "preset": "Preset2",
+      "thickness": 200
+    },
+    "cyclones": [],
+    "dust_density": 0,
+    "enable_dust": false,
+    "enable_fog": false,
+    "fog": {
+      "thickness": 0,
+      "visibility": 0
+    },
+    "groundTurbulence": 0,
+    "halo": {
+      "preset": "auto"
+    },
+    "modifiedTime": false,
+    "name": "Winter, clean sky",
+    "qnh": 760,
+    "season": {
+      "temperature": 20
+    },
+    "type_weather": 0,
+    "visibility": {
+      "distance": 80000
+    },
+    "wind": {
+      "at2000": {
+        "dir": 0,
+        "speed": 0
+      },
+      "at8000": {
+        "dir": 0,
+        "speed": 0
+      },
+      "atGround": {
+        "dir": 0,
+        "speed": 0
+      }
+    }
+  },
+  "drawings": {
+    "layers": []
+  }
+}

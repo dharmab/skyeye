@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/DCS-gRPC/go-bindings/dcs/v0/common"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/composer"
@@ -17,6 +16,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/recognizer"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
+	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/synthesizer"
 )
@@ -85,7 +85,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 
 	slog.Info("constructing GCI controller")
 	rdr := radar.New()
-	controller := controller.New(rdr, common.Coalition_COALITION_BLUE)
+	controller := controller.New(rdr, types.CoalitionBlue)
 
 	slog.Info("constructing text composer")
 

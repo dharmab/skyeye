@@ -6,11 +6,11 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/DCS-gRPC/go-bindings/dcs/v0/common"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/dcs"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/parser"
+	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/trackfile"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -26,8 +26,8 @@ type Radar interface {
 	FindCallsign(string) *trackfile.Trackfile
 	FindUnit(uint32) *trackfile.Trackfile
 	GetBullseye() *orb.Point
-	FindNearestGroupWithBRAA(orb.Point, common.Coalition, brevity.ContactCategory) brevity.Group
-	FindNearestGroupWithBullseye(orb.Point, common.Coalition, brevity.ContactCategory) brevity.Group
+	FindNearestGroupWithBRAA(orb.Point, types.Coalition, brevity.ContactCategory) brevity.Group
+	FindNearestGroupWithBullseye(orb.Point, types.Coalition, brevity.ContactCategory) brevity.Group
 }
 
 var _ Radar = &scope{}
@@ -127,7 +127,7 @@ func (s *scope) GetBullseye() *orb.Point {
 	return s.bullseye
 }
 
-func (s *scope) FindNearestGroupWithBRAA(location orb.Point, coalition common.Coalition, filter brevity.ContactCategory) brevity.Group {
+func (s *scope) FindNearestGroupWithBRAA(location orb.Point, coalition types.Coalition, filter brevity.ContactCategory) brevity.Group {
 	nearestTrackfile := s.FindNearestTrackfile(location, coalition, filter)
 	group := s.findGroupForAircraft(nearestTrackfile)
 	groupLocation := nearestTrackfile.LastKnown().Point
@@ -146,7 +146,7 @@ func (s *scope) FindNearestGroupWithBRAA(location orb.Point, coalition common.Co
 	return group
 }
 
-func (s *scope) FindNearestGroupWithBullseye(location orb.Point, coalition common.Coalition, filter brevity.ContactCategory) brevity.Group {
+func (s *scope) FindNearestGroupWithBullseye(location orb.Point, coalition types.Coalition, filter brevity.ContactCategory) brevity.Group {
 	nearestTrackfile := s.FindNearestTrackfile(location, coalition, filter)
 	group := s.findGroupForAircraft(nearestTrackfile)
 	groupLocation := nearestTrackfile.LastKnown().Point
@@ -157,7 +157,7 @@ func (s *scope) FindNearestGroupWithBullseye(location orb.Point, coalition commo
 	return group
 }
 
-func (s *scope) FindNearestTrackfile(location orb.Point, coalition common.Coalition, filter brevity.ContactCategory) *trackfile.Trackfile {
+func (s *scope) FindNearestTrackfile(location orb.Point, coalition types.Coalition, filter brevity.ContactCategory) *trackfile.Trackfile {
 	var nearestTrackfile *trackfile.Trackfile
 	nearestDistance := unit.Length(math.MaxFloat64)
 	for _, tf := range s.contacts {

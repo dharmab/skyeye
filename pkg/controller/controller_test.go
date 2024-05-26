@@ -8,6 +8,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/dcs"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/radar"
+	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/trackfile"
 	"github.com/paulmach/orb"
 	"github.com/stretchr/testify/suite"
@@ -71,7 +72,7 @@ func blueHornet(unitID uint32, name string) trackfile.Aircraft {
 	return trackfile.Aircraft{
 		UnitID:     unitID,
 		Name:       name,
-		Coalition:  common.Coalition_COALITION_BLUE,
+		Coalition:  types.CoalitionBlue,
 		EditorType: hornetEditorType,
 	}
 }
@@ -80,7 +81,7 @@ func redFlanker(unitID uint32, name string) trackfile.Aircraft {
 	return trackfile.Aircraft{
 		UnitID:     unitID,
 		Name:       name,
-		Coalition:  common.Coalition_COALITION_RED,
+		Coalition:  types.CoalitionRed,
 		EditorType: flankerEditorType,
 	}
 }
