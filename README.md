@@ -4,6 +4,8 @@ SkyEye is a concept for a new [Ground Controlled Intercept](https://en.wikipedia
 
 Unlike previous GCI bots, SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same server as SkyEye. No cloud APIs are required.
 
+SkyEye is under active development - to see what I'm working on, check out the [branch network](https://github.com/dharmab/skyeye/network)!
+
 ## Goals
 
 * Implement `ALPHA CHECK`, `BOGEY DOPE`, `DECLARE`, `FADED`, `PICTURE`, `RADIO CHECK`, `SNAPLOCK`, `SPIKED` and `THREAT` calls
