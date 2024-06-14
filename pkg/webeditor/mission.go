@@ -1,5 +1,11 @@
 package webeditor
 
+const (
+	BlueCoalitionName    = "blue"
+	RedCoalitionName     = "red"
+	NeutralCoalitionName = "neutrals"
+)
+
 type Mission struct {
 	Coalition CoalitionMap `json:"coalition"`
 	Theatre   string       `json:"theatre"`

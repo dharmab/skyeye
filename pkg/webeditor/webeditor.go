@@ -12,11 +12,12 @@ import (
 	"github.com/martinlindhe/unit"
 )
 
-const (
-	BlueCoalitionName    = "blue"
-	RedCoalitionName     = "red"
-	NeutralCoalitionName = "neutrals"
-)
+func parseCoalition(coalitionName string) types.Coalition {
+	if coalitionName == BlueCoalitionName {
+		return types.CoalitionBlue
+	}
+	return types.CoalitionRed
+}
 
 func Load(mission Mission, updateCh chan<- dcs.Updated, bullseyeCh chan<- dcs.Bullseye) error {
 	frameTime := time.Now()
@@ -29,18 +30,12 @@ func Load(mission Mission, updateCh chan<- dcs.Updated, bullseyeCh chan<- dcs.Bu
 
 	coalitionMap := mission.Coalition
 	for _, coalition := range []Coalition{coalitionMap.Blue, coalitionMap.Red} {
-		var coalitionType types.Coalition
-		if coalition.Name == BlueCoalitionName {
-			coalitionType = types.CoalitionBlue
-		} else if coalition.Name == RedCoalitionName {
-			coalitionType = types.CoalitionRed
-		}
 		position, err := projector.Project(coalition.Bullseye.X, coalition.Bullseye.Y)
 		if err != nil {
 			return fmt.Errorf("error projecting bullseye for %s: %w", coalition.Name, err)
 		}
 		bullseye := dcs.Bullseye{
-			Coalition: coalitionType,
+			Coalition: parseCoalition(coalition.Name),
 			Point:     position,
 		}
 		bullseyeCh <- bullseye
@@ -58,7 +53,7 @@ func Load(mission Mission, updateCh chan<- dcs.Updated, bullseyeCh chan<- dcs.Bu
 						Aircraft: trackfile.Aircraft{
 							UnitID:     plane.UnitID,
 							Name:       plane.Name,
-							Coalition:  coalitionType,
+							Coalition:  parseCoalition(coalition.Name),
 							EditorType: plane.EditorType,
 						},
 						Frame: trackfile.Frame{
