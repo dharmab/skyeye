@@ -6,6 +6,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/dcs"
 	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/dharmab/skyeye/pkg/webeditor"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/stretchr/testify/require"
@@ -38,6 +39,8 @@ func (suite *ControllerTestSuite) TestHandleBogeyDopeClean() {
 			Speed:     300 * unit.Knot,
 		},
 	}
+	var m webeditor.Mission
+	webeditor.Load(m, suite.updates, suite.bullseyes)
 	suite.radar.RunOnce()
 
 	go suite.ctrl.HandleBogeyDope(&brevity.BogeyDopeRequest{Callsign: callsign})
@@ -53,29 +56,7 @@ func (suite *ControllerTestSuite) TestHandleBogeyDopeClean() {
 // - A single red contact is 40 nmi north (outside threat range)
 func (suite *ControllerTestSuite) TestHandleBogeyDopeSingleContact() {
 	callsign := "hornet 1 1"
-	requestor := blueHornet(1, "hornet 11 | Requestor")
-	suite.updates <- dcs.Updated{
-		Aircraft: requestor,
-		Frame: trackfile.Frame{
-			Timestamp: time.Now(),
-			Point:     orb.Point{3, 0},
-			Altitude:  20000 * unit.Foot,
-			Heading:   0 * unit.Degree,
-			Speed:     300 * unit.Knot,
-		},
-	}
 
-	contact := redFlanker(2, "bug 11 | Enemy 1")
-	suite.updates <- dcs.Updated{
-		Aircraft: contact,
-		Frame: trackfile.Frame{
-			Timestamp: time.Now(),
-			Point:     orb.Point{3, 40},
-			Altitude:  18211 * unit.Foot,
-			Heading:   180 * unit.Degree,
-			Speed:     350 * unit.Knot,
-		},
-	}
 	suite.radar.RunOnce()
 
 	go suite.ctrl.HandleBogeyDope(&brevity.BogeyDopeRequest{Callsign: callsign})

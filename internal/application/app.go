@@ -84,8 +84,20 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	parser := parser.New()
 
 	slog.Info("constructing GCI controller")
-	rdr := radar.New()
-	controller := controller.New(rdr, types.CoalitionBlue)
+
+	var coalition types.Coalition
+	if config.SRSCoalition == srs.CoalitionBlue {
+		coalition = types.CoalitionBlue
+	} else {
+		coalition = types.CoalitionRed
+	}
+
+	updates := make(chan dcs.Updated)
+	fades := make(chan dcs.Faded)
+	bullseyes := make(chan dcs.Bullseye)
+
+	rdr := radar.New(coalition, bullseyes, updates, fades)
+	controller := controller.New(rdr, coalition)
 
 	slog.Info("constructing text composer")
 

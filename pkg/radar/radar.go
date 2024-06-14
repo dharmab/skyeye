@@ -25,7 +25,7 @@ type Radar interface {
 	RunOnce()
 	FindCallsign(string) *trackfile.Trackfile
 	FindUnit(uint32) *trackfile.Trackfile
-	GetBullseye() *orb.Point
+	GetBullseye(types.Coalition) dcs.Bullseye
 	FindNearestGroupWithBRAA(orb.Point, types.Coalition, brevity.ContactCategory) brevity.Group
 	FindNearestGroupWithBullseye(orb.Point, types.Coalition, brevity.ContactCategory) brevity.Group
 }
@@ -35,20 +35,20 @@ var _ Radar = &scope{}
 type scope struct {
 	simUpdates   <-chan dcs.Updated
 	simFades     <-chan dcs.Faded
-	simBullseyes <-chan orb.Point
+	simBullseyes <-chan dcs.Bullseye
 	contacts     map[string]*trackfile.Trackfile
-	bullseye     *orb.Point
+	bullseyes    map[types.Coalition]dcs.Bullseye
 	aircraftData map[string]encyclopedia.Aircraft
 }
 
-func New(bullseyes <-chan orb.Point, updates <-chan dcs.Updated, fades <-chan dcs.Faded) Radar {
+func New(coalition types.Coalition, bullseyes <-chan dcs.Bullseye, updates <-chan dcs.Updated, fades <-chan dcs.Faded) Radar {
 	e := encyclopedia.New()
 
 	return &scope{
 		simUpdates:   updates,
 		simFades:     fades,
 		simBullseyes: bullseyes,
-		bullseye:     &orb.Point{0, 0},
+		bullseyes:    make(map[types.Coalition]dcs.Bullseye),
 		contacts:     make(map[string]*trackfile.Trackfile),
 		aircraftData: e.Aircraft(),
 	}
@@ -58,7 +58,7 @@ func (s *scope) Run(ctx context.Context) {
 	for {
 		select {
 		case bullseye := <-s.simBullseyes:
-			s.bullseye = &bullseye
+			s.bullseyes[bullseye.Coalition] = bullseye
 		case update := <-s.simUpdates:
 			s.handleUpdate(update)
 		case fade := <-s.simFades:
@@ -73,7 +73,7 @@ func (s *scope) RunOnce() {
 	for {
 		select {
 		case bullseye := <-s.simBullseyes:
-			s.bullseye = &bullseye
+			s.bullseyes[bullseye.Coalition] = bullseye
 		case update := <-s.simUpdates:
 			s.handleUpdate(update)
 		case fade := <-s.simFades:
@@ -123,8 +123,8 @@ func (s *scope) FindUnit(unitId uint32) *trackfile.Trackfile {
 	return nil
 }
 
-func (s *scope) GetBullseye() *orb.Point {
-	return s.bullseye
+func (s *scope) GetBullseye(coalition types.Coalition) dcs.Bullseye {
+	return s.bullseyes[coalition]
 }
 
 func (s *scope) FindNearestGroupWithBRAA(location orb.Point, coalition types.Coalition, filter brevity.ContactCategory) brevity.Group {
@@ -180,7 +180,7 @@ func (s *scope) findGroupForAircraft(trackfile *trackfile.Trackfile) *group {
 	if trackfile == nil {
 		return nil
 	}
-	group := newGroupUsingBullseye(*s.bullseye)
+	group := newGroupUsingBullseye(s.bullseyes[trackfile.Contact.Coalition].Point)
 	group.contacts = append(group.contacts, trackfile)
 	s.addNearbyAircraftToGroup(trackfile, group)
 	return group

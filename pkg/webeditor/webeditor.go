@@ -1,7 +1,6 @@
 package webeditor
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"time"
@@ -11,16 +10,15 @@ import (
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/trackfile"
 	"github.com/martinlindhe/unit"
-	"github.com/paulmach/orb"
 )
 
 const (
 	BlueCoalitionName    = "blue"
 	RedCoalitionName     = "red"
-	NeutralCoalitionName = "neutral"
+	NeutralCoalitionName = "neutrals"
 )
 
-func LoadJSON(mission map[string]json.RawMessage, updateCh chan<- dcs.Updated, bullseyeCh chan<- orb.Point) error {
+func Load(mission Mission, updateCh chan<- dcs.Updated, bullseyeCh chan<- dcs.Bullseye) error {
 	frameTime := time.Now()
 
 	// TODO read terrain from mission JSON
@@ -29,122 +27,55 @@ func LoadJSON(mission map[string]json.RawMessage, updateCh chan<- dcs.Updated, b
 		return fmt.Errorf("error creating projector: %w", error)
 	}
 
-	var coalitions map[string]json.RawMessage
-	if err := json.Unmarshal(mission["coalition"], &coalitions); err != nil {
-		return fmt.Errorf("error unmarshalling top-level key 'coalition': %w", err)
-	}
-	for coalitionName, coalitionJson := range coalitions {
-		var coalitionID types.Coalition
-		if coalitionName == BlueCoalitionName {
-			coalitionID = types.CoalitionBlue
-		} else if coalitionName == RedCoalitionName {
-			coalitionID = types.CoalitionRed
+	coalitionMap := mission.Coalition
+	for _, coalition := range []Coalition{coalitionMap.Blue, coalitionMap.Red} {
+		var coalitionType types.Coalition
+		if coalition.Name == BlueCoalitionName {
+			coalitionType = types.CoalitionBlue
+		} else if coalition.Name == RedCoalitionName {
+			coalitionType = types.CoalitionRed
 		}
-
-		var coalition map[string]json.RawMessage
-		if err := json.Unmarshal(coalitionJson, &coalition); err != nil {
-			return fmt.Errorf("error unmarshalling coalition[%q]: %w", coalitionName, err)
+		position, err := projector.Project(coalition.Bullseye.X, coalition.Bullseye.Y)
+		if err != nil {
+			return fmt.Errorf("error projecting bullseye for %s: %w", coalition.Name, err)
 		}
-
-		var bullseye map[string]map[string]float64
-		if err := json.Unmarshal(coalition["bullseye"], &bullseye); err != nil {
-			return fmt.Errorf("error unmarshalling coalition[%s].bullseye: %w", coalitionName, err)
+		bullseye := dcs.Bullseye{
+			Coalition: coalitionType,
+			Point:     position,
 		}
+		bullseyeCh <- bullseye
 
-		var countries []json.RawMessage
-		if err := json.Unmarshal(coalition["country"], &countries); err != nil {
-			return fmt.Errorf("error unmarshalling coalition[%s].country[]': %w", coalitionName, err)
-		}
-		for i, countryElement := range countries {
-			var country map[string]json.RawMessage
-			if err := json.Unmarshal(countryElement, &country); err != nil {
-				return fmt.Errorf("error unmarshalling coalition[%s].country[%d]': %w", coalitionName, i, err)
-			}
-			var planeClass map[string]json.RawMessage
-			if err := json.Unmarshal(country["plane"], &planeClass); err != nil {
-				return fmt.Errorf("error unmarshalling coalition[%s].country[%d].plane': %w", coalitionName, i, err)
-			}
-			var planeGroups []json.RawMessage
-			if err := json.Unmarshal(planeClass["group"], &planeGroups); err != nil {
-				return fmt.Errorf("error unmarshalling coalition[%s].country[%d].plane.group[]': %w", coalitionName, i, err)
-			}
-			for j, groupJson := range planeGroups {
-				var group map[string]json.RawMessage
-				if err := json.Unmarshal(groupJson, &group); err != nil {
-					return fmt.Errorf("error unmarshalling coalition[%s].country[%d].plane.group[%d]': %w", coalitionName, i, j, err)
-				}
-				var units []json.RawMessage
-				if err := json.Unmarshal(group["units"], &units); err != nil {
-					return fmt.Errorf("error unmarshalling coalition[%q].country[%d].plane.group[%d].units[]': %w", coalitionName, i, j, err)
-				}
-
-				for k, unitJson := range units {
-					var simUnit map[string]json.RawMessage
-					if err := json.Unmarshal(unitJson, &simUnit); err != nil {
-						return fmt.Errorf("error unmarshalling coalition[%q].country[%d].plane.group[%d].units[%d]': %w", coalitionName, i, j, k, err)
-					}
-
-					var unitID uint32
-					if err := json.Unmarshal(simUnit["unitID"], &unitID); err != nil {
-						return fmt.Errorf("error unmarshalling coalition[%q].country[%d].plane.group[%d].units[%d].unitID': %w", coalitionName, i, j, k, err)
-					}
-					var name string
-					if err := json.Unmarshal(simUnit["name"], &name); err != nil {
-						return fmt.Errorf("error unmarshalling coalition[%q].country[%d].plane.group[%d].units[%d].name': %w", coalitionName, i, j, k, err)
-					}
-					var editorType string
-					if err := json.Unmarshal(simUnit["type"], &editorType); err != nil {
-						return fmt.Errorf("error unmarshalling coalition[%q].country[%d].plane.group[%d].units[%d].type': %w", coalitionName, i, j, k, err)
-					}
-					var x float64
-					if err := json.Unmarshal(simUnit["x"], &x); err != nil {
-						return fmt.Errorf("error unmarshalling coalition[%q].country[%d].plane.group[%d].units[%d].x': %w", coalitionName, i, j, k, err)
-					}
-					var y float64
-					if err := json.Unmarshal(simUnit["y"], &y); err != nil {
-						return fmt.Errorf("error unmarshalling coalition[%q].country[%d].plane.group[%d].units[%d].y': %w", coalitionName, i, j, k, err)
-					}
-					var altitude float64
-					if err := json.Unmarshal(simUnit["alt"], &altitude); err != nil {
-						return fmt.Errorf("error unmarshalling coalition[%q].country[%d].plane.group[%d].units[%d].alt': %w", coalitionName, i, j, k, err)
-					}
-					var heading float64
-					if err := json.Unmarshal(simUnit["heading"], &heading); err != nil {
-						return fmt.Errorf("error unmarshalling coalition[%q].country[%d].plane.group[%d].units[%d].heading': %w", coalitionName, i, j, k, err)
-					}
-					var speed float64
-					if err := json.Unmarshal(simUnit["speed"], &speed); err != nil {
-						return fmt.Errorf("error unmarshalling coalition[%q].country[%d].plane.group[%d].units[%d].speed': %w", coalitionName, i, j, k, err)
-					}
-
-					point, err := projector.Project(x, y)
+		for _, country := range coalition.Country {
+			for _, group := range country.Plane.Group {
+				for _, plane := range group.Units {
+					point, err := projector.Project(plane.X, plane.Y)
 					if err != nil {
-						slog.Error("Error projecting unit", "unit", simUnit, "error", err)
+						slog.Error("Error projecting unit", "unit", plane, "error", err)
 						continue
 					}
 
 					updated := dcs.Updated{
 						Aircraft: trackfile.Aircraft{
-							UnitID:     unitID,
-							Name:       name,
-							Coalition:  coalitionID,
-							EditorType: editorType,
+							UnitID:     plane.UnitID,
+							Name:       plane.Name,
+							Coalition:  coalitionType,
+							EditorType: plane.EditorType,
 						},
 						Frame: trackfile.Frame{
 							Timestamp: frameTime,
-							// Convert from DCS in-game coordinates to Long/Lat
-							// https://github.com/DCS-Web-Editor/dcs-web-editor-mono/blob/main/packages/map-projection/src/index.ts
-							Point: point,
+							Point:     point,
 							// Assuming altitude is ASL because I can't be arsed to implement AGL
-							Altitude: unit.Length(altitude) * unit.Meter,
-							Heading:  unit.Angle(heading) * unit.Degree,
-							Speed:    unit.Speed(speed) * unit.MetersPerSecond,
+							Altitude: unit.Length(plane.Altitude) * unit.Meter,
+							Heading:  unit.Angle(plane.Heading) * unit.Degree,
+							Speed:    unit.Speed(plane.Speed) * unit.KilometersPerHour,
 						},
 					}
+
 					updateCh <- updated
 				}
 			}
 		}
 	}
+
 	return nil
 }
