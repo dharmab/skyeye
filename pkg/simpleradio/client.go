@@ -4,11 +4,11 @@ package simpleradio
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/audio"
 	"github.com/dharmab/skyeye/pkg/simpleradio/data"
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
+	"github.com/rs/zerolog/log"
 )
 
 // Client is a SimpleRadio-Standalone client.
@@ -77,7 +77,7 @@ func (c *client) Run(ctx context.Context) error {
 	// TODO return a ready channel and wait for each. This resolves a minor race condition on startup
 	dataReadyCh := make(chan any)
 	go func() {
-		slog.Info("running SRS data client")
+		log.Info().Msg("running SRS data client")
 		if err := c.dataClient.Run(ctx, dataReadyCh); err != nil {
 			errorChan <- err
 		}
@@ -85,7 +85,7 @@ func (c *client) Run(ctx context.Context) error {
 	<-dataReadyCh
 
 	go func() {
-		slog.Info("running SRS audio client")
+		log.Info().Msg("running SRS audio client")
 		if err := c.audioClient.Run(ctx); err != nil {
 			errorChan <- err
 		}

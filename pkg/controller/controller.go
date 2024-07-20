@@ -2,13 +2,13 @@ package controller
 
 import (
 	"context"
-	"log/slog"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/rs/zerolog/log"
 )
 
 type Controller interface {
@@ -74,8 +74,20 @@ func (c *controller) hostileCoalition() types.Coalition {
 func (c *controller) expireTrackfiles() {
 	for name, tf := range c.trackfiles {
 		if tf.LastKnown().Timestamp.Before(time.Now().Add(3 * time.Minute)) {
-			slog.Info("removing aged out trackfile", "name", name, "last_updated", tf.LastKnown().Timestamp)
+			log.Info().Str("name", name).Time("last_updated", tf.LastKnown().Timestamp).Msg("removing aged out trackfile")
 			delete(c.trackfiles, name)
 		}
 	}
+}
+
+func (c *controller) findCallsign(callsign string) *trackfile.Trackfile {
+	logger := log.With().Str("callsign", callsign).Logger()
+	logger.Debug().Msg("searching scope for trackfile matching callsign")
+	tf := c.scope.FindCallsign(callsign)
+	if tf == nil {
+		logger.Debug().Msg("no trackfile found for callsign")
+	} else {
+		logger.Debug().Str("name", tf.Contact.Name).Str("type", tf.Contact.EditorType).Int("unitID", int(tf.Contact.UnitID)).Msg("trackfile found for callsign")
+	}
+	return tf
 }

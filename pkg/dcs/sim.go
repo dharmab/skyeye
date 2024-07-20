@@ -3,7 +3,6 @@ package dcs
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"sync"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/trackfile"
 	measure "github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
+	"github.com/rs/zerolog/log"
 )
 
 type Updated struct {
@@ -66,7 +66,7 @@ func (s *sim) Stream(ctx context.Context, aircraftChan chan<- Updated, fadedChan
 		go func() {
 			err := s.StreamUnitCategory(ctx, category, aircraftChan, fadedChan)
 			if err != nil {
-				slog.Error("error streaming units", "error", err)
+				log.Error().Err(err).Msg("error streaming units")
 			}
 			wg.Done()
 		}()
@@ -95,7 +95,7 @@ func (s *sim) StreamUnitCategory(ctx context.Context, category common.GroupCateg
 		default:
 			response, err := streamClient.Recv()
 			if err != nil {
-				slog.Error("error receiving from stream", "error", err)
+				log.Error().Err(err).Msg("error receiving from stream")
 			} else {
 				s.handleStreamUnitResponse(response, aircraftChan, fadedChan)
 			}
@@ -111,7 +111,7 @@ func (s *sim) handleStreamUnitResponse(r *mission.StreamUnitsResponse, aircraftC
 	} else if r.GetUnit() != nil {
 		s.handleUpdate(r.GetUnit(), aircraftChan)
 	} else {
-		slog.Warn("unable to handle response", "response", r)
+		log.Warn().Interface("response", r).Msg("unable to handle response")
 	}
 }
 
@@ -120,7 +120,7 @@ func (s *sim) handleFaded(r *mission.StreamUnitsResponse_UnitGone, out chan<- Fa
 		Timestamp: time.Now(),
 		UnitID:    r.Id,
 	}
-	slog.Info("received faded aircraft update", "update", f)
+	log.Info().Interface("update", f).Msg("received faded aircraft update")
 	out <- f
 }
 
@@ -160,7 +160,7 @@ func (s *sim) handleUpdate(u *common.Unit, out chan<- Updated) {
 			Speed:     gs,
 		},
 	}
-	slog.Info("received aircraft update", "update", update)
+	log.Info().Interface("update", update).Msg("received aircraft update")
 	out <- update
 }
 

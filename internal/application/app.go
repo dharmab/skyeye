@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -19,6 +18,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/synthesizer"
+	"github.com/rs/zerolog/log"
 )
 
 // Application is the interface for running the SkyEye application.
@@ -47,18 +47,26 @@ type app struct {
 
 // NewApplication constructs a new Application.
 func NewApplication(ctx context.Context, config conf.Configuration) (Application, error) {
-	slog.Info("constructing DCS client")
+	log.Info().Str("address", config.DCSGRPCAddress).Dur("timeout", config.GRPCConnectionTimeout).Msg("constructing DCS client")
 	dcsClient, err := dcs.NewDCSClient(
 		ctx,
 		dcs.ClientConfiguration{
 			Address:           config.DCSGRPCAddress,
 			ConnectionTimeout: config.GRPCConnectionTimeout,
-		})
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct application: %w", err)
 	}
 
-	slog.Info("constructing SRS client")
+	log.Info().
+		Str("address", config.SRSAddress).
+		Dur("timeout", config.SRSConnectionTimeout).
+		Str("clientName", config.SRSClientName).
+		Int("coalitionID", int(config.SRSCoalition)).
+		Float64("frequency", config.SRSFrequency).
+		Int("modulationID", int(srs.ModulationAM)).
+		Msg("constructing SRS client")
 	srsClient, err := simpleradio.NewClient(
 		srs.ClientConfiguration{
 			Address:                   config.SRSAddress,
@@ -77,14 +85,13 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		return nil, fmt.Errorf("failed to construct application: %w", err)
 	}
 
-	slog.Info("constructing speech-to-text recognizer")
+	log.Info().Msg("constructing speech-to-text recognizer")
 	recognizer := recognizer.NewWhisperRecognizer(config.WhisperModel)
 
-	slog.Info("constructing text parser")
+	log.Info().Msg("constructing text parser")
 	parser := parser.New()
 
-	slog.Info("constructing GCI controller")
-
+	log.Info().Msg("constructing radar scope")
 	var coalition types.Coalition
 	if config.SRSCoalition == srs.CoalitionBlue {
 		coalition = types.CoalitionBlue
@@ -97,19 +104,19 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	bullseyes := make(chan dcs.Bullseye)
 
 	rdr := radar.New(coalition, bullseyes, updates, fades)
+	log.Info().Msg("constructing GCI controller")
 	controller := controller.New(rdr, coalition)
 
-	slog.Info("constructing text composer")
-
+	log.Info().Msg("constructing text composer")
 	composer := composer.New()
 
-	slog.Info("constructing text-to-speech synthesizer")
+	log.Info().Msg("constructing text-to-speech synthesizer")
 	synthesizer, err := synthesizer.NewPiperSpeaker(synthesizer.FeminineVoice)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct application: %w", err)
 	}
 
-	slog.Info("constructiong application")
+	log.Info().Msg("constructing application")
 	app := &app{
 		dcsClient:   dcsClient,
 		srsClient:   srsClient,
@@ -125,18 +132,18 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 // Run implements Application.Run.
 func (a *app) Run(ctx context.Context) error {
 	defer func() {
-		slog.Info("closing connection to DCS-gRPC server")
+		log.Info().Msg("closing connection to DCS-gRPC server")
 		err := a.dcsClient.Close()
 		if err != nil {
-			slog.Error("failed to close connection to DCS-gRPC server", "error", err)
+			log.Error().Err(err).Msg("failed to close connection to DCS-gRPC server")
 		}
 	}()
 
 	go func() {
-		slog.Info("running SRS client")
+		log.Info().Msg("running SRS client")
 		if err := a.srsClient.Run(ctx); err != nil {
 			if !errors.Is(err, context.Canceled) {
-				slog.Error("error running SRS client", "error", err)
+				log.Error().Err(err).Msg("error running SRS client")
 			}
 		}
 	}()
@@ -147,25 +154,33 @@ func (a *app) Run(ctx context.Context) error {
 	txTextChan := make(chan composer.NaturalLanguageResponse)
 	txAudioChan := make(chan []float32)
 
+	log.Info().Msg("starting subroutines")
+	log.Info().Msg("starting speech recognition routine")
 	go a.recognize(ctx, rxTextChan)
+	log.Info().Msg("starting speech-to-text parsing routine")
 	go a.parse(ctx, rxTextChan, requestChan)
+	log.Info().Msg("starting GCI controller routine")
 	go a.control(ctx, requestChan, responseAndCallsChan)
+	log.Info().Msg("starting response composer routine")
 	go a.compose(ctx, responseAndCallsChan, txTextChan)
+	log.Info().Msg("starting speech synthesis routine")
 	go a.synthesize(ctx, txTextChan, txAudioChan)
+	log.Info().Msg("starting radio transmission routine")
 	go a.transmit(ctx, txAudioChan)
 
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Info("stopping application due to context cancellation")
+			log.Info().Msg("stopping application due to context cancellation")
 			return nil
 		case sample := <-a.srsClient.Receive():
-			slog.Info("recognizing audio sample received from SRS client")
+			log.Info().Int("byteLength", len(sample)).Msg("recognizing audio sample received from SRS client")
 			text, err := a.recognizer.Recognize(sample)
 			if err != nil {
-				slog.Error("error recongizing audio sample", "error", err)
+				log.Error().Err(err).Msg("error recognizing audio sample")
 			} else {
-				slog.Info("recognized audio", "text", text)
+				// TODO make this log line configurable for privacy reasons
+				log.Info().Str("text", text).Msg("recognized audio sample")
 				rxTextChan <- text
 			}
 		}
@@ -177,17 +192,17 @@ func (a *app) recognize(ctx context.Context, out chan<- string) {
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Info("stopping speech recognition due to context cancellation")
+			log.Info().Msg("stopping speech recognition due to context cancellation")
 			return
 		case sample := <-a.srsClient.Receive():
-			slog.Info("recognizing audio sample")
+			log.Info().Int("byteLength", len(sample)).Msg("recognizing audio sample")
 			text, err := a.recognizer.Recognize(sample)
 			if err != nil {
-				slog.Error("error recongizing audio sample", "error", err)
+				log.Error().Err(err).Msg("error recognizing audio sample")
 			} else if text == "" || text == "[BLANK AUDIO]\n" {
-				slog.Info("unable to recongnize any words in audio sample")
+				log.Info().Str("text", text).Msg("unable to recongnize any words in audio sample")
 			} else {
-				slog.Info("recognized audio", "text", text)
+				log.Info().Str("text", text).Msg("recognized audio")
 				out <- text
 			}
 		}
@@ -199,16 +214,17 @@ func (a *app) parse(ctx context.Context, in <-chan string, out chan<- any) {
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Info("stopping brevity parsing due to context cancellation")
+			log.Info().Msg("stopping text parsing due to context cancellation")
 			return
 		case text := <-in:
-			slog.Info("parsing text", "text", text)
+			logger := log.With().Str("text", text).Logger()
+			logger.Info().Msg("parsing text")
 			request, ok := a.parser.Parse(text)
 			if ok {
-				slog.Info("parsed text", "group", request)
+				logger.Info().Interface("request", request).Msg("parsed text")
 				out <- request
 			} else {
-				slog.Info("unable to parse text", "text", text)
+				logger.Info().Msg("unable to parse text")
 			}
 		}
 	}
@@ -216,39 +232,40 @@ func (a *app) parse(ctx context.Context, in <-chan string, out chan<- any) {
 
 // control routes requests to GCI controller handlers.
 func (a *app) control(ctx context.Context, in <-chan any, out chan<- any) {
-	slog.Info("running controller")
+	log.Info().Msg("running controller")
 	go a.controller.Run(ctx, out)
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Info("stopping request routing due to context cancellation")
+			log.Info().Msg("stopping controller request routing due to context cancellation")
 			return
 		case brev := <-in:
-			slog.Info("routing request to controller", "request", brev)
+			logger := log.With().Type("type", brev).Logger()
+			logger.Info().Msg("routing request to controller")
 			switch request := brev.(type) {
 			case *brevity.AlphaCheckRequest:
-				slog.Info("routing ALPHA CHECK request to controller", "request", request)
+				logger.Debug().Msg("routing ALPHA CHECK request to controller")
 				a.controller.HandleAlphaCheck(request)
 			case *brevity.BogeyDopeRequest:
-				slog.Info("routing BOGEY DOPE request to controller", "request", request)
+				logger.Debug().Msg("routing BOGEY DOPE request to controller")
 				a.controller.HandleBogeyDope(request)
 			case *brevity.DeclareRequest:
-				slog.Info("routing DECLARE request to controller", "request", request)
+				logger.Debug().Msg("routing DECLARE request to controller")
 				a.controller.HandleDeclare(request)
 			case *brevity.PictureRequest:
-				slog.Info("routing PICTURE request to controller", "request", request)
+				logger.Debug().Msg("routing PICTURE request to controller")
 				a.controller.HandlePicture(request)
 			case *brevity.RadioCheckRequest:
-				slog.Info("routing RADIO CHECK request to controller", "request", request)
+				logger.Debug().Msg("routing RADIO CHECK request to controller")
 				a.controller.HandleRadioCheck(request)
 			case *brevity.SnaplockRequest:
-				slog.Info("routing SNAPLOCK request to controller", "request", request)
+				logger.Debug().Msg("routing SNAPLOCK request to controller")
 				a.controller.HandleSnaplock(request)
 			case *brevity.SpikedRequest:
-				slog.Info("routing SPIKED request to controller", "request", request)
+				logger.Debug().Msg("routing SPIKED request to controller")
 				a.controller.HandleSpiked(request)
 			default:
-				slog.Error("unable to route request to handler", "request", request, "type", fmt.Sprintf("%T", request))
+				logger.Error().Interface("request", brev).Msg("unable to route request to handler")
 			}
 		}
 	}
@@ -259,48 +276,51 @@ func (a *app) compose(ctx context.Context, in <-chan any, out chan<- composer.Na
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Info("stopping brevity composition due to context cancellation")
+			log.Info().Msg("stopping brevity composition due to context cancellation")
 			return
 		case call := <-in:
-			slog.Info("composing brevity call", "call", call)
+			logger := log.With().Interface("call", call).Logger()
+			logger.Info().Msg("composing brevity call")
 			var nlr composer.NaturalLanguageResponse
 			switch c := call.(type) {
 			case brevity.AlphaCheckResponse:
-				slog.Info("composing ALPHA CHECK call", "call", c)
+				logger.Debug().Msg("composing ALPHA CHECK call")
 				nlr = a.composer.ComposeAlphaCheckResponse(c)
 			case brevity.BogeyDopeResponse:
-				slog.Info("composing BOGEY DOPE call", "call", c)
+				logger.Debug().Msg("composing BOGEY DOPE call")
 				nlr = a.composer.ComposeBogeyDopeResponse(c)
 			case brevity.DeclareResponse:
-				slog.Info("composing DECLARE call", "call", c)
+				logger.Debug().Msg("composing DECLARE call")
 				nlr = a.composer.ComposeDeclareResponse(c)
 			case brevity.FadedCall:
-				slog.Info("composing FADED call", "call", c)
+				logger.Debug().Msg("composing FADED call")
 				nlr = a.composer.ComposeFadedCall(c)
 			case brevity.PictureResponse:
-				slog.Info("composing PICTURE call", "call", c)
+				logger.Debug().Msg("composing PICTURE call")
 				nlr = a.composer.ComposePictureResponse(c)
 			case brevity.RadioCheckResponse:
-				slog.Info("composing RADIO CHECK call", "call", c)
+				logger.Debug().Msg("composing RADIO CHECK call")
 				nlr = a.composer.ComposeRadioCheckResponse(c)
 			case brevity.SnaplockResponse:
-				slog.Info("composing SNAPLOCK call", "call", c)
+				logger.Debug().Msg("composing SNAPLOCK call")
 				nlr = a.composer.ComposeSnaplockResponse(c)
 			case brevity.SpikedResponse:
-				slog.Info("composing SPIKED call", "call", c)
+				logger.Debug().Msg("composing SPIKED call")
 				nlr = a.composer.ComposeSpikedResponse(c)
 			case brevity.SunriseCall:
-				slog.Info("composing SUNRISE call", "call", c)
+				logger.Debug().Msg("composing SUNRISE call")
 				nlr = a.composer.ComposeSunriseCall(c)
 			case brevity.ThreatCall:
-				slog.Info("composing THREAT call", "call", c)
+				logger.Debug().Msg("composing THREAT call")
 				nlr = a.composer.ComposeThreatCall(c)
 			default:
-				slog.Error("unable to route call to composition", "call", call)
+				logger.Debug().Msg("unable to route call to composition")
 			}
 			if nlr.Speech != "" && nlr.Subtitle != "" {
-				slog.Info("composed brevity call", "speech", nlr.Speech, "subtitle", nlr.Subtitle)
+				logger.Info().Str("speech", nlr.Speech).Str("subtitle", nlr.Subtitle).Msg("composed brevity call")
 				out <- nlr
+			} else {
+				logger.Warn().Msg("natural language response is empty")
 			}
 		}
 	}
@@ -311,16 +331,20 @@ func (a *app) synthesize(ctx context.Context, in <-chan composer.NaturalLanguage
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Info("stopping speech synthesis due to context cancellation")
+			log.Info().Msg("stopping speech synthesis due to context cancellation")
 			return
 		case response := <-in:
-			slog.Info("synthesizing speech", "text", response.Speech)
+			log.Info().Str("text", response.Speech).Msg("synthesizing speech")
 			audio, err := a.synthesizer.Say(response.Speech)
 			if err != nil {
-				slog.Error("error synthesizing speech", "error", err)
+				log.Error().Err(err).Msg("error synthesizing speech")
 			} else {
-				slog.Info("synthesized speech", "text", response.Speech)
-				out <- audio
+				if len(audio) == 0 {
+					log.Warn().Msg("synthesized audio is empty")
+				} else {
+					log.Info().Int("byteLength", len(audio)).Msg("synthesized audio")
+					out <- audio
+				}
 			}
 		}
 	}
@@ -331,10 +355,14 @@ func (a *app) transmit(ctx context.Context, in <-chan []float32) {
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Info("stopping audio transmissions due to context cancellation")
+			log.Info().Msg("stopping audio transmissions due to context cancellation")
 			return
 		case audio := <-in:
-			slog.Info("transmitting audio")
+			if len(audio) == 0 {
+				log.Warn().Msg("audio to transmit is empty")
+			} else {
+				log.Info().Int("byteLength", len(audio)).Msg("transmitting audio")
+			}
 			a.srsClient.Transmit(audio)
 		}
 	}

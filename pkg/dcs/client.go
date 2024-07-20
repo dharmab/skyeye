@@ -4,7 +4,6 @@ package dcs
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/coalition"
@@ -12,6 +11,7 @@ import (
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/mission"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/unit"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/world"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -55,7 +55,7 @@ type dcsClient struct {
 }
 
 func NewDCSClient(ctx context.Context, config ClientConfiguration) (DCSClient, error) {
-	slog.Info("connecting to DCS-gRPC server", "address", config.Address)
+	log.Info().Str("address", config.Address).Dur("timeout", config.ConnectionTimeout).Msg("connecting to DCS-gRPC server")
 	connection, err := connectToDCSGRPC(ctx, config.Address, config.ConnectionTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to DCS-gRPC server %v: %w", config.Address, err)

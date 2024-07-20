@@ -8,11 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log/slog"
 	"net"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
+	"github.com/rs/zerolog/log"
 )
 
 // DataClient is a client for the SRS data protocol.
@@ -39,7 +39,7 @@ type dataClient struct {
 }
 
 func NewClient(guid types.GUID, config types.ClientConfiguration) (DataClient, error) {
-	slog.Info("connecting to SRS server", "protocol", "tcp", "address", config.Address)
+	log.Info().Str("protocol", "tcp").Str("address", config.Address).Msg("connecting to SRS server")
 	address, err := net.ResolveTCPAddr("tcp", config.Address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve SRS server address %v: %w", config.Address, err)
@@ -79,9 +79,10 @@ func (c *dataClient) Name() string {
 
 // Run implements DataClient.Run.
 func (c *dataClient) Run(ctx context.Context, readyCh chan<- any) error {
+	log.Info().Msg("SRS data client starting")
 	defer func() {
 		if err := c.close(); err != nil {
-			slog.Error("error closing data client", "error", err)
+			log.Error().Err(err).Msg("error closing SRS client")
 		}
 	}()
 
@@ -92,6 +93,7 @@ func (c *dataClient) Run(ctx context.Context, readyCh chan<- any) error {
 		reader := bufio.NewReader(c.connection)
 		for {
 			if ctx.Err() != nil {
+				log.Info().Msg("stopping data client due to context cancellation")
 				return
 			}
 			line, err := reader.ReadBytes(byte('\n'))
@@ -100,14 +102,14 @@ func (c *dataClient) Run(ctx context.Context, readyCh chan<- any) error {
 				var message types.Message
 				jsonErr := json.Unmarshal(line, &message)
 				if jsonErr != nil {
-					slog.Warn("failed to unmarshal message", "text", line, "error", jsonErr)
+					log.Warn().Str("text", string(line)).Err(jsonErr).Msg("failed to unmarshal message")
 				} else {
 					messageChan <- message
 				}
 			case io.EOF:
-				// no-op
+				log.Trace().Msg("EOF received from SRS server")
 			default:
-				slog.Error("receive error", "error", err)
+				log.Error().Err(err).Msg("error reading from SRS server")
 				errorChan <- err
 				return
 			}
@@ -115,13 +117,14 @@ func (c *dataClient) Run(ctx context.Context, readyCh chan<- any) error {
 	}()
 
 	close(readyCh)
+	log.Info().Msg("SRS data client ready")
 
-	slog.Info("sending initial sync message")
+	log.Info().Msg("sending initial sync message")
 	if err := c.sync(); err != nil {
 		return fmt.Errorf("initial sync failed: %w", err)
 	}
 
-	slog.Info("connecting to external AWACS mode")
+	log.Info().Msg("connecting to external AWACS mode")
 	if err := c.connectExternalAWACSMode(); err != nil {
 		return fmt.Errorf("external AWACS mode failed: %w", err)
 	}
@@ -129,10 +132,12 @@ func (c *dataClient) Run(ctx context.Context, readyCh chan<- any) error {
 	for {
 		select {
 		case m := <-messageChan:
+			log.Trace().Msg("received message")
 			c.lastReceived = time.Now()
+			log.Trace().Time("lastReceived", c.lastReceived).Msg("updated last received time")
 			c.handleMessage(m)
 		case <-ctx.Done():
-			slog.Info("stopping data client due to context cancellation", "error", ctx.Err())
+			log.Info().Msg("stopping data client due to context cancellation")
 			select {
 			case <-messageChan:
 			case <-errorChan:
@@ -146,7 +151,7 @@ func (c *dataClient) Run(ctx context.Context, readyCh chan<- any) error {
 
 // handleMessage routes a given message to the appropriate handler.
 func (c *dataClient) handleMessage(message types.Message) {
-	slog.Debug("handling message", "message", message)
+	log.Debug().Interface("message", message).Msg("handling message")
 	switch message.Type {
 	case types.MessagePing:
 		logMessageAndIgnore(message)
@@ -166,24 +171,24 @@ func (c *dataClient) handleMessage(message types.Message) {
 		c.syncClient(message.Client)
 	case types.MessageExternalAWACSModePassword:
 		if message.Client.Coalition == c.clientInfo.Coalition {
-			slog.Info("received external AWACS mode password message", "client", message.Client)
+			log.Info().Interface("remoteClient", message.Client).Msg("received external AWACS mode password message")
 			if err := c.updateRadios(); err != nil {
-				slog.Error("failed to update radios", "error", err)
+				log.Error().Err(err).Msg("failed to update radios")
 			}
 		}
 	default:
-		slog.Warn("received unrecognized message", "payload", message)
+		log.Warn().Interface("message", message).Msg("received unrecognized message")
 	}
 }
 
 // logMessageAndIgnore logs a message at DEBUG level.
 func logMessageAndIgnore(message types.Message) {
-	slog.Debug("received message", "payload", message)
+	log.Debug().Interface("message", message).Msg("received message")
 }
 
 // syncClients calls syncClient for each client in the given slice.
 func (c *dataClient) syncClients(others []types.ClientInfo) {
-	slog.Info("syncronizing clients", "count", len(others))
+	log.Info().Int("count", len(others)).Msg("syncronizing clients")
 	for _, info := range others {
 		c.syncClient(info)
 	}
@@ -191,33 +196,33 @@ func (c *dataClient) syncClients(others []types.ClientInfo) {
 
 // syncClient checks if the given client matches this client's coalition and radios, and if so, stores it in the otherClients map. Non-matching clients are removed from the map if previously stored.
 func (c *dataClient) syncClient(other types.ClientInfo) {
-	clientLogger := slog.With("guid", other.GUID, "name", other.Name, "coalition", other.Coalition, "radios", other.RadioInfo)
+	clientLogger := log.With().Str("guid", string(other.GUID)).Str("name", other.Name).Interface("coalitionID", other.Coalition).Interface("radios", other.RadioInfo).Logger()
 
-	clientLogger.Debug("syncronizing client")
+	clientLogger.Debug().Msg("syncronizing client")
 
 	if other.GUID == c.clientInfo.GUID {
 		// why, of course I know him. he's me!
-		clientLogger.Debug("skipped client due to same GUID")
+		clientLogger.Debug().Msg("skipped client due to same GUID")
 		return
 	}
 
 	isSameFrequency := c.clientInfo.RadioInfo.IsOnFrequency(other.RadioInfo)
 	// isSameCoalition is true if the other client is in the same coalition as this client, or if the other client is a spectator.
 	isSameCoalition := (c.clientInfo.Coalition == other.Coalition) || types.IsSpectator(other.Coalition)
-	clientLogger.Debug("checking client", "coalitionMatches", isSameCoalition, "frequencyMatches", isSameFrequency)
+	clientLogger.Debug().Bool("coalitionMatches", isSameCoalition).Bool("frequencyMatches", isSameFrequency).Msg("checking client")
 
 	// if the other client has a matching radio and is not in an opposing coalition, store it in otherClients. Otherwise, banish it to the shadow realm.
 	if isSameCoalition && isSameFrequency {
-		clientLogger.Debug("storing client with matching radio")
+		clientLogger.Debug().Msg("storing client")
 		c.otherClients[other.GUID] = other.Name
 	} else {
 		_, ok := c.otherClients[other.GUID]
 		if ok {
-			clientLogger.Debug("deleting client without matching radio")
+			clientLogger.Debug().Msg("deleting client without matching radio")
 			delete(c.otherClients, other.GUID)
 			// TODO memory leak here due to continually adding and removing clients from the map. https://100go.co/28-maps-memory-leaks/
 		} else {
-			clientLogger.Debug("skipped client without matching radio")
+			clientLogger.Debug().Msg("skipped client without matching radio")
 		}
 	}
 }
@@ -233,7 +238,7 @@ func (c *dataClient) Send(message types.Message) error {
 		return fmt.Errorf("failed to marshal message to JSON: %w", err)
 	}
 	b = append(b, byte('\n'))
-	slog.Debug("sending message", "message", message)
+	log.Debug().Interface("message", message).Msg("sending message")
 	_, err = c.connection.Write(b)
 	if err != nil {
 		return fmt.Errorf("failed to write message: %w", err)

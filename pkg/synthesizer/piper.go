@@ -3,13 +3,13 @@ package synthesizer
 import (
 	"bytes"
 	"fmt"
-	"log/slog"
 
 	"github.com/amitybell/piper"
 	asset "github.com/amitybell/piper-asset"
 	masculine "github.com/amitybell/piper-voice-alan"
 	feminine "github.com/amitybell/piper-voice-jenny"
 	"github.com/dharmab/skyeye/pkg/pcm"
+	"github.com/rs/zerolog/log"
 	"github.com/zaf/resample"
 )
 
@@ -47,17 +47,17 @@ func NewPiperSpeaker(v Voice) (Sythesizer, error) {
 
 // Say implements Speaker.Say
 func (s *piperSynth) Say(text string) ([]float32, error) {
-	slog.Debug("synthesizing text", "text", text)
+	log.Debug().Str("text", text).Msg("synthesizing text")
 	synthesized, err := s.tts.Synthesize(text)
 	if err != nil {
 		return nil, fmt.Errorf("failed to synthesize text: %w", err)
 	}
-	slog.Debug("downsampling synthesized audio from 24KHz to 16KHz")
+	log.Debug().Msg("downsampling synthesized audio from 24KHz to 16KHz")
 	downsampled, err := downsample(synthesized, 24000, 16000, 1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to downsample synthesized audio: %w", err)
 	}
-	slog.Debug("converting downsampled S16LE audio to F32LE")
+	log.Debug().Msg("converting downsampled S16LE audio to F32LE")
 	f32le := pcm.S16LEBytesToF32LE(downsampled)
 	return f32le, nil
 }
@@ -74,6 +74,6 @@ func downsample(in []byte, orignalRate float64, newRate float64, channels int) (
 	if err != nil {
 		return nil, fmt.Errorf("failed to resample synthesized audio: %w", err)
 	}
-	slog.Debug("resampled synthesized audio", "originalRate", orignalRate, "newRate", newRate, "length", n)
+	log.Debug().Int("originalRate", int(orignalRate)).Int("newRate", int(newRate)).Int("length", n).Msg("resampled synthesized audio")
 	return buf.Bytes(), nil
 }

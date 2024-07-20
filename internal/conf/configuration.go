@@ -31,3 +31,4 @@ type Configuration struct {
 }
 
 const DefaultPictureRadius = 35 * unit.NauticalMile
+const DefaultMarginRadius = 3 * unit.NauticalMile

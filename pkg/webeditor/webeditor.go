@@ -2,7 +2,6 @@ package webeditor
 
 import (
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/dcs"
@@ -10,6 +9,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/trackfile"
 	"github.com/martinlindhe/unit"
+	"github.com/rs/zerolog/log"
 )
 
 func parseCoalition(coalitionName string) types.Coalition {
@@ -45,7 +45,7 @@ func Load(mission Mission, updateCh chan<- dcs.Updated, bullseyeCh chan<- dcs.Bu
 				for _, plane := range group.Units {
 					point, err := projector.Project(plane.X, plane.Y)
 					if err != nil {
-						slog.Error("Error projecting unit", "unit", plane, "error", err)
+						log.Error().Str("unit", plane.Name).Err(err).Msg("error projecting unit")
 						continue
 					}
 

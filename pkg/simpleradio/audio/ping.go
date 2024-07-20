@@ -3,11 +3,11 @@ package audio
 import (
 	"context"
 	"errors"
-	"log/slog"
 	"net"
 	"time"
 
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
+	"github.com/rs/zerolog/log"
 )
 
 // pingInterval determines how often we should ping the SRS server over UDP.
@@ -15,7 +15,7 @@ const pingInterval = 15 * time.Second
 
 // sendPings is a loop which sends the client GUID to the server at regular intervals to keep our connection alive.
 func (c *audioClient) sendPings(ctx context.Context) {
-	slog.Info("starting pings", "interval", pingInterval.String())
+	log.Info().Dur("interval", pingInterval).Msg("starting pings")
 	go func() {
 		time.Sleep(1 * time.Second)
 		c.SendPing()
@@ -27,7 +27,7 @@ func (c *audioClient) sendPings(ctx context.Context) {
 		case <-ticker.C:
 			c.SendPing()
 		case <-ctx.Done():
-			slog.Info("stopping pings due to context cancelation")
+			log.Info().Msg("stopping pings due to context cancelation")
 			return
 		}
 	}
@@ -36,15 +36,16 @@ func (c *audioClient) sendPings(ctx context.Context) {
 // SendPing sends a single ping to the SRS server. "One ping only, Vasily."
 // The SRS server won't send us any audio until it receives a ping from us, so this is useful to initialize VoIP.
 func (c *audioClient) SendPing() {
-	slog.Debug("sending UDP ping", "guid", c.guid)
+	logger := log.With().Str("GUID", string(c.guid)).Logger()
+	logger.Debug().Msg("sending UDP ping")
 	n, err := c.connection.Write([]byte(c.guid))
 	if errors.Is(err, net.ErrClosed) {
-		slog.Warn("ping skipped due to closed connection")
+		logger.Warn().Msg("ping skipped due to closed connection")
 	} else if err != nil {
-		slog.Error("error writing ping", "error", err)
+		logger.Error().Err(err).Msg("error writing ping")
 	} else if n != srs.GUIDLength {
-		slog.Warn("wrote unexpected number of bytes while sending UDP ping", "guid", c.guid, "bytes", n, "expectedBytes", srs.GUIDLength)
+		logger.Warn().Int("bytes", n).Int("expectedBytes", srs.GUIDLength).Str("comment", "HOW DID YOU GET HERE").Msg("wrote unexpected number of bytes while sending UDP ping")
 	} else {
-		slog.Debug("sent UDP ping", "guid", c.guid)
+		logger.Debug().Msg("sent UDP ping")
 	}
 }

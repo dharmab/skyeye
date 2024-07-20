@@ -15,6 +15,7 @@ require (
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6
 	github.com/paulmach/orb v0.11.1
 	github.com/rodaine/numwords v0.0.0-20200910203654-405f4a455f79
+	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.8.4
 	github.com/xeonx/proj4 v0.0.0-20151223112312-c52078bad901
 	github.com/zaf/resample v1.5.0

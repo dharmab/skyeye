@@ -5,12 +5,12 @@ package audio
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/simpleradio/voice"
+	"github.com/rs/zerolog/log"
 )
 
 // Audio is a type alias for F32LE PCM data
@@ -60,7 +60,7 @@ type rxState struct {
 }
 
 func NewClient(guid types.GUID, config types.ClientConfiguration) (AudioClient, error) {
-	slog.Info("connecting to SRS server", "protocol", "udp", "address", config.Address)
+	log.Info().Str("protocol", "udp").Str("address", config.Address).Msg("connecting to SRS server")
 	address, err := net.ResolveUDPAddr("udp", config.Address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve SRS server address %v: %w", config.Address, err)
@@ -90,7 +90,7 @@ func (c *audioClient) Frequency() float64 {
 func (c *audioClient) Run(ctx context.Context) error {
 	defer func() {
 		if err := c.close(); err != nil {
-			slog.Error("error closing SRS client", "error", err)
+			log.Error().Err(err).Msg("error closing SRS client")
 		}
 	}()
 

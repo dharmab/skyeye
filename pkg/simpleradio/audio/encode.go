@@ -2,9 +2,9 @@ package audio
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/voice"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/hraban/opus.v2"
 )
 
@@ -16,32 +16,37 @@ func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.V
 	for {
 		select {
 		case audio := <-c.txChan:
-			slog.Debug("encoding transmission from PCM data", "length", len(audio))
+			log.Debug().Msg("encoding transmission from PCM data")
 			encoder, err := opus.NewEncoder(sampleRate, channels, opusApplicationVoIP)
 			if err != nil {
-				slog.Error("failed to create Opus encoder", "error", err)
+				log.Error().Err(err).Msg("failed to create Opus encoder")
 				continue
 			}
 
 			txPackets := make([]voice.VoicePacket, 0)
 			for i := 0; i < len(audio); i += int(frameSize) {
+				logger := log.With().Int("index", i).Logger()
+				logger.Debug().Msg("encoding audio frame")
 				var frameAudio []float32
 				if i+int(frameSize) < len(audio) {
+					logger.Trace().Msg("encoding full frame")
 					frameAudio = audio[i : i+int(frameSize)]
 				} else {
+					logger.Trace().Msg("encoding partial frame")
 					frameAudio = audio[i:]
 				}
-				slog.Debug("encoding audio frame", "frameSize", len(frameAudio), "index", i)
+				logger.Trace().Int("frameSize", len(frameAudio)).Msg("encoding audio frame")
 				// Align audio to Opus frame size
 				if len(frameAudio) < int(frameSize) {
 					previousSize := len(frameAudio)
+					logger.Trace().Int("size", previousSize).Msg("data is smaller than frame size")
 					padding := make([]float32, int(frameSize)-len(frameAudio))
 					frameAudio = append(frameAudio, padding...)
-					slog.Debug("padded audio to match frame size", "previousSize", previousSize, "newSize", len(frameAudio))
+					logger.Trace().Int("previousSize", previousSize).Int("size", len(frameAudio)).Msg("padded audio to match frame size")
 				}
 				audioBytes, err := c.encode(encoder, frameAudio)
 				if err != nil {
-					slog.Error("failed to encode audio", "error", err)
+					logger.Error().Err(err).Msg("failed to encode audio")
 					continue
 				}
 
@@ -60,14 +65,15 @@ func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.V
 					[]byte(c.guid),
 					[]byte(c.guid),
 				)
-				slog.Debug("encoded voice packet", "packet", vp)
+				logger.Trace().Interface("packet", vp).Msg("encoded voice packet")
 				c.packetNumber++
 				// TODO transmission struct with attached text and trace id
 				txPackets = append(txPackets, vp)
 			}
+			log.Debug().Int("count", len(txPackets)).Msg("encoded transmission packets")
 			packetCh <- txPackets
 		case <-ctx.Done():
-			slog.Info("stopping voice encoder due to context cancellation")
+			log.Info().Msg("stopping voice encoder due to context cancellation")
 			return
 		}
 	}
