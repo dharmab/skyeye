@@ -2,6 +2,8 @@ package types
 
 import (
 	"time"
+
+	"github.com/dharmab/skyeye/pkg/coalitions"
 )
 
 // ClientConfiguration is configuration used to construct the audio and data clients
@@ -17,7 +19,7 @@ type ClientConfiguration struct {
 	// ExternalAWACSModePassword is the password for External AWACS Mode
 	ExternalAWACSModePassword string
 	// Coalition corresponds to ClientInfo.Coalition
-	Coalition Coalition
+	Coalition coalitions.Coalition
 	// Radio is the Radio to listen and talk on
 	Radio Radio
 	// AllowRecording corresponds to ClientInfo.AllowRecording

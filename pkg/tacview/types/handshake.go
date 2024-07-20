@@ -1,0 +1,110 @@
+package types
+
+import (
+	"fmt"
+	"hash/crc64"
+	"strings"
+)
+
+const (
+	LowLevelProtocol        = "XtraLib.Stream"
+	LowLevelProtocolVersion = "0"
+)
+
+const (
+	HighLevelProtocol        = "Tacview.RealTimeTelemetry"
+	HighLevelProtocolVersion = "0"
+)
+
+type HostHandshake struct {
+	LowLevelProtocolVersion  string
+	HighLevelProtocolVersion string
+	Hostname                 string
+}
+
+func (h *HostHandshake) Encode() (packet string) {
+	packet += fmt.Sprintf("%s.%s\n", LowLevelProtocol, LowLevelProtocolVersion)
+	packet += fmt.Sprintf("%s.%s\n", HighLevelProtocol, HighLevelProtocolVersion)
+	packet += fmt.Sprintf("Host %s\n", h.Hostname)
+	packet += string(rune(0))
+	return
+}
+
+func DecodeHostHandshake(packet string) (HostHandshake, error) {
+	handshake := HostHandshake{}
+	for _, line := range strings.Split(packet, "\n") {
+		if line == "" {
+			continue
+		} else if strings.HasPrefix(line, LowLevelProtocol) {
+			handshake.LowLevelProtocolVersion = strings.Split(line, ".")[1]
+		} else if strings.HasPrefix(line, HighLevelProtocol) {
+			handshake.HighLevelProtocolVersion = strings.Split(line, ".")[1]
+		} else {
+			handshake.Hostname = strings.Split(line, " ")[0]
+		}
+	}
+	return handshake, nil
+}
+
+type ClientHandshake struct {
+	LowLevelProtocolVersion  string
+	HighLevelProtocolVersion string
+	Hostname                 string
+	PasswordHash             string
+}
+
+func NewClientHandshake(hostname string, password string) (handshake *ClientHandshake) {
+	var passwordHash string
+	if password == "" {
+		passwordHash = "0"
+	} else {
+		table := crc64.MakeTable(crc64.ECMA)
+		data := []byte(password)
+		hash := crc64.Checksum(data, table)
+		passwordHash = fmt.Sprintf("%d", hash)
+	}
+	return &ClientHandshake{
+		LowLevelProtocolVersion:  LowLevelProtocolVersion,
+		HighLevelProtocolVersion: HighLevelProtocolVersion,
+		Hostname:                 hostname,
+		PasswordHash:             passwordHash,
+	}
+}
+
+func (h *ClientHandshake) Encode() (packet string) {
+	packet += fmt.Sprintf("%s.%s\n", LowLevelProtocol, LowLevelProtocolVersion)
+	packet += fmt.Sprintf("%s.%s\n", HighLevelProtocol, HighLevelProtocolVersion)
+	packet += fmt.Sprintf("%s\n", h.Hostname)
+	packet += h.PasswordHash
+	packet += string(rune(0))
+	return
+}
+
+func DecodeClientHandshake(packet string) (*ClientHandshake, error) {
+	lines := strings.Split(packet, "\n")
+	if len(lines) < 4 {
+		return nil, fmt.Errorf("insufficient lines in handshake packet")
+	}
+	handshake := &ClientHandshake{}
+	if !strings.HasPrefix(lines[0], fmt.Sprintf("%s.", LowLevelProtocol)) {
+		return nil, fmt.Errorf("unexpected low level protocol version")
+	} else {
+		handshake.LowLevelProtocolVersion = strings.Split(lines[0], ".")[1]
+	}
+	if !strings.HasPrefix(lines[1], fmt.Sprintf("%s.", HighLevelProtocol)) {
+		return nil, fmt.Errorf("unexpected high level protocol version")
+	} else {
+		handshake.HighLevelProtocolVersion = strings.Split(lines[1], ".")[1]
+	}
+	if !strings.HasPrefix(lines[2], "Client ") {
+		return nil, fmt.Errorf("unexpected client hostname")
+	} else {
+		handshake.Hostname = strings.Split(lines[2], " ")[1]
+	}
+	hash, _, ok := strings.Cut(lines[3], string(rune(0)))
+	if !ok {
+		return nil, fmt.Errorf("unable to decode password hash")
+	}
+	handshake.PasswordHash = hash
+	return handshake, nil
+}

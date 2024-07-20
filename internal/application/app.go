@@ -10,14 +10,15 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/composer"
 	"github.com/dharmab/skyeye/pkg/controller"
-	"github.com/dharmab/skyeye/pkg/dcs"
 	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/recognizer"
+	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
-	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/synthesizer"
+	"github.com/dharmab/skyeye/pkg/tacview"
+	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
 )
 
@@ -29,10 +30,9 @@ type Application interface {
 
 // app implements the Application.
 type app struct {
-	// dcsClient is a DCS-gRPC client
-	dcsClient dcs.DCSClient
 	// srsClient is a SimpleRadio Standalone client
-	srsClient simpleradio.Client
+	srsClient       simpleradio.Client
+	telemetryClient tacview.TelemetryClient
 	// recognizer provides speech-to-text recognition
 	recognizer recognizer.Recognizer
 	// parser converts English brevity text to internal representations
@@ -47,23 +47,15 @@ type app struct {
 
 // NewApplication constructs a new Application.
 func NewApplication(ctx context.Context, config conf.Configuration) (Application, error) {
-	log.Info().Str("address", config.DCSGRPCAddress).Dur("timeout", config.GRPCConnectionTimeout).Msg("constructing DCS client")
-	dcsClient, err := dcs.NewDCSClient(
-		ctx,
-		dcs.ClientConfiguration{
-			Address:           config.DCSGRPCAddress,
-			ConnectionTimeout: config.GRPCConnectionTimeout,
-		},
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to construct application: %w", err)
-	}
+	updates := make(chan sim.Updated)
+	fades := make(chan sim.Faded)
+	bullseyes := make(chan orb.Point)
 
 	log.Info().
 		Str("address", config.SRSAddress).
 		Dur("timeout", config.SRSConnectionTimeout).
 		Str("clientName", config.SRSClientName).
-		Int("coalitionID", int(config.SRSCoalition)).
+		Int("coalitionID", int(config.Coalition)).
 		Float64("frequency", config.SRSFrequency).
 		Int("modulationID", int(srs.ModulationAM)).
 		Msg("constructing SRS client")
@@ -73,13 +65,30 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 			ConnectionTimeout:         config.SRSConnectionTimeout,
 			ClientName:                config.SRSClientName,
 			ExternalAWACSModePassword: config.SRSExternalAWACSModePassword,
-			Coalition:                 config.SRSCoalition,
+			Coalition:                 config.Coalition,
 			Radio: srs.Radio{
 				Frequency:        config.SRSFrequency,
 				Modulation:       srs.ModulationAM,
 				ShouldRetransmit: true,
 			},
 		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to construct application: %w", err)
+	}
+
+	log.Info().
+		Str("address", config.TelemetryAddress).
+		Dur("timeout", config.TelemetryConnectionTimeout).
+		Msg("constructing telemetry client")
+	telemetryClient, err := tacview.NewClient(
+		config.TelemetryAddress,
+		"skyeye",
+		config.TelemetryPassword,
+		config.Coalition,
+		updates,
+		fades,
+		bullseyes,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct application: %w", err)
@@ -92,20 +101,10 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	parser := parser.New()
 
 	log.Info().Msg("constructing radar scope")
-	var coalition types.Coalition
-	if config.SRSCoalition == srs.CoalitionBlue {
-		coalition = types.CoalitionBlue
-	} else {
-		coalition = types.CoalitionRed
-	}
 
-	updates := make(chan dcs.Updated)
-	fades := make(chan dcs.Faded)
-	bullseyes := make(chan dcs.Bullseye)
-
-	rdr := radar.New(coalition, bullseyes, updates, fades)
+	rdr := radar.New(config.Coalition, bullseyes, updates, fades)
 	log.Info().Msg("constructing GCI controller")
-	controller := controller.New(rdr, coalition)
+	controller := controller.New(rdr, config.Coalition)
 
 	log.Info().Msg("constructing text composer")
 	composer := composer.New()
@@ -118,24 +117,27 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 
 	log.Info().Msg("constructing application")
 	app := &app{
-		dcsClient:   dcsClient,
-		srsClient:   srsClient,
-		recognizer:  recognizer,
-		parser:      parser,
-		controller:  controller,
-		composer:    composer,
-		synthesizer: synthesizer,
+		srsClient:       srsClient,
+		telemetryClient: telemetryClient,
+		recognizer:      recognizer,
+		parser:          parser,
+		controller:      controller,
+		composer:        composer,
+		synthesizer:     synthesizer,
 	}
 	return app, nil
 }
 
 // Run implements Application.Run.
 func (a *app) Run(ctx context.Context) error {
-	defer func() {
-		log.Info().Msg("closing connection to DCS-gRPC server")
-		err := a.dcsClient.Close()
-		if err != nil {
-			log.Error().Err(err).Msg("failed to close connection to DCS-gRPC server")
+	// TODO start tacview stream
+
+	go func() {
+		log.Info().Msg("running telemetry client")
+		if err := a.telemetryClient.Run(ctx); err != nil {
+			if !errors.Is(err, context.Canceled) {
+				log.Error().Err(err).Msg("error running telemetry client")
+			}
 		}
 	}()
 

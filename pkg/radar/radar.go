@@ -8,10 +8,10 @@ import (
 
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
-	"github.com/dharmab/skyeye/pkg/dcs"
+	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/parser"
-	"github.com/dharmab/skyeye/pkg/simpleradio/types"
+	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/trackfile"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -28,47 +28,46 @@ type Radar interface {
 	FindCallsign(string) *trackfile.Trackfile
 	// FindUnit returns the trackfile for the given unit ID, or nil if no trackfile was found.
 	FindUnit(uint32) *trackfile.Trackfile
-	// GetBullseye returns the bullseye for the given coalition.
-	GetBullseye(types.Coalition) dcs.Bullseye
+	// GetBullseye returns the bullseye for the configured coalition.
+	GetBullseye() orb.Point
 	// FindNearbyGroups returns all groups within 3 nautical miles of the given location, filtered by the given contact category.
 	// Location data is unset, since it is within radar margins of the given location.
-	FindNearbyGroups(orb.Point, types.Coalition, brevity.ContactCategory) []brevity.Group
+	FindNearbyGroups(orb.Point, coalitions.Coalition, brevity.ContactCategory) []brevity.Group
 	// FindNearestGroupWithBRAA returns the nearest group to the given location, with BRAA location embedded in the Group.
 	// The given point is the location to search from.
 	// The given coalition is the coalition to search for.
 	// The given filter is the contact category to filter by.
 	// Returns the nearest group to the given location which matches the given coalition and filter, with BRAA relative to the given location. Returns nil if no group was found.
-	FindNearestGroupWithBRAA(orb.Point, types.Coalition, brevity.ContactCategory) brevity.Group
+	FindNearestGroupWithBRAA(orb.Point, coalitions.Coalition, brevity.ContactCategory) brevity.Group
 	// FindNearestGroupWithBullseye returns the nearest group to the given location, with Bullseye location embedded in the Group.
 	// The given point is the location to search from.
 	// The given coalition is the coalition to search for.
 	// The given filter is the contact category to filter by.
 	// Returns the nearest group to the given location which matches the given coalition and filter, with Bullseye location. Returns nil if no group was found.
-	FindNearestGroupWithBullseye(orb.Point, types.Coalition, brevity.ContactCategory) brevity.Group
+	FindNearestGroupWithBullseye(orb.Point, coalitions.Coalition, brevity.ContactCategory) brevity.Group
 	// FindNearestGroupInCone returns the nearest group to the given location along the given bearing, ± the given angle, with BRAA relative to the given location. Returns nil if no group was found.
-	FindNearestGroupInCone(orb.Point, unit.Angle, unit.Angle, types.Coalition, brevity.ContactCategory) brevity.Group
+	FindNearestGroupInCone(orb.Point, unit.Angle, unit.Angle, coalitions.Coalition, brevity.ContactCategory) brevity.Group
 }
 
 var _ Radar = &scope{}
 
 type scope struct {
-	simUpdates   <-chan dcs.Updated
-	simFades     <-chan dcs.Faded
-	simBullseyes <-chan dcs.Bullseye
+	updates      <-chan sim.Updated
+	fades        <-chan sim.Faded
+	bullseyes    <-chan orb.Point
 	contacts     map[string]*trackfile.Trackfile
-	bullseyes    map[types.Coalition]dcs.Bullseye
+	bullseye     orb.Point
 	aircraftData map[string]encyclopedia.Aircraft
 }
 
-func New(coalition types.Coalition, bullseyes <-chan dcs.Bullseye, updates <-chan dcs.Updated, fades <-chan dcs.Faded) Radar {
+func New(coalition coalitions.Coalition, bullseyes <-chan orb.Point, updates <-chan sim.Updated, fades <-chan sim.Faded) Radar {
 	e := encyclopedia.New()
 
 	return &scope{
-		simUpdates:   updates,
-		simFades:     fades,
-		simBullseyes: bullseyes,
-		bullseyes:    make(map[types.Coalition]dcs.Bullseye),
+		updates:      updates,
+		fades:        fades,
 		contacts:     make(map[string]*trackfile.Trackfile),
+		bullseyes:    bullseyes,
 		aircraftData: e.Aircraft(),
 	}
 }
@@ -76,11 +75,9 @@ func New(coalition types.Coalition, bullseyes <-chan dcs.Bullseye, updates <-cha
 func (s *scope) Run(ctx context.Context) {
 	for {
 		select {
-		case bullseye := <-s.simBullseyes:
-			s.bullseyes[bullseye.Coalition] = bullseye
-		case update := <-s.simUpdates:
+		case update := <-s.updates:
 			s.handleUpdate(update)
-		case fade := <-s.simFades:
+		case fade := <-s.fades:
 			s.handleFade(fade)
 		case <-ctx.Done():
 			return
@@ -91,11 +88,11 @@ func (s *scope) Run(ctx context.Context) {
 func (s *scope) RunOnce() {
 	for {
 		select {
-		case bullseye := <-s.simBullseyes:
-			s.bullseyes[bullseye.Coalition] = bullseye
-		case update := <-s.simUpdates:
+		case bullseye := <-s.bullseyes:
+			s.bullseye = bullseye
+		case update := <-s.updates:
 			s.handleUpdate(update)
-		case fade := <-s.simFades:
+		case fade := <-s.fades:
 			s.handleFade(fade)
 		default:
 			return
@@ -103,8 +100,8 @@ func (s *scope) RunOnce() {
 	}
 }
 
-func (s *scope) handleUpdate(update dcs.Updated) {
-	callsign, _, _ := strings.Cut(update.Aircraft.Name, " | ")
+func (s *scope) handleUpdate(update sim.Updated) {
+	callsign, _, _ := strings.Cut(update.Aircraft.Name, "|")
 	// replace digits and spaces with digit followed by a single space
 	callsign, ok := parser.ParseCallsign(callsign)
 
@@ -121,7 +118,7 @@ func (s *scope) handleUpdate(update dcs.Updated) {
 
 }
 
-func (s *scope) handleFade(fade dcs.Faded) {
+func (s *scope) handleFade(fade sim.Faded) {
 	// TODO mark faded? Move from contacts to fadedContacts?
 }
 
@@ -142,11 +139,11 @@ func (s *scope) FindUnit(unitId uint32) *trackfile.Trackfile {
 	return nil
 }
 
-func (s *scope) GetBullseye(coalition types.Coalition) dcs.Bullseye {
-	return s.bullseyes[coalition]
+func (s *scope) GetBullseye() orb.Point {
+	return s.bullseye
 }
 
-func (s *scope) FindNearestGroupWithBRAA(location orb.Point, coalition types.Coalition, filter brevity.ContactCategory) brevity.Group {
+func (s *scope) FindNearestGroupWithBRAA(location orb.Point, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	nearestTrackfile := s.FindNearestTrackfile(location, coalition, filter)
 	group := s.findGroupForAircraft(nearestTrackfile)
 	groupLocation := nearestTrackfile.LastKnown().Point
@@ -165,7 +162,7 @@ func (s *scope) FindNearestGroupWithBRAA(location orb.Point, coalition types.Coa
 	return group
 }
 
-func (s *scope) FindNearestGroupWithBullseye(location orb.Point, coalition types.Coalition, filter brevity.ContactCategory) brevity.Group {
+func (s *scope) FindNearestGroupWithBullseye(location orb.Point, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	nearestTrackfile := s.FindNearestTrackfile(location, coalition, filter)
 	group := s.findGroupForAircraft(nearestTrackfile)
 	groupLocation := nearestTrackfile.LastKnown().Point
@@ -176,7 +173,7 @@ func (s *scope) FindNearestGroupWithBullseye(location orb.Point, coalition types
 	return group
 }
 
-func (s *scope) FindNearestTrackfile(location orb.Point, coalition types.Coalition, filter brevity.ContactCategory) *trackfile.Trackfile {
+func (s *scope) FindNearestTrackfile(location orb.Point, coalition coalitions.Coalition, filter brevity.ContactCategory) *trackfile.Trackfile {
 	var nearestTrackfile *trackfile.Trackfile
 	nearestDistance := unit.Length(math.MaxFloat64)
 	for _, tf := range s.contacts {
@@ -195,7 +192,7 @@ func (s *scope) FindNearestTrackfile(location orb.Point, coalition types.Coaliti
 	return nearestTrackfile
 }
 
-func (s *scope) FindNearbyGroups(location orb.Point, coalition types.Coalition, filter brevity.ContactCategory) []brevity.Group {
+func (s *scope) FindNearbyGroups(location orb.Point, coalition coalitions.Coalition, filter brevity.ContactCategory) []brevity.Group {
 	groups := make([]brevity.Group, 0)
 	for _, tf := range s.contacts {
 		if tf.Contact.Coalition == coalition {
@@ -213,7 +210,7 @@ func (s *scope) FindNearbyGroups(location orb.Point, coalition types.Coalition, 
 	return groups
 }
 
-func (s *scope) FindNearestGroupInCone(location orb.Point, bearing unit.Angle, width unit.Angle, coalition types.Coalition, filter brevity.ContactCategory) brevity.Group {
+func (s *scope) FindNearestGroupInCone(location orb.Point, bearing unit.Angle, width unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	maxDistance := 120 * unit.NauticalMile
 	cone := orb.Polygon{
 		orb.Ring{
@@ -251,7 +248,7 @@ func (s *scope) findGroupForAircraft(trackfile *trackfile.Trackfile) *group {
 	if trackfile == nil {
 		return nil
 	}
-	group := newGroupUsingBullseye(s.bullseyes[trackfile.Contact.Coalition].Point)
+	group := newGroupUsingBullseye(s.bullseye)
 	group.contacts = append(group.contacts, trackfile)
 	s.addNearbyAircraftToGroup(trackfile, group)
 	return group
