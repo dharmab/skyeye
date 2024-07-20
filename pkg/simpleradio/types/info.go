@@ -1,5 +1,7 @@
 package types
 
+import "github.com/dharmab/skyeye/pkg/coalitions"
+
 // ClientInfo is information about the client included in the message
 type ClientInfo struct {
 	// GUID is some kind of unique ID for the client (???)
@@ -9,7 +11,7 @@ type ClientInfo struct {
 	// Seat is the seat number for multicrew aircraft. For bots, set this to 0.
 	Seat int `json:"Seat"`
 	// Coalition is the side that the client will act on
-	Coalition Coalition `json:"Coalition"`
+	Coalition coalitions.Coalition `json:"Coalition"`
 	// AllowRecording indicates consent to record audio server-side. For bots, this should usually be set to True.
 	AllowRecording bool `json:"AllowRecord"`
 	// RadioInfo contains the client's unit, radios, transponder and ambient audio settings.

@@ -17,7 +17,7 @@ func New() Encyclopedia {
 func (e *encyclopedia) Aircraft() map[string]Aircraft {
 	var out = make(map[string]Aircraft)
 	for _, a := range aircraftData {
-		out[a.EditorType] = a
+		out[a.ACMIShortName] = a
 	}
 	return out
 }

@@ -16,7 +16,7 @@ import (
 
 	"github.com/dharmab/skyeye/internal/application"
 	"github.com/dharmab/skyeye/internal/conf"
-	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
+	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
 
@@ -38,14 +38,16 @@ func main() {
 	// Parse configuration from CLI flags.
 	LogLevel := flag.String("log-level", "info", "logging level (trace, debug, info, warn, error, fatal)")
 	LogFormat := flag.String("log-format", "json", "logging format (json, pretty)")
-	DCSGRPCAddress := flag.String("dcs-grpc-server-address", "localhost:50051", "address of the DCS-gRPC server")
-	GRPCConnectionTimeout := flag.Duration("grpc-connection-timeout", 2*time.Second, "gRPC connection timeout")
+	ACMIFile := flag.String("acmi-file", "", "path to ACMI file")
+	TelemetryAddress := flag.String("telemetry-address", "127.0.0.1:42674", "address of the real-time telemetry service")
+	TelemetryConnectionTimeout := flag.Duration("telemetry-connection-timeout", 10*time.Second, "")
+	TelemetryPassword := flag.String("telemetry-password", "", "password for the real-time telemetry service")
 	SRSAddress := flag.String("srs-server-address", "127.0.0.1:5002", "address of the SRS server")
 	SRSConnectionTimeout := flag.Duration("srs-connection-timeout", 10*time.Second, "")
 	SRSClientName := flag.String("srs-client-name", "Skyeye", "SRS client name. Appears in the client list and in in-game transmissions")
 	SRSExternalAWACSModePassword := flag.String("srs-eam-password", "", "SRS external AWACS mode password")
 	SRSFrequency := flag.Float64("srs-frequency", 251000000.0, "AWACS frequency in Hertz")
-	SRSCoalition := flag.String("srs-coalition", "blue", "SRS Coalition (either blue or red)")
+	Coalition := flag.String("coalition", "blue", "Coalition (either blue or red)")
 	WhisperModelPath := flag.String("whisper-model", "", "Path to whisper.cpp model")
 
 	flag.Parse()
@@ -71,12 +73,12 @@ func main() {
 	}
 	zerolog.SetGlobalLevel(level)
 
-	var coalition srs.Coalition
-	log.Info().Str("coalition", *SRSCoalition).Msg("setting GCI coalition")
-	if strings.EqualFold(*SRSCoalition, "blue") {
-		coalition = srs.CoalitionBlue
-	} else if strings.EqualFold(*SRSCoalition, "red") {
-		coalition = srs.CoalitionRed
+	var coalition coalitions.Coalition
+	log.Info().Str("coalition", *Coalition).Msg("setting GCI coalition")
+	if strings.EqualFold(*Coalition, "blue") {
+		coalition = coalitions.Blue
+	} else if strings.EqualFold(*Coalition, "red") {
+		coalition = coalitions.Red
 	} else {
 		exitOnErr(errors.New("srs-coalition must be either blue or red"))
 	}
@@ -93,14 +95,16 @@ func main() {
 
 	// Configure and run the application.
 	config := conf.Configuration{
-		DCSGRPCAddress:               *DCSGRPCAddress,
-		GRPCConnectionTimeout:        *GRPCConnectionTimeout,
+		ACMIFile:                     *ACMIFile,
+		TelemetryAddress:             *TelemetryAddress,
+		TelemetryConnectionTimeout:   *TelemetryConnectionTimeout,
+		TelemetryPassword:            *TelemetryPassword,
 		SRSAddress:                   *SRSAddress,
 		SRSConnectionTimeout:         *SRSConnectionTimeout,
 		SRSClientName:                *SRSClientName,
 		SRSExternalAWACSModePassword: *SRSExternalAWACSModePassword,
 		SRSFrequency:                 *SRSFrequency,
-		SRSCoalition:                 coalition,
+		Coalition:                    coalition,
 		WhisperModel:                 whisperModel,
 	}
 

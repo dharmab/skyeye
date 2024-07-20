@@ -3,17 +3,21 @@ package conf
 import (
 	"time"
 
-	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
+	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 	"github.com/martinlindhe/unit"
 )
 
 // Configuration for the SkyEye application.
 type Configuration struct {
-	// DCSGRPCAddress is the network address of the DCS-gRPC server (including port)
-	DCSGRPCAddress string
-	// GRPCConnectionTimeout is the connection timeout for connecting to DCS-gRPC
-	GRPCConnectionTimeout time.Duration
+	// ACMIFile is the path to the ACMI file
+	ACMIFile string
+	// TelemetryAddress is the network address of the real-time telemetry server (including port)
+	TelemetryAddress string
+	// TelemetryConnectionTimeout is the connection timeout for connecting to the real-time telemetry server
+	TelemetryConnectionTimeout time.Duration
+	// TelemetryPassword is the password for connecting to the real-time telemetry server
+	TelemetryPassword string
 	// SRSAddress is the network address of the SimpleRadio Standalone server (including port)
 	SRSAddress string
 	// SRSConnectionTimeout is the connection timeout for connecting to the SimpleRadio Standalone server
@@ -24,8 +28,8 @@ type Configuration struct {
 	SRSExternalAWACSModePassword string
 	// SRSFrequency is the radio frequency the bot will listen to and talk on in Hz
 	SRSFrequency float64
-	// SRSCoalition is the coalition that the bot will act on
-	SRSCoalition srs.Coalition
+	// Coalition is the coalition that the bot will act on
+	Coalition coalitions.Coalition
 	// WhisperModel is a whisper.cpp model used for Speech To Text
 	WhisperModel whisper.Model
 }

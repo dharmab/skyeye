@@ -17,7 +17,7 @@ func (c *controller) HandleAlphaCheck(r *brevity.AlphaCheckRequest) {
 		}
 		return
 	}
-	location := tf.Bullseye(c.scope.GetBullseye(c.coalition).Point)
+	location := tf.Bullseye(c.scope.GetBullseye())
 	c.out <- brevity.AlphaCheckResponse{
 		Callsign: r.Callsign,
 		Status:   true,
