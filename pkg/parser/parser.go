@@ -3,13 +3,13 @@ package parser
 import (
 	"bufio"
 	"fmt"
-	"log/slog"
 	"regexp"
 	"strings"
 	"unicode"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/rodaine/numwords"
+	"github.com/rs/zerolog/log"
 )
 
 type Parser interface {
@@ -82,7 +82,7 @@ func (p *parser) Parse(tx string) (any, bool) {
 	// Check for a wake word (GCI callsign)
 	_, ok := p.parseWakeWord(scanner)
 	if !ok {
-		slog.Info("no wake word found in text", "text", tx)
+		log.Info().Str("callsign", p.callsign).Str("text", tx).Msg("no wake word found in text")
 		return nil, false
 	}
 
@@ -161,7 +161,7 @@ func (p *parser) sanitize(s string) string {
 			break
 		}
 	}
-	slog.Info("sanitized text", "text", s)
+	log.Debug().Str("text", s).Msg("sanitized text")
 	return s
 }
 
@@ -208,7 +208,7 @@ func ParseCallsign(tx string) (callsign string, isValid bool) {
 	for i, char := range tx {
 		if unicode.IsDigit(char) {
 			newTx := fmt.Sprintf("%s %s", tx[:i], tx[i:])
-			slog.Info("separating letters and digits", "text", tx, "separated", newTx)
+			log.Debug().Str("text", tx).Str("separated", newTx).Msg("separating letters and digits")
 			tx = newTx
 			break
 		}

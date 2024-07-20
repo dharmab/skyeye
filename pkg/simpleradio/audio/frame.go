@@ -2,10 +2,10 @@ package audio
 
 import (
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/pcm"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/hraban/opus.v2"
 )
 
@@ -25,14 +25,14 @@ var frameSize = channels * frameLength.Milliseconds() * sampleRate / 1000
 
 // decode decodes the given Opus frame(s) into F32LE PCM audio data.
 func (c *audioClient) decode(decoder *opus.Decoder, b []byte) ([]float32, error) {
-	slog.Debug("decoding audio", "length", len(b))
+	log.Trace().Int("length", len(b)).Msg("decoding audio")
 	f32le := make([]float32, frameSize)
 	n, err := decoder.DecodeFloat32(b, f32le)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode Opus audio: %w", err)
 	}
 	f32le = f32le[:n*channels]
-	slog.Debug("decoded samples", "count", n)
+	log.Trace().Int("length", len(f32le)).Msg("decoded audio")
 	return f32le, nil
 }
 

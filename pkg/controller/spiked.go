@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
-	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb/geo"
 	"github.com/paulmach/orb/planar"
 )
@@ -38,7 +38,7 @@ func (c *controller) HandleSpiked(r *brevity.SpikedRequest) {
 			// check if hostile and friendly within 3nm
 			hostilePoint := geo.PointAtBearingAndDistance(requestorLocation, hostileGroup.BRAA().Bearing().Degrees(), hostileGroup.BRAA().Range().Meters())
 			friendlyPoint := geo.PointAtBearingAndDistance(requestorLocation, friendlyGroup.BRAA().Bearing().Degrees(), friendlyGroup.BRAA().Range().Meters())
-			if planar.Distance(hostilePoint, friendlyPoint) < (3 * unit.NauticalMile).Meters() {
+			if planar.Distance(hostilePoint, friendlyPoint) < (conf.DefaultMarginRadius).Meters() {
 				resp.Declaration = brevity.Furball
 			}
 		} else if hostileGroup != nil {

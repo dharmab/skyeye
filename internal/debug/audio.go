@@ -3,10 +3,10 @@ package debug
 
 import (
 	"bytes"
-	"log/slog"
 	"time"
 
 	"github.com/ebitengine/oto/v3"
+	"github.com/rs/zerolog/log"
 )
 
 // NewOtoContext creates a new oto context, which is used to play audio.
@@ -35,10 +35,10 @@ func PlayAudio(ctx *oto.Context, pcm []byte) {
 	player := ctx.NewPlayer(bytes.NewReader(pcm))
 	defer player.Close()
 
-	slog.Info("playing sample")
+	log.Debug().Int("length", len(pcm)).Msg("playing sample")
 	player.Play()
 	for player.IsPlaying() {
 		time.Sleep(1000 * time.Millisecond)
 	}
-	slog.Info("done playing sample")
+	log.Debug().Msg("done playing sample")
 }

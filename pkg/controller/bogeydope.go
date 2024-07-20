@@ -2,11 +2,14 @@ package controller
 
 import (
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/rs/zerolog/log"
 )
 
 // HandleBogeyDope implements Controller.HandleBogeyDope.
 func (c *controller) HandleBogeyDope(r *brevity.BogeyDopeRequest) {
-	requestorTrackfile := c.scope.FindCallsign(r.Callsign)
+	logger := log.With().Str("callsign", r.Callsign).Type("type", r).Logger()
+	logger.Debug().Msg("handling request")
+	requestorTrackfile := c.findCallsign(r.Callsign)
 	if requestorTrackfile == nil {
 		c.out <- brevity.NegativeRadarContactResponse{Callsign: r.Callsign}
 		return

@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/dcs"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
@@ -196,14 +197,13 @@ func (s *scope) FindNearestTrackfile(location orb.Point, coalition types.Coaliti
 
 func (s *scope) FindNearbyGroups(location orb.Point, coalition types.Coalition, filter brevity.ContactCategory) []brevity.Group {
 	groups := make([]brevity.Group, 0)
-	maxDistance := 3 * unit.NauticalMile
 	for _, tf := range s.contacts {
 		if tf.Contact.Coalition == coalition {
 			data, ok := s.aircraftData[tf.Contact.EditorType]
 			// If the aircraft is not in the encyclopedia, assume it matches
 			matchesFilter := !ok || data.Category == filter || filter == brevity.Everything
 			if matchesFilter {
-				if planar.Distance(tf.LastKnown().Point, location) < maxDistance.Meters() {
+				if planar.Distance(tf.LastKnown().Point, location) < conf.DefaultMarginRadius.Meters() {
 					group := s.findGroupForAircraft(tf)
 					groups = append(groups, group)
 				}
