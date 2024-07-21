@@ -57,8 +57,7 @@ func (c *tacviewClient) Run(ctx context.Context) error {
 		return fmt.Errorf("handshake error: %w", err)
 	}
 
-	scanner := bufio.NewScanner(reader)
-	acmi := NewACMI(c.coalition, scanner)
+	acmi := NewACMI(c.coalition, reader)
 	go func() {
 		err := acmi.Start(ctx)
 		if err != nil {

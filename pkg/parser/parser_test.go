@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const TestCallsign = "Skyeye"
+
 type parserTestCase struct {
 	text            string
 	expectedRequest any
@@ -37,7 +39,7 @@ func TestParserSadPaths(t *testing.T) {
 			expectedOk:      false,
 		},
 	}
-	runParserTestCases(t, New(), testCases)
+	runParserTestCases(t, New(TestCallsign), testCases)
 }
 
 func TestParserAlphaCheck(t *testing.T) {
@@ -64,7 +66,7 @@ func TestParserAlphaCheck(t *testing.T) {
 			expectedOk: true,
 		},
 	}
-	runParserTestCases(t, New(), testCases)
+	runParserTestCases(t, New(TestCallsign), testCases)
 }
 
 func TestParserBogeyDope(t *testing.T) {
@@ -94,7 +96,7 @@ func TestParserBogeyDope(t *testing.T) {
 			expectedOk: true,
 		},
 	}
-	runParserTestCases(t, New(), testCases)
+	runParserTestCases(t, New(TestCallsign), testCases)
 }
 
 func TestParserDeclare(t *testing.T) {
@@ -113,7 +115,7 @@ func TestParserDeclare(t *testing.T) {
 			expectedOk: true,
 		},
 	}
-	runParserTestCases(t, New(), testCases)
+	runParserTestCases(t, New(TestCallsign), testCases)
 }
 
 func TestParserPicture(t *testing.T) {
@@ -135,7 +137,7 @@ func TestParserPicture(t *testing.T) {
 			expectedOk: true,
 		},
 	}
-	runParserTestCases(t, New(), testCases)
+	runParserTestCases(t, New(TestCallsign), testCases)
 }
 
 func TestParserRadioCheck(t *testing.T) {
@@ -218,7 +220,7 @@ func TestParserRadioCheck(t *testing.T) {
 			expectedOk: true,
 		},
 	}
-	runParserTestCases(t, New(), testCases)
+	runParserTestCases(t, New(TestCallsign), testCases)
 }
 
 func TestParserSpiked(t *testing.T) {
@@ -232,7 +234,7 @@ func TestParserSpiked(t *testing.T) {
 			expectedOk: true,
 		},
 	}
-	runParserTestCases(t, New(), testCases)
+	runParserTestCases(t, New(TestCallsign), testCases)
 
 }
 
@@ -251,5 +253,5 @@ func TestParserSnaplock(t *testing.T) {
 			expectedOk: true,
 		},
 	}
-	runParserTestCases(t, New(), testCases)
+	runParserTestCases(t, New(TestCallsign), testCases)
 }

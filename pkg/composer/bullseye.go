@@ -15,7 +15,7 @@ func (c *composer) ComposeBullseye(bullseye brevity.Bullseye) NaturalLanguageRes
 		),
 		Speech: fmt.Sprintf(
 			"bullseye %s, %d",
-			PronounceInt(int(bullseye.Bearing().Degrees())),
+			PronounceBearing(int(bullseye.Bearing().Degrees())),
 			int(bullseye.Distance().NauticalMiles()),
 		),
 	}

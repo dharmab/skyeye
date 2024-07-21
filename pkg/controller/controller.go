@@ -8,6 +8,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
 
@@ -36,19 +37,24 @@ type controller struct {
 	scope      radar.Radar
 	coalition  coalitions.Coalition
 	trackfiles map[string]*trackfile.Trackfile
+	frequency  unit.Frequency
 }
 
-func New(r radar.Radar, coalition coalitions.Coalition) Controller {
+func New(r radar.Radar, coalition coalitions.Coalition, frequency unit.Frequency) Controller {
 	return &controller{
 		scope:      r,
 		coalition:  coalition,
 		trackfiles: make(map[string]*trackfile.Trackfile),
+		frequency:  frequency,
 	}
 }
 
 // Run implements Controller.Run.
 func (c *controller) Run(ctx context.Context, out chan<- any) {
 	c.out = out
+
+	log.Info().Int("frequency", int(c.frequency.Megahertz())).Msg("broadcasting SUNRISE call")
+	c.out <- brevity.SunriseCall{Frequency: c.frequency}
 
 	gcTicker := time.NewTicker(30 * time.Second)
 
@@ -87,7 +93,7 @@ func (c *controller) findCallsign(callsign string) *trackfile.Trackfile {
 	if tf == nil {
 		logger.Debug().Msg("no trackfile found for callsign")
 	} else {
-		logger.Debug().Str("name", tf.Contact.Name).Str("type", tf.Contact.EditorType).Int("unitID", int(tf.Contact.UnitID)).Msg("trackfile found for callsign")
+		logger.Debug().Str("name", tf.Contact.Name).Str("type", tf.Contact.ACMIName).Int("unitID", int(tf.Contact.UnitID)).Msg("trackfile found for callsign")
 	}
 	return tf
 }

@@ -1,6 +1,7 @@
 package composer
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -22,7 +23,7 @@ func (c *composer) ComposeNegativeRadarContactResponse(r brevity.NegativeRadarCo
 		"%s, negative radar contact. I don't have that callsign on scope.",
 		"%s, negative radar contact. I do not have that callsign on scope.",
 	}
-	s := replies[rand.Intn(len(replies))]
+	s := fmt.Sprintf(replies[rand.Intn(len(replies))], r.Callsign)
 	return NaturalLanguageResponse{
 		Subtitle: s,
 		Speech:   s,

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"slices"
 	"strconv"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/tacview/tags"
 	"github.com/dharmab/skyeye/pkg/tacview/types"
 	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
 )
@@ -28,7 +30,7 @@ type ACMI interface {
 }
 
 type streamer struct {
-	acmi           *bufio.Scanner
+	acmi           *bufio.Reader
 	referencePoint orb.Point
 	referenceTime  time.Time
 	cursorTime     time.Time
@@ -37,7 +39,7 @@ type streamer struct {
 	bullseye       orb.Point
 }
 
-func NewACMI(coalition coalitions.Coalition, acmi *bufio.Scanner) ACMI {
+func NewACMI(coalition coalitions.Coalition, acmi *bufio.Reader) ACMI {
 	return &streamer{
 		acmi:           acmi,
 		referencePoint: orb.Point{0, 0},
@@ -49,26 +51,33 @@ func NewACMI(coalition coalitions.Coalition, acmi *bufio.Scanner) ACMI {
 }
 
 func (s *streamer) Start(ctx context.Context) error {
+	log.Info().Msg("starting ACMI protocol handler")
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		default:
-			if !s.acmi.Scan() {
-				if s.acmi.Err() != nil {
-					return fmt.Errorf("error scanning ACMI stream: %w", s.acmi.Err())
-				}
-			}
-			line := s.acmi.Text()
-			err := s.handleLine(line)
+			line, err := s.acmi.ReadString('\n')
 			if err != nil {
-				log.Error().Err(err).Str("line", line).Msg("error handling ACMI line")
+				if errors.Is(err, io.EOF) {
+					log.Debug().Msg("caught up to ACMI stream")
+					time.Sleep(1 * time.Second)
+				} else {
+					return fmt.Errorf("error reading ACMI stream: %w", err)
+				}
+			} else {
+				log.Trace().Str("line", line).Msg("handling ACMI line")
+				err = s.handleLine(line)
+				if err != nil {
+					log.Error().Err(err).Str("line", line).Msg("error handling ACMI line")
+				}
 			}
 		}
 	}
 }
 
 func (s *streamer) handleLine(line string) error {
+	line = strings.TrimSpace(line)
 	logger := log.With().Str("line", line).Logger()
 
 	// Comments
@@ -148,27 +157,25 @@ func (s *streamer) handleLine(line string) error {
 	logger = logger.With().Int("id", update.ID).Logger()
 
 	if update.IsRemoval {
+		logger.Trace().Msg("line is an object removal")
 		object, ok := s.objects[update.ID]
 		if ok {
-			if _, ok := s.objects[update.ID]; ok {
-				s.fades <- object
-				delete(s.objects, update.ID)
-				logger.Trace().Msg("object removed")
-			}
-			return nil
+			logger.Trace().Msg("publishing object to fade channel")
+			s.fades <- object
+			logger.Trace().Msg("removing object from map")
+			delete(s.objects, update.ID)
+			logger.Trace().Msg("object removed")
+		} else {
+			logger.Trace().Msg("object not found in map")
 		}
-	}
-
-	t := update.Properties[properties.Type]
-	if !strings.Contains(t, "FixedWing") && !strings.Contains(t, "Rotorcraft") {
-		logger.Trace().Msg("object is not an aircraft")
 		return nil
 	}
 
 	if _, ok := s.objects[update.ID]; !ok {
-		logger.Debug().Msg("adding new object")
+		logger.Trace().Msg("watching new object")
 		s.objects[update.ID] = types.Object{ID: update.ID, Properties: make(map[string]string)}
 	}
+	logger.Trace().Msg("updating object properties")
 	for k, v := range update.Properties {
 		s.objects[update.ID].Properties[k] = v
 		logger.Trace().Str("name", k).Str("value", v).Msg("object property updated")
@@ -184,12 +191,13 @@ func (s *streamer) Stream(ctx context.Context, updates chan<- sim.Updated, fades
 			log.Info().Msg("stopping ACMI stream due to context cancellation")
 			return
 		case object := <-s.fades:
-			log.Debug().Int("id", object.ID).Msg("object faded")
+			log.Trace().Int("id", object.ID).Msg("object faded")
 			fades <- sim.Faded{
 				Timestamp: time.Now(),
 				UnitID:    uint32(object.ID),
 			}
 		case <-ticker.C:
+			log.Debug().Msg("iterating over objects for trackfile updates")
 			for _, object := range s.objects {
 				logger := log.With().Int("id", object.ID).Logger()
 				types, err := object.GetTypes()
@@ -197,21 +205,36 @@ func (s *streamer) Stream(ctx context.Context, updates chan<- sim.Updated, fades
 					logger.Error().Err(err).Msg("error getting object types")
 					continue
 				}
+				logger.Trace().Interface("types", types).Msg("checking object types")
+
 				if slices.Contains(types, tags.Bullseye) {
+					logger.Trace().Msg("object is bullseye")
+					// TODO check coalition
 					err := s.updateBullseye(object)
 					if err != nil {
 						logger.Error().Err(err).Msg("error updating bullseye")
 						continue
 					}
-					logger.Debug().Msg("bullseye updated")
+					logger.Info().Msg("bullseye updated")
 				}
 				if slices.Contains(types, tags.FixedWing) || slices.Contains(types, tags.Rotorcraft) {
+					logger.Trace().Msg("object is an aircraft")
+					coordinates, err := object.GetCoordinates(s.referencePoint)
+					if err != nil {
+						logger.Error().Err(err).Msg("error getting object coordinates")
+						continue
+					}
+					if coordinates.Altitude < unit.Length(10)*unit.Meter {
+						logger.Trace().Float64("agl", coordinates.Altitude.Meters()).Msg("object is below altitude threshold")
+						continue
+					}
+
 					update, err := s.buildUpdate(object)
 					if err != nil {
 						logger.Error().Err(err).Msg("error building object update")
 						continue
 					}
-					logger.Debug().Msg("aircraft updated")
+					logger.Info().Int("unitID", int(update.Aircraft.UnitID)).Str("name", update.Aircraft.Name).Str("aircraft", update.Aircraft.ACMIName).Msg("aircraft update")
 					updates <- *update
 				}
 			}
@@ -244,12 +267,8 @@ func (s *streamer) buildUpdate(object types.Object) (*sim.Updated, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !slices.Contains(types, tags.FixedWing) || !slices.Contains(types, tags.Bullseye) || !slices.Contains(types, tags.Rotorcraft) {
-		return nil, err
-	}
-	callsign, err := object.GetProperty(properties.CallSign)
-	if err != nil {
-		return nil, err
+	if !slices.Contains(types, tags.FixedWing) && !slices.Contains(types, tags.Rotorcraft) {
+		return nil, errors.New("object is not an aircraft")
 	}
 	name, err := object.GetProperty(properties.Name)
 	if err != nil {
@@ -259,13 +278,9 @@ func (s *streamer) buildUpdate(object types.Object) (*sim.Updated, error) {
 	if err != nil {
 		return nil, err
 	}
-	heading, err := object.GetAngle(properties.HDG)
-	if err != nil {
-		return nil, err
-	}
 	airspeed, err := object.GetSpeed(properties.TAS)
 	if err != nil {
-		return nil, err
+		airspeed = 0
 	}
 	acmiCoalition, err := object.GetProperty(properties.Coalition)
 	if err != nil {
@@ -281,19 +296,24 @@ func (s *streamer) buildUpdate(object types.Object) (*sim.Updated, error) {
 		coalition = coalitions.Neutrals
 	}
 
+	callsign, err := object.GetProperty(properties.Pilot)
+	if err != nil {
+		log.Warn().Interface("properties", object.Properties).Err(err).Msg("object has no pilot, using unitID as callsign")
+		callsign = fmt.Sprintf("Unit %d", object.ID)
+	}
+
 	return &sim.Updated{
 		Aircraft: trackfile.Aircraft{
-			UnitID:     uint32(object.ID),
-			Name:       callsign,
-			Coalition:  coalition,
-			EditorType: "",
-			ACMIName:   name,
+			UnitID:    uint32(object.ID),
+			Name:      callsign,
+			Coalition: coalition,
+			ACMIName:  name,
 		},
 		Frame: trackfile.Frame{
 			Timestamp: time.Now(),
 			Point:     coordinates.Location,
 			Altitude:  coordinates.Altitude,
-			Heading:   heading,
+			Heading:   coordinates.Heading,
 			Speed:     airspeed,
 		},
 	}, nil

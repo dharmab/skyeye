@@ -17,6 +17,7 @@ import (
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geo"
 	"github.com/paulmach/orb/planar"
+	"github.com/rs/zerolog/log"
 )
 
 type Radar interface {
@@ -79,6 +80,8 @@ func (s *scope) Run(ctx context.Context) {
 			s.handleUpdate(update)
 		case fade := <-s.fades:
 			s.handleFade(fade)
+		case bullseye := <-s.bullseyes:
+			s.bullseye = bullseye
 		case <-ctx.Done():
 			return
 		}
@@ -104,17 +107,23 @@ func (s *scope) handleUpdate(update sim.Updated) {
 	callsign, _, _ := strings.Cut(update.Aircraft.Name, "|")
 	// replace digits and spaces with digit followed by a single space
 	callsign, ok := parser.ParseCallsign(callsign)
-
 	if !ok {
 		callsign = update.Aircraft.Name
 	}
-
 	_, ok = s.contacts[callsign]
 	/// what if duplicate callsign tho
+	logger := log.With().
+		Str("callsign", callsign).
+		Str("aircraft", update.Aircraft.ACMIName).
+		Str("name", update.Aircraft.ACMIName).
+		Int("unitID", int(update.Aircraft.UnitID)).
+		Logger()
 	if !ok {
 		s.contacts[callsign] = trackfile.NewTrackfile(update.Aircraft)
+		logger.Info().Msg("new trackfile")
 	}
 	s.contacts[callsign].Update(update.Frame)
+	logger.Info().Msg("updated trackfile")
 
 }
 
@@ -123,6 +132,7 @@ func (s *scope) handleFade(fade sim.Faded) {
 }
 
 func (s *scope) FindCallsign(callsign string) *trackfile.Trackfile {
+	log.Debug().Str("callsign", callsign).Interface("contacts", s.contacts).Msg("searching scope for trackfile matching callsign")
 	tf, ok := s.contacts[callsign]
 	if !ok {
 		return nil
@@ -148,7 +158,7 @@ func (s *scope) FindNearestGroupWithBRAA(location orb.Point, coalition coalition
 	group := s.findGroupForAircraft(nearestTrackfile)
 	groupLocation := nearestTrackfile.LastKnown().Point
 	bearing := unit.Angle(geo.Bearing(location, groupLocation)) * unit.Degree
-	_range := unit.Length(planar.Distance(location, groupLocation)) * unit.Meter
+	_range := unit.Length(geo.Distance(location, groupLocation)) * unit.Meter
 	altitude := nearestTrackfile.LastKnown().Altitude
 	aspect := brevity.AspectFromAngle(bearing, nearestTrackfile.LastKnown().Heading)
 	group.braa = brevity.NewBRAA(
@@ -157,6 +167,7 @@ func (s *scope) FindNearestGroupWithBRAA(location orb.Point, coalition coalition
 		altitude,
 		aspect,
 	)
+	group.bullseye = nil
 	group.aspect = &aspect
 	group.isThreat = _range < brevity.MandatoryThreatDistance
 	return group
@@ -178,13 +189,16 @@ func (s *scope) FindNearestTrackfile(location orb.Point, coalition coalitions.Co
 	nearestDistance := unit.Length(math.MaxFloat64)
 	for _, tf := range s.contacts {
 		if tf.Contact.Coalition == coalition {
-			data, ok := s.aircraftData[tf.Contact.EditorType]
+			data, ok := s.aircraftData[tf.Contact.ACMIName]
 			// If the aircraft is not in the encyclopedia, assume it matches
 			matchesFilter := !ok || data.Category == filter || filter == brevity.Everything
 			if matchesFilter {
-				isNearer := planar.Distance(tf.LastKnown().Point, location) < nearestDistance.Meters()
-				if nearestTrackfile == nil || isNearer {
-					nearestTrackfile = tf
+				hasTrack := tf.Track.Len() > 0
+				if hasTrack {
+					isNearer := planar.Distance(tf.LastKnown().Point, location) < nearestDistance.Meters()
+					if nearestTrackfile == nil || isNearer {
+						nearestTrackfile = tf
+					}
 				}
 			}
 		}
@@ -196,7 +210,7 @@ func (s *scope) FindNearbyGroups(location orb.Point, coalition coalitions.Coalit
 	groups := make([]brevity.Group, 0)
 	for _, tf := range s.contacts {
 		if tf.Contact.Coalition == coalition {
-			data, ok := s.aircraftData[tf.Contact.EditorType]
+			data, ok := s.aircraftData[tf.Contact.ACMIName]
 			// If the aircraft is not in the encyclopedia, assume it matches
 			matchesFilter := !ok || data.Category == filter || filter == brevity.Everything
 			if matchesFilter {
@@ -225,7 +239,7 @@ func (s *scope) FindNearestGroupInCone(location orb.Point, bearing unit.Angle, w
 	var nearestContact *trackfile.Trackfile
 	for _, tf := range s.contacts {
 		if tf.Contact.Coalition == coalition {
-			data, ok := s.aircraftData[tf.Contact.EditorType]
+			data, ok := s.aircraftData[tf.Contact.ACMIName]
 			// If the aircraft is not in the encyclopedia, assume it matches
 			matchesFilter := !ok || data.Category == filter || filter == brevity.Everything
 			if matchesFilter {
@@ -240,6 +254,7 @@ func (s *scope) FindNearestGroupInCone(location orb.Point, bearing unit.Angle, w
 	if nearestContact == nil {
 		return nil
 	} else {
+		// TODO set BRAA
 		return s.findGroupForAircraft(nearestContact)
 	}
 }
@@ -279,7 +294,7 @@ func (s *scope) addNearbyAircraftToGroup(this *trackfile.Trackfile, group *group
 
 		// Compare attributes that are shared within a group
 		isSameCoalition := other.Contact.Coalition == this.Contact.Coalition
-		isSamePlatform := s.aircraftData[other.Contact.EditorType].PlatformDesignation == s.aircraftData[this.Contact.EditorType].PlatformDesignation
+		isSamePlatform := s.aircraftData[other.Contact.ACMIName].PlatformDesignation == s.aircraftData[this.Contact.ACMIName].PlatformDesignation
 
 		isWithinSpread := planar.Distance(other.LastKnown().Point, this.LastKnown().Point) < spreadInterval.Meters()
 		isWithinStack := math.Abs(other.LastKnown().Altitude.Feet()-this.LastKnown().Altitude.Feet()) < stackInterval.Feet()

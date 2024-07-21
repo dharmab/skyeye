@@ -17,7 +17,7 @@ func TestPronounceInt(t *testing.T) {
 		{arg: 1, expect: "one"},
 		{arg: 2, expect: "two"},
 		{arg: 3, expect: "tree"},
-		{arg: 4, expect: "fower"},
+		{arg: 4, expect: "fohwer"},
 		{arg: 5, expect: "fife"},
 		{arg: 6, expect: "six"},
 		{arg: 7, expect: "seven"},
@@ -27,7 +27,7 @@ func TestPronounceInt(t *testing.T) {
 		{arg: 11, expect: "one one"},
 		{arg: 12, expect: "one two"},
 		{arg: 13, expect: "one tree"},
-		{arg: 14, expect: "one fower"},
+		{arg: 14, expect: "one fohwer"},
 		{arg: 15, expect: "one fife"},
 		{arg: 16, expect: "one six"},
 		{arg: 17, expect: "one seven"},
@@ -56,8 +56,8 @@ func TestPronounceDecimal(t *testing.T) {
 		{arg: 136.0, precision: 0, separator: "", expect: "one tree six"},
 		{arg: 136.0, precision: 1, separator: "", expect: "one tree six point zero"},
 		{arg: 136.0, precision: 1, separator: "decimal", expect: "one tree six decimal zero"},
-		{arg: 249.500, precision: 1, separator: "", expect: "two fower niner point fife"},
-		{arg: 249.500, precision: 2, separator: "", expect: "two fower niner point fife zero"},
+		{arg: 249.500, precision: 1, separator: "", expect: "two fohwer niner point fife"},
+		{arg: 249.500, precision: 2, separator: "", expect: "two fohwer niner point fife zero"},
 	}
 	for _, test := range testCases {
 		t.Run(fmt.Sprintf("%v %v %v", test.arg, test.precision, test.separator), func(t *testing.T) {

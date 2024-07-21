@@ -41,9 +41,9 @@ func (c *audioClient) receiveUDP(ctx context.Context, pingCh chan<- []byte, voic
 			pingCh <- udpPacket
 		case n > types.GUIDLength:
 			deadline := time.Now().Add(maxRxGap)
-			log.Debug().Time("deadline", deadline).Msg("extending transmission receive deadline")
+			log.Trace().Time("deadline", deadline).Msg("extending transmission receive deadline")
 			c.lastRx.deadline = deadline
-			log.Debug().Int("bytes", n).Msg("routing UDP voice packet")
+			log.Trace().Int("bytes", n).Msg("routing UDP voice packet")
 			voiceCh <- udpPacket
 		}
 	}
@@ -78,7 +78,7 @@ func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out ch
 	for {
 		select {
 		case b := <-in:
-			log.Info().Msg("decoding voice packet")
+			log.Trace().Msg("decoding voice packet")
 			vp, err := decodeVoicePacket(b)
 			if err != nil {
 				log.Debug().Err(err).Msg("failed to decode voice packet")
