@@ -2,6 +2,7 @@ package composer
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -62,10 +63,12 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 		}
 	} else if group.BRAA() != nil {
 		braa := c.ComposeBRAA(group.BRAA())
-		speech.WriteString(fmt.Sprintf("%s %s, %d", label, braa.Speech, int(group.Altitude().Feet())))
-		subtitle.WriteString(fmt.Sprintf("%s %s, %d", label, braa.Subtitle, int(group.Altitude().Feet())))
-		if group.Aspect() != brevity.UnknownAspect {
-			writeBoth(fmt.Sprintf(", %s", group.Aspect()))
+		speech.WriteString(fmt.Sprintf("%s %s", label, braa.Speech))
+		subtitle.WriteString(fmt.Sprintf("%s %s", label, braa.Subtitle))
+		isCardinalAspect := slices.Contains([]brevity.Aspect{brevity.Flank, brevity.Beam, brevity.Drag}, group.BRAA().Aspect())
+		isTrackKnown := group.Track() != brevity.UnknownDirection
+		if isCardinalAspect && isTrackKnown {
+			writeBoth(fmt.Sprintf(" %s", group.Track()))
 		}
 	}
 

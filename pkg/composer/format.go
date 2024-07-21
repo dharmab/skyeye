@@ -7,6 +7,18 @@ import (
 	"unicode"
 )
 
+func PronounceBearing(d int) (s string) {
+	for d < 0 {
+		d += 360
+	}
+	d = d % 360
+	s = PronounceInt(d)
+	if d < 100 {
+		s = "zero " + s
+	}
+	return
+}
+
 // PronounceInt pronounces the given integer as a sequence of digits.
 func PronounceInt(d int) string {
 	if d < 0 {
@@ -27,7 +39,7 @@ func PronounceInt(d int) string {
 	case 3:
 		return "tree"
 	case 4:
-		return "fower"
+		return "fohwer"
 	case 5:
 		return "fife"
 	case 6:

@@ -18,6 +18,7 @@ import (
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/synthesizer"
 	"github.com/dharmab/skyeye/pkg/tacview"
+	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
 )
@@ -37,6 +38,7 @@ type app struct {
 	recognizer recognizer.Recognizer
 	// parser converts English brevity text to internal representations
 	parser parser.Parser
+	radar  radar.Radar
 	// controller implements internal GCI logic
 	controller controller.Controller
 	// composer converys from internal representations to English brevity text
@@ -83,7 +85,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		Msg("constructing telemetry client")
 	telemetryClient, err := tacview.NewClient(
 		config.TelemetryAddress,
-		"skyeye",
+		config.Callsign,
 		config.TelemetryPassword,
 		config.Coalition,
 		updates,
@@ -98,16 +100,16 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	recognizer := recognizer.NewWhisperRecognizer(config.WhisperModel)
 
 	log.Info().Msg("constructing text parser")
-	parser := parser.New()
+	parser := parser.New(config.Callsign)
 
 	log.Info().Msg("constructing radar scope")
 
 	rdr := radar.New(config.Coalition, bullseyes, updates, fades)
 	log.Info().Msg("constructing GCI controller")
-	controller := controller.New(rdr, config.Coalition)
+	controller := controller.New(rdr, config.Coalition, unit.Frequency(config.SRSFrequency)*unit.Hertz)
 
 	log.Info().Msg("constructing text composer")
-	composer := composer.New()
+	composer := composer.New(config.Callsign)
 
 	log.Info().Msg("constructing text-to-speech synthesizer")
 	synthesizer, err := synthesizer.NewPiperSpeaker(synthesizer.FeminineVoice)
@@ -121,6 +123,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		telemetryClient: telemetryClient,
 		recognizer:      recognizer,
 		parser:          parser,
+		radar:           rdr,
 		controller:      controller,
 		composer:        composer,
 		synthesizer:     synthesizer,
@@ -130,8 +133,6 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 
 // Run implements Application.Run.
 func (a *app) Run(ctx context.Context) error {
-	// TODO start tacview stream
-
 	go func() {
 		log.Info().Msg("running telemetry client")
 		if err := a.telemetryClient.Run(ctx); err != nil {
@@ -161,6 +162,8 @@ func (a *app) Run(ctx context.Context) error {
 	go a.recognize(ctx, rxTextChan)
 	log.Info().Msg("starting speech-to-text parsing routine")
 	go a.parse(ctx, rxTextChan, requestChan)
+	log.Info().Msg("starting radar scope routine")
+	go a.radar.Run(ctx)
 	log.Info().Msg("starting GCI controller routine")
 	go a.control(ctx, requestChan, responseAndCallsChan)
 	log.Info().Msg("starting response composer routine")
@@ -297,6 +300,9 @@ func (a *app) compose(ctx context.Context, in <-chan any, out chan<- composer.Na
 			case brevity.FadedCall:
 				logger.Debug().Msg("composing FADED call")
 				nlr = a.composer.ComposeFadedCall(c)
+			case brevity.NegativeRadarContactResponse:
+				logger.Debug().Msg("composing NEGATIVE RADAR CONTACT call")
+				nlr = a.composer.ComposeNegativeRadarContactResponse(c)
 			case brevity.PictureResponse:
 				logger.Debug().Msg("composing PICTURE call")
 				nlr = a.composer.ComposePictureResponse(c)

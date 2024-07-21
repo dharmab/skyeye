@@ -44,9 +44,9 @@ func main() {
 	TelemetryPassword := flag.String("telemetry-password", "", "password for the real-time telemetry service")
 	SRSAddress := flag.String("srs-server-address", "127.0.0.1:5002", "address of the SRS server")
 	SRSConnectionTimeout := flag.Duration("srs-connection-timeout", 10*time.Second, "")
-	SRSClientName := flag.String("srs-client-name", "Skyeye", "SRS client name. Appears in the client list and in in-game transmissions")
 	SRSExternalAWACSModePassword := flag.String("srs-eam-password", "", "SRS external AWACS mode password")
 	SRSFrequency := flag.Float64("srs-frequency", 251000000.0, "AWACS frequency in Hertz")
+	GCICallsign := flag.String("callsign", "Skyeye", "GCI callsign. Used in radio transmissions")
 	Coalition := flag.String("coalition", "blue", "Coalition (either blue or red)")
 	WhisperModelPath := flag.String("whisper-model", "", "Path to whisper.cpp model")
 
@@ -98,12 +98,14 @@ func main() {
 		ACMIFile:                     *ACMIFile,
 		TelemetryAddress:             *TelemetryAddress,
 		TelemetryConnectionTimeout:   *TelemetryConnectionTimeout,
+		TelemetryClientName:          *GCICallsign,
 		TelemetryPassword:            *TelemetryPassword,
 		SRSAddress:                   *SRSAddress,
 		SRSConnectionTimeout:         *SRSConnectionTimeout,
-		SRSClientName:                *SRSClientName,
+		SRSClientName:                fmt.Sprintf("GCI %s [BOT]", *GCICallsign),
 		SRSExternalAWACSModePassword: *SRSExternalAWACSModePassword,
 		SRSFrequency:                 *SRSFrequency,
+		Callsign:                     *GCICallsign,
 		Coalition:                    coalition,
 		WhisperModel:                 whisperModel,
 	}

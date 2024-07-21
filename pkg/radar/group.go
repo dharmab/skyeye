@@ -13,20 +13,22 @@ import (
 )
 
 type group struct {
-	isThreat bool
-	contacts []*trackfile.Trackfile
-	bullseye orb.Point
-	braa     brevity.BRAA
-	platform string
-	aspect   *brevity.Aspect
+	isThreat     bool
+	contacts     []*trackfile.Trackfile
+	bullseye     *orb.Point
+	braa         brevity.BRAA
+	platform     string
+	aspect       *brevity.Aspect
+	declaraction brevity.Declaration
 }
 
 var _ brevity.Group = &group{}
 
 func newGroupUsingBullseye(bullseye orb.Point) *group {
 	return &group{
-		bullseye: bullseye,
-		contacts: make([]*trackfile.Trackfile, 0),
+		bullseye:     &bullseye,
+		contacts:     make([]*trackfile.Trackfile, 0),
+		declaraction: brevity.Unable,
 	}
 }
 
@@ -43,14 +45,17 @@ func (g *group) Contacts() int {
 }
 
 func (g *group) Bullseye() *brevity.Bullseye {
+	if g.bullseye == nil {
+		return nil
+	}
 	mp := orb.MultiPoint{}
 	for _, tf := range g.contacts {
 		mp = append(mp, tf.Track.Front().Point)
 	}
 	center := mp.Bound().Center()
 
-	bearing := unit.Angle(geo.Bearing(g.bullseye, center)) * unit.Degree
-	distance := unit.Length(planar.Distance(g.bullseye, center)) * unit.Meter
+	bearing := unit.Angle(geo.Bearing(*g.bullseye, center)) * unit.Degree
+	distance := unit.Length(planar.Distance(*g.bullseye, center)) * unit.Meter
 	return brevity.NewBullseye(bearing, distance)
 }
 
@@ -89,7 +94,11 @@ func (g *group) BRAA() brevity.BRAA {
 }
 
 func (g *group) Declaration() brevity.Declaration {
-	return brevity.Unable
+	return g.declaraction
+}
+
+func (g *group) SetDeclaration(declaration brevity.Declaration) {
+	g.declaraction = declaration
 }
 
 func (g *group) Heavy() bool {

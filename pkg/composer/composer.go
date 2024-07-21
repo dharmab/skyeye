@@ -32,6 +32,6 @@ type composer struct {
 	callsign string
 }
 
-func New() Composer {
-	return &composer{}
+func New(callsign string) Composer {
+	return &composer{callsign: callsign}
 }

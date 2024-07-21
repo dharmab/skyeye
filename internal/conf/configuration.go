@@ -16,6 +16,8 @@ type Configuration struct {
 	TelemetryAddress string
 	// TelemetryConnectionTimeout is the connection timeout for connecting to the real-time telemetry server
 	TelemetryConnectionTimeout time.Duration
+	// TelemetryClientName is the client hostname used when handshaking with the real-time telemetry server
+	TelemetryClientName string
 	// TelemetryPassword is the password for connecting to the real-time telemetry server
 	TelemetryPassword string
 	// SRSAddress is the network address of the SimpleRadio Standalone server (including port)
@@ -28,6 +30,8 @@ type Configuration struct {
 	SRSExternalAWACSModePassword string
 	// SRSFrequency is the radio frequency the bot will listen to and talk on in Hz
 	SRSFrequency float64
+	// Callsign is the GCI callsign used on SRS
+	Callsign string
 	// Coalition is the coalition that the bot will act on
 	Coalition coalitions.Coalition
 	// WhisperModel is a whisper.cpp model used for Speech To Text

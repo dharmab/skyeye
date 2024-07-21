@@ -44,7 +44,7 @@ func (o *Object) GetTypes() ([]string, error) {
 	if !ok {
 		return nil, errors.New("object does not contain types")
 	}
-	return strings.Split(val, " + "), nil
+	return strings.Split(val, "+"), nil
 }
 
 // GetCoordinates returns the coordinates of the object
@@ -56,7 +56,7 @@ func (o *Object) GetCoordinates(ref orb.Point) (Coordinates, error) {
 	if !ok {
 		return c, errors.New("object does not contain coordinate transformation")
 	}
-	fields := strings.Split(val, " | ")
+	fields := strings.Split(val, "|")
 
 	longitude, err := strconv.ParseFloat(fields[0], 64)
 	if err != nil {
@@ -68,11 +68,13 @@ func (o *Object) GetCoordinates(ref orb.Point) (Coordinates, error) {
 	}
 	c.Location = orb.Point{longitude + ref.Lon(), latitude + ref.Lat()}
 
-	altitude, err := strconv.ParseFloat(fields[2], 64)
-	if err != nil {
-		return c, fmt.Errorf("error parsing altitude: %w", err)
+	if fields[2] != "" {
+		altitude, err := strconv.ParseFloat(fields[2], 64)
+		if err != nil {
+			return c, fmt.Errorf("error parsing altitude: %w", err)
+		}
+		c.Altitude = unit.Length(altitude) * unit.Meter
 	}
-	c.Altitude = unit.Length(altitude) * unit.Meter
 
 	var x, y, roll, pitch, yaw, heading string
 	switch len(fields) {

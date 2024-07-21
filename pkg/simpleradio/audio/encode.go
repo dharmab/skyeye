@@ -26,7 +26,7 @@ func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.V
 			txPackets := make([]voice.VoicePacket, 0)
 			for i := 0; i < len(audio); i += int(frameSize) {
 				logger := log.With().Int("index", i).Logger()
-				logger.Debug().Msg("encoding audio frame")
+				logger.Trace().Msg("encoding audio frame")
 				var frameAudio []float32
 				if i+int(frameSize) < len(audio) {
 					logger.Trace().Msg("encoding full frame")

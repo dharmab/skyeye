@@ -24,9 +24,9 @@ type parser struct {
 	callsign string
 }
 
-func New() Parser {
+func New(callsign string) Parser {
 	return &parser{
-		callsign: "skyeye",
+		callsign: callsign,
 	}
 }
 
@@ -54,6 +54,13 @@ var alternateRequestWords = map[string]requestWord{
 	"read your check": radioCheck,
 	"radio chat":      radioCheck,
 	"radio jack":      radioCheck,
+	"bogeido":         bogeyDope,
+	"bokeido":         bogeyDope,
+	"bokeh dope":      bogeyDope,
+	"bogeydope":       bogeyDope,
+	"okey doke":       bogeyDope,
+	"boogie dope":     bogeyDope,
+	"snap lock":       snaplock,
 }
 
 func requestWords() []requestWord {
@@ -202,13 +209,13 @@ var numberWords = map[string]int{
 //
 // - A number consisting of any digits
 //
-// Garbage in between the digits is ignored. The result is normalized so that each digit is space-delimited.
+// Garbage in between the digits is ignored. The result is normalized so that each digit is lowercase and space-delimited.
 func ParseCallsign(tx string) (callsign string, isValid bool) {
 	tx = strings.Trim(tx, " ")
 	for i, char := range tx {
 		if unicode.IsDigit(char) {
 			newTx := fmt.Sprintf("%s %s", tx[:i], tx[i:])
-			log.Debug().Str("text", tx).Str("separated", newTx).Msg("separating letters and digits")
+			log.Trace().Str("text", tx).Str("separated", newTx).Msg("separating letters and digits")
 			tx = newTx
 			break
 		}
@@ -252,6 +259,7 @@ func ParseCallsign(tx string) (callsign string, isValid bool) {
 			}
 		}
 	}
+	callsign = strings.ToLower(callsign)
 	return
 }
 

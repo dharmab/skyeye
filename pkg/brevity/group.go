@@ -32,6 +32,8 @@ type Group interface {
 	BRAA() BRAA
 	// Declaration of the group's friend or foe status.
 	Declaration() Declaration
+	// SetDeclaration sets the group's friend or foe status.
+	SetDeclaration(Declaration)
 	// Heavy is true if the group contacts 3 or more contacts.
 	Heavy() bool
 	// Platform is the NATO reporting name of the group's aircraft platform (for Soviet/Russian/Chinese aircraft) or

@@ -9,7 +9,6 @@ import (
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geo"
-	"github.com/paulmach/orb/planar"
 )
 
 type Aircraft struct {
@@ -20,9 +19,6 @@ type Aircraft struct {
 	Name string
 	// Coalition the aircraft belongs to.
 	Coalition coalitions.Coalition
-	// The string for the aircraft type in DCS. This is sometimes a weird string like FA18C_hornet, A-10C_2, or F-15ESE.
-	// Use github.com/dharmab/skyeye/pkg/encyclopedia to look up the real world type.
-	EditorType string
 	// The name of the aircraft type in the ACMI file.
 	// See https://www.tacview.net/documentation/database/en/
 	ACMIName string
@@ -71,7 +67,7 @@ func (t *Trackfile) Update(f Frame) {
 func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 	latest := t.Track.Front()
 	bearing := unit.Angle(geo.Bearing(bullseye, latest.Point)) * unit.Degree
-	distance := unit.Length(planar.Distance(bullseye, latest.Point)) * unit.Meter
+	distance := unit.Length(geo.Distance(bullseye, latest.Point)) * unit.Meter
 	return *brevity.NewBullseye(bearing, distance)
 }
 
