@@ -34,8 +34,8 @@ type streamer struct {
 	referencePoint orb.Point
 	referenceTime  time.Time
 	cursorTime     time.Time
-	objects        map[int]types.Object
-	fades          chan types.Object
+	objects        map[int]*types.Object
+	fades          chan *types.Object
 	bullseye       orb.Point
 }
 
@@ -45,8 +45,8 @@ func NewACMI(coalition coalitions.Coalition, acmi *bufio.Reader) ACMI {
 		referencePoint: orb.Point{0, 0},
 		referenceTime:  time.Now(),
 		cursorTime:     time.Now(),
-		objects:        make(map[int]types.Object),
-		fades:          make(chan types.Object),
+		objects:        make(map[int]*types.Object),
+		fades:          make(chan *types.Object),
 	}
 }
 
@@ -173,11 +173,11 @@ func (s *streamer) handleLine(line string) error {
 
 	if _, ok := s.objects[update.ID]; !ok {
 		logger.Trace().Msg("watching new object")
-		s.objects[update.ID] = types.Object{ID: update.ID, Properties: make(map[string]string)}
+		s.objects[update.ID] = types.NewObject(update.ID)
 	}
 	logger.Trace().Msg("updating object properties")
 	for k, v := range update.Properties {
-		s.objects[update.ID].Properties[k] = v
+		s.objects[update.ID].SetProperty(k, v)
 		logger.Trace().Str("name", k).Str("value", v).Msg("object property updated")
 	}
 	return nil
@@ -234,7 +234,7 @@ func (s *streamer) Stream(ctx context.Context, updates chan<- sim.Updated, fades
 						logger.Error().Err(err).Msg("error building object update")
 						continue
 					}
-					logger.Info().Int("unitID", int(update.Aircraft.UnitID)).Str("name", update.Aircraft.Name).Str("aircraft", update.Aircraft.ACMIName).Msg("aircraft update")
+					logger.Debug().Int("unitID", int(update.Aircraft.UnitID)).Str("name", update.Aircraft.Name).Str("aircraft", update.Aircraft.ACMIName).Msg("aircraft update")
 					updates <- *update
 				}
 			}
@@ -246,7 +246,7 @@ func (s *streamer) Bullseye() orb.Point {
 	return s.bullseye
 }
 
-func (s *streamer) updateBullseye(object types.Object) error {
+func (s *streamer) updateBullseye(object *types.Object) error {
 	types, err := object.GetTypes()
 	if err != nil {
 		return err
@@ -262,7 +262,7 @@ func (s *streamer) updateBullseye(object types.Object) error {
 	return nil
 }
 
-func (s *streamer) buildUpdate(object types.Object) (*sim.Updated, error) {
+func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 	types, err := object.GetTypes()
 	if err != nil {
 		return nil, err
@@ -270,9 +270,9 @@ func (s *streamer) buildUpdate(object types.Object) (*sim.Updated, error) {
 	if !slices.Contains(types, tags.FixedWing) && !slices.Contains(types, tags.Rotorcraft) {
 		return nil, errors.New("object is not an aircraft")
 	}
-	name, err := object.GetProperty(properties.Name)
-	if err != nil {
-		return nil, err
+	name, ok := object.GetProperty(properties.Name)
+	if !ok {
+		return nil, errors.New("object has no name")
 	}
 	coordinates, err := object.GetCoordinates(s.referencePoint)
 	if err != nil {
@@ -282,10 +282,11 @@ func (s *streamer) buildUpdate(object types.Object) (*sim.Updated, error) {
 	if err != nil {
 		airspeed = 0
 	}
-	acmiCoalition, err := object.GetProperty(properties.Coalition)
-	if err != nil {
-		return nil, err
+	acmiCoalition, ok := object.GetProperty(properties.Coalition)
+	if !ok {
+		return nil, errors.New("object has no coalition")
 	}
+
 	var coalition coalitions.Coalition
 	// Red = Allies because DCS descends from Flanker
 	if acmiCoalition == properties.AlliesCoalition {
@@ -296,9 +297,9 @@ func (s *streamer) buildUpdate(object types.Object) (*sim.Updated, error) {
 		coalition = coalitions.Neutrals
 	}
 
-	callsign, err := object.GetProperty(properties.Pilot)
-	if err != nil {
-		log.Warn().Interface("properties", object.Properties).Err(err).Msg("object has no pilot, using unitID as callsign")
+	callsign, ok := object.GetProperty(properties.Pilot)
+	if !ok {
+		log.Warn().Int("unitID", object.ID).Msg("object has no pilot, using unitID as callsign")
 		callsign = fmt.Sprintf("Unit %d", object.ID)
 	}
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/dharmab/skyeye/pkg/tacview/properties"
 	"github.com/martinlindhe/unit"
@@ -13,7 +14,15 @@ import (
 
 type Object struct {
 	ID         int
-	Properties map[string]string
+	properties map[string]string
+	mut        sync.Mutex
+}
+
+func NewObject(id int) *Object {
+	return &Object{
+		ID:         id,
+		properties: make(map[string]string),
+	}
 }
 
 type Coordinates struct {
@@ -30,17 +39,25 @@ type Coordinates struct {
 	Heading unit.Angle
 }
 
-func (o *Object) GetProperty(p string) (string, error) {
-	val, ok := o.Properties[p]
+func (o *Object) SetProperty(p, v string) {
+	o.mut.Lock()
+	defer o.mut.Unlock()
+	o.properties[p] = v
+}
+
+func (o *Object) GetProperty(p string) (string, bool) {
+	o.mut.Lock()
+	defer o.mut.Unlock()
+	val, ok := o.properties[p]
 	if !ok {
-		return "", fmt.Errorf("object does not contain property %s", p)
+		return "", false
 	}
-	return val, nil
+	return val, true
 }
 
 // GetTypes returns all object type tags
 func (o *Object) GetTypes() ([]string, error) {
-	val, ok := o.Properties[properties.Type]
+	val, ok := o.GetProperty(properties.Type)
 	if !ok {
 		return nil, errors.New("object does not contain types")
 	}
@@ -52,7 +69,7 @@ func (o *Object) GetTypes() ([]string, error) {
 func (o *Object) GetCoordinates(ref orb.Point) (Coordinates, error) {
 	c := Coordinates{}
 
-	val, ok := o.Properties[properties.Transform]
+	val, ok := o.GetProperty(properties.Transform)
 	if !ok {
 		return c, errors.New("object does not contain coordinate transformation")
 	}
@@ -115,9 +132,9 @@ func (o *Object) GetCoordinates(ref orb.Point) (Coordinates, error) {
 }
 
 func (o *Object) getNumericProperty(property string) (float64, error) {
-	val, err := o.GetProperty(property)
-	if err != nil {
-		return 0, err
+	val, ok := o.GetProperty(property)
+	if !ok {
+		return 0, fmt.Errorf("object does not contain %s", property)
 	}
 	n, err := strconv.ParseFloat(val, 64)
 	if err != nil {

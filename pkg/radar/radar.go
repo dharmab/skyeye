@@ -224,29 +224,33 @@ func (s *scope) FindNearbyGroups(location orb.Point, coalition coalitions.Coalit
 	return groups
 }
 
-func (s *scope) FindNearestGroupInCone(location orb.Point, bearing unit.Angle, width unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
+func (s *scope) FindNearestGroupInCone(location orb.Point, bearing unit.Angle, arc unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	maxDistance := 120 * unit.NauticalMile
 	cone := orb.Polygon{
 		orb.Ring{
 			location,
-			geo.PointAtBearingAndDistance(location, (bearing - width/2).Degrees(), maxDistance.Meters()),
-			geo.PointAtBearingAndDistance(location, (bearing + width/2).Degrees(), maxDistance.Meters()),
+			geo.PointAtBearingAndDistance(location, (bearing + (arc / 2)).Degrees(), maxDistance.Meters()),
+			geo.PointAtBearingAndDistance(location, (bearing - (arc / 2)).Degrees(), maxDistance.Meters()),
 			location,
 		},
 	}
 
-	distanceFromLocation := unit.Length(math.MaxFloat64)
+	nearestDistance := unit.Length(math.MaxFloat64)
 	var nearestContact *trackfile.Trackfile
-	for _, tf := range s.contacts {
+	for callsign, tf := range s.contacts {
+		logger := log.With().Str("callsign", callsign).Logger()
 		if tf.Contact.Coalition == coalition {
+			logger.Debug().Msg("checking contact")
 			data, ok := s.aircraftData[tf.Contact.ACMIName]
 			// If the aircraft is not in the encyclopedia, assume it matches
 			matchesFilter := !ok || data.Category == filter || filter == brevity.Everything
 			if matchesFilter {
-				if planar.Distance(tf.LastKnown().Point, location) < distanceFromLocation.Meters() {
-					if planar.PolygonContains(cone, tf.LastKnown().Point) {
-						nearestContact = tf
-					}
+				logger.Debug().Msg("contact matches filter")
+				distanceToContact := unit.Length(geo.Distance(tf.LastKnown().Point, location)) * unit.Meter
+				isWithinCone := planar.PolygonContains(cone, tf.LastKnown().Point)
+				logger.Debug().Float64("distanceNM", distanceToContact.NauticalMiles()).Bool("isWithinCone", isWithinCone).Msg("checking distance and location")
+				if distanceToContact < nearestDistance && distanceToContact > conf.DefaultMarginRadius && isWithinCone {
+					nearestContact = tf
 				}
 			}
 		}
@@ -254,8 +258,18 @@ func (s *scope) FindNearestGroupInCone(location orb.Point, bearing unit.Angle, w
 	if nearestContact == nil {
 		return nil
 	} else {
-		// TODO set BRAA
-		return s.findGroupForAircraft(nearestContact)
+		group := s.findGroupForAircraft(nearestContact)
+		if group == nil {
+			return nil
+		}
+		group.braa = brevity.NewBRAA(
+			unit.Angle(geo.Bearing(location, nearestContact.LastKnown().Point))*unit.Degree,
+			unit.Length(geo.Distance(location, nearestContact.LastKnown().Point))*unit.Meter,
+			nearestContact.LastKnown().Altitude,
+			brevity.AspectFromAngle(unit.Angle(geo.Bearing(location, nearestContact.LastKnown().Point))*unit.Degree, nearestContact.LastKnown().Heading),
+		)
+		group.bullseye = nil
+		return group
 	}
 }
 

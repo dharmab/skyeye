@@ -45,6 +45,7 @@ const (
 	declare    requestWord = "declare"
 	picture    requestWord = "picture"
 	radioCheck requestWord = "radio check"
+	spike      requestWord = "spike"
 	spiked     requestWord = "spiked"
 	snaplock   requestWord = "snaplock"
 )
@@ -73,7 +74,7 @@ func (p *parser) parseWakeWord(scanner *bufio.Scanner) (string, bool) {
 		return "", false
 	}
 	firstSegment := scanner.Text()
-	if !(firstSegment == p.callsign || firstSegment == anyface) {
+	if !(firstSegment == strings.ToLower(p.callsign) || firstSegment == anyface) {
 		return "", false
 	}
 	return firstSegment, true
@@ -92,6 +93,7 @@ func (p *parser) Parse(tx string) (any, bool) {
 		log.Info().Str("callsign", p.callsign).Str("text", tx).Msg("no wake word found in text")
 		return nil, false
 	}
+	log.Debug().Str("callsign", p.callsign).Str("text", tx).Msg("found wake word")
 
 	// Scan until we find a request trigger word. Split the scanned tranmission into a callsign segment and a request word.
 	var segment string
@@ -100,6 +102,7 @@ func (p *parser) Parse(tx string) (any, bool) {
 	for callsign == "" {
 		ok := scanner.Scan()
 		if !ok {
+			log.Debug().Str("text", tx).Msg("no request word found in text")
 			return nil, false
 		}
 
@@ -107,6 +110,7 @@ func (p *parser) Parse(tx string) (any, bool) {
 
 		for k, v := range alternateRequestWords {
 			if strings.Contains(segment, k) {
+				log.Debug().Str("segment", segment).Str("alternate", k).Str("canonical", string(v)).Msg("replacing request word")
 				segment = strings.Replace(segment, k, string(v), 1)
 				break
 			}
@@ -114,16 +118,19 @@ func (p *parser) Parse(tx string) (any, bool) {
 
 		for _, word := range requestWords() {
 			if strings.HasSuffix(segment, string(word)) {
+				log.Debug().Str("segment", segment).Str("request word", string(word)).Msg("found request word")
 				rWord = word
 				// Try to parse a callsign from the second segment.
 				callsignSegment := strings.TrimSuffix(segment, string(word))
 				callsignSegment = p.sanitize(callsignSegment)
 				callsign, ok = ParseCallsign(callsignSegment)
 				if !ok {
+					log.Debug().Str("segment", segment).Msg("unable to parse request callsign")
 					// TODO send "say again" response?
 					return nil, false
 				}
 				if len(callsign) > 30 {
+					log.Warn().Str("callsign", callsign).Msg("callsign too long, ignoring request")
 					return nil, false
 				}
 				_ = scanner.Scan()
@@ -147,6 +154,8 @@ func (p *parser) Parse(tx string) (any, bool) {
 	case radioCheck:
 		// RADIO CHECK is a simple request.
 		return &brevity.RadioCheckRequest{Callsign: callsign}, true
+	case spike:
+		return p.parseSpiked(callsign, scanner)
 	case spiked:
 		return p.parseSpiked(callsign, scanner)
 	case snaplock:
