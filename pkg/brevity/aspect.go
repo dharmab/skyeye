@@ -11,7 +11,7 @@ import (
 type Aspect string
 
 const (
-	UnknownAspect Aspect = "unknown"
+	UnknownAspect Aspect = "maneuver"
 	// Hot aspect is 0-30° target aspect or 180-150° aspect angle.
 	Hot = "hot"
 	// Flank is 40-70° target aspect or 140-110° aspect angle.

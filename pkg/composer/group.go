@@ -2,6 +2,7 @@ package composer
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"strings"
 
@@ -56,8 +57,9 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 	if bullseye := group.Bullseye(); bullseye != nil {
 		bullseye := c.ComposeBullseye(*bullseye)
 
-		speech.WriteString(fmt.Sprintf("%s %s, %d", label, bullseye.Speech, int(group.Altitude().Feet())))
-		subtitle.WriteString(fmt.Sprintf("%s %s/%d", label, bullseye.Subtitle, int(group.Altitude().Feet())))
+		altitude := int(math.Round(group.Altitude().Feet()/1000) * 1000)
+		speech.WriteString(fmt.Sprintf("%s %s, %d", label, bullseye.Speech, altitude))
+		subtitle.WriteString(fmt.Sprintf("%s %s/%d", label, bullseye.Subtitle, altitude))
 		if group.Track() != brevity.UnknownDirection {
 			writeBoth(fmt.Sprintf(", track %s", group.Track()))
 		}
