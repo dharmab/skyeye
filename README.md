@@ -4,7 +4,7 @@ SkyEye is a concept for a new [Ground Controlled Intercept](https://en.wikipedia
 
 Unlike previous GCI bots, SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same server as SkyEye. No cloud APIs are required.
 
-SkyEye is under active development. A few types of radio calls, such as `BOGEY DOPE`, `RADIO CHECK`, `ALPHA CHECK` and `SPIKED`, are functional running against live multiplayer servers. Howevever, there's still plenty to do before this is ready for widespread user. To see what I'm working on, check out the [branch network](https://github.com/dharmab/skyeye/network)!
+SkyEye is under active development. A few types of radio calls, such as `BOGEY DOPE`, `RADIO CHECK`, `ALPHA CHECK` and `SPIKED`, are functional running against live multiplayer servers. Howevever, there's still plenty to do before this is ready for widespread use. To see what I'm working on, check out the [branch network](https://github.com/dharmab/skyeye/network)!
 
 ## Goals
 
