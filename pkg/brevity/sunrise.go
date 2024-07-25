@@ -7,3 +7,7 @@ type SunriseCall struct {
 	// Frequency which the GCI is listening on.
 	Frequency unit.Frequency
 }
+
+// MidnightCall reports that the GCI is offline.
+type MidnightCall struct {
+}

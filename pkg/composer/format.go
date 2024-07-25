@@ -13,6 +13,12 @@ func PronounceBearing(d int) (s string) {
 	}
 	d = d % 360
 	s = PronounceInt(d)
+	if d == 0 {
+		d = 360
+	}
+	if d < 10 {
+		s = "zero " + s
+	}
 	if d < 100 {
 		s = "zero " + s
 	}

@@ -37,10 +37,11 @@ type streamer struct {
 	objects        map[int]*types.Object
 	fades          chan *types.Object
 	bullseye       orb.Point
+	updateInterval time.Duration
 	inMultiline    bool
 }
 
-func NewACMI(coalition coalitions.Coalition, acmi *bufio.Reader) ACMI {
+func NewACMI(coalition coalitions.Coalition, acmi *bufio.Reader, updateInterval time.Duration) ACMI {
 	return &streamer{
 		acmi:           acmi,
 		referencePoint: orb.Point{0, 0},
@@ -48,6 +49,7 @@ func NewACMI(coalition coalitions.Coalition, acmi *bufio.Reader) ACMI {
 		cursorTime:     time.Now(),
 		objects:        make(map[int]*types.Object),
 		fades:          make(chan *types.Object),
+		updateInterval: updateInterval,
 	}
 }
 
@@ -196,7 +198,9 @@ func (s *streamer) handleLine(line string) error {
 }
 
 func (s *streamer) Stream(ctx context.Context, updates chan<- sim.Updated, fades chan<- sim.Faded) {
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(s.updateInterval)
+	defer ticker.Stop()
+	s.processUpdates(updates)
 	for {
 		select {
 		case <-ctx.Done():
@@ -209,49 +213,60 @@ func (s *streamer) Stream(ctx context.Context, updates chan<- sim.Updated, fades
 				UnitID:    uint32(object.ID),
 			}
 		case <-ticker.C:
-			log.Debug().Msg("iterating over objects for trackfile updates")
-			for _, object := range s.objects {
-				logger := log.With().Int("id", object.ID).Logger()
-				types, err := object.GetTypes()
-				if err != nil {
-					logger.Error().Err(err).Msg("error getting object types")
-					continue
-				}
-				logger.Trace().Interface("types", types).Msg("checking object types")
+			s.processUpdates(updates)
+		}
+	}
+}
 
-				if slices.Contains(types, tags.Bullseye) {
-					logger.Trace().Msg("object is bullseye")
-					// TODO check coalition
-					err := s.updateBullseye(object)
-					if err != nil {
-						logger.Error().Err(err).Msg("error updating bullseye")
-						continue
-					}
-					logger.Debug().Msg("bullseye updated")
-				}
-				if slices.Contains(types, tags.FixedWing) || slices.Contains(types, tags.Rotorcraft) {
-					logger.Trace().Msg("object is an aircraft")
-					coordinates, err := object.GetCoordinates(s.referencePoint)
-					if err != nil {
-						logger.Error().Err(err).Msg("error getting object coordinates")
-						continue
-					}
-					if coordinates.Altitude < unit.Length(10)*unit.Meter {
-						logger.Trace().Float64("agl", coordinates.Altitude.Meters()).Msg("object is below altitude threshold")
-						continue
-					}
+func (s *streamer) processUpdates(updates chan<- sim.Updated) {
+	log.Debug().Msg("iterating over objects for trackfile updates")
+	for _, object := range s.objects {
+		logger := log.With().Int("id", object.ID).Logger()
+		types, err := object.GetTypes()
+		if err != nil {
+			logger.Error().Err(err).Msg("error getting object types")
+			continue
+		}
+		logger.Trace().Interface("types", types).Msg("checking object types")
 
-					update, err := s.buildUpdate(object)
-					if err != nil {
-						logger.Error().Err(err).Msg("error building object update")
-						continue
-					}
-					logger.Debug().Int("unitID", int(update.Aircraft.UnitID)).Str("name", update.Aircraft.Name).Str("aircraft", update.Aircraft.ACMIName).Msg("aircraft update")
-					updates <- *update
-				}
+		if slices.Contains(types, tags.Bullseye) {
+			logger.Trace().Msg("object is bullseye")
+			if err := s.updateBullseye(object); err != nil {
+				logger.Error().Err(err).Msg("error updating bullseye")
+				continue
+			}
+			logger.Debug().Msg("bullseye update")
+		}
+		if slices.Contains(types, tags.FixedWing) || slices.Contains(types, tags.Rotorcraft) {
+			logger.Trace().Msg("object is an aircraft")
+			if err := s.updateAircraft(updates, object); err != nil {
+				logger.Error().Err(err).Msg("error updating aircraft")
+				continue
 			}
 		}
 	}
+}
+
+func (s *streamer) updateAircraft(updates chan<- sim.Updated, object *types.Object) error {
+	logger := log.With().Int("id", object.ID).Logger()
+	coordinates, err := object.GetCoordinates(s.referencePoint)
+	if err != nil {
+		logger.Error().Err(err).Msg("error getting object coordinates")
+		return err
+	}
+	if coordinates.Altitude < unit.Length(10)*unit.Meter {
+		logger.Trace().Float64("agl", coordinates.Altitude.Meters()).Msg("object is below altitude threshold")
+		return err
+	}
+
+	update, err := s.buildUpdate(object)
+	if err != nil {
+		logger.Error().Err(err).Msg("error building object update")
+		return err
+	}
+	logger.Debug().Int("unitID", int(update.Aircraft.UnitID)).Str("name", update.Aircraft.Name).Str("aircraft", update.Aircraft.ACMIName).Msg("aircraft update")
+	updates <- *update
+	return nil
 }
 
 func (s *streamer) Bullseye() orb.Point {
@@ -299,15 +314,7 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 		return nil, errors.New("object has no coalition")
 	}
 
-	var coalition coalitions.Coalition
-	// Red = Allies because DCS descends from Flanker
-	if acmiCoalition == properties.AlliesCoalition {
-		coalition = coalitions.Red
-	} else if acmiCoalition == properties.EnemiesCoalition {
-		coalition = coalitions.Blue
-	} else {
-		coalition = coalitions.Neutrals
-	}
+	coalition := properties.PropertyToCoalition(acmiCoalition)
 
 	callsign, ok := object.GetProperty(properties.Pilot)
 	if !ok {

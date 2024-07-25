@@ -46,8 +46,9 @@ func main() {
 	SRSConnectionTimeout := flag.Duration("srs-connection-timeout", 10*time.Second, "")
 	SRSExternalAWACSModePassword := flag.String("srs-eam-password", "", "SRS external AWACS mode password")
 	SRSFrequency := flag.Float64("srs-frequency", 251000000.0, "AWACS frequency in Hertz")
-	GCICallsign := flag.String("callsign", "Skyeye", "GCI callsign. Used in radio transmissions")
+	GCICallsign := flag.String("callsign", "Magic", "GCI callsign. Used in radio transmissions")
 	Coalition := flag.String("coalition", "blue", "Coalition (either blue or red)")
+	RadarSweepInterval := flag.Duration("radar-sweep-interval", 15*time.Second, "Radar update tick rate")
 	WhisperModelPath := flag.String("whisper-model", "", "Path to whisper.cpp model")
 
 	flag.Parse()
@@ -107,6 +108,7 @@ func main() {
 		SRSFrequency:                 *SRSFrequency,
 		Callsign:                     *GCICallsign,
 		Coalition:                    coalition,
+		RadarSweepInterval:           *RadarSweepInterval,
 		WhisperModel:                 whisperModel,
 	}
 

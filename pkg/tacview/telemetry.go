@@ -20,16 +20,17 @@ type TelemetryClient interface {
 }
 
 type tacviewClient struct {
-	connection *net.TCPConn
-	hostname   string
-	password   string
-	coalition  coalitions.Coalition
-	updates    chan<- sim.Updated
-	fades      chan<- sim.Faded
-	bullseyes  chan<- orb.Point
+	connection     *net.TCPConn
+	hostname       string
+	password       string
+	coalition      coalitions.Coalition
+	updates        chan<- sim.Updated
+	fades          chan<- sim.Faded
+	bullseyes      chan<- orb.Point
+	updateInterval time.Duration
 }
 
-func NewClient(address, clientHostname, password string, coaltion coalitions.Coalition, updates chan<- sim.Updated, fades chan<- sim.Faded, bullseyes chan<- orb.Point) (TelemetryClient, error) {
+func NewClient(address, clientHostname, password string, coaltion coalitions.Coalition, updates chan<- sim.Updated, fades chan<- sim.Faded, bullseyes chan<- orb.Point, updateInterval time.Duration) (TelemetryClient, error) {
 	log.Info().Str("protocol", "tcp").Str("address", address).Msg("connecting to telemetry service")
 	addr, err := net.ResolveTCPAddr("tcp", address)
 	if err != nil {
@@ -40,13 +41,14 @@ func NewClient(address, clientHostname, password string, coaltion coalitions.Coa
 		return nil, fmt.Errorf("failed to connect to telemetry service %v: %w", address, err)
 	}
 	return &tacviewClient{
-		connection: connection,
-		hostname:   clientHostname,
-		password:   password,
-		coalition:  coaltion,
-		updates:    updates,
-		fades:      fades,
-		bullseyes:  bullseyes,
+		connection:     connection,
+		hostname:       clientHostname,
+		password:       password,
+		coalition:      coaltion,
+		updates:        updates,
+		fades:          fades,
+		bullseyes:      bullseyes,
+		updateInterval: updateInterval,
 	}, nil
 }
 
@@ -57,7 +59,7 @@ func (c *tacviewClient) Run(ctx context.Context) error {
 		return fmt.Errorf("handshake error: %w", err)
 	}
 
-	acmi := NewACMI(c.coalition, reader)
+	acmi := NewACMI(c.coalition, reader, c.updateInterval)
 	go func() {
 		err := acmi.Start(ctx)
 		if err != nil {
@@ -66,7 +68,7 @@ func (c *tacviewClient) Run(ctx context.Context) error {
 	}()
 	go acmi.Stream(ctx, c.updates, c.fades)
 	go func() {
-		ticker := time.NewTicker(1 * time.Second)
+		ticker := time.NewTicker(c.updateInterval)
 		for {
 			select {
 			case <-ctx.Done():

@@ -5,6 +5,7 @@ import (
 	"math"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -56,7 +57,8 @@ type scope struct {
 	updates      <-chan sim.Updated
 	fades        <-chan sim.Faded
 	bullseyes    <-chan orb.Point
-	contacts     map[string]*trackfile.Trackfile
+	callsignIdx  map[string]uint32
+	contacts     map[uint32]*trackfile.Trackfile
 	bullseye     orb.Point
 	aircraftData map[string]encyclopedia.Aircraft
 }
@@ -67,7 +69,8 @@ func New(coalition coalitions.Coalition, bullseyes <-chan orb.Point, updates <-c
 	return &scope{
 		updates:      updates,
 		fades:        fades,
-		contacts:     make(map[string]*trackfile.Trackfile),
+		callsignIdx:  make(map[string]uint32),
+		contacts:     make(map[uint32]*trackfile.Trackfile),
 		bullseyes:    bullseyes,
 		aircraftData: e.Aircraft(),
 	}
@@ -89,6 +92,7 @@ func (s *scope) Run(ctx context.Context) {
 }
 
 func (s *scope) RunOnce() {
+	ticker := time.NewTicker(60 * time.Second)
 	for {
 		select {
 		case bullseye := <-s.bullseyes:
@@ -97,6 +101,8 @@ func (s *scope) RunOnce() {
 			s.handleUpdate(update)
 		case fade := <-s.fades:
 			s.handleFade(fade)
+		case <-ticker.C:
+			s.garbageCollect()
 		default:
 			return
 		}
@@ -110,30 +116,72 @@ func (s *scope) handleUpdate(update sim.Updated) {
 	if !ok {
 		callsign = update.Aircraft.Name
 	}
-	_, ok = s.contacts[callsign]
-	/// what if duplicate callsign tho
+	unitID, ok := s.callsignIdx[callsign]
 	logger := log.With().
 		Str("callsign", callsign).
 		Str("aircraft", update.Aircraft.ACMIName).
 		Str("name", update.Aircraft.ACMIName).
 		Int("unitID", int(update.Aircraft.UnitID)).
 		Logger()
+
+	if ok && unitID != update.Aircraft.UnitID {
+		logger.Warn().Int("otherUnitID", int(unitID)).Msg("callsigns conflict")
+		s.contacts[update.Aircraft.UnitID] = trackfile.NewTrackfile(update.Aircraft)
+		logger.Info().Msg("overwrote trackfile")
+	}
+
 	if !ok {
-		s.contacts[callsign] = trackfile.NewTrackfile(update.Aircraft)
+		s.contacts[update.Aircraft.UnitID] = trackfile.NewTrackfile(update.Aircraft)
 		logger.Info().Msg("new trackfile")
 	}
-	s.contacts[callsign].Update(update.Frame)
-	logger.Debug().Msg("updated trackfile")
-
+	s.contacts[update.Aircraft.UnitID].Update(update.Frame)
+	s.callsignIdx[callsign] = update.Aircraft.UnitID
+	if ok {
+		logger.Debug().Msg("updated trackfile")
+	}
 }
 
 func (s *scope) handleFade(fade sim.Faded) {
-	// TODO mark faded? Move from contacts to fadedContacts?
+	s.removeTrack(fade.UnitID, "removed faded trackfile")
+	// after some time, send faded message to controller?
+}
+
+func (s *scope) removeTrack(unitID uint32, reason string) {
+	tf, ok := s.contacts[unitID]
+	if ok {
+		logger := log.With().
+			Int("unitID", int(unitID)).
+			Str("name", tf.Contact.Name).
+			Str("aircraft", tf.Contact.ACMIName).
+			Dur("age", time.Since(tf.LastKnown().Timestamp)).
+			Logger()
+
+		delete(s.contacts, unitID)
+		for callsign, i := range s.callsignIdx {
+			if i == unitID {
+				delete(s.callsignIdx, callsign)
+			}
+			break
+		}
+		logger.Info().Msg(reason)
+	}
+}
+
+func (s *scope) garbageCollect() {
+	for unitID, tf := range s.contacts {
+		if tf.LastKnown().Timestamp.Before(time.Now().Add(-3 * time.Minute)) {
+			s.removeTrack(unitID, "removed aged out trackfile")
+		}
+	}
 }
 
 func (s *scope) FindCallsign(callsign string) *trackfile.Trackfile {
 	log.Debug().Str("callsign", callsign).Interface("contacts", s.contacts).Msg("searching scope for trackfile matching callsign")
-	tf, ok := s.contacts[callsign]
+	unitID, ok := s.callsignIdx[callsign]
+	if !ok {
+		return nil
+	}
+	tf, ok := s.contacts[unitID]
 	if !ok {
 		return nil
 	}
@@ -195,7 +243,7 @@ func (s *scope) FindNearestTrackfile(location orb.Point, coalition coalitions.Co
 			if matchesFilter {
 				hasTrack := tf.Track.Len() > 0
 				if hasTrack {
-					isNearer := planar.Distance(tf.LastKnown().Point, location) < nearestDistance.Meters()
+					isNearer := geo.Distance(location, tf.LastKnown().Point) < nearestDistance.Meters()
 					if nearestTrackfile == nil || isNearer {
 						nearestTrackfile = tf
 					}
@@ -229,16 +277,16 @@ func (s *scope) FindNearestGroupInCone(location orb.Point, bearing unit.Angle, a
 	cone := orb.Polygon{
 		orb.Ring{
 			location,
-			geo.PointAtBearingAndDistance(location, (bearing + (arc / 2)).Degrees(), maxDistance.Meters()),
 			geo.PointAtBearingAndDistance(location, (bearing - (arc / 2)).Degrees(), maxDistance.Meters()),
+			geo.PointAtBearingAndDistance(location, (bearing + (arc / 2)).Degrees(), maxDistance.Meters()),
 			location,
 		},
 	}
 
 	nearestDistance := unit.Length(math.MaxFloat64)
 	var nearestContact *trackfile.Trackfile
-	for callsign, tf := range s.contacts {
-		logger := log.With().Str("callsign", callsign).Logger()
+	for unitID, tf := range s.contacts {
+		logger := log.With().Int("unitID", int(unitID)).Logger()
 		if tf.Contact.Coalition == coalition {
 			logger.Debug().Msg("checking contact")
 			data, ok := s.aircraftData[tf.Contact.ACMIName]
@@ -246,8 +294,9 @@ func (s *scope) FindNearestGroupInCone(location orb.Point, bearing unit.Angle, a
 			matchesFilter := !ok || data.Category == filter || filter == brevity.Everything
 			if matchesFilter {
 				logger.Debug().Msg("contact matches filter")
-				distanceToContact := unit.Length(geo.Distance(tf.LastKnown().Point, location)) * unit.Meter
-				isWithinCone := planar.PolygonContains(cone, tf.LastKnown().Point)
+				contactLocation := tf.LastKnown().Point
+				distanceToContact := unit.Length(geo.Distance(location, contactLocation)) * unit.Meter
+				isWithinCone := planar.PolygonContains(cone, contactLocation)
 				logger.Debug().Float64("distanceNM", distanceToContact.NauticalMiles()).Bool("isWithinCone", isWithinCone).Msg("checking distance and location")
 				if distanceToContact < nearestDistance && distanceToContact > conf.DefaultMarginRadius && isWithinCone {
 					nearestContact = tf
@@ -256,8 +305,11 @@ func (s *scope) FindNearestGroupInCone(location orb.Point, bearing unit.Angle, a
 		}
 	}
 	if nearestContact == nil {
+		log.Debug().Msg("no contacts found in cone")
 		return nil
 	} else {
+		logger := log.With().Int("unitID", int(nearestContact.Contact.UnitID)).Logger()
+		logger.Debug().Int("unitID", int(nearestContact.Contact.UnitID)).Msg("found nearest contact")
 		group := s.findGroupForAircraft(nearestContact)
 		if group == nil {
 			return nil
@@ -268,6 +320,7 @@ func (s *scope) FindNearestGroupInCone(location orb.Point, bearing unit.Angle, a
 			nearestContact.LastKnown().Altitude,
 			brevity.AspectFromAngle(unit.Angle(geo.Bearing(location, nearestContact.LastKnown().Point))*unit.Degree, nearestContact.LastKnown().Heading),
 		)
+		logger.Debug().Interface("group", group).Msg("determined nearest group")
 		group.bullseye = nil
 		return group
 	}

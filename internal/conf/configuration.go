@@ -34,6 +34,9 @@ type Configuration struct {
 	Callsign string
 	// Coalition is the coalition that the bot will act on
 	Coalition coalitions.Coalition
+	// RadarSweepInterval is the rate at which the radar will update. This does not impact performance - ACMI data is still streamed at the same rate.
+	// It only impacts the update rate of the GCI radar picture.
+	RadarSweepInterval time.Duration
 	// WhisperModel is a whisper.cpp model used for Speech To Text
 	WhisperModel whisper.Model
 }

@@ -57,6 +57,7 @@ var alternateRequestWords = map[string]requestWord{
 	"radio jack":      radioCheck,
 	"bogeido":         bogeyDope,
 	"bokeido":         bogeyDope,
+	"bokey dope":      bogeyDope,
 	"bokeh dope":      bogeyDope,
 	"bogeydope":       bogeyDope,
 	"okey doke":       bogeyDope,
@@ -103,7 +104,7 @@ func (p *parser) Parse(tx string) (any, bool) {
 		ok := scanner.Scan()
 		if !ok {
 			log.Debug().Str("text", tx).Msg("no request word found in text")
-			return nil, false
+			return &brevity.UnableToUnderstandRequest{}, true
 		}
 
 		segment = fmt.Sprintf("%s %s", segment, scanner.Text())
@@ -126,8 +127,9 @@ func (p *parser) Parse(tx string) (any, bool) {
 				callsign, ok = ParseCallsign(callsignSegment)
 				if !ok {
 					log.Debug().Str("segment", segment).Msg("unable to parse request callsign")
-					// TODO send "say again" response?
-					return nil, false
+					return &brevity.UnableToUnderstandRequest{
+						Callsign: "",
+					}, true
 				}
 				if len(callsign) > 30 {
 					log.Warn().Str("callsign", callsign).Msg("callsign too long, ignoring request")
@@ -160,8 +162,9 @@ func (p *parser) Parse(tx string) (any, bool) {
 		return p.parseSpiked(callsign, scanner)
 	case snaplock:
 		return p.parseSnaplock(callsign, scanner)
+	default:
+		return &brevity.UnableToUnderstandRequest{}, false
 	}
-	return nil, false
 }
 
 var sanitizerRex = regexp.MustCompile(`[^\p{L}\p{N} ]+`)

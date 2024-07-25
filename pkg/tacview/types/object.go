@@ -10,6 +10,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/tacview/properties"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
+	"github.com/rs/zerolog/log"
 )
 
 type Object struct {
@@ -75,6 +76,15 @@ func (o *Object) GetCoordinates(ref orb.Point) (Coordinates, error) {
 	}
 	fields := strings.Split(val, "|")
 
+	if len(fields) < 3 {
+		log.Error().Str("transform", val).Msg("unexpected number of fields in coordinate transformation")
+		return c, fmt.Errorf("unexpected number of fields in coordinate transformation: %d", len(fields))
+	}
+	if fields[0] == "" || fields[1] == "" {
+		log.Error().Str("transform", val).Msg("missing longitude or latitude in coordinate transformation")
+		return c, errors.New("missing longitude or latitude in coordinate transformation")
+	}
+
 	longitude, err := strconv.ParseFloat(fields[0], 64)
 	if err != nil {
 		return c, fmt.Errorf("error parsing longitude: %w", err)
@@ -95,6 +105,8 @@ func (o *Object) GetCoordinates(ref orb.Point) (Coordinates, error) {
 
 	var x, y, roll, pitch, yaw, heading string
 	switch len(fields) {
+	case 3:
+		// already parsed above
 	case 5:
 		x = fields[3]
 		y = fields[4]
@@ -110,6 +122,7 @@ func (o *Object) GetCoordinates(ref orb.Point) (Coordinates, error) {
 		y = fields[7]
 		heading = fields[8]
 	default:
+		log.Error().Str("transform", val).Msg("unexpected number of fields in coordinate transformation")
 		return c, fmt.Errorf("unexpected number of fields in coordinate transformation: %d", len(fields))
 	}
 	for s, fn := range map[string]func(float64){
