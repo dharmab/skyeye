@@ -123,7 +123,7 @@ func (s *scope) handleUpdate(update sim.Updated) {
 		logger.Info().Msg("new trackfile")
 	}
 	s.contacts[callsign].Update(update.Frame)
-	logger.Info().Msg("updated trackfile")
+	logger.Debug().Msg("updated trackfile")
 
 }
 
