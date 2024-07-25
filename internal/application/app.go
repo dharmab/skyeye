@@ -91,6 +91,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		updates,
 		fades,
 		bullseyes,
+		config.RadarSweepInterval,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct application: %w", err)
@@ -176,6 +177,7 @@ func (a *app) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
+			log.Info().Msg("received context cancellation signal")
 			log.Info().Msg("stopping application due to context cancellation")
 			return nil
 		case sample := <-a.srsClient.Receive():
@@ -205,7 +207,7 @@ func (a *app) recognize(ctx context.Context, out chan<- string) {
 			if err != nil {
 				log.Error().Err(err).Msg("error recognizing audio sample")
 			} else if text == "" || text == "[BLANK AUDIO]\n" {
-				log.Info().Str("text", text).Msg("unable to recongnize any words in audio sample")
+				log.Info().Str("text", text).Msg("unable to recognize any words in audio sample")
 			} else {
 				log.Info().Str("text", text).Msg("recognized audio")
 				out <- text
@@ -269,6 +271,9 @@ func (a *app) control(ctx context.Context, in <-chan any, out chan<- any) {
 			case *brevity.SpikedRequest:
 				logger.Debug().Msg("routing SPIKED request to controller")
 				a.controller.HandleSpiked(request)
+			case *brevity.UnableToUnderstandRequest:
+				logger.Debug().Msg("routing unable to understand request to controller")
+				a.controller.HandleUnableToUnderstand(request)
 			default:
 				logger.Error().Interface("request", brev).Msg("unable to route request to handler")
 			}
@@ -321,6 +326,9 @@ func (a *app) compose(ctx context.Context, in <-chan any, out chan<- composer.Na
 			case brevity.ThreatCall:
 				logger.Debug().Msg("composing THREAT call")
 				nlr = a.composer.ComposeThreatCall(c)
+			case brevity.SayAgainResponse:
+				logger.Debug().Msg("composing SAY AGAIN call")
+				nlr = a.composer.ComposeSayAgainResponse(c)
 			default:
 				logger.Debug().Msg("unable to route call to composition")
 			}

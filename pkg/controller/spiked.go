@@ -51,6 +51,7 @@ func (c *controller) HandleSpiked(r *brevity.SpikedRequest) {
 			log.Debug().Msg("hostile group found within spike cone")
 			nearestGroup = hostileGroup
 			resp.Declaration = brevity.Hostile
+			resp.Status = true
 		} else {
 			log.Debug().Msg("friendly group found within spike cone")
 			nearestGroup = friendlyGroup

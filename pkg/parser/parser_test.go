@@ -30,13 +30,13 @@ func TestParserSadPaths(t *testing.T) {
 	testCases := []parserTestCase{
 		{
 			text:            "anyface",
-			expectedRequest: nil,
-			expectedOk:      false,
+			expectedRequest: &brevity.UnableToUnderstandRequest{},
+			expectedOk:      true,
 		},
 		{
 			text:            "anyface radio check",
-			expectedRequest: nil,
-			expectedOk:      false,
+			expectedRequest: &brevity.UnableToUnderstandRequest{},
+			expectedOk:      true,
 		},
 	}
 	runParserTestCases(t, New(TestCallsign), testCases)

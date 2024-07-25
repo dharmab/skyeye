@@ -69,6 +69,10 @@ func (g *group) Altitude() unit.Length {
 	return rounded
 }
 
+func (g *group) Weeds() bool {
+	return g.Altitude() < 1000*unit.Foot
+}
+
 func (g *group) Track() brevity.Track {
 	return brevity.TrackFromBearing(g.contacts[0].LastKnown().Heading)
 }

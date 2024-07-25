@@ -18,6 +18,7 @@ type Composer interface {
 	ComposeSpikedResponse(brevity.SpikedResponse) NaturalLanguageResponse
 	ComposeSunriseCall(brevity.SunriseCall) NaturalLanguageResponse
 	ComposeThreatCall(brevity.ThreatCall) NaturalLanguageResponse
+	ComposeSayAgainResponse(brevity.SayAgainResponse) NaturalLanguageResponse
 }
 
 // NaturalLanguageResponse contains the composer's responses in text form.
