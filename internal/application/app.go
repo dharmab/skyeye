@@ -284,7 +284,7 @@ func (a *app) compose(ctx context.Context, in <-chan any, out chan<- composer.Na
 			log.Info().Msg("stopping brevity composition due to context cancellation")
 			return
 		case call := <-in:
-			logger := log.With().Interface("call", call).Logger()
+			logger := log.With().Type("type", call).Interface("params", call).Logger()
 			logger.Info().Msg("composing brevity call")
 			var nlr composer.NaturalLanguageResponse
 			switch c := call.(type) {

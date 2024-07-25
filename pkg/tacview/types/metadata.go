@@ -53,8 +53,7 @@ func ParseObjectUpdate(line string) (*ObjectUpdate, error) {
 	update.Properties = make(map[string]string)
 	if propertiesStr != "" {
 		if strings.Contains(propertiesStr, `\,`) {
-			// TODO handle escaped commas
-			return nil, fmt.Errorf("escaped commas not yet supported: %s", propertiesStr)
+			propertiesStr = strings.ReplaceAll(propertiesStr, `\,`, "?")
 		}
 		for _, prop := range strings.Split(propertiesStr, ",") {
 			key, value, ok := strings.Cut(prop, "=")

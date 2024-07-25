@@ -37,6 +37,7 @@ type streamer struct {
 	objects        map[int]*types.Object
 	fades          chan *types.Object
 	bullseye       orb.Point
+	inMultiline    bool
 }
 
 func NewACMI(coalition coalitions.Coalition, acmi *bufio.Reader) ACMI {
@@ -77,6 +78,17 @@ func (s *streamer) Start(ctx context.Context) error {
 }
 
 func (s *streamer) handleLine(line string) error {
+	if strings.HasSuffix(line, "\\\n") {
+		s.inMultiline = true
+	}
+	if s.inMultiline {
+		if !strings.HasSuffix(line, "\\\n") {
+			s.inMultiline = false
+		}
+		log.Debug().Str("line", line).Msg("skipping multiline line")
+		return nil
+	}
+
 	line = strings.TrimSpace(line)
 	logger := log.With().Str("line", line).Logger()
 
@@ -215,7 +227,7 @@ func (s *streamer) Stream(ctx context.Context, updates chan<- sim.Updated, fades
 						logger.Error().Err(err).Msg("error updating bullseye")
 						continue
 					}
-					logger.Info().Msg("bullseye updated")
+					logger.Debug().Msg("bullseye updated")
 				}
 				if slices.Contains(types, tags.FixedWing) || slices.Contains(types, tags.Rotorcraft) {
 					logger.Trace().Msg("object is an aircraft")
