@@ -75,7 +75,7 @@ func TestParserBogeyDope(t *testing.T) {
 			text: "ANYFACE, EAGLE 1 BOGEY DOPE",
 			expectedRequest: &brevity.BogeyDopeRequest{
 				Callsign: "eagle 1",
-				Filter:   brevity.Everything,
+				Filter:   brevity.Aircraft,
 			},
 			expectedOk: true,
 		},
@@ -83,7 +83,7 @@ func TestParserBogeyDope(t *testing.T) {
 			text: "anyface intruder 11 bogey dope fighters",
 			expectedRequest: &brevity.BogeyDopeRequest{
 				Callsign: "intruder 1 1",
-				Filter:   brevity.Airplanes,
+				Filter:   brevity.FixedWing,
 			},
 			expectedOk: true,
 		},
@@ -91,7 +91,7 @@ func TestParserBogeyDope(t *testing.T) {
 			text: "anyface intruder 11 bogey dope just helos",
 			expectedRequest: &brevity.BogeyDopeRequest{
 				Callsign: "intruder 1 1",
-				Filter:   brevity.Helicopters,
+				Filter:   brevity.RotaryWing,
 			},
 			expectedOk: true,
 		},

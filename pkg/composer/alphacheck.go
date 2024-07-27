@@ -6,6 +6,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
+// ComposeAlphaCheckResponse implements [Composer.ComposeAlphaCheckResponse].
 func (c *composer) ComposeAlphaCheckResponse(r brevity.AlphaCheckResponse) NaturalLanguageResponse {
 	if r.Status {
 		return NaturalLanguageResponse{

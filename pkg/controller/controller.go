@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"time"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
@@ -35,43 +34,32 @@ type Controller interface {
 }
 
 type controller struct {
-	out        chan<- any
-	scope      radar.Radar
-	coalition  coalitions.Coalition
-	trackfiles map[string]*trackfile.Trackfile
-	frequency  unit.Frequency
+	out       chan<- any
+	scope     radar.Radar
+	coalition coalitions.Coalition
+	frequency unit.Frequency
 }
 
 func New(r radar.Radar, coalition coalitions.Coalition, frequency unit.Frequency) Controller {
 	return &controller{
-		scope:      r,
-		coalition:  coalition,
-		trackfiles: make(map[string]*trackfile.Trackfile),
-		frequency:  frequency,
+		scope:     r,
+		coalition: coalition,
+		frequency: frequency,
 	}
 }
 
-// Run implements Controller.Run.
+// Run implements [Controller.Run].
 func (c *controller) Run(ctx context.Context, out chan<- any) {
 	c.out = out
 
 	log.Info().Int("frequency", int(c.frequency.Megahertz())).Msg("broadcasting SUNRISE call")
 	c.out <- brevity.SunriseCall{Frequency: c.frequency}
-
-	gcTicker := time.NewTicker(30 * time.Second)
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-gcTicker.C:
-			c.expireTrackfiles()
-		}
-	}
+	<-ctx.Done()
 
 	// TODO control loops for FADED and THREAT
 }
 
+// hostileCoalition returns the coalition that is hostile to the controller's coalition.
 func (c *controller) hostileCoalition() coalitions.Coalition {
 	if c.coalition == coalitions.Blue {
 		return coalitions.Red
@@ -79,15 +67,7 @@ func (c *controller) hostileCoalition() coalitions.Coalition {
 	return coalitions.Red
 }
 
-func (c *controller) expireTrackfiles() {
-	for name, tf := range c.trackfiles {
-		if tf.LastKnown().Timestamp.Before(time.Now().Add(3 * time.Minute)) {
-			log.Info().Str("name", name).Time("last_updated", tf.LastKnown().Timestamp).Msg("removing aged out trackfile")
-			delete(c.trackfiles, name)
-		}
-	}
-}
-
+// findCallsign searches the controller's scope for a trackfile matching the given callsign.
 func (c *controller) findCallsign(callsign string) *trackfile.Trackfile {
 	logger := log.With().Str("callsign", callsign).Logger()
 	logger.Debug().Msg("searching scope for trackfile matching callsign")

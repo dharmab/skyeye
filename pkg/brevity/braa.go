@@ -38,14 +38,17 @@ func NewBRA(b unit.Angle, r unit.Length, a unit.Length) BRA {
 	}
 }
 
+// Bearing implements [BRA.Bearing].
 func (b *bra) Bearing() unit.Angle {
 	return unit.Angle(b.bearingDegrees) * unit.Degree
 }
 
+// Range implements [BRA.Range].
 func (b *bra) Range() unit.Length {
 	return unit.Length(b.rangeNM) * unit.NauticalMile
 }
 
+// Altitude implements [BRA.Altitude].
 func (b *bra) Altitude() unit.Length {
 	return unit.Length(b.altitudeThousandsFt*1000) * unit.Foot
 }
@@ -62,18 +65,22 @@ func NewBRAA(b unit.Angle, r unit.Length, a unit.Length, aspect Aspect) BRAA {
 	}
 }
 
+// Bearing implements [BRA.Bearing].
 func (b *braa) Bearing() unit.Angle {
 	return b.bra.Bearing()
 }
 
+// Range implements [BRA.Range].
 func (b *braa) Range() unit.Length {
 	return b.bra.Range()
 }
 
+// Altitude implements [BRA.Altitude].
 func (b *braa) Altitude() unit.Length {
 	return b.bra.Altitude()
 }
 
+// Aspect implements [BRAA.Aspect].
 func (b *braa) Aspect() Aspect {
 	return b.aspect
 }

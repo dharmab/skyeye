@@ -14,10 +14,12 @@ type whisperRecognizer struct {
 
 var _ Recognizer = &whisperRecognizer{}
 
+// NewWhisperRecognizer creates a new recognizer using OpenAI Whisper
 func NewWhisperRecognizer(model whisper.Model) Recognizer {
 	return &whisperRecognizer{model: model}
 }
 
+// Recognize implements [Recognizer.Recognize] using whisper.cpp
 func (r *whisperRecognizer) Recognize(sample []float32) (string, error) {
 	ctx, err := r.model.NewContext()
 	if err != nil {

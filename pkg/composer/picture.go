@@ -6,6 +6,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
+// ComposePictureResponse implements [Composer.ComposePictureResponse].
 func (c *composer) ComposePictureResponse(r brevity.PictureResponse) NaturalLanguageResponse {
 	g := c.ComposeCoreInformationFormat(r.Groups)
 	return NaturalLanguageResponse{

@@ -9,21 +9,24 @@ import (
 
 // HandleSpiked implements Controller.HandleSpiked.
 func (c *controller) HandleSpiked(r *brevity.SpikedRequest) {
+	logger := log.With().Str("callsign", r.Callsign).Type("type", r).Float64("bearing", r.Bearing.Degrees()).Logger()
+	logger.Debug().Msg("handling request")
 	requestorTrackfile := c.scope.FindCallsign(r.Callsign)
 	if requestorTrackfile == nil {
+		logger.Info().Msg("no trackfile found for requestor")
 		c.out <- brevity.NegativeRadarContactResponse{Callsign: r.Callsign}
 		return
 	}
 	requestorLocation := requestorTrackfile.LastKnown().Point
-	hostileGroup := c.scope.FindNearestGroupInCone(requestorLocation, r.Bearing, 30, c.hostileCoalition(), brevity.Airplanes)
-	friendlyGroup := c.scope.FindNearestGroupInCone(requestorLocation, r.Bearing, 30, c.coalition, brevity.Airplanes)
+	hostileGroup := c.scope.FindNearestGroupInCone(requestorLocation, r.Bearing, 30, c.hostileCoalition(), brevity.FixedWing)
+	friendlyGroup := c.scope.FindNearestGroupInCone(requestorLocation, r.Bearing, 30, c.coalition, brevity.FixedWing)
 	resp := brevity.SpikedResponse{
 		Callsign: r.Callsign,
 		Bearing:  r.Bearing,
 	}
 
 	if hostileGroup == nil && friendlyGroup == nil {
-		log.Debug().Msg("no groups found within spike cone")
+		logger.Debug().Msg("no groups found within spike cone")
 		resp.Status = false
 		resp.Aspect = brevity.UnknownAspect
 		resp.Declaration = brevity.Clean
@@ -31,13 +34,13 @@ func (c *controller) HandleSpiked(r *brevity.SpikedRequest) {
 		resp.Status = true
 		var nearestGroup brevity.Group
 		if hostileGroup != nil && friendlyGroup != nil {
-			log.Debug().Msg("both hostile and friendly groups found within spike cone")
+			logger.Debug().Msg("both hostile and friendly groups found within spike cone")
 			if hostileGroup.BRAA().Range() < friendlyGroup.BRAA().Range() {
-				log.Debug().Msg("hostile group is closer")
+				logger.Debug().Msg("hostile group is closer")
 				nearestGroup = hostileGroup
 				resp.Declaration = brevity.Hostile
 			} else {
-				log.Debug().Msg("friendly group is closer")
+				logger.Debug().Msg("friendly group is closer")
 				nearestGroup = friendlyGroup
 				resp.Declaration = brevity.Friendly
 			}
@@ -45,17 +48,17 @@ func (c *controller) HandleSpiked(r *brevity.SpikedRequest) {
 			hostilePoint := geo.PointAtBearingAndDistance(requestorLocation, hostileGroup.BRAA().Bearing().Degrees(), hostileGroup.BRAA().Range().Meters())
 			friendlyPoint := geo.PointAtBearingAndDistance(requestorLocation, friendlyGroup.BRAA().Bearing().Degrees(), friendlyGroup.BRAA().Range().Meters())
 			if geo.Distance(hostilePoint, friendlyPoint) < (conf.DefaultMarginRadius).Meters() {
-				log.Debug().Msg("hostile and friendly groups are within 3nm (furball)")
+				logger.Debug().Msg("hostile and friendly groups are within 3nm (furball)")
 				resp.Declaration = brevity.Furball
 				resp.Aspect = brevity.UnknownAspect
 			}
 		} else if hostileGroup != nil {
-			log.Debug().Msg("hostile group found within spike cone")
+			logger.Debug().Msg("hostile group found within spike cone")
 			nearestGroup = hostileGroup
 			resp.Declaration = brevity.Hostile
 			resp.Status = true
 		} else {
-			log.Debug().Msg("friendly group found within spike cone")
+			logger.Debug().Msg("friendly group found within spike cone")
 			nearestGroup = friendlyGroup
 			resp.Declaration = brevity.Friendly
 		}

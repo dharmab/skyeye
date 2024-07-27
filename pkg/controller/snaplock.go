@@ -10,20 +10,27 @@ import (
 func (c *controller) HandleSnaplock(r *brevity.SnaplockRequest) {
 	logger := log.With().Str("callsign", r.Callsign).Type("type", r).Logger()
 	logger.Debug().Msg("handling request")
+
 	requestorTrackfile := c.findCallsign(r.Callsign)
 	if requestorTrackfile == nil {
+		logger.Info().Msg("no trackfile found for requestor")
 		c.out <- brevity.NegativeRadarContactResponse{Callsign: r.Callsign}
 		return
 	}
+
 	targetLocation := geo.PointAtBearingAndDistance(
 		requestorTrackfile.LastKnown().Point,
 		r.BRA.Bearing().Degrees(),
 		r.BRA.Range().Meters(),
 	)
-	group := c.scope.FindNearestGroupWithBullseye(targetLocation, c.hostileCoalition(), brevity.Airplanes)
+	group := c.scope.FindNearestGroupWithBullseye(targetLocation, c.hostileCoalition(), brevity.Aircraft)
 
 	status := group != nil
-	logger.Debug().Bool("status", status).Msg("responding to SNAPLOCK request")
+	if !status {
+		logger.Debug().Msg("no hostile groups found")
+	} else {
+		logger.Debug().Msg("found nearest hostile group")
+	}
 	c.out <- brevity.SnaplockResponse{
 		Callsign: r.Callsign,
 		Status:   status,

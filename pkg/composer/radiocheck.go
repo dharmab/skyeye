@@ -7,8 +7,8 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
+// ComposeRadioCheckResponse implements [Composer.ComposeRadioCheckResponse].
 func (c *composer) ComposeRadioCheckResponse(r brevity.RadioCheckResponse) NaturalLanguageResponse {
-
 	replies := []string{
 		"%s, 5 by 5.",
 		"%s, 5 by 5!",

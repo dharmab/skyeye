@@ -9,18 +9,18 @@ import (
 )
 
 var bogeyFilterMap = map[string]brevity.ContactCategory{
-	"airplane":    brevity.Airplanes,
-	"planes":      brevity.Airplanes,
-	"fighter":     brevity.Airplanes,
-	"fixed wing":  brevity.Airplanes,
-	"helicopter":  brevity.Helicopters,
-	"chopper":     brevity.Helicopters,
-	"helo":        brevity.Helicopters,
-	"rotary wing": brevity.Helicopters,
+	"airplane":    brevity.FixedWing,
+	"planes":      brevity.FixedWing,
+	"fighter":     brevity.FixedWing,
+	"fixed wing":  brevity.FixedWing,
+	"helicopter":  brevity.RotaryWing,
+	"chopper":     brevity.RotaryWing,
+	"helo":        brevity.RotaryWing,
+	"rotary wing": brevity.RotaryWing,
 }
 
 func (p *parser) parseBogeyDope(callsign string, scanner *bufio.Scanner) (*brevity.BogeyDopeRequest, bool) {
-	filter := brevity.Everything
+	filter := brevity.Aircraft
 	s := scanner.Text()
 	for scanner.Scan() {
 		s = fmt.Sprintf("%s %s", s, scanner.Text())

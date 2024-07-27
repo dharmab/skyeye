@@ -6,6 +6,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
+// ComposeSayAgainResponse implements [Composer.ComposeSayAgainResponse].
 func (c *composer) ComposeSayAgainResponse(r brevity.SayAgainResponse) NaturalLanguageResponse {
 	if r.Callsign != "" {
 		return NaturalLanguageResponse{
