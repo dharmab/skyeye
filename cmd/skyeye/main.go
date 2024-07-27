@@ -17,6 +17,7 @@ import (
 	"github.com/dharmab/skyeye/internal/application"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/synthesizer"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
 
@@ -50,6 +51,7 @@ func main() {
 	Coalition := flag.String("coalition", "blue", "Coalition (either blue or red)")
 	RadarSweepInterval := flag.Duration("radar-sweep-interval", 15*time.Second, "Radar update tick rate")
 	WhisperModelPath := flag.String("whisper-model", "", "Path to whisper.cpp model")
+	Voice := flag.String("voice", "feminine", "Voice to use for SRS transmissions (feminine, masculine)")
 
 	flag.Parse()
 
@@ -94,6 +96,17 @@ func main() {
 	log.Info().Msg("whisper model loaded")
 	defer whisperModel.Close()
 
+	var voice synthesizer.Voice
+	switch strings.ToLower(*Voice) {
+	case "feminine":
+		voice = synthesizer.FeminineVoice
+	case "masculine":
+		voice = synthesizer.MasculineVoice
+	default:
+		err = fmt.Errorf("unknown voice: %s", *Voice)
+		exitOnErr(err)
+	}
+
 	// Configure and run the application.
 	config := conf.Configuration{
 		ACMIFile:                     *ACMIFile,
@@ -110,6 +123,7 @@ func main() {
 		Coalition:                    coalition,
 		RadarSweepInterval:           *RadarSweepInterval,
 		WhisperModel:                 whisperModel,
+		Voice:                        voice,
 	}
 
 	log.Info().Msg("starting application")

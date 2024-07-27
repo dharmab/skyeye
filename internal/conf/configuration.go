@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/synthesizer"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 	"github.com/martinlindhe/unit"
 )
@@ -39,6 +40,8 @@ type Configuration struct {
 	RadarSweepInterval time.Duration
 	// WhisperModel is a whisper.cpp model used for Speech To Text
 	WhisperModel whisper.Model
+	// Voice is the voice used for SRS transmissions
+	Voice synthesizer.Voice
 }
 
 const DefaultPictureRadius = 35 * unit.NauticalMile
