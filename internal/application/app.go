@@ -113,7 +113,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	composer := composer.New(config.Callsign)
 
 	log.Info().Msg("constructing text-to-speech synthesizer")
-	synthesizer, err := synthesizer.NewPiperSpeaker(synthesizer.FeminineVoice)
+	synthesizer, err := synthesizer.NewPiperSpeaker(config.Voice)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct application: %w", err)
 	}
