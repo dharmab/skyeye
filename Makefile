@@ -24,7 +24,7 @@ install-debian-dependencies:
 WHISPER_CPP_PATH = third_party/whisper.cpp
 LIBWHISPER_PATH = $(WHISPER_CPP_PATH)/libwhisper.a
 WHISPER_H_PATH = $(WHISPER_CPP_PATH)/whisper.h
-WHISPER_CPP_VERSION = v1.5.4
+WHISPER_CPP_VERSION = v1.6.2
 
 .PHONY: $(WHISPER_CPP_PATH)
 $(WHISPER_CPP_PATH):

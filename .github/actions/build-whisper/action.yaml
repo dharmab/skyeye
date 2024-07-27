@@ -4,7 +4,7 @@ inputs:
   whisper-cpp-version:
     description: 'The version of whisper.cpp to use'
     required: true
-    default: 'v1.5.4'
+    default: 'v1.6.2'
   os:
     description: 'The operating system to build for'
     required: true
