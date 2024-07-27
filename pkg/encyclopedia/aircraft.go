@@ -25,6 +25,12 @@ var c101Data = Aircraft{
 	OfficialName:        "Aviojet",
 }
 
+var f4Data = Aircraft{
+	Category:            brevity.Airplanes,
+	PlatformDesignation: "F-4",
+	OfficialName:        "Phantom",
+}
+
 var f5Data = Aircraft{
 	Category:            brevity.Airplanes,
 	PlatformDesignation: "F-5",
@@ -236,11 +242,18 @@ var aircraftData = append([]Aircraft{
 		Nickname:            "Goblin",
 	},
 	{
-		ACMIShortName:       "F-4E",
-		Category:            brevity.Airplanes,
-		PlatformDesignation: "F-4",
+		ACMIShortName:       "F-4E-45MC",
+		Category:            f4Data.Category,
+		PlatformDesignation: f4Data.PlatformDesignation,
 		TypeDesignation:     "F-4E",
-		OfficialName:        "Phantom",
+		OfficialName:        f4Data.OfficialName,
+	},
+	{
+		ACMIShortName:       "F-4E",
+		Category:            f4Data.Category,
+		PlatformDesignation: f4Data.PlatformDesignation,
+		TypeDesignation:     "F-4E",
+		OfficialName:        f4Data.OfficialName,
 	},
 	{
 		ACMIShortName:       "F-5E",
@@ -318,6 +331,13 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "F/A-18C",
+		Category:            fa18Data.Category,
+		PlatformDesignation: fa18Data.PlatformDesignation,
+		TypeDesignation:     "F/A-18C",
+		OfficialName:        fa18Data.OfficialName,
+	},
+	{
+		ACMIShortName:       "FA-18C_hornet",
 		Category:            fa18Data.Category,
 		PlatformDesignation: fa18Data.PlatformDesignation,
 		TypeDesignation:     "F/A-18C",
@@ -414,11 +434,11 @@ var aircraftData = append([]Aircraft{
 		TypeDesignation:     "MB-339A",
 	},
 	{
-		ACMIShortName:       "MQ-9",
-		Category:            brevity.Airplanes,
-		PlatformDesignation: "MQ-9",
-		TypeDesignation:     "MQ-9",
-		OfficialName:        "Reaper",
+		ACMIShortName:       "Mi-24P",
+		Category:            brevity.Helicopters,
+		PlatformDesignation: "Mi-24",
+		TypeDesignation:     "Mi-24P",
+		NATOReportingName:   "Hind",
 	},
 	{
 		ACMIShortName:       "MiG-15bis",
@@ -433,6 +453,13 @@ var aircraftData = append([]Aircraft{
 		PlatformDesignation: "MiG-19",
 		TypeDesignation:     "MiG-19P",
 		NATOReportingName:   "Farmer",
+	},
+	{
+		ACMIShortName:       "MiG-21Bis",
+		Category:            brevity.Airplanes,
+		PlatformDesignation: "MiG-21",
+		TypeDesignation:     "MiG-21Bis",
+		NATOReportingName:   "Fishbed",
 	},
 	{
 		ACMIShortName:       "MiG-23MLD",
@@ -496,6 +523,13 @@ var aircraftData = append([]Aircraft{
 		PlatformDesignation: "MQ-1",
 		TypeDesignation:     "MQ-1A",
 		OfficialName:        "Predator",
+	},
+	{
+		ACMIShortName:       "MQ-9",
+		Category:            brevity.Airplanes,
+		PlatformDesignation: "MQ-9",
+		TypeDesignation:     "MQ-9",
+		OfficialName:        "Reaper",
 	},
 	{
 		ACMIShortName:       "S-3B",

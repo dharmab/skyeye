@@ -233,6 +233,14 @@ func TestParserSpiked(t *testing.T) {
 			},
 			expectedOk: true,
 		},
+		{
+			text: "Anyface Raven 1-4, Spike 0-2-0",
+			expectedRequest: &brevity.SpikedRequest{
+				Callsign: "raven 1 4",
+				Bearing:  unit.Angle(20) * unit.Degree,
+			},
+			expectedOk: true,
+		},
 	}
 	runParserTestCases(t, New(TestCallsign), testCases)
 

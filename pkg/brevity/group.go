@@ -38,9 +38,9 @@ type Group interface {
 	SetDeclaration(Declaration)
 	// Heavy is true if the group contacts 3 or more contacts.
 	Heavy() bool
-	// Platform is the NATO reporting name of the group's aircraft platform (for Soviet/Russian/Chinese aircraft) or
-	// an alternative name for other aircraft.
-	Platform() string
+	// Platforms is the NATO reporting names of the group's aircraft platforms (for Soviet/Russian/Chinese aircraft) or
+	// alternative names for other aircraft. Skyeye supports mixed-platform groups, so this returns multiple values.
+	Platforms() []string
 	// High is true if the aircraft altitude is above 40,000 feet.
 	High() bool
 	// Fast is true if the group's speed is 600-900kts ground speed or 1.0-1.5 Mach.

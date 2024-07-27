@@ -16,7 +16,7 @@ func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.V
 	for {
 		select {
 		case audio := <-c.txChan:
-			log.Debug().Msg("encoding transmission from PCM data")
+			log.Trace().Msg("encoding transmission from PCM data")
 			encoder, err := opus.NewEncoder(sampleRate, channels, opusApplicationVoIP)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to create Opus encoder")
@@ -70,7 +70,7 @@ func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.V
 				// TODO transmission struct with attached text and trace id
 				txPackets = append(txPackets, vp)
 			}
-			log.Debug().Int("count", len(txPackets)).Msg("encoded transmission packets")
+			log.Trace().Int("count", len(txPackets)).Msg("encoded transmission packets")
 			packetCh <- txPackets
 		case <-ctx.Done():
 			log.Info().Msg("stopping voice encoder due to context cancellation")

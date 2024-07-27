@@ -34,7 +34,7 @@ func NewBRA(b unit.Angle, r unit.Length, a unit.Length) BRA {
 	return &bra{
 		bearingDegrees:      int(math.Round(b.Degrees())),
 		rangeNM:             int(math.Round(r.NauticalMiles())),
-		altitudeThousandsFt: int(a.Feet() / 1000),
+		altitudeThousandsFt: int(math.Round(a.Feet() / 1000)),
 	}
 }
 

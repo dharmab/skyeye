@@ -24,6 +24,8 @@ type SpikedResponse struct {
 	Altitude *unit.Length
 	// Aspect of the correlated contact. If Status is false, this may be UnknownAspect.
 	Aspect Aspect
+	// Track of the correlated contact. If Status is false, this may be UnknownDirection.
+	Track Track
 	// Declaration of the correlated contact. If Status is false, this may be Clean.
 	Declaration Declaration
 	// Number of contacts in the correlated group. If Status is false, this may be zero.

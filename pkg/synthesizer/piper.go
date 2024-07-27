@@ -52,12 +52,12 @@ func (s *piperSynth) Say(text string) ([]float32, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to synthesize text: %w", err)
 	}
-	log.Debug().Msg("downsampling synthesized audio from 24KHz to 16KHz")
+	log.Trace().Msg("downsampling synthesized audio from 24KHz to 16KHz")
 	downsampled, err := downsample(synthesized, 24000, 16000, 1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to downsample synthesized audio: %w", err)
 	}
-	log.Debug().Msg("converting downsampled S16LE audio to F32LE")
+	log.Trace().Msg("converting downsampled S16LE audio to F32LE")
 	f32le := pcm.S16LEBytesToF32LE(downsampled)
 	return f32le, nil
 }

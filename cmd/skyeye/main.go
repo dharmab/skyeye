@@ -48,7 +48,7 @@ func main() {
 	SRSFrequency := flag.Float64("srs-frequency", 251000000.0, "AWACS frequency in Hertz")
 	GCICallsign := flag.String("callsign", "Magic", "GCI callsign. Used in radio transmissions")
 	Coalition := flag.String("coalition", "blue", "Coalition (either blue or red)")
-	RadarSweepInterval := flag.Duration("radar-sweep-interval", 15*time.Second, "Radar update tick rate")
+	RadarSweepInterval := flag.Duration("radar-sweep-interval", 2*time.Second, "Radar update tick rate")
 	WhisperModelPath := flag.String("whisper-model", "", "Path to whisper.cpp model")
 
 	flag.Parse()
