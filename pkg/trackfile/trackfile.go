@@ -1,6 +1,8 @@
 package trackfile
 
 import (
+	"fmt"
+	"math"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -45,8 +47,6 @@ type Frame struct {
 	Altitude unit.Length
 	// Heading is the direction the contact is moving. This is not necessarily the direction the nose is poining.
 	Heading unit.Angle
-	// Speed is ground speed.
-	Speed unit.Speed
 }
 
 func NewTrackfile(a Aircraft) *Trackfile {
@@ -55,6 +55,20 @@ func NewTrackfile(a Aircraft) *Trackfile {
 		Track:     *deque.New[Frame](),
 		MaxLength: 4,
 	}
+}
+
+func (t *Trackfile) String() string {
+	point := t.LastKnown().Point
+	return fmt.Sprintf(
+		"%d %s (%f.3, %f.3) %f.0 ft %f.0 kts %q",
+		t.Contact.UnitID,
+		t.Contact.ACMIName,
+		point.Lon(),
+		point.Lat(),
+		t.LastKnown().Altitude.Feet(),
+		t.Speed().Knots(),
+		t.Contact.Name,
+	)
 }
 
 func (t *Trackfile) Update(f Frame) {
@@ -72,5 +86,62 @@ func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 }
 
 func (t *Trackfile) LastKnown() Frame {
+	if t.Track.Len() == 0 {
+		return Frame{
+			Timestamp: time.Now().Add(-time.Hour),
+			Point:     orb.Point{},
+			Altitude:  0,
+			Heading:   0,
+		}
+	}
 	return t.Track.Front()
+}
+
+func (t *Trackfile) Direction() brevity.Track {
+	if t.Track.Len() < 1 {
+		return brevity.UnknownDirection
+	}
+	if t.Track.Len() < 2 {
+		return brevity.TrackFromBearing(t.LastKnown().Heading)
+	}
+	// TODO interpolate all points, weighting the most recent points more heavily.
+	latest := t.Track.Front()
+	previous := t.Track.At(1)
+	bearing := unit.Angle(geo.Bearing(previous.Point, latest.Point))
+	return brevity.TrackFromBearing(bearing)
+}
+
+func (t *Trackfile) Speed() unit.Speed {
+	if t.Track.Len() < 2 {
+		return 0
+	}
+
+	latest := t.Track.Front()
+	previous := t.Track.At(1)
+
+	timeDelta := latest.Timestamp.Sub(previous.Timestamp)
+
+	groundDistance := unit.Length(geo.Distance(latest.Point, previous.Point)) * unit.Meter
+	groundSpeed := unit.Speed(
+		groundDistance.Meters()/
+			timeDelta.Seconds(),
+	) * unit.MetersPerSecond
+
+	distanceVertical := latest.Altitude - previous.Altitude
+	verticalSpeed := unit.Speed(
+		distanceVertical.Meters()/
+			timeDelta.Seconds(),
+	) * unit.MetersPerSecond
+
+	trueSpeed := unit.Speed(
+		math.Sqrt(
+			math.Pow(groundSpeed.MetersPerSecond(), 2)+
+				math.Pow(verticalSpeed.MetersPerSecond(), 2),
+		),
+	) * unit.MetersPerSecond
+
+	if groundSpeed > trueSpeed {
+		return groundSpeed
+	}
+	return trueSpeed
 }

@@ -7,7 +7,10 @@ import (
 	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/dharmab/skyeye/pkg/encyclopedia"
 )
+
+var aircraftData = encyclopedia.New().Aircraft()
 
 // ComposeCoreInformationFormat communicates information about groups.
 // Reference: ATP 3-52.4 chapter IV section 3
@@ -58,7 +61,9 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 		bullseye := c.ComposeBullseye(*bullseye)
 
 		var altitude string
-		if group.Weeds() {
+		if group.Altitude().Feet() < 1 {
+			altitude = "unsure altitude"
+		} else if group.Weeds() {
 			altitude = "weeds"
 		} else {
 			altitude = fmt.Sprint(int(math.Round(group.Altitude().Feet()/1000) * 1000))
@@ -93,8 +98,9 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 	speech.WriteString(contacts.Speech)
 
 	// Platform
-	if group.Platform() != "" {
-		writeBoth(fmt.Sprintf(", %s", group.Platform()))
+	if len(group.Platforms()) > 0 {
+		writeBoth(", ")
+		writeBoth(strings.Join(group.Platforms(), ", "))
 	}
 
 	// High

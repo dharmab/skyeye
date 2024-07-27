@@ -88,7 +88,10 @@ func (p *parser) parseBearing(scanner *bufio.Scanner) (unit.Angle, bool) {
 				return bearing, true
 			}
 		}
-		scanner.Scan()
+		ok := scanner.Scan()
+		if !ok {
+			return bearing, true
+		}
 	}
 	return 0 * unit.Degree, false
 }

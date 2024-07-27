@@ -151,7 +151,7 @@ func (c *dataClient) Run(ctx context.Context, readyCh chan<- any) error {
 
 // handleMessage routes a given message to the appropriate handler.
 func (c *dataClient) handleMessage(message types.Message) {
-	log.Debug().Interface("message", message).Msg("handling message")
+	log.Trace().Type("type", message).Msg("handling message")
 	switch message.Type {
 	case types.MessagePing:
 		logMessageAndIgnore(message)
@@ -198,22 +198,22 @@ func (c *dataClient) syncClients(others []types.ClientInfo) {
 func (c *dataClient) syncClient(other types.ClientInfo) {
 	clientLogger := log.With().Str("guid", string(other.GUID)).Str("name", other.Name).Interface("coalitionID", other.Coalition).Interface("radios", other.RadioInfo).Logger()
 
-	clientLogger.Debug().Msg("syncronizing client")
+	clientLogger.Trace().Msg("syncronizing client")
 
 	if other.GUID == c.clientInfo.GUID {
 		// why, of course I know him. he's me!
-		clientLogger.Debug().Msg("skipped client due to same GUID")
+		clientLogger.Trace().Msg("skipped client due to same GUID")
 		return
 	}
 
 	isSameFrequency := c.clientInfo.RadioInfo.IsOnFrequency(other.RadioInfo)
 	// isSameCoalition is true if the other client is in the same coalition as this client, or if the other client is a spectator.
 	isSameCoalition := (c.clientInfo.Coalition == other.Coalition) || types.IsSpectator(other.Coalition)
-	clientLogger.Debug().Bool("coalitionMatches", isSameCoalition).Bool("frequencyMatches", isSameFrequency).Msg("checking client")
+	clientLogger.Trace().Bool("coalitionMatches", isSameCoalition).Bool("frequencyMatches", isSameFrequency).Msg("checking client")
 
 	// if the other client has a matching radio and is not in an opposing coalition, store it in otherClients. Otherwise, banish it to the shadow realm.
 	if isSameCoalition && isSameFrequency {
-		clientLogger.Debug().Msg("storing client")
+		clientLogger.Trace().Msg("storing client")
 		c.otherClients[other.GUID] = other.Name
 	} else {
 		_, ok := c.otherClients[other.GUID]
@@ -238,7 +238,7 @@ func (c *dataClient) Send(message types.Message) error {
 		return fmt.Errorf("failed to marshal message to JSON: %w", err)
 	}
 	b = append(b, byte('\n'))
-	log.Debug().Interface("message", message).Msg("sending message")
+	log.Trace().Type("type", message).Msg("sending message")
 	_, err = c.connection.Write(b)
 	if err != nil {
 		return fmt.Errorf("failed to write message: %w", err)

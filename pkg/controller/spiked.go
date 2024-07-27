@@ -4,7 +4,6 @@ import (
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/paulmach/orb/geo"
-	"github.com/paulmach/orb/planar"
 	"github.com/rs/zerolog/log"
 )
 
@@ -36,16 +35,19 @@ func (c *controller) HandleSpiked(r *brevity.SpikedRequest) {
 			if hostileGroup.BRAA().Range() < friendlyGroup.BRAA().Range() {
 				log.Debug().Msg("hostile group is closer")
 				nearestGroup = hostileGroup
+				resp.Declaration = brevity.Hostile
 			} else {
 				log.Debug().Msg("friendly group is closer")
 				nearestGroup = friendlyGroup
+				resp.Declaration = brevity.Friendly
 			}
 			// check if hostile and friendly within 3nm
 			hostilePoint := geo.PointAtBearingAndDistance(requestorLocation, hostileGroup.BRAA().Bearing().Degrees(), hostileGroup.BRAA().Range().Meters())
 			friendlyPoint := geo.PointAtBearingAndDistance(requestorLocation, friendlyGroup.BRAA().Bearing().Degrees(), friendlyGroup.BRAA().Range().Meters())
-			if planar.Distance(hostilePoint, friendlyPoint) < (conf.DefaultMarginRadius).Meters() {
+			if geo.Distance(hostilePoint, friendlyPoint) < (conf.DefaultMarginRadius).Meters() {
 				log.Debug().Msg("hostile and friendly groups are within 3nm (furball)")
 				resp.Declaration = brevity.Furball
+				resp.Aspect = brevity.UnknownAspect
 			}
 		} else if hostileGroup != nil {
 			log.Debug().Msg("hostile group found within spike cone")
@@ -62,7 +64,9 @@ func (c *controller) HandleSpiked(r *brevity.SpikedRequest) {
 		resp.Range = &_range
 		altitude := nearestGroup.BRAA().Altitude()
 		resp.Altitude = &altitude
-		resp.Aspect = nearestGroup.Aspect()
+		resp.Aspect = nearestGroup.BRAA().Aspect()
+		resp.Track = nearestGroup.Track()
+		resp.Contacts = nearestGroup.Contacts()
 	}
 
 	c.out <- resp

@@ -32,8 +32,8 @@ func (c *composer) ComposeFadedCall(call brevity.FadedCall) NaturalLanguageRespo
 		writeBoth(fmt.Sprintf(", track %s", call.Group.Track()))
 	}
 
-	if call.Group.Platform() != "" {
-		writeBoth(fmt.Sprintf(", %s", call.Group.Platform()))
+	for _, platform := range call.Group.Platforms() {
+		writeBoth(fmt.Sprintf(", %s", aircraftData[platform].NATOReportingName))
 	}
 
 	subtitle.WriteString(".")

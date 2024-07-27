@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
@@ -17,7 +18,6 @@ import (
 	"github.com/dharmab/skyeye/pkg/tacview/tags"
 	"github.com/dharmab/skyeye/pkg/tacview/types"
 	"github.com/dharmab/skyeye/pkg/trackfile"
-	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
 )
@@ -35,10 +35,12 @@ type streamer struct {
 	referenceTime  time.Time
 	cursorTime     time.Time
 	objects        map[int]*types.Object
+	objectsLock    sync.RWMutex
 	fades          chan *types.Object
 	bullseye       orb.Point
 	updateInterval time.Duration
 	inMultiline    bool
+	coalition      coalitions.Coalition
 }
 
 func NewACMI(coalition coalitions.Coalition, acmi *bufio.Reader, updateInterval time.Duration) ACMI {
@@ -50,6 +52,8 @@ func NewACMI(coalition coalitions.Coalition, acmi *bufio.Reader, updateInterval 
 		objects:        make(map[int]*types.Object),
 		fades:          make(chan *types.Object),
 		updateInterval: updateInterval,
+		coalition:      coalition,
+		objectsLock:    sync.RWMutex{},
 	}
 }
 
@@ -170,6 +174,8 @@ func (s *streamer) handleLine(line string) error {
 
 	logger = logger.With().Int("id", update.ID).Logger()
 
+	s.objectsLock.Lock()
+	defer s.objectsLock.Unlock()
 	if update.IsRemoval {
 		logger.Trace().Msg("line is an object removal")
 		object, ok := s.objects[update.ID]
@@ -219,7 +225,9 @@ func (s *streamer) Stream(ctx context.Context, updates chan<- sim.Updated, fades
 }
 
 func (s *streamer) processUpdates(updates chan<- sim.Updated) {
-	log.Debug().Msg("iterating over objects for trackfile updates")
+	log.Trace().Msg("iterating over objects for trackfile updates")
+	s.objectsLock.Lock()
+	defer s.objectsLock.Unlock()
 	for _, object := range s.objects {
 		logger := log.With().Int("id", object.ID).Logger()
 		types, err := object.GetTypes()
@@ -235,7 +243,7 @@ func (s *streamer) processUpdates(updates chan<- sim.Updated) {
 				logger.Error().Err(err).Msg("error updating bullseye")
 				continue
 			}
-			logger.Debug().Msg("bullseye update")
+			logger.Trace().Msg("bullseye update")
 		}
 		if slices.Contains(types, tags.FixedWing) || slices.Contains(types, tags.Rotorcraft) {
 			logger.Trace().Msg("object is an aircraft")
@@ -249,23 +257,16 @@ func (s *streamer) processUpdates(updates chan<- sim.Updated) {
 
 func (s *streamer) updateAircraft(updates chan<- sim.Updated, object *types.Object) error {
 	logger := log.With().Int("id", object.ID).Logger()
-	coordinates, err := object.GetCoordinates(s.referencePoint)
-	if err != nil {
-		logger.Error().Err(err).Msg("error getting object coordinates")
-		return err
-	}
-	if coordinates.Altitude < unit.Length(10)*unit.Meter {
-		logger.Trace().Float64("agl", coordinates.Altitude.Meters()).Msg("object is below altitude threshold")
-		return err
-	}
 
 	update, err := s.buildUpdate(object)
 	if err != nil {
 		logger.Error().Err(err).Msg("error building object update")
 		return err
 	}
-	logger.Debug().Int("unitID", int(update.Aircraft.UnitID)).Str("name", update.Aircraft.Name).Str("aircraft", update.Aircraft.ACMIName).Msg("aircraft update")
-	updates <- *update
+	if update != nil {
+		logger.Trace().Int("unitID", int(update.Aircraft.UnitID)).Str("name", update.Aircraft.Name).Str("aircraft", update.Aircraft.ACMIName).Msg("aircraft update")
+		updates <- *update
+	}
 	return nil
 }
 
@@ -292,7 +293,7 @@ func (s *streamer) updateBullseye(object *types.Object) error {
 func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 	types, err := object.GetTypes()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting object types: %w", err)
 	}
 	if !slices.Contains(types, tags.FixedWing) && !slices.Contains(types, tags.Rotorcraft) {
 		return nil, errors.New("object is not an aircraft")
@@ -305,10 +306,10 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 	if err != nil {
 		return nil, err
 	}
-	airspeed, err := object.GetSpeed(properties.TAS)
-	if err != nil {
-		airspeed = 0
+	if coordinates == nil {
+		return nil, nil
 	}
+
 	acmiCoalition, ok := object.GetProperty(properties.Coalition)
 	if !ok {
 		return nil, errors.New("object has no coalition")
@@ -322,6 +323,13 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 		callsign = fmt.Sprintf("Unit %d", object.ID)
 	}
 
+	frame := trackfile.Frame{
+		Timestamp: time.Now(),
+		Point:     coordinates.Location,
+		Altitude:  coordinates.Altitude,
+		Heading:   coordinates.Heading,
+	}
+
 	return &sim.Updated{
 		Aircraft: trackfile.Aircraft{
 			UnitID:    uint32(object.ID),
@@ -329,12 +337,6 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 			Coalition: coalition,
 			ACMIName:  name,
 		},
-		Frame: trackfile.Frame{
-			Timestamp: time.Now(),
-			Point:     coordinates.Location,
-			Altitude:  coordinates.Altitude,
-			Heading:   coordinates.Heading,
-			Speed:     airspeed,
-		},
+		Frame: frame,
 	}, nil
 }

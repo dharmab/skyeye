@@ -7,7 +7,6 @@ import (
 	"github.com/dharmab/skyeye/pkg/trackfile"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
-	"github.com/paulmach/orb/planar"
 
 	"github.com/paulmach/orb/geo"
 )
@@ -17,9 +16,10 @@ type group struct {
 	contacts     []*trackfile.Trackfile
 	bullseye     *orb.Point
 	braa         brevity.BRAA
-	platform     string
+	platforms    []string
 	aspect       *brevity.Aspect
 	declaraction brevity.Declaration
+	track        brevity.Track
 }
 
 var _ brevity.Group = &group{}
@@ -55,7 +55,7 @@ func (g *group) Bullseye() *brevity.Bullseye {
 	center := mp.Bound().Center()
 
 	bearing := unit.Angle(geo.Bearing(*g.bullseye, center)) * unit.Degree
-	distance := unit.Length(planar.Distance(*g.bullseye, center)) * unit.Meter
+	distance := unit.Length(geo.Distance(*g.bullseye, center)) * unit.Meter
 	return brevity.NewBullseye(bearing, distance)
 }
 
@@ -74,7 +74,7 @@ func (g *group) Weeds() bool {
 }
 
 func (g *group) Track() brevity.Track {
-	return brevity.TrackFromBearing(g.contacts[0].LastKnown().Heading)
+	return g.track
 }
 
 func (g *group) TrackAngle() unit.Angle {
@@ -109,8 +109,8 @@ func (g *group) Heavy() bool {
 	return len(g.contacts) >= 3
 }
 
-func (g *group) Platform() string {
-	return g.platform
+func (g *group) Platforms() []string {
+	return g.platforms
 }
 
 func (g *group) High() bool {

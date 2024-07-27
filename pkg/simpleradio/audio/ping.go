@@ -37,7 +37,7 @@ func (c *audioClient) sendPings(ctx context.Context) {
 // The SRS server won't send us any audio until it receives a ping from us, so this is useful to initialize VoIP.
 func (c *audioClient) SendPing() {
 	logger := log.With().Str("GUID", string(c.guid)).Logger()
-	logger.Debug().Msg("sending UDP ping")
+	logger.Trace().Msg("sending UDP ping")
 	n, err := c.connection.Write([]byte(c.guid))
 	if errors.Is(err, net.ErrClosed) {
 		logger.Warn().Msg("ping skipped due to closed connection")
@@ -46,6 +46,6 @@ func (c *audioClient) SendPing() {
 	} else if n != srs.GUIDLength {
 		logger.Warn().Int("bytes", n).Int("expectedBytes", srs.GUIDLength).Str("comment", "HOW DID YOU GET HERE").Msg("wrote unexpected number of bytes while sending UDP ping")
 	} else {
-		logger.Debug().Msg("sent UDP ping")
+		logger.Trace().Msg("sent UDP ping")
 	}
 }

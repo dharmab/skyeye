@@ -2,9 +2,11 @@ package parser
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -40,33 +42,32 @@ var anyfaceWords = []string{
 type requestWord string
 
 const (
-	alphaCheck requestWord = "alpha check"
-	bogeyDope  requestWord = "bogey dope"
+	alphaCheck requestWord = "alpha"
+	bogeyDope  requestWord = "bogey"
 	declare    requestWord = "declare"
 	picture    requestWord = "picture"
-	radioCheck requestWord = "radio check"
+	radioCheck requestWord = "radio"
 	spike      requestWord = "spike"
 	spiked     requestWord = "spiked"
 	snaplock   requestWord = "snaplock"
 )
 
 var alternateRequestWords = map[string]requestWord{
-	"ready 1 check":   radioCheck,
-	"read your check": radioCheck,
-	"radio chat":      radioCheck,
-	"radio jack":      radioCheck,
-	"bogeido":         bogeyDope,
-	"bokeido":         bogeyDope,
-	"bokey dope":      bogeyDope,
-	"bokeh dope":      bogeyDope,
-	"bogeydope":       bogeyDope,
-	"okey doke":       bogeyDope,
-	"boogie dope":     bogeyDope,
-	"snap lock":       snaplock,
+	"ready":     radioCheck,
+	"read your": radioCheck,
+	"bogeido":   bogeyDope,
+	"bokeido":   bogeyDope,
+	"bokey":     bogeyDope,
+	"bokeh":     bogeyDope,
+	"bogeydope": bogeyDope,
+	"okey":      bogeyDope,
+	"boogie":    bogeyDope,
+	"oogie":     bogeyDope,
+	"snap lock": snaplock,
 }
 
 func requestWords() []requestWord {
-	return []requestWord{alphaCheck, bogeyDope, declare, picture, radioCheck, spiked, snaplock}
+	return []requestWord{alphaCheck, bogeyDope, declare, picture, radioCheck, spiked, spike, snaplock}
 }
 
 func (p *parser) parseWakeWord(scanner *bufio.Scanner) (string, bool) {
@@ -100,44 +101,60 @@ func (p *parser) Parse(tx string) (any, bool) {
 	var segment string
 	callsign := ""
 	var rWord requestWord
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 	for callsign == "" {
-		ok := scanner.Scan()
-		if !ok {
-			log.Debug().Str("text", tx).Msg("no request word found in text")
+		select {
+		case <-ctx.Done():
+			log.Warn().Str("text", tx).Msg("timed out parsing callsign")
 			return &brevity.UnableToUnderstandRequest{}, true
-		}
-
-		segment = fmt.Sprintf("%s %s", segment, scanner.Text())
-
-		for k, v := range alternateRequestWords {
-			if strings.Contains(segment, k) {
-				log.Debug().Str("segment", segment).Str("alternate", k).Str("canonical", string(v)).Msg("replacing request word")
-				segment = strings.Replace(segment, k, string(v), 1)
-				break
+		default:
+			ok := scanner.Scan()
+			if !ok {
+				log.Debug().Str("text", tx).Msg("no request word found in text")
+				return &brevity.UnableToUnderstandRequest{}, true
 			}
-		}
 
-		for _, word := range requestWords() {
-			if strings.HasSuffix(segment, string(word)) {
-				log.Debug().Str("segment", segment).Str("request word", string(word)).Msg("found request word")
-				rWord = word
-				// Try to parse a callsign from the second segment.
-				callsignSegment := strings.TrimSuffix(segment, string(word))
-				callsignSegment = p.sanitize(callsignSegment)
-				callsign, ok = ParseCallsign(callsignSegment)
-				if !ok {
-					log.Debug().Str("segment", segment).Msg("unable to parse request callsign")
-					return &brevity.UnableToUnderstandRequest{
-						Callsign: "",
-					}, true
-				}
-				if len(callsign) > 30 {
-					log.Warn().Str("callsign", callsign).Msg("callsign too long, ignoring request")
-					return nil, false
-				}
-				_ = scanner.Scan()
+			segment = fmt.Sprintf("%s %s", segment, scanner.Text())
 
-				break
+			for k, v := range alternateRequestWords {
+				if strings.Contains(segment, k) {
+					log.Debug().Str("segment", segment).Str("alternate", k).Str("canonical", string(v)).Msg("replacing request word")
+					segment = strings.Replace(segment, k, string(v), 1)
+					break
+				}
+			}
+
+			for _, word := range requestWords() {
+				select {
+				case <-ctx.Done():
+					log.Warn().Str("text", tx).Msg("timed out parsing callsign and request")
+					return &brevity.UnableToUnderstandRequest{Callsign: callsign}, true
+
+				default:
+					if strings.HasSuffix(strings.TrimSpace(segment), string(word)) {
+						log.Debug().Str("segment", segment).Str("request word", string(word)).Msg("found request word")
+						rWord = word
+						log.Debug().Str("segment", segment).Msg("parsing callsign")
+						callsignSegment := strings.TrimSuffix(segment, string(word))
+						callsignSegment = p.sanitize(callsignSegment)
+						callsign, ok = ParseCallsign(callsignSegment)
+						if !ok {
+							log.Debug().Str("segment", segment).Msg("unable to parse request callsign")
+							return &brevity.UnableToUnderstandRequest{
+								Callsign: "",
+							}, true
+						}
+						log.Debug().Str("callsign", callsign).Str("segment", segment).Msg("parsed callsign")
+						if len(callsign) > 30 {
+							log.Warn().Str("callsign", callsign).Msg("callsign too long, ignoring request")
+							return nil, false
+						}
+						_ = scanner.Scan()
+						log.Debug().Str("text", tx).Str("request", string(word)).Msg("found request word")
+						break
+					}
+				}
 			}
 		}
 	}
@@ -171,17 +188,29 @@ var sanitizerRex = regexp.MustCompile(`[^\p{L}\p{N} ]+`)
 
 // sanitize lowercases the input and replaces punctuation with spaces.
 func (p *parser) sanitize(s string) string {
-	s = strings.ToLower(s)
-	s = numwords.ParseString(s)
-	s = sanitizerRex.ReplaceAllString(s, " ")
+	log.Debug().Str("text", s).Msg("sanitizing text")
+	lowercased := strings.ToLower(s)
+	if s != lowercased {
+		log.Debug().Str("text", lowercased).Msg("lowercased text")
+	}
+	numbersCleaned := numwords.ParseString(lowercased)
+	if lowercased != numbersCleaned {
+		log.Debug().Str("text", numbersCleaned).Msg("parsed numbers")
+	}
+	punctuationCleaned := sanitizerRex.ReplaceAllString(numbersCleaned, " ")
+	if numbersCleaned != punctuationCleaned {
+		log.Debug().Str("text", punctuationCleaned).Msg("replaced punctuation")
+	}
+	finalClean := punctuationCleaned
 	for _, words := range anyfaceWords {
-		if strings.HasPrefix(s, words) {
-			s = strings.Replace(s, words, "anyface", 1)
+		if strings.HasPrefix(finalClean, words) {
+			finalClean = strings.Replace(finalClean, words, "anyface", 1)
+			log.Debug().Str("text", finalClean).Msg("cleaned up ANYFACE")
 			break
 		}
 	}
-	log.Debug().Str("text", s).Msg("sanitized text")
-	return s
+	log.Debug().Str("text", finalClean).Msg("sanitized text")
+	return finalClean
 }
 
 var numberWords = map[string]int{

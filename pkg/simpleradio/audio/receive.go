@@ -60,7 +60,7 @@ func (c *audioClient) receivePings(ctx context.Context, in <-chan []byte) {
 			} else if n > types.GUIDLength {
 				log.Debug().Int("bytes", n).Msg("received UDP ping larger than expected")
 			} else {
-				log.Debug().Str("GUID", string(b[0:types.GUIDLength])).Msg("received UDP ping")
+				log.Trace().Str("GUID", string(b[0:types.GUIDLength])).Msg("received UDP ping")
 			}
 		case <-ctx.Done():
 			log.Info().Msg("stopping ping receiver due to context cancellation")
@@ -134,12 +134,12 @@ func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out ch
 			// Check if there is anything in the buffer and that we've consumed all queued packets. Then check if we've passed the receive deadline.
 			// If so, we have a tranmission ready to publish for audio decoding.
 			if len(buf) > 0 && len(in) == 0 && time.Now().After(c.lastRx.deadline) {
-				log.Debug().Int("bufferLength", len(buf)).Uint64("lastPacketID", c.lastRx.packetNumber).Str("lastOrigin", string(c.lastRx.origin)).Msg("passed receive deadline with packets in buffer")
+				log.Trace().Int("bufferLength", len(buf)).Uint64("lastPacketID", c.lastRx.packetNumber).Str("lastOrigin", string(c.lastRx.origin)).Msg("passed receive deadline with packets in buffer")
 				audio := make([]voice.VoicePacket, len(buf))
 				copy(audio, buf)
-				log.Debug().Int("audioLength", len(audio)).Msg("publishing audio bytes to audio channel")
+				log.Trace().Int("audioLength", len(audio)).Msg("publishing audio bytes to audio channel")
 				out <- audio
-				log.Debug().Msg("resetting receiver state")
+				log.Trace().Msg("resetting receiver state")
 				buf = make([]voice.VoicePacket, 0)
 				c.resetLastRx()
 			}

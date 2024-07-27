@@ -65,43 +65,51 @@ func (o *Object) GetTypes() ([]string, error) {
 	return strings.Split(val, "+"), nil
 }
 
-// GetCoordinates returns the coordinates of the object
+// GetCoordinates returns the coordinates of the object, if possible.
+// Many objects have insufficient information to determine their coordinates.
+// In such a case, the function returns nil and no error.
 // ref is the reference point from the global properties
-func (o *Object) GetCoordinates(ref orb.Point) (Coordinates, error) {
-	c := Coordinates{}
+func (o *Object) GetCoordinates(ref orb.Point) (*Coordinates, error) {
+	c := &Coordinates{}
 
 	val, ok := o.GetProperty(properties.Transform)
 	if !ok {
-		return c, errors.New("object does not contain coordinate transformation")
+		return nil, errors.New("object does not contain coordinate transformation")
 	}
 	fields := strings.Split(val, "|")
 
+	logger := log.With().Int("id", o.ID).Str("transform", val).Logger()
 	if len(fields) < 3 {
-		log.Error().Str("transform", val).Msg("unexpected number of fields in coordinate transformation")
-		return c, fmt.Errorf("unexpected number of fields in coordinate transformation: %d", len(fields))
+		logger.Trace().Msg("unexpected number of fields in coordinate transformation")
+		return nil, nil
 	}
 	if fields[0] == "" || fields[1] == "" {
-		log.Error().Str("transform", val).Msg("missing longitude or latitude in coordinate transformation")
-		return c, errors.New("missing longitude or latitude in coordinate transformation")
+		logger.Trace().Msg("missing longitude or latitude in coordinate transformation")
+		return nil, nil
 	}
 
 	longitude, err := strconv.ParseFloat(fields[0], 64)
 	if err != nil {
-		return c, fmt.Errorf("error parsing longitude: %w", err)
+		logger.Trace().Err(err).Msg("error parsing longitude")
+		return c, nil
 	}
+	longitude = longitude + ref.Lon()
+
 	latitude, err := strconv.ParseFloat(fields[1], 64)
 	if err != nil {
-		return c, fmt.Errorf("error parsing latitude: %w", err)
+		logger.Trace().Err(err).Msg("error parsing latitude")
+		return c, nil
 	}
-	c.Location = orb.Point{longitude + ref.Lon(), latitude + ref.Lat()}
+	latitude = latitude + ref.Lat()
 
-	if fields[2] != "" {
-		altitude, err := strconv.ParseFloat(fields[2], 64)
-		if err != nil {
-			return c, fmt.Errorf("error parsing altitude: %w", err)
-		}
-		c.Altitude = unit.Length(altitude) * unit.Meter
+	c.Location = orb.Point{longitude, latitude}
+
+	altitude, err := strconv.ParseFloat(fields[2], 64)
+	if err != nil {
+		logger.Trace().Err(err).Msg("error parsing altitude")
+		return nil, nil
 	}
+	c.Altitude = unit.Length(altitude) * unit.Meter
 
 	var x, y, roll, pitch, yaw, heading string
 	switch len(fields) {
