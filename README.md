@@ -38,7 +38,7 @@ SkyEye is under active development. A few types of radio calls, such as `BOGEY D
 Skyeye would not be possible without these people and projects, for whom I am deeply appreciative:
 
 * [DCS-SRS](https://github.com/ciribob/DCS-SimpleRadioStandalone) by @ciribob. Ciribob also patiently answered many of my questions on SRS internals and provided helpful debugging tips whenever I ran into a block in the SRS integration.
-* [DCS-gRPC](https://github.com/DCS-gRPC) provides the interface into DCS World. 
+* [Taceview](https://www.tacview.net/) - specifically, [ACMI real time telemetry](https://www.tacview.net/documentation/realtime/en/) - provides the data feed from DCS World.
 * @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against Skyeye during early development, and Jones himself was also patient with my questions on Discord.
 * @ggerganov's [whisper.cpp](https://github.com/ggerganov/whisper.cpp) models provides text-to-speech.
 * @rodaine's [numwords](https://github.com/rodaine/numwords) module is invaluable for parsing numeric quantities from voice input.
@@ -71,8 +71,8 @@ Current status:
 - ✅ Brevity composition - bot can phrase radio calls using tactical brevity
 - ✅ Speech synthesis - bot can turn text into human-like speech and say it on SRS
 - ✅ CI/CD pipeline configured for linting, testing and building on Linux and Windows
-- ✅ DCS-gRPC - Prototyped connection to DCS via DCS-gRPC and reading game world state
-- 🚧 Controller: Game world state interface implemenation in progress
+- ✅ Tacview - ACMI telemetry feed implemented
+- ✅ Controller: Radar trackfile simulation imlpemented
 - 🚧 Controller: GCI controller logic implementation in progress
 - 🚧 Accessibility: Keyboard input not yet implemented
 - 🚧 Accessibility: In-game subtitles not yet implemented
