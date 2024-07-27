@@ -3,115 +3,127 @@ package encyclopedia
 import "github.com/dharmab/skyeye/pkg/brevity"
 
 type Aircraft struct {
-	ACMIShortName       string
-	Category            brevity.ContactCategory
+	// ACMIShortName is the Name proeprty used in ACMI telemetry.
+	ACMIShortName string
+	// Category is the [brevity.ContactCategory] of the aircraft - fixed wing or rotary wing.
+	Category brevity.ContactCategory
+	// PlatformDesignation is the official platform designation of the aircraft.
+	// e.g. F-15, Su-27
 	PlatformDesignation string
-	TypeDesignation     string
-	NATOReportingName   string
-	OfficialName        string
-	Nickname            string
+	// TypeDesignation is the official type designation of the aircraft.
+	// e.g. F-15C, F-15E, Su-27
+	TypeDesignation string
+	// NATOReportingName is the NATO reporting name of the aircraft. Not all aircraft have a NATO reporting name.
+	// e.g. Flanker, Bear
+	NATOReportingName string
+	// OfficialName is the official name of the aircraft. Not all aircraft have an official name.
+	// e.g. Thunderbolt, Falcon, Eagle
+	OfficialName string
+	// Nickname is a common nickname for the aircraft. Not all aircraft have a nickname.
+	// e.g. Warthog, Viper, Mudhen
+	Nickname string
 }
 
 var a10Data = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "A-10",
 	OfficialName:        "Thunderbolt",
 	Nickname:            "Warthog",
 }
 
 var c101Data = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "C-101",
 	OfficialName:        "Aviojet",
 }
 
 var f4Data = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "F-4",
 	OfficialName:        "Phantom",
 }
 
 var f5Data = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "F-5",
 	OfficialName:        "Tiger",
 }
 
 var f14Data = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "F-14",
 	OfficialName:        "Tomcat",
 }
 
 var f15Data = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "F-15",
 	// Use "Eagle" for Strike Eagle because radar cannot distinguish between the two
 	OfficialName: "Eagle",
 }
 
 var f16Data = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "F-16",
 	OfficialName:        "Falcon",
 	Nickname:            "Viper",
 }
 
 var fa18Data = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "F/A-18",
 	OfficialName:        "Hornet",
 }
 
 var mirageF1Data = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "Mirage F1",
 	OfficialName:        "Mirage F1",
 }
 
 var fencerData = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "Su-24",
 	NATOReportingName:   "Fencer",
 }
 
 var foxbatData = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "MiG-25",
 	NATOReportingName:   "Foxbat",
 }
 
 var fulcrumData = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "MiG-29",
 	NATOReportingName:   "Fulcrum",
 }
 
 var frogfootData = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "Su-25",
 	NATOReportingName:   "Frogfoot",
 }
 
 var flankerData = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "Su-27",
 	NATOReportingName:   "Flanker",
 }
 
 var l39Data = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "L-39",
 	OfficialName:        "Albatros",
 }
 
 var mb339Data = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "MB-339",
 }
 
 var tornadoData = Aircraft{
-	Category:            brevity.Airplanes,
+	Category:            brevity.FixedWing,
 	PlatformDesignation: "Tornado",
 	OfficialName:        "Tornado",
 }
@@ -135,7 +147,7 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "A-4E",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "A-4",
 		TypeDesignation:     "A-4E",
 		OfficialName:        "Skyhawk",
@@ -143,27 +155,27 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "A-50",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "A-50",
 		TypeDesignation:     "A-50",
 		NATOReportingName:   "Mainstay",
 	},
 	{
 		ACMIShortName:       "AJS 37",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "AJS37",
 		OfficialName:        "Viggen",
 	},
 	{
 		ACMIShortName:       "AV-8BNA",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "AV-8",
 		TypeDesignation:     "AV-8B",
 		OfficialName:        "Harrier",
 	},
 	{
 		ACMIShortName:       "B-1B",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "B-1",
 		TypeDesignation:     "B-1B",
 		OfficialName:        "Lancer",
@@ -171,7 +183,7 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "B-52H",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "B-52",
 		TypeDesignation:     "B-52H",
 		OfficialName:        "Stratofortress",
@@ -193,7 +205,7 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "C-130",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "C-130",
 		TypeDesignation:     "C-130",
 		OfficialName:        "Hercules",
@@ -201,41 +213,41 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "C-17A",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "C-17",
 		TypeDesignation:     "C-17A",
 		OfficialName:        "Globemaster",
 	},
 	{
 		ACMIShortName:       "C-47",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "C-47",
 		OfficialName:        "Skytrain",
 	},
 	{
 		ACMIShortName:       "E-2C",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "E-2",
 		TypeDesignation:     "E-2C",
 		OfficialName:        "Hawkeye",
 	},
 	{
 		ACMIShortName:       "E-3A",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "E-3",
 		TypeDesignation:     "E-3A",
 		OfficialName:        "Sentry",
 	},
 	{
 		ACMIShortName:       "F-86F",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "F-86",
 		TypeDesignation:     "F-86F",
 		OfficialName:        "Sabre",
 	},
 	{
 		ACMIShortName:       "F-117A",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "F-117",
 		TypeDesignation:     "F-117A",
 		OfficialName:        "Nighthawk",
@@ -345,21 +357,21 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "H-6J",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "Tu-16",
 		TypeDesignation:     "H-6J",
 		NATOReportingName:   "Badger",
 	},
 	{
 		ACMIShortName:       "IL-76MD",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "Il-76",
 		TypeDesignation:     "Il-76MD",
 		NATOReportingName:   "Candid",
 	},
 	{
 		ACMIShortName:       "IL-78M",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "Il-78",
 		TypeDesignation:     "Il-78M",
 		NATOReportingName:   "Midas",
@@ -373,14 +385,14 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "JF-17",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "JF-17",
 		TypeDesignation:     "JF-17",
 		OfficialName:        "Thunder",
 	},
 	{
 		ACMIShortName:       "KC-130",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "KC-130",
 		TypeDesignation:     "KC-130",
 		OfficialName:        "Hercules",
@@ -388,21 +400,21 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "KC-135",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "KC-135",
 		TypeDesignation:     "KC-135",
 		OfficialName:        "Stratotanker",
 	},
 	{
 		ACMIShortName:       "KJ-2000",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "KJ-2000",
 		TypeDesignation:     "KJ-2000",
 		OfficialName:        "Mainring",
 	},
 	{
 		ACMIShortName:       "L-39C",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: l39Data.PlatformDesignation,
 		TypeDesignation:     "L-39C",
 		OfficialName:        l39Data.OfficialName,
@@ -416,7 +428,7 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "M2000C",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "Mirage 2000",
 		TypeDesignation:     "Mirage 2000C",
 		OfficialName:        "Mirage 2000",
@@ -435,35 +447,35 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "Mi-24P",
-		Category:            brevity.Helicopters,
+		Category:            brevity.RotaryWing,
 		PlatformDesignation: "Mi-24",
 		TypeDesignation:     "Mi-24P",
 		NATOReportingName:   "Hind",
 	},
 	{
 		ACMIShortName:       "MiG-15bis",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "MiG-15",
 		TypeDesignation:     "MiG-15bis",
 		NATOReportingName:   mig15NATOReportingName,
 	},
 	{
 		ACMIShortName:       "MiG-19P",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "MiG-19",
 		TypeDesignation:     "MiG-19P",
 		NATOReportingName:   "Farmer",
 	},
 	{
 		ACMIShortName:       "MiG-21Bis",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "MiG-21",
 		TypeDesignation:     "MiG-21Bis",
 		NATOReportingName:   "Fishbed",
 	},
 	{
 		ACMIShortName:       "MiG-23MLD",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "MiG-23",
 		TypeDesignation:     "MiG-23MLD",
 		NATOReportingName:   "Flogger",
@@ -484,7 +496,7 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "MiG-27K",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "MiG-27",
 		TypeDesignation:     "MiG-27K",
 		NATOReportingName:   "Flogger",
@@ -505,42 +517,42 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "MiG-31",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "MiG-31",
 		TypeDesignation:     "MiG-31",
 		NATOReportingName:   "Foxhound",
 	},
 	{
 		ACMIShortName:       "M2000-5",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "Mirage 2000",
 		TypeDesignation:     "Mirage 2000-5",
 		OfficialName:        "Mirage 2000",
 	},
 	{
 		ACMIShortName:       "MQ-1",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "MQ-1",
 		TypeDesignation:     "MQ-1A",
 		OfficialName:        "Predator",
 	},
 	{
 		ACMIShortName:       "MQ-9",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "MQ-9",
 		TypeDesignation:     "MQ-9",
 		OfficialName:        "Reaper",
 	},
 	{
 		ACMIShortName:       "S-3B",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "S-3",
 		TypeDesignation:     "S-3B",
 		OfficialName:        "Viking",
 	},
 	{
 		ACMIShortName:       "Su-17M4",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "Su-17",
 		TypeDesignation:     "Su-17M4",
 		NATOReportingName:   "Fitter",
@@ -603,7 +615,7 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "Su-34",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "Su-34",
 		TypeDesignation:     "Su-34",
 		OfficialName:        "Fullback",
@@ -617,21 +629,21 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "Tu-22M3",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "Tu-22",
 		TypeDesignation:     "Tu-22M",
 		OfficialName:        "Backfire",
 	},
 	{
 		ACMIShortName:       "Tu-95MS",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "Tu-95",
 		TypeDesignation:     "Tu-95MS",
 		OfficialName:        "Bear",
 	},
 	{
 		ACMIShortName:       "Tu-142",
-		Category:            brevity.Airplanes,
+		Category:            brevity.FixedWing,
 		PlatformDesignation: "Tu-142",
 		TypeDesignation:     "Tu-142",
 		OfficialName:        "Bear",

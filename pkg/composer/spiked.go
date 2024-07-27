@@ -7,6 +7,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
+// ComposeSpikedResponse implements [Composer.ComposeSpikedResponse].
 func (c *composer) ComposeSpikedResponse(r brevity.SpikedResponse) NaturalLanguageResponse {
 	if r.Status {
 		reply := fmt.Sprintf("%s, spike range %d, %d, %s", r.Callsign, int(r.Range.NauticalMiles()), int(r.Altitude.Feet()), r.Aspect)

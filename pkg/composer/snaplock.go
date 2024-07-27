@@ -7,6 +7,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
+// ComposeSnaplockResponse implements [Composer.ComposeSnaplockResponse].
 func (c *composer) ComposeSnaplockResponse(r brevity.SnaplockResponse) NaturalLanguageResponse {
 	isLocationMissing := r.Group.BRAA() == nil
 	isDeclarationUnable := r.Group.Declaration() == brevity.Unable

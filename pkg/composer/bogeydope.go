@@ -6,6 +6,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
+// ComposeBogeyDopeResponse implements [Composer.ComposeBogeyDopeResponse].
 func (c *composer) ComposeBogeyDopeResponse(r brevity.BogeyDopeResponse) NaturalLanguageResponse {
 	if r.Group == nil {
 		reply := fmt.Sprintf("%s, %s", r.Callsign, brevity.Clean)

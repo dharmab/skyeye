@@ -16,8 +16,8 @@ func (c *controller) HandleDeclare(r *brevity.DeclareRequest) {
 		r.Location.Bearing().Degrees(),
 		r.Location.Distance().Meters(),
 	)
-	friendlyGroups := c.scope.FindNearbyGroups(location, c.coalition, brevity.Airplanes)
-	hostileGroups := c.scope.FindNearbyGroups(location, c.hostileCoalition(), brevity.Airplanes)
+	friendlyGroups := c.scope.FindNearbyGroups(location, c.coalition, brevity.Aircraft)
+	hostileGroups := c.scope.FindNearbyGroups(location, c.hostileCoalition(), brevity.Aircraft)
 	logger.Debug().Int("friendly", len(friendlyGroups)).Int("hostile", len(hostileGroups)).Msg("queried groups near delcared location")
 
 	declaration := brevity.Unable

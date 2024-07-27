@@ -274,6 +274,10 @@ func (s *streamer) Bullseye() orb.Point {
 	return s.bullseye
 }
 
+func (s *streamer) Time() time.Time {
+	return s.referenceTime
+}
+
 func (s *streamer) updateBullseye(object *types.Object) error {
 	types, err := object.GetTypes()
 	if err != nil {

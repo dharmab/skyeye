@@ -20,6 +20,7 @@ const (
 	Northwest        Track = "northwest"
 )
 
+// TrackFromBearing computes an aircraft's track direction based on the aircraft's heading.
 func TrackFromBearing(bearing unit.Angle) Track {
 	θ := int(bearing.Degrees()) % 360
 	log.Debug().Int("bearing", θ).Msg("TrackFromBearing")

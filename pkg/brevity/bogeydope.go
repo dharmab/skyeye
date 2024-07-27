@@ -3,9 +3,9 @@ package brevity
 type ContactCategory int
 
 const (
-	Everything ContactCategory = iota
-	Airplanes
-	Helicopters
+	Aircraft ContactCategory = iota
+	FixedWing
+	RotaryWing
 )
 
 // BogeyDopeRequest is a request for a BOGEY DOPE.

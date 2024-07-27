@@ -7,6 +7,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
+// ComposeNegativeRadarContactResponse implements [Composer.ComposeNegativeRadarContactResponse].
 func (c *composer) ComposeNegativeRadarContactResponse(r brevity.NegativeRadarContactResponse) NaturalLanguageResponse {
 	replies := []string{
 		"%s, negative radar contact. Double check your callsign.",

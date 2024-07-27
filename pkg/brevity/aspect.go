@@ -22,9 +22,10 @@ const (
 	Drag = "drag"
 )
 
+// AspectFromAngle computes target aspect based on the bearing from an aircraft to the target and the track direction of the target.
 func AspectFromAngle(bearing unit.Angle, track unit.Angle) Aspect {
 	targetBearing := unit.Angle(bearing.Degrees()+180) * unit.Degree
-	targetAspect := math.Abs(track.Degrees() - targetBearing.Degrees())
+	targetAspect := int(math.Abs(track.Degrees()-targetBearing.Degrees())) % 360
 	switch {
 	case targetAspect <= 30:
 		return Hot

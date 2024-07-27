@@ -7,6 +7,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
+// ComposeFadedCall implements [Composer.ComposeFadedCall].
 func (c *composer) ComposeFadedCall(call brevity.FadedCall) NaturalLanguageResponse {
 	var subtitle, speech strings.Builder
 

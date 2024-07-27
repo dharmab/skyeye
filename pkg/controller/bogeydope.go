@@ -7,7 +7,7 @@ import (
 
 // HandleBogeyDope implements Controller.HandleBogeyDope.
 func (c *controller) HandleBogeyDope(r *brevity.BogeyDopeRequest) {
-	logger := log.With().Str("callsign", r.Callsign).Type("type", r).Logger()
+	logger := log.With().Str("callsign", r.Callsign).Type("type", r).Any("filter", r.Filter).Logger()
 	logger.Debug().Msg("handling request")
 	requestorTrackfile := c.findCallsign(r.Callsign)
 	if requestorTrackfile == nil {
@@ -17,6 +17,7 @@ func (c *controller) HandleBogeyDope(r *brevity.BogeyDopeRequest) {
 	}
 	logger = logger.With().Str("requestorTrackfile", requestorTrackfile.String()).Logger()
 	logger.Info().Msg("found requestor's trackfile")
+
 	requestorLocation := requestorTrackfile.LastKnown().Point
 	nearestGroup := c.scope.FindNearestGroupWithBRAA(requestorLocation, c.hostileCoalition(), r.Filter)
 	if nearestGroup == nil {
@@ -27,6 +28,7 @@ func (c *controller) HandleBogeyDope(r *brevity.BogeyDopeRequest) {
 	nearestGroup.SetDeclaration(brevity.Hostile)
 	logger.Info().
 		Any("platforms", nearestGroup.Platforms()).
+		Str("aspect", string(nearestGroup.Aspect())).
 		Msg("found nearest hostile group")
 	c.out <- brevity.BogeyDopeResponse{Callsign: r.Callsign, Group: nearestGroup}
 }

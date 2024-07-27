@@ -263,7 +263,7 @@ func (s *scope) FindNearestTrackfile(origin orb.Point, coalition coalitions.Coal
 		if tf.Contact.Coalition == coalition && isValidTrack(tf) {
 			data, ok := s.aircraftData[tf.Contact.ACMIName]
 			// If the aircraft is not in the encyclopedia, assume it matches
-			matchesFilter := !ok || data.Category == filter || filter == brevity.Everything
+			matchesFilter := !ok || data.Category == filter || filter == brevity.Aircraft
 			if matchesFilter {
 				hasTrack := tf.Track.Len() > 0
 				if hasTrack {
@@ -306,7 +306,7 @@ func (s *scope) FindNearbyGroups(location orb.Point, coalition coalitions.Coalit
 			}
 			data, ok := s.aircraftData[tf.Contact.ACMIName]
 			// If the aircraft is not in the encyclopedia, assume it matches
-			matchesFilter := !ok || data.Category == filter || filter == brevity.Everything
+			matchesFilter := !ok || data.Category == filter || filter == brevity.Aircraft
 			if matchesFilter {
 				if geo.Distance(tf.LastKnown().Point, location) < conf.DefaultMarginRadius.Meters() {
 					group := s.findGroupForAircraft(tf)
@@ -325,17 +325,19 @@ func isValidTrack(tf *trackfile.Trackfile) bool {
 	isValidPosition := isValidLongitude && isValidLatitude
 	isAboveSpeedFilter := tf.Speed() > 50*unit.Knot
 	isAboveAltitudeFilter := tf.LastKnown().Altitude > 10*unit.Meter
+	isValid := isValidPosition && isAboveSpeedFilter && isAboveAltitudeFilter
 	log.Debug().
 		Str("aircraft", tf.Contact.ACMIName).
 		Int("unitID", int(tf.Contact.UnitID)).
 		Str("callsign", tf.Contact.Name).
+		Bool("isValid", isValid).
 		Bool("isValidLongitude", isValidLongitude).
 		Bool("isValidLatitude", isValidLatitude).
 		Bool("isValidPosition", isValidPosition).
 		Bool("isAboveSpeedFilter", isAboveSpeedFilter).
 		Bool("isAboveAltitudeFilter", isAboveAltitudeFilter).
 		Msg("checking track validity")
-	return isValidPosition && isAboveSpeedFilter && isAboveAltitudeFilter
+	return isValid
 }
 
 func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing unit.Angle, arc unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
@@ -364,7 +366,7 @@ func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing unit.Angle, arc
 
 			data, ok := s.aircraftData[tf.Contact.ACMIName]
 			// If the aircraft is not in the encyclopedia, assume it matches
-			matchesFilter := !ok || data.Category == filter || filter == brevity.Everything
+			matchesFilter := !ok || data.Category == filter || filter == brevity.Aircraft
 			if matchesFilter {
 				logger.Debug().Msg("contact matches filter")
 				contactLocation := tf.LastKnown().Point
@@ -418,7 +420,12 @@ func (s *scope) findGroupForAircraft(tf *trackfile.Trackfile) *group {
 		var name string
 		data, ok := s.aircraftData[tf.Contact.ACMIName]
 		if ok {
-			name = data.NATOReportingName
+			for _, reportingName := range []string{data.NATOReportingName, data.Nickname, data.OfficialName, data.PlatformDesignation} {
+				if reportingName != "" {
+					name = reportingName
+					break
+				}
+			}
 		}
 		platforms[name] = nil
 	}

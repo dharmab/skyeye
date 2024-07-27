@@ -6,6 +6,8 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
+// ComposeBRAA constructs natural language brevity for communicating BRAA information.
+// Example: "BRAA 270/20, 20000, hot"
 func (c *composer) ComposeBRAA(braa brevity.BRAA) NaturalLanguageResponse {
 	var aspect string
 	if braa.Aspect() != brevity.UnknownAspect {

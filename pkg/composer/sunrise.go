@@ -6,6 +6,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
+// ComposeSunriseCall implements [Composer.ComposeSunriseCall].
 func (c *composer) ComposeSunriseCall(call brevity.SunriseCall) NaturalLanguageResponse {
 	return NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf("All players: GCI %s (bot) sunrise on %.3fMHz", c.callsign, call.Frequency.Megahertz()),

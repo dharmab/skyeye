@@ -7,6 +7,7 @@ import (
 	"unicode"
 )
 
+// PronounceBearing composes a text representation of a sequence of up to three digits, padded with zeros.
 func PronounceBearing(d int) (s string) {
 	for d < 0 {
 		d += 360
@@ -25,7 +26,8 @@ func PronounceBearing(d int) (s string) {
 	return
 }
 
-// PronounceInt pronounces the given integer as a sequence of digits.
+// PronounceInt composes a text representation of a a sequence of digits, using aviation pronunciation.
+// 4 is pronounced "fower", 8 is pronounced "ait", and 9 is pronounced "niner".
 func PronounceInt(d int) string {
 	if d < 0 {
 		return "minus " + PronounceInt(-d)
@@ -63,7 +65,7 @@ func PronounceInt(d int) string {
 
 var defaultDecimalSeparator = "point"
 
-// PronounceFractional pronounces the given float as a sequence of digits
+// PronounceFractional composes a text representation of the given float as a sequence of digits.
 func PronounceDecimal(f float64, precision int, separator string) string {
 	if separator == "" {
 		separator = defaultDecimalSeparator
@@ -87,7 +89,7 @@ func PronounceDecimal(f float64, precision int, separator string) string {
 	}
 }
 
-// PronounceNumbers pronounces the digits in the given string as a sequence of digits.
+// PronounceNumbers composes a text representation of the digits in the given string as a sequence of digits.
 // Non-digit characters are ignored.
 func PronounceNumbers(s string) string {
 	var builder strings.Builder
