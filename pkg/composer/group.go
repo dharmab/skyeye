@@ -14,7 +14,7 @@ var aircraftData = encyclopedia.New().Aircraft()
 
 // ComposeCoreInformationFormat communicates information about groups.
 // Reference: ATP 3-52.4 chapter IV section 3
-func (c *composer) ComposeCoreInformationFormat(groups []brevity.Group) []NaturalLanguageResponse {
+func (c *composer) ComposeCoreInformationFormat(count int, groups []brevity.Group) []NaturalLanguageResponse {
 	if len(groups) == 0 {
 		return []NaturalLanguageResponse{{
 			Subtitle: string(brevity.Clean),
@@ -29,8 +29,8 @@ func (c *composer) ComposeCoreInformationFormat(groups []brevity.Group) []Natura
 	responses[0] = c.ComposeGroup(groups[0])
 	if len(groups) > 1 {
 		responses[0] = NaturalLanguageResponse{
-			Subtitle: fmt.Sprintf("%d groups. %s", len(groups), responses[0].Subtitle),
-			Speech:   fmt.Sprintf("%d groups. %s", len(groups), responses[0].Speech),
+			Subtitle: fmt.Sprintf("%d groups. %s", count, responses[0].Subtitle),
+			Speech:   fmt.Sprintf("%d groups. %s", count, responses[0].Speech),
 		}
 	} else {
 		responses[0] = NaturalLanguageResponse{
