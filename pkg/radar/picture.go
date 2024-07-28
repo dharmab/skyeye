@@ -4,6 +4,7 @@ import (
 	"math"
 	"slices"
 
+	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
@@ -74,12 +75,11 @@ func (s *scope) GetPicture(origin orb.Point, radius unit.Length, coalition coali
 		}
 
 		// Prioritize aircraft based on distance from caller
-		// 3NM is considered a marginal difference
 		distanceA := unit.Length(geo.Distance(origin, a.point())) * unit.Meter
 		distanceB := unit.Length(geo.Distance(origin, b.point())) * unit.Meter
 		isDistanceSimilar := math.Abs(
 			distanceA.NauticalMiles()-distanceB.NauticalMiles(),
-		) < 3
+		) < conf.DefaultMarginRadius.NauticalMiles()
 		if !isDistanceSimilar {
 			return int(distanceA - distanceB)
 		}
@@ -105,7 +105,7 @@ func (s *scope) GetPicture(origin orb.Point, radius unit.Length, coalition coali
 		capacity = len(groups)
 	}
 	result := make([]brevity.Group, capacity)
-	for i := 0; i < len(groups) && i < 3; i++ {
+	for i := 0; i < capacity; i++ {
 		result[i] = groups[i]
 	}
 	return len(groups), result
