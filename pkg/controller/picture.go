@@ -18,11 +18,11 @@ func (c *controller) HandlePicture(r *brevity.PictureRequest) {
 	}
 
 	logger.Debug().Msg("building picture")
-	groups := c.scope.GetPicture(tf.LastKnown().Point, r.Radius, c.hostileCoalition(), brevity.Aircraft)
+	count, groups := c.scope.GetPicture(tf.LastKnown().Point, r.Radius, c.hostileCoalition(), brevity.FixedWing)
 	for _, g := range groups {
 		g.SetDeclaration(brevity.Bandit)
 	}
 
-	logger.Debug().Int("groups", len(groups)).Bool("clean", len(groups) == 0).Msg("sending response")
-	c.out <- brevity.PictureResponse{Groups: groups}
+	logger.Debug().Int("groups", len(groups)).Int("count", count).Msg("sending response")
+	c.out <- brevity.PictureResponse{Count: count, Groups: groups}
 }
