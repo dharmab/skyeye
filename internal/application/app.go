@@ -291,53 +291,68 @@ func (a *app) compose(ctx context.Context, in <-chan any, out chan<- composer.Na
 		case call := <-in:
 			logger := log.With().Type("type", call).Interface("params", call).Logger()
 			logger.Info().Msg("composing brevity call")
-			var nlr composer.NaturalLanguageResponse
+			var response composer.NaturalLanguageResponse
+			skipSend := false
 			switch c := call.(type) {
 			case brevity.AlphaCheckResponse:
 				logger.Debug().Msg("composing ALPHA CHECK call")
-				nlr = a.composer.ComposeAlphaCheckResponse(c)
+				response = a.composer.ComposeAlphaCheckResponse(c)
 			case brevity.BogeyDopeResponse:
 				logger.Debug().Msg("composing BOGEY DOPE call")
-				nlr = a.composer.ComposeBogeyDopeResponse(c)
+				response = a.composer.ComposeBogeyDopeResponse(c)
 			case brevity.DeclareResponse:
 				logger.Debug().Msg("composing DECLARE call")
-				nlr = a.composer.ComposeDeclareResponse(c)
+				response = a.composer.ComposeDeclareResponse(c)
 			case brevity.FadedCall:
 				logger.Debug().Msg("composing FADED call")
-				nlr = a.composer.ComposeFadedCall(c)
+				response = a.composer.ComposeFadedCall(c)
 			case brevity.NegativeRadarContactResponse:
 				logger.Debug().Msg("composing NEGATIVE RADAR CONTACT call")
-				nlr = a.composer.ComposeNegativeRadarContactResponse(c)
+				response = a.composer.ComposeNegativeRadarContactResponse(c)
 			case brevity.PictureResponse:
 				logger.Debug().Msg("composing PICTURE call")
-				nlr = a.composer.ComposePictureResponse(c)
+				// PICTURE can be a long call, so it is split across multiple transmissions
+				responses := a.composer.ComposePictureResponse(c)
+				for _, response := range responses {
+					if response.Speech != "" && response.Subtitle != "" {
+						logger.Info().Str("speech", response.Speech).Str("subtitle", response.Subtitle).Msg("composed brevity call")
+						out <- response
+					} else {
+						logger.Warn().Msg("natural language response is empty")
+					}
+				}
+				skipSend = true
 			case brevity.RadioCheckResponse:
 				logger.Debug().Msg("composing RADIO CHECK call")
-				nlr = a.composer.ComposeRadioCheckResponse(c)
+				response = a.composer.ComposeRadioCheckResponse(c)
 			case brevity.SnaplockResponse:
 				logger.Debug().Msg("composing SNAPLOCK call")
-				nlr = a.composer.ComposeSnaplockResponse(c)
+				response = a.composer.ComposeSnaplockResponse(c)
 			case brevity.SpikedResponse:
 				logger.Debug().Msg("composing SPIKED call")
-				nlr = a.composer.ComposeSpikedResponse(c)
+				response = a.composer.ComposeSpikedResponse(c)
 			case brevity.SunriseCall:
 				logger.Debug().Msg("composing SUNRISE call")
-				nlr = a.composer.ComposeSunriseCall(c)
+				response = a.composer.ComposeSunriseCall(c)
 			case brevity.ThreatCall:
 				logger.Debug().Msg("composing THREAT call")
-				nlr = a.composer.ComposeThreatCall(c)
+				response = a.composer.ComposeThreatCall(c)
 			case brevity.SayAgainResponse:
 				logger.Debug().Msg("composing SAY AGAIN call")
-				nlr = a.composer.ComposeSayAgainResponse(c)
+				response = a.composer.ComposeSayAgainResponse(c)
 			default:
 				logger.Debug().Msg("unable to route call to composition")
 			}
-			if nlr.Speech != "" && nlr.Subtitle != "" {
-				logger.Info().Str("speech", nlr.Speech).Str("subtitle", nlr.Subtitle).Msg("composed brevity call")
-				out <- nlr
-			} else {
-				logger.Warn().Msg("natural language response is empty")
+
+			if !skipSend {
+				if response.Speech != "" && response.Subtitle != "" {
+					logger.Info().Str("speech", response.Speech).Str("subtitle", response.Subtitle).Msg("composed brevity call")
+					out <- response
+				} else {
+					logger.Warn().Msg("natural language response is empty")
+				}
 			}
+
 		}
 	}
 }

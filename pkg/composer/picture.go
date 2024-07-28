@@ -7,10 +7,16 @@ import (
 )
 
 // ComposePictureResponse implements [Composer.ComposePictureResponse].
-func (c *composer) ComposePictureResponse(r brevity.PictureResponse) NaturalLanguageResponse {
-	g := c.ComposeCoreInformationFormat(r.Groups)
-	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", c.callsign, g.Subtitle),
-		Speech:   fmt.Sprintf("%s, %s", c.callsign, g.Speech),
+func (c *composer) ComposePictureResponse(r brevity.PictureResponse) []NaturalLanguageResponse {
+	info := c.ComposeCoreInformationFormat(r.Groups)
+
+	responses := make([]NaturalLanguageResponse, len(info))
+	responses[0] = NaturalLanguageResponse{
+		Subtitle: fmt.Sprintf("%s, %s", c.callsign, info[0].Subtitle),
+		Speech:   fmt.Sprintf("%s, %s", c.callsign, info[0].Speech),
 	}
+	for i := 1; i < len(info); i++ {
+		responses[i] = info[i]
+	}
+	return responses
 }

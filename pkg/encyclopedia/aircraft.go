@@ -333,7 +333,14 @@ var aircraftData = append([]Aircraft{
 		OfficialName:        f16Data.OfficialName,
 		Nickname:            f16Data.Nickname,
 	},
-
+	{
+		ACMIShortName:       "F-16C_50",
+		Category:            f16Data.Category,
+		PlatformDesignation: f16Data.PlatformDesignation,
+		TypeDesignation:     "F-16C",
+		OfficialName:        f16Data.OfficialName,
+		Nickname:            f16Data.Nickname,
+	},
 	{
 		ACMIShortName:       "F/A-18A",
 		Category:            fa18Data.Category,
@@ -451,6 +458,13 @@ var aircraftData = append([]Aircraft{
 		PlatformDesignation: "Mi-24",
 		TypeDesignation:     "Mi-24P",
 		NATOReportingName:   "Hind",
+	},
+	{
+		ACMIShortName: "Mi-26",
+		Category:      brevity.RotaryWing,
+		PlatformDesignation: "Mi-26",
+		TypeDesignation:     "Mi-26",
+		NATOReportingName:   "Hip",
 	},
 	{
 		ACMIShortName:       "MiG-15bis",

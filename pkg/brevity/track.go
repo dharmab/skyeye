@@ -1,8 +1,9 @@
 package brevity
 
 import (
+	"math"
+
 	"github.com/martinlindhe/unit"
-	"github.com/rs/zerolog/log"
 )
 
 // Track is a compass direction.
@@ -22,8 +23,11 @@ const (
 
 // TrackFromBearing computes an aircraft's track direction based on the aircraft's heading.
 func TrackFromBearing(bearing unit.Angle) Track {
-	θ := int(bearing.Degrees()) % 360
-	log.Debug().Int("bearing", θ).Msg("TrackFromBearing")
+	θ := int(math.Round(bearing.Degrees()))
+	for θ < 0 {
+		θ += 360
+	}
+	θ = θ % 360
 	switch {
 	case θ > 337 || θ <= 22:
 		return North

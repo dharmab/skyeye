@@ -17,7 +17,7 @@ func (c *composer) ComposeBogeyDopeResponse(r brevity.BogeyDopeResponse) Natural
 	}
 	groups := c.ComposeCoreInformationFormat([]brevity.Group{r.Group})
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", r.Callsign, groups.Subtitle),
-		Speech:   fmt.Sprintf("%s, %s", r.Callsign, groups.Speech),
+		Subtitle: fmt.Sprintf("%s, %s", r.Callsign, groups[0].Subtitle),
+		Speech:   fmt.Sprintf("%s, %s", r.Callsign, groups[0].Speech),
 	}
 }
