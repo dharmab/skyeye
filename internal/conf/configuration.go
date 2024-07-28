@@ -44,5 +44,5 @@ type Configuration struct {
 	Voice synthesizer.Voice
 }
 
-const DefaultPictureRadius = 35 * unit.NauticalMile
+const DefaultPictureRadius = 300 * unit.NauticalMile
 const DefaultMarginRadius = 3 * unit.NauticalMile

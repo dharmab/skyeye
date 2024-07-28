@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
@@ -46,6 +47,9 @@ type audioClient struct {
 	lastRx rxState
 	// packetNumber is incremented for each voice packet transmitted.
 	packetNumber uint64
+
+	// busy indicates if there is a transmission in progress.
+	busy sync.Mutex
 }
 
 // rxState contains the state of the current received transmission.
@@ -70,14 +74,14 @@ func NewClient(guid types.GUID, config types.ClientConfiguration) (AudioClient, 
 		return nil, fmt.Errorf("failed to connect to SRS server %v over UDP: %w", config.Address, err)
 	}
 	return &audioClient{
-		guid:       guid,
-		radio:      config.Radio,
-		connection: connection,
-		// TODO configurable buffer size
+		guid:         guid,
+		radio:        config.Radio,
+		connection:   connection,
 		txChan:       make(chan Audio),
 		rxchan:       make(chan Audio),
 		lastRx:       rxState{},
 		packetNumber: 1,
+		busy:         sync.Mutex{},
 	}, nil
 }
 

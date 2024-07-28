@@ -19,7 +19,6 @@ type group struct {
 	platforms    []string
 	aspect       *brevity.Aspect
 	declaraction brevity.Declaration
-	track        brevity.Track
 }
 
 var _ brevity.Group = &group{}
@@ -74,7 +73,10 @@ func (g *group) Weeds() bool {
 }
 
 func (g *group) Track() brevity.Track {
-	return g.track
+	if len(g.contacts) == 0 {
+		return brevity.UnknownDirection
+	}
+	return g.contacts[0].Direction()
 }
 
 func (g *group) TrackAngle() unit.Angle {

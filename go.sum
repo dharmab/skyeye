@@ -30,8 +30,6 @@ github.com/fsnotify/fsnotify v1.5.4 h1:jRbGcIw6P2Meqdwuo0H1p6JVLbL5DHKAKlYndzMwV
 github.com/fsnotify/fsnotify v1.5.4/go.mod h1:OVB6XrOHzAwXMpEM7uPOzcehqUV2UqJxmVXmkdnm1bU=
 github.com/gammazero/deque v0.2.1 h1:qSdsbG6pgp6nL7A0+K/B7s12mcCY/5l5SIUpMOl+dC0=
 github.com/gammazero/deque v0.2.1/go.mod h1:LFroj8x4cMYCukHJDbxFCkT+r9AndaJnFMuZDV34tuU=
-github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240210081059-02b4c52c1289 h1:GTy9z3BnjUeie/LAqoU6bSLgZhJd3pFSqKUb977PdGw=
-github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240210081059-02b4c52c1289/go.mod h1:QIjZ9OktHFG7p+/m3sMvrAJKKdWrr1fZIK0rM6HZlyo=
 github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240727173504-6739eb83c3ca h1:s1f7gd0NpwAdjyAcJvn03TnQqQZTJojXtmdfPy7kTOk=
 github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240727173504-6739eb83c3ca/go.mod h1:QIjZ9OktHFG7p+/m3sMvrAJKKdWrr1fZIK0rM6HZlyo=
 github.com/go-audio/audio v1.0.0 h1:zS9vebldgbQqktK4H0lUqWrG8P0NxCJVqcj7ZpNnwd4=

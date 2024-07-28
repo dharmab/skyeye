@@ -33,6 +33,9 @@ type Radar interface {
 	FindUnit(uint32) *trackfile.Trackfile
 	// GetBullseye returns the bullseye for the configured coalition.
 	GetBullseye() orb.Point
+	// GetPicture returns all groups within the given radius of the given location, filtered by the given coalition and contact category.
+	// Groups are ordered by distance from the given location.
+	GetPicture(orb.Point, unit.Length, coalitions.Coalition, brevity.ContactCategory) []brevity.Group
 	// FindNearbyGroups returns all groups within 3 nautical miles of the given location, filtered by the given contact category.
 	// Location data is unset, since it is within radar margins of the given location.
 	FindNearbyGroups(orb.Point, coalitions.Coalition, brevity.ContactCategory) []brevity.Group
@@ -189,15 +192,24 @@ func (s *scope) handleGarbageCollection() {
 func (s *scope) FindCallsign(callsign string) *trackfile.Trackfile {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	log.Debug().Str("callsign", callsign).Any("contacts", s.contacts).Msg("searching scope for trackfile matching callsign")
+	logger := log.With().Str("callsign", callsign).Logger()
+	logger.Debug().Any("contacts", s.contacts).Msg("searching scope for trackfile matching callsign")
 	unitID, ok := s.callsignIdx[callsign]
 	if !ok {
+		logger.Debug().Msg("callsign not found in index")
 		return nil
 	}
+	logger = logger.With().Int("unitID", int(unitID)).Logger()
 	tf, ok := s.contacts[unitID]
 	if !ok {
+		logger.Debug().Msg("unitID not found in contacts")
 		return nil
 	}
+	if tf.LastKnown().Timestamp.Before(time.Now().Add(-1 * time.Minute)) {
+		logger.Debug().Msg("trackfile is stale")
+		return nil
+	}
+	logger.Debug().Msg("found trackfile")
 	return tf
 }
 
@@ -227,7 +239,6 @@ func (s *scope) FindNearestGroupWithBRAA(origin orb.Point, coalition coalitions.
 	_range := unit.Length(geo.Distance(origin, groupLocation)) * unit.Meter
 	altitude := nearestTrackfile.LastKnown().Altitude
 	aspect := brevity.AspectFromAngle(bearing, nearestTrackfile.LastKnown().Heading)
-	group.track = nearestTrackfile.Direction()
 	group.braa = brevity.NewBRAA(
 		bearing,
 		_range,
@@ -247,7 +258,6 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, coalition coaliti
 	groupLocation := nearestTrackfile.LastKnown().Point
 	aspect := brevity.AspectFromAngle(unit.Angle(geo.Bearing(origin, groupLocation))*unit.Degree, nearestTrackfile.LastKnown().Heading)
 	group.aspect = &aspect
-	group.track = nearestTrackfile.Direction()
 	rang := unit.Length(geo.Distance(origin, groupLocation)) * unit.Meter
 	group.isThreat = rang < brevity.MandatoryThreatDistance
 	log.Debug().Interface("origin", origin).Interface("group", group).Msg("determined nearest group")
@@ -395,7 +405,6 @@ func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing unit.Angle, arc
 	log.Debug().Str("aspect", string(aspect)).Msg("determined aspect")
 	_range := unit.Length(geo.Distance(origin, nearestContact.LastKnown().Point)) * unit.Meter
 	group.aspect = &aspect
-	group.track = nearestContact.Direction()
 	group.braa = brevity.NewBRAA(
 		exactBearing,
 		_range,
@@ -480,4 +489,58 @@ func (s *scope) addNearbyAircraftToGroup(this *trackfile.Trackfile, group *group
 			s.addNearbyAircraftToGroup(other, group)
 		}
 	}
+}
+
+func (s *scope) GetPicture(origin orb.Point, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) []brevity.Group {
+	visitedContacts := make(map[uint32]bool)
+	groups := make([]*group, 0)
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	for _, tf := range s.contacts {
+		logger := log.With().Int("unitID", int(tf.Contact.UnitID)).Logger()
+		if visitedContacts[tf.Contact.UnitID] {
+			logger.Trace().Msg("skipping visited contact")
+			continue
+		}
+		visitedContacts[tf.Contact.UnitID] = true
+		if tf.Contact.Coalition != coalition {
+			logger.Trace().Msg("skipping contact from other coalition")
+			continue
+		}
+		if !isValidTrack(tf) {
+			logger.Trace().Msg("skipping invalid track")
+			continue
+		}
+		distance := unit.Length(geo.Distance(origin, tf.LastKnown().Point)) * unit.Meter
+		if distance > radius {
+			logger.Debug().Float64("distanceNM", distance.NauticalMiles()).Float64("radiusNM", radius.NauticalMiles()).Msg("skipping contact outside radius")
+			continue
+		}
+		group := s.findGroupForAircraft(tf)
+		if group == nil {
+			logger.Error().Msg("failed to find group for aircraft - HOW DID YOU GET HERE")
+			continue
+		}
+		logger = logger.With().Any("group", group).Logger()
+		for _, contact := range group.contacts {
+			visitedContacts[contact.Contact.UnitID] = true
+		}
+		logger.Debug().Msg("accounted group")
+		groups = append(groups, group)
+	}
+
+	// sort groups by distance
+	slices.SortFunc(groups, func(a, b *group) int {
+		pointA := a.contacts[0].LastKnown().Point
+		pointB := b.contacts[0].LastKnown().Point
+		distanceA := geo.Distance(origin, pointA)
+		distanceB := geo.Distance(origin, pointB)
+		return int(distanceB - distanceA)
+	})
+
+	result := make([]brevity.Group, len(groups))
+	for i, group := range groups {
+		result[i] = group
+	}
+	return result
 }
