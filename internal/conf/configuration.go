@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/synthesizer"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 	"github.com/martinlindhe/unit"
@@ -44,5 +45,6 @@ type Configuration struct {
 	Voice synthesizer.Voice
 }
 
-const DefaultPictureRadius = 300 * unit.NauticalMile
+var DefaultPictureRadius = encyclopedia.NoLaterThanCommitRange(encyclopedia.SAR2OrAR1)
+
 const DefaultMarginRadius = 3 * unit.NauticalMile
