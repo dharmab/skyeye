@@ -2,9 +2,9 @@
 
 SkyEye is a concept for a new [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-controlled_interception) (GCI) bot for the flight simulator [Digital Combat Simulator](https://www.digitalcombatsimulator.com) (DCS). A GCI bot allows players to request information about the airspace in English using either voice commands or text entry, and to receive answers via verbal speech and text messages
 
-Unlike previous GCI bots, SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same server as SkyEye. No cloud APIs are required.
+SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same server as SkyEye. No cloud APIs are required. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can even run SkyEye on your own PC to provide GCI service on a remote multiplayer server.
 
-SkyEye is under active development. A few types of radio calls, such as `BOGEY DOPE`, `RADIO CHECK`, `ALPHA CHECK` and `SPIKED`, are functional running against live multiplayer servers. Howevever, there's still plenty to do before this is ready for widespread use. To see what I'm working on, check out the [branch network](https://github.com/dharmab/skyeye/network)!
+SkyEye is under active development. A few types of radio calls, such as `BOGEY DOPE`, `PICTURE`, `RADIO CHECK`, `ALPHA CHECK` and `SPIKED`, are functional running against live multiplayer servers. Howevever, there's still plenty to do before this is ready for widespread use. To see what I'm working on, check out the [branch network](https://github.com/dharmab/skyeye/network)!
 
 ## Goals
 
@@ -25,7 +25,7 @@ SkyEye is under active development. A few types of radio calls, such as `BOGEY D
 
 * Follow [grug-brained principles](https://grugbrain.dev/). Avoid unecessary design patterns. Keep it simple!
 * Focused feature set. Don't try to match other bots 1:1 on feature set.
-* [Say "no" to complex features.](https://grugbrain.dev/#grug-on-saying-no) Provide the basics, and sufficient documentation for others to fork and customize for their use case,
+* [Say "no" to complex features.](https://grugbrain.dev/#grug-on-saying-no) Provide the basics, and sufficient documentation for others to fork and customize for their use case.
 
 ## Getting Started
 
@@ -38,7 +38,7 @@ SkyEye is under active development. A few types of radio calls, such as `BOGEY D
 Skyeye would not be possible without these people and projects, for whom I am deeply appreciative:
 
 * [DCS-SRS](https://github.com/ciribob/DCS-SimpleRadioStandalone) by @ciribob. Ciribob also patiently answered many of my questions on SRS internals and provided helpful debugging tips whenever I ran into a block in the SRS integration.
-* [Taceview](https://www.tacview.net/) - specifically, [ACMI real time telemetry](https://www.tacview.net/documentation/realtime/en/) - provides the data feed from DCS World.
+* [Tacview](https://www.tacview.net/) - specifically, [ACMI real time telemetry](https://www.tacview.net/documentation/realtime/en/) - provides the data feed from DCS World.
 * @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against Skyeye during early development, and Jones himself was also patient with my questions on Discord.
 * @ggerganov's [whisper.cpp](https://github.com/ggerganov/whisper.cpp) models provides text-to-speech.
 * @rodaine's [numwords](https://github.com/rodaine/numwords) module is invaluable for parsing numeric quantities from voice input.
@@ -59,9 +59,7 @@ Skyeye would not be possible without these people and projects, for whom I am de
 
 ### Is this ready?
 
-No- but stay tuned! Progress is speeding up.
-
-I work on it about one night a week. At this rate I hope it will be ready later in 2024.
+No- but it will be soon! I am anticipating to begin testing with friends' servers within the next few months and a general availability release by winter 2024-2025.
 
 Current status:
 
@@ -72,22 +70,31 @@ Current status:
 - ✅ Speech synthesis - bot can turn text into human-like speech and say it on SRS
 - ✅ CI/CD pipeline configured for linting, testing and building on Linux and Windows
 - ✅ Tacview - ACMI telemetry feed implemented
-- ✅ Controller: Radar trackfile simulation imlpemented
+- ✅ Controller: Radar trackfile simulation implemented
 - 🚧 Controller: GCI controller logic implementation in progress
+    - ✅ RADIO CHECK
+    - ✅ ALPHA CHECK
+    - ✅ PICTURE
+    - ✅ BOGEY DOPE
+    - ✅ SPIKED
+    - 🚧 DECLARE
+    - 🚧 FADED
+    - 🚧 SNAPLOCK
+    - 🚧 THREAT
 - 🚧 Accessibility: Keyboard input not yet implemented
 - 🚧 Accessibility: In-game subtitles not yet implemented
 - 🚧 Testing: Some unit test coverage is implemented, but expansion is needed
-- 🚧 Performance: Software runs very well on a standalone dedicated system but performance optimization is needed to run alongside DCS on same machine
+- 🚧 Performance: Software runs in real time on a standalone dedicated system but performance optimization is needed to run alongside DCS on same machine
 - 🚧 Release: CI/CD pipeline does not publish builds to GitHub Releases
 - 🚧 Documentation: Documentation not written
 - 🚧 Observability: Better logging and tracing is needed
 
 ### What kind of hardware does it require?
 
-I'm not sure yet but it shouldn't be too bad. Currently the dev build takes about 4GB of RAM and takes a few seconds to recognize audio on an AMD 5900X, but I have done essentially no performance optimization yet and I expect those requirements to drop significantly. Some areas to improve:
+I'm not sure yet but it shouldn't be too bad. Currently the dev build takes about 4GB of RAM and recognizes commands near-instantly on an AMD 5900X. I have done essentially no performance optimization yet and I expect performance to improve by release. Some areas to improve:
 
 * I'm making unecessary copies of data all over the place - this is usually the default practice in Go unless you either need the receiving function to mutate the passed object, you need to do so for concurrency safety, or you can provably improve performance. I plan to revisit this when the bot is closer to release.
-* I'm using a fairly large, off the shelf general purpose Whisper model in my development environment. There's some exciting research into faster [distilled models](https://github.com/huggingface/distil-whisper) and custom trained models that will be revisited in a few months. I also strongly suspect a combination of advances in AI and Moore's Law will significantly improve Speech-To-Text performance within the next year or so.
+* I'm using an off the shelf general purpose Whisper model in my development environment. There's some exciting research into faster [distilled models](https://github.com/huggingface/distil-whisper) and custom trained models that will be revisited in a few months. I also strongly suspect a combination of advances in AI and Moore's Law will significantly improve Speech-To-Text performance within the next year or so.
 * I need to investigate tuning Go performance parameters. In particular, the software runs poorly when you try to play DCS at the same time on the same machine, I suspect due to CPU contention.
 
 ### Why not update OverlordBot?
@@ -119,6 +126,14 @@ Instead, I am implementing THREAT brevity. THREAT provides similar benefit to a 
 Since the software runs 100% locally, the speech recognition model is a local file. Server oprators can provide a trained model as an alternative to the off-the-shelf model. See [this blog post](https://huggingface.co/blog/fine-tune-whisper) for an example.
 
 I don't plan to provide a mechanism for players to submit their voice recordings to the main repostitory due to data privacy concerns.
+
+### Does this use Line-Of-Sight restrictions?
+
+No. Excluding this feature was an explicit choice in order to avoid [the complexity demon](https://grugbrain.dev/#grug-on-complexity).
+
+If this is a critical feature for you, consider using [MOOSE's AWACS module](https://flightcontrol-master.github.io/MOOSE_DOCS_DEVELOP/Documentation/Ops.AWACS.html) instead. It supports Line-Of-Sight and datalink simulation, at the tradeoff of requiring some special setup in the Mission Editor.
+
+OverlordBot also optionally supports this feature, although less than 1% of users used it.
 
 ### Will this work with DCS's built-in VoIP?
 
