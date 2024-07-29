@@ -49,10 +49,18 @@ Skyeye would not be possible without these people and projects, for whom I am de
 * The [Opus codec](https://opus-codec.org/) and the [`hraban/opus`](https://github.com/hraban/opus) module provides audio compression for the SRS protocol.
 * @lithammer's [shortuuid](https://github.com/lithammer/shortuuid) module provides a GUID implementation compatible with the SRS protocols.
 * @zaf's [resample](https://github.com/zaf/resample) module helps with audio format conversion between Piper and SRS.
-* @martinlindhe's [unit](https://github.com/martinlindhe/unit) module provides easy angular, length and frequency unit conversion.
+* @martinlindhe's [unit](https://github.com/martinlindhe/unit) module provides easy angular, length, speed and frequency unit conversion.
+* @paulmach's [orb](https://github.com/paulmach/orb) module provides a simple, flexible GIS library for analyzing the geometric relationships between aircraft.
 * [MSYS2](https://www.msys2.org/) provides a Windows build environment.
 * [Oto](https://github.com/ebitengine/oto) is helpful for debugging audio format conversion problems.
-* [Team Lima Kilo](https://github.com/team-limakilo/) and the Flashpoint Levant community provided morale-boosting energy and feedback.
+* [zerolog](https://github.com/rs/zerolog) is helpful for general logging and printf debugging.
+* Multiple DCS communities provide invaluable feedback and morale-booster energy:
+  * [Team Lima Kilo](https://github.com/team-limakilo/) and the Flashpoint Levant community 
+  * The Hoggit Discord server
+  * [Digital Controllers](https://digital-controllers.com/)
+  * [1VSC](https://1stvsc.com/wing/)
+  * [CVW8](https://virtualcvw8.com/)
+  * @Frosty-nee
 * And of course, [DCS World](https://www.digitalcombatsimulator.com/en/) is produced by Eagle Dynamics.
 
 ## FAQ
