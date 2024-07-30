@@ -18,7 +18,6 @@ func (s *scope) findGroupForAircraft(tf *trackfile.Trackfile) *group {
 	group := newGroupUsingBullseye(s.bullseye)
 	group.contacts = append(group.contacts, tf)
 	s.addNearbyAircraftToGroup(tf, group)
-	s.setPlatforms(group)
 	return group
 }
 
@@ -65,26 +64,5 @@ func (s *scope) addNearbyAircraftToGroup(this *trackfile.Trackfile, group *group
 			group.contacts = append(group.contacts, other)
 			s.addNearbyAircraftToGroup(other, group)
 		}
-	}
-}
-
-// setPlatforms sets the platforms for the given group based on the contacts in the group.
-func (s *scope) setPlatforms(group *group) {
-	platforms := make(map[string]struct{})
-	for _, tf := range group.contacts {
-		var name string
-		data, ok := s.aircraftData[tf.Contact.ACMIName]
-		if ok {
-			for _, reportingName := range []string{data.NATOReportingName, data.Nickname, data.OfficialName, data.PlatformDesignation} {
-				if reportingName != "" {
-					name = reportingName
-					break
-				}
-			}
-		}
-		platforms[name] = struct{}{}
-	}
-	for platform := range platforms {
-		group.platforms = append(group.platforms, platform)
 	}
 }

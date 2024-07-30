@@ -48,23 +48,19 @@ type Radar interface {
 var _ Radar = &scope{}
 
 type scope struct {
-	updates      <-chan sim.Updated
-	fades        <-chan sim.Faded
-	bullseyes    <-chan orb.Point
-	bullseye     orb.Point
-	contacts     contactDatabase
-	aircraftData map[string]encyclopedia.Aircraft
+	updates   <-chan sim.Updated
+	fades     <-chan sim.Faded
+	bullseyes <-chan orb.Point
+	bullseye  orb.Point
+	contacts  contactDatabase
 }
 
 func New(coalition coalitions.Coalition, bullseyes <-chan orb.Point, updates <-chan sim.Updated, fades <-chan sim.Faded) Radar {
-	e := encyclopedia.New()
-
 	return &scope{
-		updates:      updates,
-		fades:        fades,
-		bullseyes:    bullseyes,
-		aircraftData: e.Aircraft(),
-		contacts:     newContactDatabase(),
+		updates:   updates,
+		fades:     fades,
+		bullseyes: bullseyes,
+		contacts:  newContactDatabase(),
 	}
 }
 
@@ -197,7 +193,7 @@ func (s *scope) isMatch(tf *trackfile.Trackfile, coalition coalitions.Coalition,
 	if !isValidTrack(tf) {
 		return false
 	}
-	data, ok := s.aircraftData[tf.Contact.ACMIName]
+	data, ok := encyclopedia.GetAircraftData(tf.Contact.ACMIName)
 	// If the aircraft is not in the encyclopedia, assume it matches
 	matchesFilter := !ok || data.Category() == filter || filter == brevity.Aircraft
 	return matchesFilter

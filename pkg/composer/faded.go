@@ -34,7 +34,7 @@ func (c *composer) ComposeFadedCall(call brevity.FadedCall) NaturalLanguageRespo
 	}
 
 	for _, platform := range call.Group.Platforms() {
-		writeBoth(fmt.Sprintf(", %s", aircraftData[platform].NATOReportingName))
+		writeBoth(fmt.Sprintf(", %s", platform))
 	}
 
 	subtitle.WriteString(".")
