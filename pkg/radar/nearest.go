@@ -14,33 +14,27 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+
+// FindNearestTrackfile implements [Radar.FindNearestTrackfile]
 func (s *scope) FindNearestTrackfile(origin orb.Point, coalition coalitions.Coalition, filter brevity.ContactCategory) *trackfile.Trackfile {
 	var nearestTrackfile *trackfile.Trackfile
 	nearestDistance := unit.Length(300) * unit.NauticalMile
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	for _, tf := range s.contacts {
-		if tf.Contact.Coalition == coalition && isValidTrack(tf) {
-			data, ok := s.aircraftData[tf.Contact.ACMIName]
-			// If the aircraft is not in the encyclopedia, assume it matches
-			matchesFilter := !ok || data.Category() == filter || filter == brevity.Aircraft
-			if matchesFilter {
-				hasTrack := tf.Track.Len() > 0
-				if hasTrack {
-					distance := unit.Length(math.Abs(geo.Distance(origin, tf.LastKnown().Point)))
-					isNearer := distance < nearestDistance
-					if nearestTrackfile == nil || isNearer {
-						log.Debug().
-							Interface("origin", origin).
-							Int("distance", int(distance.NauticalMiles())).
-							Str("aircraft", tf.Contact.ACMIName).
-							Int("unitID", int(tf.Contact.UnitID)).
-							Str("name", tf.Contact.Name).
-							Msg("new candidate for nearest trackfile")
-						nearestTrackfile = tf
-						nearestDistance = distance
-					}
-				}
+	itr := s.contacts.itr()
+	for itr.next() {
+		tf := itr.value()
+		if s.isMatch(tf, coalition, filter) {
+			distance := unit.Length(math.Abs(geo.Distance(origin, tf.LastKnown().Point)))
+			isNearer := distance < nearestDistance
+			if nearestTrackfile == nil || isNearer {
+				log.Debug().
+					Interface("origin", origin).
+					Int("distance", int(distance.NauticalMiles())).
+					Str("aircraft", tf.Contact.ACMIName).
+					Int("unitID", int(tf.Contact.UnitID)).
+					Str("name", tf.Contact.Name).
+					Msg("new candidate for nearest trackfile")
+				nearestTrackfile = tf
+				nearestDistance = distance
 			}
 		}
 	}
@@ -55,6 +49,7 @@ func (s *scope) FindNearestTrackfile(origin orb.Point, coalition coalitions.Coal
 	return nearestTrackfile
 }
 
+// FindNearestGroupWithBRAA implements [Radar.FindNearestGroupWithBRAA]
 func (s *scope) FindNearestGroupWithBRAA(origin orb.Point, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	nearestTrackfile := s.FindNearestTrackfile(origin, coalition, filter)
 	group := s.findGroupForAircraft(nearestTrackfile)
@@ -79,6 +74,7 @@ func (s *scope) FindNearestGroupWithBRAA(origin orb.Point, coalition coalitions.
 	return group
 }
 
+// FindNearestGroupWithBullseye implements [Radar.FindNearestGroupWithBullseye]
 func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	nearestTrackfile := s.FindNearestTrackfile(origin, coalition, filter)
 	group := s.findGroupForAircraft(nearestTrackfile)
@@ -106,29 +102,17 @@ func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing unit.Angle, arc
 
 	nearestDistance := unit.Length(math.MaxFloat64)
 	var nearestContact *trackfile.Trackfile
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	for unitID, tf := range s.contacts {
-		logger := logger.With().Int("unitID", int(unitID)).Logger()
-		if tf.Contact.Coalition == coalition {
-			logger.Debug().Msg("checking contact")
-			if !isValidTrack(tf) {
-				logger.Debug().Msg("contact is below speed threshold")
-				continue
-			}
-
-			data, ok := s.aircraftData[tf.Contact.ACMIName]
-			// If the aircraft is not in the encyclopedia, assume it matches
-			matchesFilter := !ok || data.Category() == filter || filter == brevity.Aircraft
-			if matchesFilter {
-				logger.Debug().Msg("contact matches filter")
-				contactLocation := tf.LastKnown().Point
-				distanceToContact := unit.Length(geo.Distance(origin, contactLocation)) * unit.Meter
-				isWithinCone := planar.PolygonContains(cone, contactLocation)
-				logger.Debug().Float64("distanceNM", distanceToContact.NauticalMiles()).Bool("isWithinCone", isWithinCone).Msg("checking distance and location")
-				if distanceToContact < nearestDistance && distanceToContact > conf.DefaultMarginRadius && isWithinCone {
-					nearestContact = tf
-				}
+	itr := s.contacts.itr()
+	for itr.next() {
+		tf := itr.value()
+		logger := logger.With().Int("unitID", int(tf.Contact.UnitID)).Logger()
+		if s.isMatch(tf, coalition, filter) {
+			contactLocation := tf.LastKnown().Point
+			distanceToContact := unit.Length(geo.Distance(origin, contactLocation)) * unit.Meter
+			isWithinCone := planar.PolygonContains(cone, contactLocation)
+			logger.Debug().Float64("distanceNM", distanceToContact.NauticalMiles()).Bool("isWithinCone", isWithinCone).Msg("checking distance and location")
+			if distanceToContact < nearestDistance && distanceToContact > conf.DefaultMarginRadius && isWithinCone {
+				nearestContact = tf
 			}
 		}
 	}

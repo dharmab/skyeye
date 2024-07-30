@@ -2,14 +2,11 @@ package radar
 
 import (
 	"context"
-	"strings"
-	"sync"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
-	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/trackfile"
 	"github.com/martinlindhe/unit"
@@ -54,10 +51,8 @@ type scope struct {
 	updates      <-chan sim.Updated
 	fades        <-chan sim.Faded
 	bullseyes    <-chan orb.Point
-	lock         sync.RWMutex
-	callsignIdx  map[string]uint32
-	contacts     map[uint32]*trackfile.Trackfile
 	bullseye     orb.Point
+	contacts     contactDatabase
 	aircraftData map[string]encyclopedia.Aircraft
 }
 
@@ -67,14 +62,13 @@ func New(coalition coalitions.Coalition, bullseyes <-chan orb.Point, updates <-c
 	return &scope{
 		updates:      updates,
 		fades:        fades,
-		callsignIdx:  make(map[string]uint32),
-		contacts:     make(map[uint32]*trackfile.Trackfile),
 		bullseyes:    bullseyes,
 		aircraftData: e.Aircraft(),
-		lock:         sync.RWMutex{},
+		contacts:     newContactDatabase(),
 	}
 }
 
+// Run implements [Radar.Run]
 func (s *scope) Run(ctx context.Context) {
 	ticker := time.NewTicker(60 * time.Second)
 	defer ticker.Stop()
@@ -94,84 +88,82 @@ func (s *scope) Run(ctx context.Context) {
 	}
 }
 
+// handleUpdate updates the database using the provided update.
 func (s *scope) handleUpdate(update sim.Updated) {
-	callsign, _, _ := strings.Cut(update.Aircraft.Name, "|")
-	// replace digits and spaces with digit followed by a single space
-	callsign, ok := parser.ParseCallsign(callsign)
-	if !ok {
-		callsign = update.Aircraft.Name
-	}
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	unitID, ok := s.callsignIdx[callsign]
 	logger := log.With().
-		Str("callsign", callsign).
+		Str("name", update.Aircraft.Name).
 		Str("aircraft", update.Aircraft.ACMIName).
-		Str("name", update.Aircraft.ACMIName).
+		Str("acmiNAme", update.Aircraft.ACMIName).
 		Int("unitID", int(update.Aircraft.UnitID)).
 		Logger()
 
-	if ok && unitID != update.Aircraft.UnitID {
-		logger.Warn().Int("otherUnitID", int(unitID)).Msg("callsigns conflict")
-		s.contacts[update.Aircraft.UnitID] = trackfile.NewTrackfile(update.Aircraft)
-		logger.Info().Msg("overwrote trackfile")
+	tf, ok := s.contacts.getByUnitID(update.Aircraft.UnitID)
+	if ok {
+		tf.Update(update.Frame)
+		logger.Trace().Msg("updated existing trackfile")
+	} else {
+		tf = trackfile.NewTrackfile(update.Aircraft)
+		s.contacts.set(update.Aircraft.UnitID, tf)
+		logger.Info().Msg("created new trackfile")
 	}
+}
+
+// handleFade removed any trackfiles for the faded unit.
+func (s *scope) handleFade(fade sim.Faded) {
+	tf, ok := s.contacts.getByUnitID(fade.UnitID)
+	if !ok {
+		log.Trace().Uint32("unitID", fade.UnitID).Msg("faded trackfile not found - probably not an aircraft")
+		return
+	}
+	logger := log.With().
+		Int("unitID", int(fade.UnitID)).
+		Str("name", tf.Contact.Name).
+		Str("aircraft", tf.Contact.ACMIName).
+		Logger()
 
 	if !ok {
-		s.contacts[update.Aircraft.UnitID] = trackfile.NewTrackfile(update.Aircraft)
-		age := time.Since(update.Frame.Timestamp)
-		logger.Info().Dur("age", age).Msg("new trackfile")
+		logger.Warn().Msg("faded trackfile not found")
+		return
 	}
-	contact, ok := s.contacts[update.Aircraft.UnitID]
-	if ok {
-		contact.Update(update.Frame)
-		s.callsignIdx[callsign] = update.Aircraft.UnitID
-		logger.Trace().Msg("updated trackfile")
-	}
+	s.contacts.delete(fade.UnitID)
+	logger.Info().Msg("removed faded trackfile")
+	// TODO pass fade to controller to broadcast message
 }
 
-func (s *scope) handleFade(fade sim.Faded) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	s.removeTrack(fade.UnitID, "removed faded trackfile")
-	// after some time, send faded message to controller?
-}
-
-func (s *scope) removeTrack(unitID uint32, reason string) {
-	tf, ok := s.contacts[unitID]
-	if ok {
+// handleGarbageCollection removes trackfiles that have not been updated in a long time.
+func (s *scope) handleGarbageCollection() {
+	itr := s.contacts.itr()
+	for itr.next() {
+		tf := itr.value()
 		logger := log.With().
-			Int("unitID", int(unitID)).
+			Int("unitID", int(tf.Contact.UnitID)).
 			Str("name", tf.Contact.Name).
 			Str("aircraft", tf.Contact.ACMIName).
-			Dur("age", time.Since(tf.LastKnown().Timestamp)).
 			Logger()
 
-		delete(s.contacts, unitID)
-		for callsign, i := range s.callsignIdx {
-			if i == unitID {
-				delete(s.callsignIdx, callsign)
-			}
-			break
+		lastSeen, ok := s.contacts.lastUpdated(tf.Contact.UnitID)
+		if !ok {
+			logger.Warn().Msg("last updated time is missing")
+			continue
 		}
-		logger.Info().Msg(reason)
-	}
-}
-
-func (s *scope) handleGarbageCollection() {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	for unitID, tf := range s.contacts {
-		if tf.LastKnown().Timestamp.Before(time.Now().Add(-30 * time.Second)) {
-			s.removeTrack(unitID, "removed aged out trackfile")
+		if lastSeen.Before(time.Now().Add(-5 * time.Minute)) {
+			s.contacts.delete(tf.Contact.UnitID)
+			logger.Info().
+				Dur("age", time.Since(lastSeen)).
+				Msg("removed aged out trackfile")
 		}
 	}
 }
 
+// GetBullseye implements [Radar.GetBullseye]
 func (s *scope) GetBullseye() orb.Point {
 	return s.bullseye
 }
 
+// isValidTrack checks if the trackfile is valid. This means all of the following conditions are met:
+// Last known position is not (0, 0)
+// Speed is above 50 knots
+// Altitude is above 10 meters above sea level
 func isValidTrack(tf *trackfile.Trackfile) bool {
 	point := tf.LastKnown().Point
 	isValidLongitude := point.Lon() != 0
@@ -192,4 +184,21 @@ func isValidTrack(tf *trackfile.Trackfile) bool {
 		Bool("isAboveAltitudeFilter", isAboveAltitudeFilter).
 		Msg("checking track validity")
 	return isValid
+}
+
+// isMatch checks:
+// - if the trackfile is of the given coalition
+// - if the trackfile is of the given contact category (or if the aircraft is not in the encyclopedia)
+// - if the trackfile is valid
+func (s *scope) isMatch(tf *trackfile.Trackfile, coalition coalitions.Coalition, filter brevity.ContactCategory) bool {
+	if tf.Contact.Coalition != coalition {
+		return false
+	}
+	if !isValidTrack(tf) {
+		return false
+	}
+	data, ok := s.aircraftData[tf.Contact.ACMIName]
+	// If the aircraft is not in the encyclopedia, assume it matches
+	matchesFilter := !ok || data.Category() == filter || filter == brevity.Aircraft
+	return matchesFilter
 }

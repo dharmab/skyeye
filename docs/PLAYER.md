@@ -183,7 +183,7 @@ THUNDERHEAD: "Thunderhead, 5 groups. Group bullseye 192/41, 21000, track south, 
 ```
 
 ```
-WARDOG 3: "Galaxy Hitman One One how's the picture looking?"
+HITMAN 11: "Galaxy Hitman One One how's the picture looking?"
 GALAXY: "Hitman One One, 6 groups. Group bullseye 211/27, 18000, track northwest, bandit, Frogfoot. Group bullseye 226/12, 7000, track northwest, bandit, Fulcrum. Group bullseye 193/47, 36000, track northeast, bandit, Foxhound."
 ```
 
