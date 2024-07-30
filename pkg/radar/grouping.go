@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// findGroupForAircraft creates a new group for the given trackfile and adds all nearby aircraft which can be considered part of the group.
 func (s *scope) findGroupForAircraft(tf *trackfile.Trackfile) *group {
 	if tf == nil {
 		return nil
@@ -17,24 +18,7 @@ func (s *scope) findGroupForAircraft(tf *trackfile.Trackfile) *group {
 	group := newGroupUsingBullseye(s.bullseye)
 	group.contacts = append(group.contacts, tf)
 	s.addNearbyAircraftToGroup(tf, group)
-	platforms := make(map[string]any)
-	for _, tf := range group.contacts {
-		var name string
-		data, ok := s.aircraftData[tf.Contact.ACMIName]
-		if ok {
-			for _, reportingName := range []string{data.NATOReportingName, data.Nickname, data.OfficialName, data.PlatformDesignation} {
-				if reportingName != "" {
-					name = reportingName
-					break
-				}
-			}
-		}
-		platforms[name] = nil
-	}
-	for platform := range platforms {
-		group.platforms = append(group.platforms, platform)
-	}
-
+	s.setPlatforms(group)
 	return group
 }
 
@@ -51,7 +35,9 @@ func (s *scope) findGroupForAircraft(tf *trackfile.Trackfile) *group {
 func (s *scope) addNearbyAircraftToGroup(this *trackfile.Trackfile, group *group) {
 	spreadInterval := unit.Length(3) * unit.NauticalMile
 	stackInterval := unit.Length(3000) * unit.Foot
-	for _, other := range s.contacts {
+	itr := s.contacts.itr()
+	for itr.next() {
+		other := itr.value()
 		// Skip if this one is already in the group
 		if slices.ContainsFunc(group.contacts, func(t *trackfile.Trackfile) bool {
 			if t == nil {
@@ -62,24 +48,43 @@ func (s *scope) addNearbyAircraftToGroup(this *trackfile.Trackfile, group *group
 			continue
 		}
 
-		if !isValidTrack(other) {
+		if !s.isMatch(other, this.Contact.Coalition, group.category()) {
 			continue
 		}
 
-		isSameCoalition := other.Contact.Coalition == this.Contact.Coalition
 		isWithinSpread := geo.Distance(other.LastKnown().Point, this.LastKnown().Point) < spreadInterval.Meters()
 		isWithinStack := math.Abs(other.LastKnown().Altitude.Feet()-this.LastKnown().Altitude.Feet()) < stackInterval.Feet()
 		log.Debug().
 			Any("initialContact", this.Contact).
 			Any("contact", other.Contact).
 			Int("unitID", int(other.Contact.UnitID)).
-			Bool("isSameCoalition", isSameCoalition).
 			Bool("isWithinSpread", isWithinSpread).
 			Bool("isWithinStack", isWithinStack).
 			Msg("checking if contact is within group")
-		if isSameCoalition && isWithinSpread && isWithinStack {
+		if isWithinSpread && isWithinStack {
 			group.contacts = append(group.contacts, other)
 			s.addNearbyAircraftToGroup(other, group)
 		}
+	}
+}
+
+// setPlatforms sets the platforms for the given group based on the contacts in the group.
+func (s *scope) setPlatforms(group *group) {
+	platforms := make(map[string]struct{})
+	for _, tf := range group.contacts {
+		var name string
+		data, ok := s.aircraftData[tf.Contact.ACMIName]
+		if ok {
+			for _, reportingName := range []string{data.NATOReportingName, data.Nickname, data.OfficialName, data.PlatformDesignation} {
+				if reportingName != "" {
+					name = reportingName
+					break
+				}
+			}
+		}
+		platforms[name] = struct{}{}
+	}
+	for platform := range platforms {
+		group.platforms = append(group.platforms, platform)
 	}
 }

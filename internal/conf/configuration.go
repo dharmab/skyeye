@@ -45,6 +45,6 @@ type Configuration struct {
 	Voice synthesizer.Voice
 }
 
-var DefaultPictureRadius = encyclopedia.NoLaterThanCommitRange(encyclopedia.SAR2OrAR1) + 20*unit.NauticalMile
+var DefaultPictureRadius = encyclopedia.NoLaterThanCommitRange(encyclopedia.SAR2OrAR1) + 50*unit.NauticalMile
 
 const DefaultMarginRadius = 3 * unit.NauticalMile

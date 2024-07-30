@@ -14,12 +14,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// GetPicture implements [Radar.GetPicture]
 func (s *scope) GetPicture(origin orb.Point, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) (int, []brevity.Group) {
 	visitedContacts := make(map[uint32]bool)
 	groups := make([]*group, 0)
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	for _, tf := range s.contacts {
+	itr := s.contacts.itr()
+	for itr.next() {
+		tf := itr.value()
 		logger := log.With().Int("unitID", int(tf.Contact.UnitID)).Logger()
 		if visitedContacts[tf.Contact.UnitID] {
 			logger.Trace().Msg("skipping visited contact")
