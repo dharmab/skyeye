@@ -15,9 +15,9 @@ func (c *composer) ComposeDeclareResponse(r brevity.DeclareResponse) NaturalLang
 			Speech:   fmt.Sprintf("%s, %s", r.Callsign, r.Declaration),
 		}
 	}
-	g := c.ComposeCoreInformationFormat(1, []brevity.Group{r.Group}, false)
+	response := c.ComposeCoreInformationFormat(r.Group)
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", r.Callsign, g[0].Subtitle),
-		Speech:   fmt.Sprintf("%s, %s", r.Callsign, g[0].Speech),
+		Subtitle: fmt.Sprintf("%s, %s", r.Callsign, response.Subtitle),
+		Speech:   fmt.Sprintf("%s, %s", r.Callsign, response.Speech),
 	}
 }

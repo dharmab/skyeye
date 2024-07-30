@@ -97,18 +97,32 @@ func (t *Trackfile) LastKnown() Frame {
 	return t.Track.Front()
 }
 
+func (t *Trackfile) Course() unit.Angle {
+	if t.Track.Len() < 2 {
+		return unit.Angle(t.LastKnown().Heading) * unit.Degree
+	}
+
+	latest := t.Track.Front()
+	previous := t.Track.At(1)
+
+	course := geo.Bearing(previous.Point, latest.Point)
+	if course < 0 {
+		course += 360
+	}
+	course = math.Mod(course, 360)
+	if course < 1 {
+		course = 360.0
+	}
+
+	return unit.Angle(course) * unit.Degree
+}
+
 func (t *Trackfile) Direction() brevity.Track {
 	if t.Track.Len() < 1 {
 		return brevity.UnknownDirection
 	}
-	if t.Track.Len() < 2 {
-		return brevity.TrackFromBearing(t.LastKnown().Heading)
-	}
-	// TODO interpolate all points, weighting the most recent points more heavily.
-	latest := t.Track.Front()
-	previous := t.Track.At(1)
-	bearing := unit.Angle(geo.Bearing(previous.Point, latest.Point))
-	return brevity.TrackFromBearing(bearing)
+	course := t.Course()
+	return brevity.TrackFromBearing(course)
 }
 
 func (t *Trackfile) Speed() unit.Speed {

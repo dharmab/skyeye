@@ -17,7 +17,6 @@ require (
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.8.4
 	github.com/zaf/resample v1.5.0
-	go.uber.org/mock v0.4.0
 	gopkg.in/hraban/opus.v2 v2.0.0-20230925203106-0188a62cb302
 	gotest.tools/gotestsum v1.11.0
 )
