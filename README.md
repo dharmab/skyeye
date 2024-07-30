@@ -31,7 +31,7 @@ SkyEye is under active development. A few types of radio calls, such as `BOGEY D
 
 * Developers: See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for instructions on building, running and modifying the bot.
 * Server admins: Documentation coming Soon™
-* Players: Guides coming Soon™
+* Players: See [the user guide](docs/PLAYER.md) (work in progress) for instructions on using the bot.
 
 ## Technology
 
