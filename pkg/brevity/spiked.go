@@ -18,10 +18,10 @@ type SpikedResponse struct {
 	Callsign string
 	// True if the spike was correlated to a contact. False otherwise.
 	Status bool
-	// Range to the correlated contact. If Status is false, this may be nil.
-	Range *unit.Length
-	// Altitude of the correlated contact. If Status is false, this may be nil.
-	Altitude *unit.Length
+	// Range to the correlated contact. If Status is false, this may be 0.
+	Range unit.Length
+	// Altitude of the correlated contact. If Status is false, this may be 0.
+	Altitude unit.Length
 	// Aspect of the correlated contact. If Status is false, this may be UnknownAspect.
 	Aspect Aspect
 	// Track of the correlated contact. If Status is false, this may be UnknownDirection.

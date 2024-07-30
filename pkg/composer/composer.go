@@ -42,6 +42,7 @@ type NaturalLanguageResponse struct {
 }
 
 type composer struct {
+	// callsign of the GCI controller
 	callsign string
 }
 

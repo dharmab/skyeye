@@ -211,17 +211,17 @@ Examples:
 
 ```
 MOBIUS 1: "Thunderhead Mobius One, spiked zero eight zero"
-THUNDERHEAD: "Mobius One, spike range 15, 16000, flank northeast, hostile, single contact."
+THUNDERHEAD: "Mobius One, spike range 35, 16000, flank northeast, hostile, single contact."
 ```
 
 ```
 HITMAN 11: "Galaxy Hitman One One sees a spike at zero six zero"
-GALAXY: "Hitman One One, spike range 8, 8000, drag east, friendly, single contact."
+GALAXY: "Hitman One One, spike range 45, 8000, hot, hostile, single contact."
 ```
 
 ```
 YELLOW 13: "Goliath Yellow One Three spiked three six zero"
-GOLIATH: "Yellow One Three, Goliath clean zero"
+GOLIATH: "Yellow One Three, Goliath clean three six zero"
 ```
 
 Tips:
