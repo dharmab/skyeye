@@ -7,10 +7,7 @@ import (
 	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
-	"github.com/dharmab/skyeye/pkg/encyclopedia"
 )
-
-var aircraftData = encyclopedia.New().Aircraft()
 
 // ComposeCoreInformationFormat communicates information about groups.
 // Reference: ATP 3-52.4 chapter IV section 3

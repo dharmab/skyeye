@@ -885,11 +885,20 @@ func mirageF1Variants() []Aircraft {
 	return variants
 }
 
-func GetAircraftData(shortName string) (Aircraft, bool) {
-	for _, a := range aircraftData {
-		if a.ACMIShortName == shortName {
-			return a, true
-		}
+// aircraftDataLUT maps the name exported in ACMI data to aircraft data
+var aircraftDataLUT map[string]Aircraft
+
+func init() {
+	aircraftDataLUT = make(map[string]Aircraft)
+	for _, data := range aircraftData {
+		aircraftDataLUT[data.ACMIShortName] = data
 	}
-	return Aircraft{}, false
+}
+
+// GetAircraftData returns the aircraft data for the given name, if it exists.
+// The name should be the Name property of an ACMI object.
+// The second return value is false if the data does not exist.
+func GetAircraftData(name string) (Aircraft, bool) {
+	data, ok := aircraftDataLUT[name]
+	return data, ok
 }

@@ -17,7 +17,6 @@ type group struct {
 	contacts     []*trackfile.Trackfile
 	bullseye     *orb.Point
 	braa         brevity.BRAA
-	platforms    []string
 	aspect       *brevity.Aspect
 	declaraction brevity.Declaration
 }
@@ -124,7 +123,25 @@ func (g *group) Heavy() bool {
 
 // Platforms implements [brevity.Group.Platforms]
 func (g *group) Platforms() []string {
-	return g.platforms
+	platforms := make(map[string]struct{})
+	for _, tf := range g.contacts {
+		var name string
+		data, ok := encyclopedia.GetAircraftData(tf.Contact.ACMIName)
+		if ok {
+			for _, reportingName := range []string{data.NATOReportingName, data.Nickname, data.OfficialName, data.PlatformDesignation} {
+				if reportingName != "" {
+					name = reportingName
+					break
+				}
+			}
+		}
+		platforms[name] = struct{}{}
+	}
+	result := make([]string, 0, len(platforms))
+	for platform := range platforms {
+		result = append(result, platform)
+	}
+	return result
 }
 
 // High implements [brevity.Group.High]
