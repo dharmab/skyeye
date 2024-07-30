@@ -8,7 +8,7 @@ import (
 
 // ComposePictureResponse implements [Composer.ComposePictureResponse].
 func (c *composer) ComposePictureResponse(r brevity.PictureResponse) []NaturalLanguageResponse {
-	info := c.ComposeCoreInformationFormat(r.Count, r.Groups)
+	info := c.ComposeCoreInformationFormat(r.Count, r.Groups, true)
 
 	responses := make([]NaturalLanguageResponse, len(info))
 	responses[0] = NaturalLanguageResponse{

@@ -14,7 +14,7 @@ var aircraftData = encyclopedia.New().Aircraft()
 
 // ComposeCoreInformationFormat communicates information about groups.
 // Reference: ATP 3-52.4 chapter IV section 3
-func (c *composer) ComposeCoreInformationFormat(count int, groups []brevity.Group) []NaturalLanguageResponse {
+func (c *composer) ComposeCoreInformationFormat(count int, groups []brevity.Group, includeCount bool) []NaturalLanguageResponse {
 	if len(groups) == 0 {
 		return []NaturalLanguageResponse{{
 			Subtitle: string(brevity.Clean),
@@ -25,25 +25,24 @@ func (c *composer) ComposeCoreInformationFormat(count int, groups []brevity.Grou
 	// PICTURE response is broken up into multiple responses so it can be split across multiple transmissions.
 	responses := make([]NaturalLanguageResponse, len(groups))
 
-	// Number of groups
-	responses[0] = c.ComposeGroup(groups[0])
-	if len(groups) > 1 {
-		responses[0] = NaturalLanguageResponse{
-			Subtitle: fmt.Sprintf("%d groups. %s", count, responses[0].Subtitle),
-			Speech:   fmt.Sprintf("%d groups. %s", count, responses[0].Speech),
-		}
-	} else {
-		responses[0] = NaturalLanguageResponse{
-			Subtitle: fmt.Sprintf("single group. %s", responses[0].Subtitle),
-			Speech:   fmt.Sprintf("single group. %s", responses[0].Speech),
-		}
-	}
-
-	for i := 1; i < len(groups); i++ {
-		groupResponse := c.ComposeGroup(groups[i])
+	for i, group := range groups {
+		groupResponse := c.ComposeGroup(group)
 		responses[i] = NaturalLanguageResponse{
 			Subtitle: groupResponse.Subtitle,
 			Speech:   groupResponse.Speech,
+		}
+	}
+
+	// Number of groups
+	if includeCount {
+		text := "single group."
+		if len(groups) > 1 {
+			text = fmt.Sprintf("%d groups,", count)
+		}
+
+		responses[0] = NaturalLanguageResponse{
+			Subtitle: fmt.Sprintf("%s %s", text, responses[0].Subtitle),
+			Speech:   fmt.Sprintf("%s %s", text, responses[0].Speech),
 		}
 	}
 
