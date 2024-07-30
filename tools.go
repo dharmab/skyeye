@@ -4,6 +4,5 @@
 package tools
 
 import (
-	_ "go.uber.org/mock/mockgen"
 	_ "gotest.tools/gotestsum"
 )

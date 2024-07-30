@@ -65,7 +65,7 @@ func (s *scope) FindNearestGroupWithBRAA(origin orb.Point, coalition coalitions.
 	bearing := unit.Angle(geo.Bearing(origin, groupLocation)) * unit.Degree
 	_range := unit.Length(geo.Distance(origin, groupLocation)) * unit.Meter
 	altitude := nearestTrackfile.LastKnown().Altitude
-	aspect := brevity.AspectFromAngle(bearing, nearestTrackfile.LastKnown().Heading)
+	aspect := brevity.AspectFromAngle(bearing, nearestTrackfile.Course())
 	group.braa = brevity.NewBRAA(
 		bearing,
 		_range,
@@ -83,7 +83,7 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, coalition coaliti
 	nearestTrackfile := s.FindNearestTrackfile(origin, coalition, filter)
 	group := s.findGroupForAircraft(nearestTrackfile)
 	groupLocation := nearestTrackfile.LastKnown().Point
-	aspect := brevity.AspectFromAngle(unit.Angle(geo.Bearing(origin, groupLocation))*unit.Degree, nearestTrackfile.LastKnown().Heading)
+	aspect := brevity.AspectFromAngle(unit.Angle(geo.Bearing(origin, groupLocation))*unit.Degree, nearestTrackfile.Course())
 	group.aspect = &aspect
 	rang := unit.Length(geo.Distance(origin, groupLocation)) * unit.Meter
 	group.isThreat = rang < brevity.MandatoryThreatDistance
@@ -92,22 +92,24 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, coalition coaliti
 }
 
 func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing unit.Angle, arc unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
-	maxDistance := 150 * unit.NauticalMile
+	maxDistance := conf.DefaultPictureRadius
 	cone := orb.Polygon{
 		orb.Ring{
 			origin,
-			geo.PointAtBearingAndDistance(origin, 180+(bearing-(arc/2)).Degrees(), maxDistance.Meters()),
-			geo.PointAtBearingAndDistance(origin, 180+(bearing+(arc/2)).Degrees(), maxDistance.Meters()),
+			geo.PointAtBearingAndDistance(origin, (bearing + (arc / 2)).Degrees(), maxDistance.Meters()),
+			geo.PointAtBearingAndDistance(origin, (bearing - (arc / 2)).Degrees(), maxDistance.Meters()),
 			origin,
 		},
 	}
+	logger := log.With().Interface("origin", origin).Float64("bearing", bearing.Degrees()).Float64("arc", arc.Degrees()).Logger()
+	logger.Debug().Any("cone", cone).Msg("searching cone")
 
 	nearestDistance := unit.Length(math.MaxFloat64)
 	var nearestContact *trackfile.Trackfile
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	for unitID, tf := range s.contacts {
-		logger := log.With().Int("unitID", int(unitID)).Logger()
+		logger := logger.With().Int("unitID", int(unitID)).Logger()
 		if tf.Contact.Coalition == coalition {
 			logger.Debug().Msg("checking contact")
 			if !isValidTrack(tf) {
@@ -135,14 +137,14 @@ func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing unit.Angle, arc
 		return nil
 	}
 
-	logger := log.With().Int("unitID", int(nearestContact.Contact.UnitID)).Logger()
+	logger = log.With().Int("unitID", int(nearestContact.Contact.UnitID)).Logger()
 	logger.Debug().Msg("found nearest contact")
 	group := s.findGroupForAircraft(nearestContact)
 	if group == nil {
 		return nil
 	}
 	exactBearing := unit.Angle(geo.Bearing(origin, nearestContact.LastKnown().Point)) * unit.Degree
-	aspect := brevity.AspectFromAngle(bearing, nearestContact.LastKnown().Heading)
+	aspect := brevity.AspectFromAngle(bearing, nearestContact.Course())
 	log.Debug().Str("aspect", string(aspect)).Msg("determined aspect")
 	_range := unit.Length(geo.Distance(origin, nearestContact.LastKnown().Point)) * unit.Meter
 	group.aspect = &aspect

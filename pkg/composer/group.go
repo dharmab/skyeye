@@ -14,39 +14,22 @@ var aircraftData = encyclopedia.New().Aircraft()
 
 // ComposeCoreInformationFormat communicates information about groups.
 // Reference: ATP 3-52.4 chapter IV section 3
-func (c *composer) ComposeCoreInformationFormat(count int, groups []brevity.Group, includeCount bool) []NaturalLanguageResponse {
+func (c *composer) ComposeCoreInformationFormat(groups ...brevity.Group) NaturalLanguageResponse {
 	if len(groups) == 0 {
-		return []NaturalLanguageResponse{{
+		return NaturalLanguageResponse{
 			Subtitle: string(brevity.Clean),
 			Speech:   string(brevity.Clean),
-		}}
+		}
 	}
 
-	// PICTURE response is broken up into multiple responses so it can be split across multiple transmissions.
-	responses := make([]NaturalLanguageResponse, len(groups))
-
-	for i, group := range groups {
+	response := NaturalLanguageResponse{}
+	for _, group := range groups {
 		groupResponse := c.ComposeGroup(group)
-		responses[i] = NaturalLanguageResponse{
-			Subtitle: groupResponse.Subtitle,
-			Speech:   groupResponse.Speech,
-		}
+		response.Speech += groupResponse.Speech
+		response.Subtitle += groupResponse.Subtitle
 	}
 
-	// Number of groups
-	if includeCount {
-		text := "single group."
-		if len(groups) > 1 {
-			text = fmt.Sprintf("%d groups,", count)
-		}
-
-		responses[0] = NaturalLanguageResponse{
-			Subtitle: fmt.Sprintf("%s %s", text, responses[0].Subtitle),
-			Speech:   fmt.Sprintf("%s %s", text, responses[0].Speech),
-		}
-	}
-
-	return responses
+	return response
 }
 
 func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
@@ -120,6 +103,8 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 	} else if group.VeryFast() {
 		writeBoth(", very fast")
 	}
+
+	writeBoth(". ")
 
 	return NaturalLanguageResponse{
 		Subtitle: subtitle.String(),

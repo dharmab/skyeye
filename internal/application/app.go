@@ -292,7 +292,6 @@ func (a *app) compose(ctx context.Context, in <-chan any, out chan<- composer.Na
 			logger := log.With().Type("type", call).Interface("params", call).Logger()
 			logger.Info().Msg("composing brevity call")
 			var response composer.NaturalLanguageResponse
-			skipSend := false
 			switch c := call.(type) {
 			case brevity.AlphaCheckResponse:
 				logger.Debug().Msg("composing ALPHA CHECK call")
@@ -311,17 +310,7 @@ func (a *app) compose(ctx context.Context, in <-chan any, out chan<- composer.Na
 				response = a.composer.ComposeNegativeRadarContactResponse(c)
 			case brevity.PictureResponse:
 				logger.Debug().Msg("composing PICTURE call")
-				// PICTURE can be a long call, so it is split across multiple transmissions
-				responses := a.composer.ComposePictureResponse(c)
-				for _, response := range responses {
-					if response.Speech != "" && response.Subtitle != "" {
-						logger.Info().Str("speech", response.Speech).Str("subtitle", response.Subtitle).Msg("composed brevity call")
-						out <- response
-					} else {
-						logger.Warn().Msg("natural language response is empty")
-					}
-				}
-				skipSend = true
+				response = a.composer.ComposePictureResponse(c)
 			case brevity.RadioCheckResponse:
 				logger.Debug().Msg("composing RADIO CHECK call")
 				response = a.composer.ComposeRadioCheckResponse(c)
@@ -344,15 +333,12 @@ func (a *app) compose(ctx context.Context, in <-chan any, out chan<- composer.Na
 				logger.Debug().Msg("unable to route call to composition")
 			}
 
-			if !skipSend {
-				if response.Speech != "" && response.Subtitle != "" {
-					logger.Info().Str("speech", response.Speech).Str("subtitle", response.Subtitle).Msg("composed brevity call")
-					out <- response
-				} else {
-					logger.Warn().Msg("natural language response is empty")
-				}
+			if response.Speech == "" && response.Subtitle == "" {
+				logger.Warn().Msg("natural language response is empty")
+			} else {
+				logger.Info().Str("speech", response.Speech).Str("subtitle", response.Subtitle).Msg("composed brevity call")
+				out <- response
 			}
-
 		}
 	}
 }

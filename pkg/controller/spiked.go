@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
 )
@@ -18,8 +19,9 @@ func (c *controller) HandleSpiked(r *brevity.SpikedRequest) {
 		return
 	}
 	requestorLocation := requestorTrackfile.LastKnown().Point
-	hostileGroup := c.scope.FindNearestGroupInCone(requestorLocation, r.Bearing, 30, c.hostileCoalition(), brevity.FixedWing)
-	friendlyGroup := c.scope.FindNearestGroupInCone(requestorLocation, r.Bearing, 30, c.coalition, brevity.FixedWing)
+	arc := unit.Angle(30) * unit.Degree
+	hostileGroup := c.scope.FindNearestGroupInCone(requestorLocation, r.Bearing, arc, c.hostileCoalition(), brevity.FixedWing)
+	friendlyGroup := c.scope.FindNearestGroupInCone(requestorLocation, r.Bearing, arc, c.coalition, brevity.FixedWing)
 	resp := brevity.SpikedResponse{
 		Callsign: r.Callsign,
 		Bearing:  r.Bearing,

@@ -18,7 +18,7 @@ type Composer interface {
 	// ComposeNegativeRadarContactResponse constructs natural language brevity for saying the controller cannot find a contact on the radar.
 	ComposeNegativeRadarContactResponse(brevity.NegativeRadarContactResponse) NaturalLanguageResponse
 	// ComposePictureResponse constructs natural language brevity for responding to a PICTURE call.
-	ComposePictureResponse(brevity.PictureResponse) []NaturalLanguageResponse
+	ComposePictureResponse(brevity.PictureResponse) NaturalLanguageResponse
 	// ComposeRaygunResponse constructs natural language brevity for responding to a RADIO CHECK.
 	ComposeRadioCheckResponse(brevity.RadioCheckResponse) NaturalLanguageResponse
 	// ComposeSnaplockResponse constructs natural language brevity for responding to a SNAPLOCK call.
