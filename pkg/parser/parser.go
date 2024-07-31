@@ -10,7 +10,6 @@ import (
 	"unicode"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
-	"github.com/rodaine/numwords"
 	"github.com/rs/zerolog/log"
 )
 
@@ -130,7 +129,6 @@ func (p *parser) Parse(tx string) (any, bool) {
 				case <-ctx.Done():
 					log.Warn().Str("text", tx).Msg("timed out parsing callsign and request")
 					return &brevity.UnableToUnderstandRequest{Callsign: callsign}, true
-
 				default:
 					if strings.HasSuffix(strings.TrimSpace(segment), string(word)) {
 						log.Debug().Str("segment", segment).Str("request word", string(word)).Msg("found request word")
@@ -152,8 +150,8 @@ func (p *parser) Parse(tx string) (any, bool) {
 						}
 						_ = scanner.Scan()
 						log.Debug().Str("text", tx).Str("request", string(word)).Msg("found request word")
-						break
 					}
+					break
 				}
 			}
 		}
@@ -186,19 +184,19 @@ func (p *parser) Parse(tx string) (any, bool) {
 
 var sanitizerRex = regexp.MustCompile(`[^\p{L}\p{N} ]+`)
 
-// sanitize lowercases the input and replaces punctuation with spaces.
+// sanitize lowercases the input and replaces punctuation.
 func (p *parser) sanitize(s string) string {
 	log.Debug().Str("text", s).Msg("sanitizing text")
 	lowercased := strings.ToLower(s)
 	if s != lowercased {
 		log.Debug().Str("text", lowercased).Msg("lowercased text")
 	}
-	numbersCleaned := numwords.ParseString(lowercased)
-	if lowercased != numbersCleaned {
-		log.Debug().Str("text", numbersCleaned).Msg("parsed numbers")
-	}
-	punctuationCleaned := sanitizerRex.ReplaceAllString(numbersCleaned, " ")
-	if numbersCleaned != punctuationCleaned {
+
+	s = strings.ReplaceAll(lowercased, ",", "")
+	s = strings.ReplaceAll(s, "-", " ")
+
+	punctuationCleaned := sanitizerRex.ReplaceAllString(s, " ")
+	if lowercased != punctuationCleaned {
 		log.Debug().Str("text", punctuationCleaned).Msg("replaced punctuation")
 	}
 	finalClean := punctuationCleaned

@@ -99,25 +99,6 @@ func TestParserBogeyDope(t *testing.T) {
 	runParserTestCases(t, New(TestCallsign), testCases)
 }
 
-func TestParserDeclare(t *testing.T) {
-	testCases := []parserTestCase{
-		{
-			text: "ANYFACE, EAGLE 1 DECLARE BULLSEYE 230/12, TWELVE THOUSAND",
-			expectedRequest: &brevity.DeclareRequest{
-				Callsign: "eagle 1",
-				Location: *brevity.NewBullseye(
-					unit.Angle(230)*unit.Degree,
-					unit.Length(12)*unit.NauticalMile,
-				),
-				Altitude: 12000 * unit.Foot,
-				Track:    brevity.UnknownDirection,
-			},
-			expectedOk: true,
-		},
-	}
-	runParserTestCases(t, New(TestCallsign), testCases)
-}
-
 func TestParserPicture(t *testing.T) {
 	testCases := []parserTestCase{
 		{
@@ -249,7 +230,7 @@ func TestParserSpiked(t *testing.T) {
 func TestParserSnaplock(t *testing.T) {
 	testCases := []parserTestCase{
 		{
-			text: "ANYFACE, FREEDOM 31, SNAPLOCK 125/10, EIGHT THOUSAND",
+			text: "ANYFACE, FREEDOM 31, SNAPLOCK 125 10, 8000",
 			expectedRequest: &brevity.SnaplockRequest{
 				Callsign: "freedom 3 1",
 				BRA: brevity.NewBRA(

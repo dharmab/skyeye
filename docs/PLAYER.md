@@ -70,11 +70,13 @@ Some types of requests require you to provide numeric arguments.
 * Compass bearings must be given by speaking each digit individually. Say "Six Five" or "Zero Six Five", not "Sixty-Five."
 * All other numbers should be given normally - "Seventeen", not "One Seven"
 * Do not use ICAO pronunciation; pronounce numbers normally. Say "Three", "Five", "Nine", not "Tree", "Fife", "Niner".
+* When providing bullseye coordinates, you may either say "bullseye" before the coordinates, or omit the word "bullseye". That is, both "Bullseye Zero Six Five, Ninety-Nine" and "Zero Six Five, Ninety-Nine" are acceptable.
+* When providing bullseye coordinates, speak at a steady and measured pace with a slight p;ause between each number. Not too fast, not too slow. Don't mush your numbers together.
 
 Tips:
 
-* Speak clearly at a measured pace, as if you were recording a vlog or talking to colleages in a meeting room. Speaking too quickly or excessively slowly can confuse the bot.
 * Think about what you want to say before you say it.
+* Speak clearly at a measured pace, as if you were recording a vlog or talking to colleages in a meeting room. Speaking too quickly or excessively slowly can confuse the bot.
 * If you misspeak, release your Push-to-Talk key and start over rather than trying to correct yourself.
 * Avoid chatter on the SkyEye frequency. This may delay responses to actual requests.
 
@@ -163,7 +165,23 @@ GOLIATH: "Yellow One Three, group threat BRAA 188/45, 8000, hot, hostile, Eagle"
 
 ### DECLARE
 
-🚧 NOT YET IMPLEMENTED 🚧
+Keyword: `DECLARE`
+
+Function: You provide the position of a radar contact on your scope. The GCI will look for contacts in that area and tell you if they are hostile, friendly, a furball (mixed) or clean (nothing on scope).
+
+Arguments:
+
+1. Bullseye (bearing and distance) (required)
+2. Altitude (optional)
+3. Track direction (optional)
+
+Providing the optional arguments can help the GCI distinguish between contacts. If there's a friendly at 5000 feet and a hostile at 25000 feet, you may get a FURBALL response if you only provide the bullseye, or a specific response if you also provide altitude.
+
+Examples:
+
+```
+// TODO
+```
 
 ### PICTURE
 
