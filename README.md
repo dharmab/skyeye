@@ -4,7 +4,7 @@ SkyEye is a concept for a new [Ground Controlled Intercept](https://en.wikipedia
 
 SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same server as SkyEye. No cloud APIs are required. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can even run SkyEye on your own PC to provide GCI service on a remote multiplayer server.
 
-SkyEye is under active development. A few types of radio calls, such as `BOGEY DOPE`, `PICTURE`, `RADIO CHECK`, `ALPHA CHECK` and `SPIKED`, are functional running against live multiplayer servers. Howevever, there's still plenty to do before this is ready for widespread use. To see what I'm working on, check out the [branch network](https://github.com/dharmab/skyeye/network)!
+SkyEye is under active development. Several types of radio calls, such as `BOGEY DOPE`, `PICTURE`, `DECLARE`, `RADIO CHECK`, `ALPHA CHECK` and `SPIKED`, are functional running against live multiplayer servers. Howevever, there's still plenty to do before this is ready for widespread use. To see what I'm working on, check out the [branch network](https://github.com/dharmab/skyeye/network)!
 
 ## Goals
 
@@ -85,10 +85,12 @@ Current status:
     - ✅ PICTURE
     - ✅ BOGEY DOPE
     - ✅ SPIKED
-    - 🚧 DECLARE
+    - ✅ DECLARE
     - 🚧 FADED
     - 🚧 SNAPLOCK
     - 🚧 THREAT
+- 🚧 Controller: Magnetic variation correction not yet implemented
+- 🚧 Controller: Elevation maps not yet implemented 
 - 🚧 Accessibility: Keyboard input not yet implemented
 - 🚧 Accessibility: In-game subtitles not yet implemented
 - 🚧 Testing: Some unit test coverage is implemented, but expansion is needed

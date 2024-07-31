@@ -26,9 +26,9 @@ type Radar interface {
 	// GetPicture returns a picture of the radar scope around the given location, within the given radius, filtered by the given coalition and contact category.
 	// The first return value is the total number of groups, and the second is a slice of up to to 3 high priority groups.
 	GetPicture(orb.Point, unit.Length, coalitions.Coalition, brevity.ContactCategory) (int, []brevity.Group)
-	// FindNearbyGroups returns all groups within 3 nautical miles of the given location, filtered by the given contact category.
+	// FindNearbyGroups returns all groups within the given radius of the given location, filtered by the given contact category.
 	// Location data is unset, since it is within radar margins of the given location.
-	FindNearbyGroups(orb.Point, coalitions.Coalition, brevity.ContactCategory) []brevity.Group
+	FindNearbyGroups(orb.Point, unit.Length, coalitions.Coalition, brevity.ContactCategory) []brevity.Group
 	// FindNearestGroupWithBRAA returns the nearest group to the given location, with BRAA location embedded in the Group.
 	// The given point is the location to search from.
 	// The given coalition is the coalition to search for.

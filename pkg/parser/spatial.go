@@ -3,10 +3,12 @@ package parser
 import (
 	"bufio"
 	"slices"
+	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/martinlindhe/unit"
 	"github.com/rodaine/numwords"
+	"github.com/rs/zerolog/log"
 )
 
 var bullseyeWords = []string{"bullseye", "bulls", "eye"}
@@ -145,11 +147,15 @@ func (p *parser) parseTrack(scanner *bufio.Scanner) brevity.Track {
 
 func (p *parser) parseNaturalNumber(scanner *bufio.Scanner) (int, bool) {
 	if !scanner.Scan() {
+		log.Debug().Msg("nothing left to scan")
 		return 0, false
 	}
 
-	d, err := numwords.ParseInt(scanner.Text())
+	s := scanner.Text()
+	s = strings.ReplaceAll(s, ",", "")
+	d, err := numwords.ParseInt(s)
 	if err != nil {
+		log.Error().Err(err).Str("text", s).Msg("failed to parse natural number")
 		return 0, false
 	}
 	return d, true
