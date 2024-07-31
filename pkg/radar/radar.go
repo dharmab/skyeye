@@ -89,7 +89,6 @@ func (s *scope) handleUpdate(update sim.Updated) {
 	logger := log.With().
 		Str("name", update.Aircraft.Name).
 		Str("aircraft", update.Aircraft.ACMIName).
-		Str("acmiNAme", update.Aircraft.ACMIName).
 		Int("unitID", int(update.Aircraft.UnitID)).
 		Logger()
 

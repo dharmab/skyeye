@@ -63,3 +63,7 @@ skyeye
 
 # Local dev scripts ignored by default
 scripts/
+
+# ACMI files
+*.txt.acmik
+*.acmi.zip

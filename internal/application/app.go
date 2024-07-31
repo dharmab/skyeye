@@ -17,7 +17,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/synthesizer"
-	"github.com/dharmab/skyeye/pkg/tacview"
+	tacview "github.com/dharmab/skyeye/pkg/tacview/client"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
@@ -32,8 +32,8 @@ type Application interface {
 // app implements the Application.
 type app struct {
 	// srsClient is a SimpleRadio Standalone client
-	srsClient       simpleradio.Client
-	telemetryClient tacview.TelemetryClient
+	srsClient     simpleradio.Client
+	tacviewClient tacview.Client
 	// recognizer provides speech-to-text recognition
 	recognizer recognizer.Recognizer
 	// parser converts English brevity text to internal representations
@@ -79,20 +79,34 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		return nil, fmt.Errorf("failed to construct application: %w", err)
 	}
 
-	log.Info().
-		Str("address", config.TelemetryAddress).
-		Dur("timeout", config.TelemetryConnectionTimeout).
-		Msg("constructing telemetry client")
-	telemetryClient, err := tacview.NewClient(
-		config.TelemetryAddress,
-		config.Callsign,
-		config.TelemetryPassword,
-		config.Coalition,
-		updates,
-		fades,
-		bullseyes,
-		config.RadarSweepInterval,
-	)
+	var tacviewClient tacview.Client
+	if config.ACMIFile != "" {
+		log.Info().Str("path", config.ACMIFile).Msg("opening ACMI file")
+		tacviewClient, err = tacview.NewFileClient(
+			config.ACMIFile,
+			config.Coalition,
+			updates,
+			fades,
+			bullseyes,
+			config.RadarSweepInterval,
+		)
+	} else {
+		log.Info().
+			Str("address", config.TelemetryAddress).
+			Dur("timeout", config.TelemetryConnectionTimeout).
+			Msg("constructing telemetry client")
+		tacviewClient, err = tacview.NewTelemetryClient(
+			config.TelemetryAddress,
+			config.Callsign,
+			config.TelemetryPassword,
+			config.Coalition,
+			updates,
+			fades,
+			bullseyes,
+			config.RadarSweepInterval,
+		)
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct application: %w", err)
 	}
@@ -120,14 +134,14 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 
 	log.Info().Msg("constructing application")
 	app := &app{
-		srsClient:       srsClient,
-		telemetryClient: telemetryClient,
-		recognizer:      recognizer,
-		parser:          parser,
-		radar:           rdr,
-		controller:      controller,
-		composer:        composer,
-		synthesizer:     synthesizer,
+		srsClient:     srsClient,
+		tacviewClient: tacviewClient,
+		recognizer:    recognizer,
+		parser:        parser,
+		radar:         rdr,
+		controller:    controller,
+		composer:      composer,
+		synthesizer:   synthesizer,
 	}
 	return app, nil
 }
@@ -136,7 +150,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 func (a *app) Run(ctx context.Context) error {
 	go func() {
 		log.Info().Msg("running telemetry client")
-		if err := a.telemetryClient.Run(ctx); err != nil {
+		if err := a.tacviewClient.Run(ctx); err != nil {
 			if !errors.Is(err, context.Canceled) {
 				log.Error().Err(err).Msg("error running telemetry client")
 			}

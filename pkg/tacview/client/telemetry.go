@@ -1,4 +1,4 @@
-package tacview
+package client
 
 import (
 	"bufio"
@@ -9,28 +9,31 @@ import (
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/sim"
+	"github.com/dharmab/skyeye/pkg/tacview/acmi"
 	"github.com/dharmab/skyeye/pkg/tacview/types"
 	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
 )
 
-type TelemetryClient interface {
-	Run(context.Context) error
-	Close() error
+type telemetryClient struct {
+	connection *net.TCPConn
+	hostname   string
+	password   string
+	*tacviewClient
 }
 
-type tacviewClient struct {
-	connection     *net.TCPConn
-	hostname       string
-	password       string
-	coalition      coalitions.Coalition
-	updates        chan<- sim.Updated
-	fades          chan<- sim.Faded
-	bullseyes      chan<- orb.Point
-	updateInterval time.Duration
-}
+var _ Client = &telemetryClient{}
 
-func NewClient(address, clientHostname, password string, coaltion coalitions.Coalition, updates chan<- sim.Updated, fades chan<- sim.Faded, bullseyes chan<- orb.Point, updateInterval time.Duration) (TelemetryClient, error) {
+func NewTelemetryClient(
+	address,
+	clientHostname,
+	password string,
+	coalition coalitions.Coalition,
+	updates chan<- sim.Updated,
+	fades chan<- sim.Faded,
+	bullseyes chan<- orb.Point,
+	updateInterval time.Duration,
+) (Client, error) {
 	log.Info().Str("protocol", "tcp").Str("address", address).Msg("connecting to telemetry service")
 	addr, err := net.ResolveTCPAddr("tcp", address)
 	if err != nil {
@@ -40,50 +43,32 @@ func NewClient(address, clientHostname, password string, coaltion coalitions.Coa
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to telemetry service %v: %w", address, err)
 	}
-	return &tacviewClient{
-		connection:     connection,
-		hostname:       clientHostname,
-		password:       password,
-		coalition:      coaltion,
-		updates:        updates,
-		fades:          fades,
-		bullseyes:      bullseyes,
-		updateInterval: updateInterval,
+	return &telemetryClient{
+		connection: connection,
+		hostname:   clientHostname,
+		password:   password,
+		tacviewClient: &tacviewClient{
+			coalition:      coalition,
+			updates:        updates,
+			fades:          fades,
+			bullseyes:      bullseyes,
+			updateInterval: updateInterval,
+		},
 	}, nil
 }
 
-func (c *tacviewClient) Run(ctx context.Context) error {
+func (c *telemetryClient) Run(ctx context.Context) error {
 	reader := bufio.NewReader(c.connection)
 
 	if err := c.handshake(reader, c.hostname, c.password); err != nil {
 		return fmt.Errorf("handshake error: %w", err)
 	}
 
-	acmi := NewACMI(c.coalition, reader, c.updateInterval)
-	go func() {
-		err := acmi.Start(ctx)
-		if err != nil {
-			log.Error().Err(err).Msg("error starting ACMI client")
-		}
-	}()
-	go acmi.Stream(ctx, c.updates, c.fades)
-	go func() {
-		ticker := time.NewTicker(c.updateInterval)
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-				c.bullseyes <- acmi.Bullseye()
-			}
-		}
-	}()
-
-	<-ctx.Done()
-	return nil
+	source := acmi.New(c.coalition, reader, c.updateInterval)
+	return c.run(ctx, source)
 }
 
-func (c *tacviewClient) handshake(reader *bufio.Reader, hostname, password string) error {
+func (c *telemetryClient) handshake(reader *bufio.Reader, hostname, password string) error {
 	hostHandshakePacket, err := reader.ReadString('\000')
 	if err != nil {
 		return fmt.Errorf("error reading handshake: %w", err)
@@ -104,7 +89,7 @@ func (c *tacviewClient) handshake(reader *bufio.Reader, hostname, password strin
 	return nil
 }
 
-func (c *tacviewClient) Close() error {
+func (c *telemetryClient) Close() error {
 	if err := c.connection.Close(); err != nil {
 		return fmt.Errorf("error closing connection to telemetry service: %w", err)
 	}

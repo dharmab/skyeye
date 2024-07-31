@@ -75,7 +75,7 @@ func (c *controller) findCallsign(callsign string) *trackfile.Trackfile {
 	if tf == nil {
 		logger.Debug().Msg("no trackfile found for callsign")
 	} else {
-		logger.Debug().Str("name", tf.Contact.Name).Str("type", tf.Contact.ACMIName).Int("unitID", int(tf.Contact.UnitID)).Msg("trackfile found for callsign")
+		logger.Debug().Str("name", tf.Contact.Name).Str("aircraft", tf.Contact.ACMIName).Int("unitID", int(tf.Contact.UnitID)).Msg("trackfile found for callsign")
 	}
 	return tf
 }

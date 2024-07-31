@@ -5,17 +5,14 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/dharmab/skyeye/pkg/bearings"
+	"github.com/martinlindhe/unit"
 )
 
 // PronounceBearing composes a text representation of a sequence of up to three digits, padded with zeros.
 func PronounceBearing(d int) (s string) {
-	for d < 0 {
-		d += 360
-	}
-	d = d % 360
-	if d == 0 {
-		d = 360
-	}
+	d = int(bearings.Normalize(unit.Angle(d) * unit.Degree).Degrees())
 	s = PronounceInt(d)
 	if d < 10 {
 		s = "zero " + s

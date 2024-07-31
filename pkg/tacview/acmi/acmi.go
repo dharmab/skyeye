@@ -1,4 +1,4 @@
-package tacview
+package acmi
 
 import (
 	"bufio"
@@ -24,8 +24,10 @@ import (
 
 // https://www.tacview.net/documentation/acmi/en/
 
+// ACMI is an interface for streaming simulation data from a Tacview ACMI data source.
 type ACMI interface {
 	sim.Sim
+	// Start should be called before Stream() to initialize the ACMI stream.
 	Start(context.Context) error
 }
 
@@ -43,7 +45,7 @@ type streamer struct {
 	coalition      coalitions.Coalition
 }
 
-func NewACMI(coalition coalitions.Coalition, acmi *bufio.Reader, updateInterval time.Duration) ACMI {
+func New(coalition coalitions.Coalition, acmi *bufio.Reader, updateInterval time.Duration) ACMI {
 	return &streamer{
 		acmi:           acmi,
 		referencePoint: orb.Point{0, 0},
@@ -323,7 +325,12 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 
 	callsign, ok := object.GetProperty(properties.Pilot)
 	if !ok {
-		log.Warn().Int("unitID", object.ID).Msg("object has no pilot, using unitID as callsign")
+		logger := log.With().Int("unitID", object.ID).Logger()
+		acmiName, ok := object.GetProperty(properties.ShortName)
+		if ok {
+			logger = logger.With().Str("aircraft", acmiName).Logger()
+		}
+		logger.Warn().Msg("object has no pilot, using unitID as callsign")
 		callsign = fmt.Sprintf("Unit %d", object.ID)
 	}
 

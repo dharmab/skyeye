@@ -76,6 +76,10 @@ func main() {
 	}
 	zerolog.SetGlobalLevel(level)
 
+	if *ACMIFile == "" && *TelemetryAddress == "" {
+		exitOnErr(errors.New("either ACMI file or telemetry address must be provided"))
+	}
+
 	var coalition coalitions.Coalition
 	log.Info().Str("coalition", *Coalition).Msg("setting GCI coalition")
 	if strings.EqualFold(*Coalition, "blue") {
