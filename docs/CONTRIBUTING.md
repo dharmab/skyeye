@@ -72,6 +72,11 @@ Run SkyEye by passing command line flags to `skyeye.exe`. You can run `./skyeye.
 
 If all goes well, you should see the SkyEye software start up and start logging JSON lines to the console.
 
+If you get an error, double check the following:
+
+- You are running SkyEye in an MSYS2 UCRT terminal and not a regular Windows terminal/PowerShell/Git Bash.
+- You are using a Whisper model compatible with your hardware and this software. I use `ggml-small.en.bin` in my testing.
+
 ## Run Using an ACMI File (Experimental)
 
 As an alternative to using a live DCS server, experimental support has been added for loading a `.txt.acmi` or `.acmi.zip` file. Use the `-acmi-file=path/to/file.acmi.zip` flag instead of `-telemetry-address`/`-telemetry-password`.
@@ -102,11 +107,19 @@ For convenience, add MSYS2 to Visual Studio Code's integrated terminal. Open you
 }
 ```
 
-I don't have this project set up to build/run/debug through VSC yet- but it's possible to do interactive debugging so by running `skyeye.exe` through `dlv --headless --listen=:2345 exec skyeye.exe...` and then attaching VSC to a remote debugger on port 2345.
+You can then run all the development commands through the "MSYS2" shell in the new terminal dropdown. Neat!
+
+I don't have this project set up to build/run/debug through VSC yet- but it's possible to do interactive debugging with [Delve](https://github.com/go-delve/delve) by running `skyeye.exe` through `dlv --headless --listen=:2345 exec skyeye.exe...` and then attaching VSC to a remote debugger on port 2345.
 
 ### Linux
 
-🐧 Use your favorite editor.
+🐧 Use your favorite editor. Build with `make`/`go`. Debug with Delve or your IDE. Wow, that was easy!
+
+## Test
+
+The canonical way to run the unit tests is by running `make test`. This can run tests for code that uses CGO. **This is the gate used for MR checks.**
+
+I have made an effort to structure packages so that CGO is never imported directly or indirectly within packages that aren't directly related to the Speech-To-Text and Text-To-Speech models. This means that most tests can be run though Visual Studio Code without the complexity and performance hit of CGO. **This is the easiest way to test and debug on during development.**
 
 ## Project Layout and Key Files
 

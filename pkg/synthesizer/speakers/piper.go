@@ -1,4 +1,4 @@
-package synthesizer
+package speakers
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	masculine "github.com/amitybell/piper-voice-alan"
 	feminine "github.com/amitybell/piper-voice-jenny"
 	"github.com/dharmab/skyeye/pkg/pcm"
+	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/rs/zerolog/log"
 	"github.com/zaf/resample"
 )
@@ -17,23 +18,12 @@ type piperSynth struct {
 	tts *piper.TTS
 }
 
-var _ Sythesizer = (*piperSynth)(nil)
-
-type Voice int
-
-const (
-	// FeminineVoice is the "Jenny" en-GB voice.
-	// Origin: https://github.com/dioco-group/jenny-tts-dataset
-	FeminineVoice Voice = iota
-	// MasculineVoice is the "Alan" en-GB voice.
-	// Origin: https://popey.me
-	MasculineVoice
-)
+var _ Speaker = (*piperSynth)(nil)
 
 // NewPiperSpeaker creates a Speaker powered by Piper (https://github.com/rhasspy/piper)
-func NewPiperSpeaker(v Voice) (Sythesizer, error) {
+func NewPiperSpeaker(v voices.Voice) (Speaker, error) {
 	var a asset.Asset
-	if v == MasculineVoice {
+	if v == voices.MasculineVoice {
 		a = masculine.Asset
 	} else {
 		a = feminine.Asset

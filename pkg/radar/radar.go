@@ -98,7 +98,7 @@ func (s *scope) handleUpdate(update sim.Updated) {
 		logger.Trace().Msg("updated existing trackfile")
 	} else {
 		tf = trackfile.NewTrackfile(update.Aircraft)
-		s.contacts.set(update.Aircraft.UnitID, tf)
+		s.contacts.set(tf)
 		logger.Info().Msg("created new trackfile")
 	}
 }

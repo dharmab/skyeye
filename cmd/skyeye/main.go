@@ -17,7 +17,7 @@ import (
 	"github.com/dharmab/skyeye/internal/application"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
-	"github.com/dharmab/skyeye/pkg/synthesizer"
+	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
 
@@ -100,12 +100,12 @@ func main() {
 	log.Info().Msg("whisper model loaded")
 	defer whisperModel.Close()
 
-	var voice synthesizer.Voice
+	var voice voices.Voice
 	switch strings.ToLower(*Voice) {
 	case "feminine":
-		voice = synthesizer.FeminineVoice
+		voice = voices.FeminineVoice
 	case "masculine":
-		voice = synthesizer.MasculineVoice
+		voice = voices.MasculineVoice
 	default:
 		err = fmt.Errorf("unknown voice: %s", *Voice)
 		exitOnErr(err)

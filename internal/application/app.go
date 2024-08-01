@@ -16,7 +16,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
-	"github.com/dharmab/skyeye/pkg/synthesizer"
+	"github.com/dharmab/skyeye/pkg/synthesizer/speakers"
 	tacview "github.com/dharmab/skyeye/pkg/tacview/client"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -43,8 +43,8 @@ type app struct {
 	controller controller.Controller
 	// composer converys from internal representations to English brevity text
 	composer composer.Composer
-	// synthesizer provides text-to-speech synthesis
-	synthesizer synthesizer.Sythesizer
+	// speaker provides text-to-speech synthesis
+	speaker speakers.Speaker
 }
 
 // NewApplication constructs a new Application.
@@ -127,7 +127,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	composer := composer.New(config.Callsign)
 
 	log.Info().Msg("constructing text-to-speech synthesizer")
-	synthesizer, err := synthesizer.NewPiperSpeaker(config.Voice)
+	synthesizer, err := speakers.NewPiperSpeaker(config.Voice)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct application: %w", err)
 	}
@@ -141,7 +141,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		radar:         rdr,
 		controller:    controller,
 		composer:      composer,
-		synthesizer:   synthesizer,
+		speaker:       synthesizer,
 	}
 	return app, nil
 }
@@ -366,7 +366,7 @@ func (a *app) synthesize(ctx context.Context, in <-chan composer.NaturalLanguage
 			return
 		case response := <-in:
 			log.Info().Str("text", response.Speech).Msg("synthesizing speech")
-			audio, err := a.synthesizer.Say(response.Speech)
+			audio, err := a.speaker.Say(response.Speech)
 			if err != nil {
 				log.Error().Err(err).Msg("error synthesizing speech")
 			} else {

@@ -19,8 +19,8 @@ type contactDatabase interface {
 	getByUnitID(uint32) (*trackfile.Trackfile, bool)
 	// lastUpdated returns the last time a trackfile was updated, using the real time timestamp.
 	lastUpdated(uint32) (time.Time, bool)
-	// set updates the trackfile for the given unit ID, or inserts a new trackfile if no trackfile was found.
-	set(uint32, *trackfile.Trackfile)
+	// set updates the trackfile for the given trackfile's unit ID, or inserts a new trackfile if no trackfile was found.
+	set(*trackfile.Trackfile)
 	// delete removes the trackfile for the given unit ID.
 	// It returns true if the trackfile was found and removed, and false otherwise.
 	delete(uint32) bool
@@ -84,7 +84,7 @@ func (d *database) getByUnitID(unitId uint32) (*trackfile.Trackfile, bool) {
 }
 
 // set implements [contactDatabase.set].
-func (d *database) set(unitId uint32, tf *trackfile.Trackfile) {
+func (d *database) set(tf *trackfile.Trackfile) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
@@ -94,9 +94,9 @@ func (d *database) set(unitId uint32, tf *trackfile.Trackfile) {
 	if !ok {
 		callsign = tf.Contact.Name
 	}
-	d.callsignIdx[callsign] = unitId
-	d.contacts[unitId] = tf
-	d.lastUpdatedIdx[unitId] = time.Now()
+	d.callsignIdx[callsign] = tf.Contact.UnitID
+	d.contacts[tf.Contact.UnitID] = tf
+	d.lastUpdatedIdx[tf.Contact.UnitID] = time.Now()
 }
 
 // lastUpdated implements [contactDatabase.lastUpdated].
