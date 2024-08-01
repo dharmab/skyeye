@@ -7,17 +7,17 @@ import (
 )
 
 // ComposeBogeyDopeResponse implements [Composer.ComposeBogeyDopeResponse].
-func (c *composer) ComposeBogeyDopeResponse(r brevity.BogeyDopeResponse) NaturalLanguageResponse {
-	if r.Group == nil {
-		reply := fmt.Sprintf("%s, %s", r.Callsign, brevity.Clean)
+func (c *composer) ComposeBogeyDopeResponse(response brevity.BogeyDopeResponse) NaturalLanguageResponse {
+	if response.Group == nil {
+		reply := fmt.Sprintf("%s, %s", response.Callsign, brevity.Clean)
 		return NaturalLanguageResponse{
 			Subtitle: reply,
 			Speech:   reply,
 		}
 	}
-	response := c.ComposeCoreInformationFormat(r.Group)
+	info := c.ComposeCoreInformationFormat(response.Group)
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", r.Callsign, response.Subtitle),
-		Speech:   fmt.Sprintf("%s, %s", r.Callsign, response.Speech),
+		Subtitle: fmt.Sprintf("%s, %s", response.Callsign, info.Subtitle),
+		Speech:   fmt.Sprintf("%s, %s", response.Callsign, info.Speech),
 	}
 }

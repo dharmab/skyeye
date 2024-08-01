@@ -5,7 +5,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (c *controller) HandleUnableToUnderstand(r *brevity.UnableToUnderstandRequest) {
-	log.Debug().Str("callsign", r.Callsign).Type("type", r).Msg("handling request")
-	c.out <- brevity.SayAgainResponse{Callsign: r.Callsign}
+func (c *controller) HandleUnableToUnderstand(request *brevity.UnableToUnderstandRequest) {
+	log.Debug().Str("callsign", request.Callsign).Type("type", request).Msg("handling request")
+	c.out <- brevity.SayAgainResponse{Callsign: request.Callsign}
 }

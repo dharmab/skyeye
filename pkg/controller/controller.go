@@ -40,9 +40,9 @@ type controller struct {
 	frequency unit.Frequency
 }
 
-func New(r radar.Radar, coalition coalitions.Coalition, frequency unit.Frequency) Controller {
+func New(rdr radar.Radar, coalition coalitions.Coalition, frequency unit.Frequency) Controller {
 	return &controller{
-		scope:     r,
+		scope:     rdr,
 		coalition: coalition,
 		frequency: frequency,
 	}

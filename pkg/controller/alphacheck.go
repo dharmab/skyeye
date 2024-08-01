@@ -6,14 +6,14 @@ import (
 )
 
 // HandleAlphaCheck implements [Controller.HandleAlphaCheck].
-func (c *controller) HandleAlphaCheck(r *brevity.AlphaCheckRequest) {
-	logger := log.With().Str("callsign", r.Callsign).Type("type", r).Logger()
+func (c *controller) HandleAlphaCheck(request *brevity.AlphaCheckRequest) {
+	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
-	trackfile := c.findCallsign(r.Callsign)
+	trackfile := c.findCallsign(request.Callsign)
 	if trackfile == nil {
 		logger.Debug().Msg("no trackfile found for requestor")
 		c.out <- brevity.AlphaCheckResponse{
-			Callsign: r.Callsign,
+			Callsign: request.Callsign,
 			Status:   false,
 		}
 		return
@@ -21,7 +21,7 @@ func (c *controller) HandleAlphaCheck(r *brevity.AlphaCheckRequest) {
 	logger.Debug().Msg("found requestor's trackfile")
 	location := trackfile.Bullseye(c.scope.GetBullseye())
 	c.out <- brevity.AlphaCheckResponse{
-		Callsign: r.Callsign,
+		Callsign: request.Callsign,
 		Status:   true,
 		Location: location,
 	}

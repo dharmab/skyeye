@@ -7,11 +7,11 @@ import (
 )
 
 // ComposeSayAgainResponse implements [Composer.ComposeSayAgainResponse].
-func (c *composer) ComposeSayAgainResponse(r brevity.SayAgainResponse) NaturalLanguageResponse {
-	if r.Callsign != "" {
+func (c *composer) ComposeSayAgainResponse(response brevity.SayAgainResponse) NaturalLanguageResponse {
+	if response.Callsign != "" {
 		return NaturalLanguageResponse{
-			Subtitle: fmt.Sprintf("%s, sorry, I didn't understand. Say again.", r.Callsign),
-			Speech:   fmt.Sprintf("%s, sorry, I didn't understand. Say again.", r.Callsign),
+			Subtitle: fmt.Sprintf("%s, sorry, I didn't understand. Say again.", response.Callsign),
+			Speech:   fmt.Sprintf("%s, sorry, I didn't understand. Say again.", response.Callsign),
 		}
 	}
 	return NaturalLanguageResponse{

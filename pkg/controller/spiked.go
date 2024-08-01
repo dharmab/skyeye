@@ -7,32 +7,32 @@ import (
 )
 
 // HandleSpiked implements Controller.HandleSpiked.
-func (c *controller) HandleSpiked(r *brevity.SpikedRequest) {
-	logger := log.With().Str("callsign", r.Callsign).Type("type", r).Float64("bearing", r.Bearing.Degrees()).Logger()
+func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
+	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Float64("bearing", request.Bearing.Degrees()).Logger()
 	logger.Debug().Msg("handling request")
 
-	requestorTrackfile := c.scope.FindCallsign(r.Callsign)
-	if requestorTrackfile == nil {
+	trackfile := c.scope.FindCallsign(request.Callsign)
+	if trackfile == nil {
 		logger.Info().Msg("no trackfile found for requestor")
-		c.out <- brevity.NegativeRadarContactResponse{Callsign: r.Callsign}
+		c.out <- brevity.NegativeRadarContactResponse{Callsign: request.Callsign}
 		return
 	}
-	requestorLocation := requestorTrackfile.LastKnown().Point
+	origin := trackfile.LastKnown().Point
 	arc := unit.Angle(30) * unit.Degree
-	nearestGroup := c.scope.FindNearestGroupInCone(requestorLocation, r.Bearing, arc, c.hostileCoalition(), brevity.FixedWing)
+	nearestGroup := c.scope.FindNearestGroupInCone(origin, request.Bearing, arc, c.hostileCoalition(), brevity.FixedWing)
 
 	if nearestGroup == nil {
 		logger.Info().Msg("no hostile groups found within spike cone")
-		c.out <- brevity.SpikedResponse{Callsign: r.Callsign, Status: false}
+		c.out <- brevity.SpikedResponse{Callsign: request.Callsign, Status: false}
 		return
 	}
 
 	logger = logger.With().Any("group", nearestGroup).Logger()
 	logger.Debug().Msg("hostile group found within spike cone")
 	c.out <- brevity.SpikedResponse{
-		Callsign:    r.Callsign,
+		Callsign:    request.Callsign,
 		Status:      true,
-		Bearing:     r.Bearing,
+		Bearing:     request.Bearing,
 		Range:       nearestGroup.BRAA().Range(),
 		Altitude:    nearestGroup.BRAA().Altitude(),
 		Aspect:      nearestGroup.BRAA().Aspect(),
