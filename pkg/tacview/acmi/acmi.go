@@ -266,7 +266,7 @@ func (s *streamer) updateAircraft(updates chan<- sim.Updated, object *types.Obje
 		return err
 	}
 	if update != nil {
-		logger.Trace().Int("unitID", int(update.Aircraft.UnitID)).Str("name", update.Aircraft.Name).Str("aircraft", update.Aircraft.ACMIName).Msg("aircraft update")
+		logger.Trace().Int("unitID", int(update.Labels.UnitID)).Str("name", update.Labels.Name).Str("aircraft", update.Labels.ACMIName).Msg("aircraft update")
 		updates <- *update
 	}
 	return nil
@@ -342,7 +342,7 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 	}
 
 	return &sim.Updated{
-		Aircraft: trackfiles.Aircraft{
+		Labels: trackfiles.Labels{
 			UnitID:    uint32(object.ID),
 			Name:      callsign,
 			Coalition: coalition,

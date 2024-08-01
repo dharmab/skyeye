@@ -32,8 +32,8 @@ func (s *scope) findGroupForAircraft(tf *trackfiles.Trackfile) *group {
 // These are tripled from the ATP numbers beacause the DCS AI isn't amazing at holding formation.
 // We allow mixed platform groups because these are fairly common in DCS.
 func (s *scope) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *group) {
-	spreadInterval := unit.Length(3) * unit.NauticalMile
-	stackInterval := unit.Length(3000) * unit.Foot
+	spreadInterval := 3 * unit.NauticalMile
+	stackInterval := 3000 * unit.Foot
 	itr := s.contacts.itr()
 	for itr.next() {
 		other := itr.value()

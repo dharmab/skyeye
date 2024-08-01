@@ -5,6 +5,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/gammazero/deque"
@@ -13,7 +14,8 @@ import (
 	"github.com/paulmach/orb/geo"
 )
 
-type Aircraft struct {
+// Labels are identifying information attached to a trackfile.
+type Labels struct {
 	// UnitID is the in-game ID.
 	UnitID uint32
 	// Name is a unique string for each aircraft.
@@ -29,7 +31,7 @@ type Aircraft struct {
 // Trackfile tracks a contact's movement over time.
 type Trackfile struct {
 	// Contact contains identifying information.
-	Contact Aircraft
+	Contact Labels
 	// Track is a collection of frames, ordered from most recent to least recent.
 	Track deque.Deque[Frame]
 	// MaxLength is the maximum number of frames to keep in the trackfile.
@@ -49,7 +51,7 @@ type Frame struct {
 	Heading unit.Angle
 }
 
-func NewTrackfile(a Aircraft) *Trackfile {
+func NewTrackfile(a Labels) *Trackfile {
 	return &Trackfile{
 		Contact:   a,
 		Track:     *deque.New[Frame](),
@@ -71,13 +73,18 @@ func (t *Trackfile) String() string {
 	)
 }
 
+// Update the trackfile with a new frame. Frames older than the most recent one are discarded.
 func (t *Trackfile) Update(f Frame) {
+	if t.Track.Len() > 0 && f.Timestamp.Before(t.Track.Front().Timestamp) {
+		return
+	}
 	t.Track.PushFront(f)
 	for t.Track.Len() > t.MaxLength {
 		t.Track.PopBack()
 	}
 }
 
+// Bullseye returns the bearing and distance from the bullseye to the track's last known position.
 func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 	latest := t.Track.Front()
 	bearing := unit.Angle(geo.Bearing(bullseye, latest.Point)) * unit.Degree
@@ -85,6 +92,8 @@ func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 	return *brevity.NewBullseye(bearing, distance)
 }
 
+// LastKnown returns the most recent frame in the trackfile.
+// If the trackfile is empty, a stub frame with a timestamp an hour in the past is returned.
 func (t *Trackfile) LastKnown() Frame {
 	if t.Track.Len() == 0 {
 		return Frame{
@@ -97,6 +106,9 @@ func (t *Trackfile) LastKnown() Frame {
 	return t.Track.Front()
 }
 
+// Course returns the angle that the track is moving in.
+// If the track has not moved very far, the course may be unreliable.
+// You can check for this condition by checking if [Trackfile.Direction] returns [brevity.UnknownDirection].
 func (t *Trackfile) Course() unit.Angle {
 	if t.Track.Len() < 2 {
 		return unit.Angle(t.LastKnown().Heading) * unit.Degree
@@ -105,26 +117,44 @@ func (t *Trackfile) Course() unit.Angle {
 	latest := t.Track.Front()
 	previous := t.Track.At(1)
 
-	course := geo.Bearing(previous.Point, latest.Point)
-	if course < 0 {
-		course += 360
-	}
-	course = math.Mod(course, 360)
-	if course < 1 {
-		course = 360.0
-	}
-
-	return unit.Angle(course) * unit.Degree
+	course := unit.Angle(geo.Bearing(previous.Point, latest.Point)) * unit.Degree
+	return bearings.Normalize(course)
 }
 
+// Direction returns the cardinal direction that the track is moving in, or [brevity.UnknownDirection] if the track is not moving faster than 1 m/s.
 func (t *Trackfile) Direction() brevity.Track {
-	if t.Track.Len() < 1 {
+	if t.Track.Len() < 2 {
 		return brevity.UnknownDirection
 	}
+	if t.groundSpeed() < 1*unit.MetersPerSecond {
+		return brevity.UnknownDirection
+	}
+
 	course := t.Course()
 	return brevity.TrackFromBearing(course)
 }
 
+// groundSpeed returns the approxmiate speed of the track along the ground (i.e. in two dimensions).
+func (t *Trackfile) groundSpeed() unit.Speed {
+	if t.Track.Len() < 2 {
+		return 0
+	}
+
+	latest := t.Track.Front()
+	previous := t.Track.At(1)
+
+	timeDelta := latest.Timestamp.Sub(previous.Timestamp)
+
+	groundDistance := unit.Length(math.Abs(geo.Distance(latest.Point, previous.Point))) * unit.Meter
+	groundSpeed := unit.Speed(
+		groundDistance.Meters()/
+			timeDelta.Seconds(),
+	) * unit.MetersPerSecond
+
+	return groundSpeed
+}
+
+// Speed returns either the ground speed or the true 3D speed of the track, whichever is greater.
 func (t *Trackfile) Speed() unit.Speed {
 	if t.Track.Len() < 2 {
 		return 0
@@ -135,22 +165,22 @@ func (t *Trackfile) Speed() unit.Speed {
 
 	timeDelta := latest.Timestamp.Sub(previous.Timestamp)
 
-	groundDistance := unit.Length(geo.Distance(latest.Point, previous.Point)) * unit.Meter
-	groundSpeed := unit.Speed(
-		groundDistance.Meters()/
-			timeDelta.Seconds(),
-	) * unit.MetersPerSecond
+	groundSpeed := t.groundSpeed()
 
-	distanceVertical := latest.Altitude - previous.Altitude
+	var verticalDistance unit.Length
+	if latest.Altitude > previous.Altitude {
+		verticalDistance = latest.Altitude - previous.Altitude
+	} else {
+		verticalDistance = previous.Altitude - latest.Altitude
+	}
 	verticalSpeed := unit.Speed(
-		distanceVertical.Meters()/
+		verticalDistance.Meters()/
 			timeDelta.Seconds(),
 	) * unit.MetersPerSecond
 
 	trueSpeed := unit.Speed(
 		math.Sqrt(
-			math.Pow(groundSpeed.MetersPerSecond(), 2)+
-				math.Pow(verticalSpeed.MetersPerSecond(), 2),
+			math.Pow(groundSpeed.MetersPerSecond(), 2)+math.Pow(verticalSpeed.MetersPerSecond(), 2),
 		),
 	) * unit.MetersPerSecond
 
