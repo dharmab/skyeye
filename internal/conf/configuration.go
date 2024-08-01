@@ -5,7 +5,7 @@ import (
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
-	"github.com/dharmab/skyeye/pkg/synthesizer"
+	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 	"github.com/martinlindhe/unit"
 )
@@ -42,7 +42,7 @@ type Configuration struct {
 	// WhisperModel is a whisper.cpp model used for Speech To Text
 	WhisperModel whisper.Model
 	// Voice is the voice used for SRS transmissions
-	Voice synthesizer.Voice
+	Voice voices.Voice
 }
 
 var DefaultPictureRadius = encyclopedia.NoLaterThanCommitRange(encyclopedia.SAR2OrAR1) + 50*unit.NauticalMile
