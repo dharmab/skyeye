@@ -10,6 +10,7 @@ require (
 	github.com/ebitengine/oto/v3 v3.1.0
 	github.com/gammazero/deque v0.2.1
 	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240727173504-6739eb83c3ca
+	github.com/hbollon/go-edlib v1.6.0
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6
 	github.com/paulmach/orb v0.11.1

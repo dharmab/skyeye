@@ -283,6 +283,7 @@ func (s *streamer) Time() time.Time {
 }
 
 func (s *streamer) updateBullseye(object *types.Object) error {
+
 	types, err := object.GetTypes()
 	if err != nil {
 		return err
@@ -299,9 +300,14 @@ func (s *streamer) updateBullseye(object *types.Object) error {
 }
 
 func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
+	logger := log.With().Logger()
 	types, err := object.GetTypes()
 	if err != nil {
 		return nil, fmt.Errorf("error getting object types: %w", err)
+	}
+
+	if types != nil {
+		logger = logger.With().Any("types", types).Logger()
 	}
 	if !slices.Contains(types, tags.FixedWing) && !slices.Contains(types, tags.Rotorcraft) {
 		return nil, errors.New("object is not an aircraft")
@@ -310,6 +316,7 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 	if !ok {
 		return nil, errors.New("object has no name")
 	}
+	logger = logger.With().Str("name", name).Logger()
 	coordinates, err := object.GetCoordinates(s.referencePoint)
 	if err != nil {
 		return nil, err
@@ -327,12 +334,12 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 
 	callsign, ok := object.GetProperty(properties.Pilot)
 	if !ok {
-		logger := log.With().Int("unitID", object.ID).Logger()
+		logger := logger.With().Int("unitID", object.ID).Logger()
 		acmiName, ok := object.GetProperty(properties.ShortName)
 		if ok {
 			logger = logger.With().Str("aircraft", acmiName).Logger()
 		}
-		logger.Warn().Msg("object has no pilot, using unitID as callsign")
+		logger.Warn().Str("name", name).Msg("object has no pilot, using unitID as callsign")
 		callsign = fmt.Sprintf("Unit %d", object.ID)
 	}
 

@@ -842,7 +842,7 @@ var aircraftData = append([]Aircraft{
 		OfficialName:        "Fullback",
 	},
 	{
-		ACMIShortName:       "Tornado",
+		ACMIShortName:       "Tornado GR4",
 		tags:                tornadoData.tags,
 		PlatformDesignation: tornadoData.PlatformDesignation,
 		TypeDesignation:     "Tornado",

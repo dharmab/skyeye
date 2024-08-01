@@ -9,7 +9,7 @@ import (
 func (c *controller) HandleAlphaCheck(request *brevity.AlphaCheckRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
-	trackfile := c.findCallsign(request.Callsign)
+	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign)
 	if trackfile == nil {
 		logger.Debug().Msg("no trackfile found for requestor")
 		c.out <- brevity.AlphaCheckResponse{
@@ -21,7 +21,7 @@ func (c *controller) HandleAlphaCheck(request *brevity.AlphaCheckRequest) {
 	logger.Debug().Msg("found requestor's trackfile")
 	location := trackfile.Bullseye(c.scope.GetBullseye())
 	c.out <- brevity.AlphaCheckResponse{
-		Callsign: request.Callsign,
+		Callsign: foundCallsign,
 		Status:   true,
 		Location: location,
 	}

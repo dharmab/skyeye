@@ -159,5 +159,5 @@ flowchart TD
     controller.Controller .->|queries| radar.Radar 
     controller.Controller -->|brevity responses| composer.Composer
     controller.Controller -->|brevity calls| composer.Composer
-    composer.Composer -->|natural language| synthesizer.Speaker -->|audio| simpleradio.Client
+    composer.Composer -->|natural language| speakers.Speaker -->|audio| simpleradio.Client
 ```

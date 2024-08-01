@@ -15,8 +15,8 @@ type SnaplockRequest struct {
 type SnaplockResponse struct {
 	// Callsign of the friendly aircraft requesting the SNAPLOCK.
 	Callsign string
-	// Status is true if the SNAPLOCK was correlated to a group, otherwise false.
-	Status bool
-	// Group that was identified. If Status is false, this may be nil.
+	// Declaration of the contact.
+	Declaration Declaration
+	// Group that was identified. If Declaration is Unable or Furball, this may be nil.
 	Group Group
 }

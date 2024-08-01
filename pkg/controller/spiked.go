@@ -6,7 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// HandleSpiked implements Controller.HandleSpiked.
+// HandleSpiked implements [Controller.HandleSpiked].
 func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Float64("bearing", request.Bearing.Degrees()).Logger()
 	logger.Debug().Msg("handling request")
@@ -15,7 +15,8 @@ func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
 		logger.Error().Any("bearing", request.Bearing).Msg("bearing provided to HandleSpiked should be magnetic")
 	}
 
-	trackfile := c.scope.FindCallsign(request.Callsign)
+	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign)
+
 	if trackfile == nil {
 		logger.Info().Msg("no trackfile found for requestor")
 		c.out <- brevity.NegativeRadarContactResponse{Callsign: request.Callsign}
@@ -23,11 +24,22 @@ func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
 	}
 	origin := trackfile.LastKnown().Point
 	arc := unit.Angle(30) * unit.Degree
-	nearestGroup := c.scope.FindNearestGroupInCone(origin, request.Bearing, arc, c.hostileCoalition(), brevity.FixedWing)
+
+	distance := unit.Length(120) * unit.NauticalMile
+	nearestGroup := c.scope.FindNearestGroupInSector(
+		origin,
+		lowestAltitude,
+		highestAltitude,
+		distance,
+		request.Bearing,
+		arc,
+		c.hostileCoalition(),
+		brevity.FixedWing,
+	)
 
 	if nearestGroup == nil {
 		logger.Info().Msg("no hostile groups found within spike cone")
-		c.out <- brevity.SpikedResponse{Callsign: request.Callsign, Status: false}
+		c.out <- brevity.SpikedResponse{Callsign: foundCallsign, Status: false}
 		return
 	}
 

@@ -98,6 +98,11 @@ func (g *group) Track() brevity.Track {
 	return g.contacts[0].Direction()
 }
 
+func (g *group) course() bearings.Bearing {
+	// TODO interpolate from all members
+	return g.contacts[0].Course()
+}
+
 // Aspect implements [brevity.Group.Aspect]
 func (g *group) Aspect() brevity.Aspect {
 	if g.aspect == nil {
@@ -181,11 +186,11 @@ func (g *group) category() brevity.ContactCategory {
 
 // point returns the center point of the group
 func (g *group) point() orb.Point {
-	points := orb.MultiPoint{}
-	for _, trackfile := range g.contacts {
-		points = append(points, trackfile.LastKnown().Point)
+	center := g.contacts[0].LastKnown().Point
+	for _, trackfile := range g.contacts[1:] {
+		center = geo.Midpoint(center, trackfile.LastKnown().Point)
 	}
-	return points.Bound().Center()
+	return center
 }
 
 // missionTime returns the mission-time timestamp of the most recent trackfile in the group

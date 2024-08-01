@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
+	"github.com/rs/zerolog/log"
 )
 
 type whisperRecognizer struct {
@@ -21,19 +22,26 @@ func NewWhisperRecognizer(model whisper.Model) Recognizer {
 
 // Recognize implements [Recognizer.Recognize] using whisper.cpp
 func (r *whisperRecognizer) Recognize(sample []float32) (string, error) {
-	ctx, err := r.model.NewContext()
+	wCtx, err := r.model.NewContext()
+	wCtx.SetInitialPrompt("You are a Ground Control Intercept (GCI) operator. You receive text in the format [ANYFACE / CALLSIGN] [CALLSIGN] [DIGITS] [RADIO, ALPHA, BOGEY, PICTURE, DECLARE, SNAPLOCK, or SPIKED] MESSAGE. Parse numbers as digits. Do not use punctuation.")
 	if err != nil {
 		return "", fmt.Errorf("error creating context: %w", err)
 	}
 
-	err = ctx.Process(sample, nil, nil)
+	err = wCtx.Process(
+		sample,
+		func(segment whisper.Segment) {
+			log.Debug().Str("text", segment.Text).Msg("processing segment")
+		},
+		nil,
+	)
 	if err != nil {
 		return "", fmt.Errorf("error processing sample: %w", err)
 	}
 
 	var textBuilder strings.Builder
 	for {
-		segment, err := ctx.NextSegment()
+		segment, err := wCtx.NextSegment()
 		if err == io.EOF {
 			break
 		}
