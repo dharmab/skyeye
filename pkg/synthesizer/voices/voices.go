@@ -1,5 +1,9 @@
+// package voices contains the available voices for the synthesizer package.
 package voices
 
+// This package is split from speakers to avoid pulling C dependencies into half of SkyEye's unit tests :)
+
+// Voice for text-to-speech synthesis.
 type Voice int
 
 const (

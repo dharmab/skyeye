@@ -6,7 +6,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/radar"
-	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
@@ -68,14 +68,14 @@ func (c *controller) hostileCoalition() coalitions.Coalition {
 }
 
 // findCallsign searches the controller's scope for a trackfile matching the given callsign.
-func (c *controller) findCallsign(callsign string) *trackfile.Trackfile {
+func (c *controller) findCallsign(callsign string) *trackfiles.Trackfile {
 	logger := log.With().Str("callsign", callsign).Logger()
 	logger.Debug().Msg("searching scope for trackfile matching callsign")
-	tf := c.scope.FindCallsign(callsign)
-	if tf == nil {
+	trackfile := c.scope.FindCallsign(callsign)
+	if trackfile == nil {
 		logger.Debug().Msg("no trackfile found for callsign")
 	} else {
-		logger.Debug().Str("name", tf.Contact.Name).Str("aircraft", tf.Contact.ACMIName).Int("unitID", int(tf.Contact.UnitID)).Msg("trackfile found for callsign")
+		logger.Debug().Str("name", trackfile.Contact.Name).Str("aircraft", trackfile.Contact.ACMIName).Int("unitID", int(trackfile.Contact.UnitID)).Msg("trackfile found for callsign")
 	}
-	return tf
+	return trackfile
 }

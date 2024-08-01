@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/paulmach/orb"
 )
 
@@ -25,9 +25,9 @@ type Sim interface {
 // Updated is a message sent when an aircraft is updated.
 type Updated struct {
 	// Aircraft contains the aircraft's identity.
-	Aircraft trackfile.Aircraft
+	Aircraft trackfiles.Aircraft
 	// Frame contains the aircraft's observed position data.
-	Frame trackfile.Frame
+	Frame trackfiles.Frame
 }
 
 // Faded is a message sent when an aircraft disappears.

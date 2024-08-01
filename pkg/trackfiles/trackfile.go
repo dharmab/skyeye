@@ -1,4 +1,4 @@
-package trackfile
+package trackfiles
 
 import (
 	"fmt"

@@ -13,9 +13,9 @@ func (s *scope) FindNearbyGroups(location orb.Point, radius unit.Length, coaliti
 	groups := make([]brevity.Group, 0)
 	itr := s.contacts.itr()
 	for itr.next() {
-		tf := itr.value()
-		if s.isMatch(tf, coalition, filter) && circle.Contains(tf.LastKnown().Point) {
-			group := s.findGroupForAircraft(tf)
+		trackfile := itr.value()
+		if s.isMatch(trackfile, coalition, filter) && circle.Contains(trackfile.LastKnown().Point) {
+			group := s.findGroupForAircraft(trackfile)
 			groups = append(groups, group)
 		}
 	}

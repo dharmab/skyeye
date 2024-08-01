@@ -5,7 +5,7 @@ import (
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
-	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 
@@ -14,7 +14,7 @@ import (
 
 type group struct {
 	isThreat     bool
-	contacts     []*trackfile.Trackfile
+	contacts     []*trackfiles.Trackfile
 	bullseye     *orb.Point
 	braa         brevity.BRAA
 	aspect       *brevity.Aspect
@@ -26,7 +26,7 @@ var _ brevity.Group = &group{}
 func newGroupUsingBullseye(bullseye orb.Point) *group {
 	return &group{
 		bullseye:     &bullseye,
-		contacts:     make([]*trackfile.Trackfile, 0),
+		contacts:     make([]*trackfiles.Trackfile, 0),
 		declaraction: brevity.Unable,
 	}
 }
@@ -51,22 +51,18 @@ func (g *group) Bullseye() *brevity.Bullseye {
 	if g.bullseye == nil {
 		return nil
 	}
-	mp := orb.MultiPoint{}
-	for _, tf := range g.contacts {
-		mp = append(mp, tf.Track.Front().Point)
-	}
-	center := mp.Bound().Center()
 
-	bearing := unit.Angle(geo.Bearing(*g.bullseye, center)) * unit.Degree
-	distance := unit.Length(geo.Distance(*g.bullseye, center)) * unit.Meter
+	point := g.point()
+	bearing := unit.Angle(geo.Bearing(*g.bullseye, point)) * unit.Degree
+	distance := unit.Length(geo.Distance(*g.bullseye, point)) * unit.Meter
 	return brevity.NewBullseye(bearing, distance)
 }
 
 // Altitude implements [brevity.Group.Altitude] by averaging the altitudes of all contacts in the group
 func (g *group) Altitude() unit.Length {
 	var sum unit.Length
-	for _, tf := range g.contacts {
-		sum += tf.Track.Front().Altitude
+	for _, trackfile := range g.contacts {
+		sum += trackfile.Track.Front().Altitude
 	}
 	mean := sum / unit.Length(len(g.contacts))
 	rounded := unit.Length((math.Round(mean.Feet()/1000) * 1000)) * unit.Foot
@@ -124,9 +120,9 @@ func (g *group) Heavy() bool {
 // Platforms implements [brevity.Group.Platforms]
 func (g *group) Platforms() []string {
 	platforms := make(map[string]struct{})
-	for _, tf := range g.contacts {
+	for _, trackfile := range g.contacts {
 		var name string
-		data, ok := encyclopedia.GetAircraftData(tf.Contact.ACMIName)
+		data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName)
 		if ok {
 			for _, reportingName := range []string{data.NATOReportingName, data.Nickname, data.OfficialName, data.PlatformDesignation} {
 				if reportingName != "" {
@@ -171,18 +167,18 @@ func (g *group) category() brevity.ContactCategory {
 
 // point returns the center point of the group
 func (g *group) point() orb.Point {
-	center := g.contacts[0].LastKnown().Point
-	for i := 1; i < len(g.contacts); i++ {
-		center = geo.Midpoint(center, g.contacts[i].LastKnown().Point)
+	points := orb.MultiPoint{}
+	for _, trackfile := range g.contacts {
+		points = append(points, trackfile.LastKnown().Point)
 	}
-	return center
+	return points.Bound().Center()
 }
 
 // threatClass returns the highest threat class of all contacts in the group.
 func (g *group) threatClass() encyclopedia.ThreatClass {
 	var groupThreatClass encyclopedia.ThreatClass
-	for _, tf := range g.contacts {
-		data, ok := encyclopedia.GetAircraftData(tf.Contact.ACMIName)
+	for _, trackfile := range g.contacts {
+		data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName)
 		if !ok {
 			continue
 		}
