@@ -47,8 +47,9 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 		bullseye := c.ComposeBullseye(*bullseye)
 
 		var altitude string
-		if group.Altitude().Feet() < 1 {
-			altitude = "unsure altitude"
+		if group.Altitude().Meters() < 1 {
+			// This is almost certainly a data error
+			altitude = "altitude unknown"
 		} else if group.Weeds() {
 			altitude = "weeds"
 		} else {

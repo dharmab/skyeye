@@ -28,7 +28,7 @@ type contactDatabase interface {
 	itr() databaseIterator
 }
 
-// databaseIterater iterates over the contents of a contactDatabase.
+// databaseIterator iterates over the contents of a contactDatabase.
 type databaseIterator interface {
 	// next advances the iterator to the next trackfile in the database.
 	// It returns false when the iterator has passed the last trackfile.
