@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/gammazero/deque"
 	"github.com/martinlindhe/unit"
@@ -25,12 +26,53 @@ func TestGetByCallsign(t *testing.T) {
 	}
 	d.set(trackfile)
 
-	val, ok := d.getByCallsign("mobius 1")
+	name, tf, ok := d.getByCallsign("mobius 1")
 	require.True(t, ok)
-	require.EqualValues(t, trackfile, val)
+	require.Equal(t, "mobius 1", name)
+	require.EqualValues(t, trackfile, tf)
 
-	_, ok = d.getByCallsign("yellow 13")
+	name, tf, ok = d.getByCallsign("moebius 1")
+	require.True(t, ok)
+	require.Equal(t, "mobius 1", name)
+	require.EqualValues(t, trackfile, tf)
+
+	_, _, ok = d.getByCallsign("yellow 13")
 	require.False(t, ok)
+}
+
+func TestRealCallsigns(t *testing.T) {
+	// Callsigns collected from Discord
+	testCases := []struct {
+		Name    string
+		heardAs string
+	}{
+		{Name: "Hussein 1-1 | SpyderF16", heardAs: "houston 1 1"},
+		{Name: "Witch 1-1", heardAs: "which 1 1"},
+		{Name: "Spare 15", heardAs: "spear 15"},
+	}
+	d := newContactDatabase()
+
+	for i, test := range testCases {
+		trackfile := &trackfiles.Trackfile{
+			Contact: trackfiles.Labels{
+				UnitID:    uint32(i),
+				Name:      test.Name,
+				Coalition: coalitions.Blue,
+				ACMIName:  "F-15C",
+			},
+			Track: *deque.New[trackfiles.Frame](),
+		}
+		d.set(trackfile)
+	}
+
+	for i, test := range testCases {
+		parsedCallsign, ok := parser.ParseCallsign(test.Name)
+		require.True(t, ok)
+		foundCallsign, tf, ok := d.getByCallsign(test.heardAs)
+		require.True(t, ok)
+		require.Equal(t, parsedCallsign, foundCallsign)
+		require.EqualValues(t, uint32(i), tf.Contact.UnitID)
+	}
 }
 
 func TestGetByUnitID(t *testing.T) {

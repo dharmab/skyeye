@@ -40,7 +40,7 @@ Your callsign should be unique within a server. If multiple players have the sam
 
 Avoid:
 
-* Names that are hard to distinguish, like "Spare"/"Spear"
+* Names that are hard to distinguish, like "Spare"/"Spear", "Jester"/"Gesture", "Witch"/"Which"
 * Names that aren't widely recognized words in common parlance, like "Razgriz"
 * Names in poor taste
 
@@ -213,7 +213,22 @@ Tips:
 
 ### SNAPLOCK
 
-🚧 NOT YET IMPLEMENTED 🚧
+Keyword: `SNAPLOCK`
+
+Function: This is a faster form of DECLARE intended for use during a BVR timeline. You tell the GCI the BRA (bearing, range, altitude) of a threat on your radar scope. The GCI will look for a group in that area and response with information.
+
+Arguments:
+
+1. Bearing from you to the contact (required)
+2. Range from you to the contact (required)
+3. Altitude of the contact (required)
+
+Examples:
+
+```
+MOBIUS 1: "Thunderhead Mobius One, snaplock one two five, ten, eight thousand"
+THUNDERHEAD: "Mobius 1, threat group BRAA 125/10, 8000, hot, hostile, two contacts, Flanker."
+```
 
 ### SPIKED
 

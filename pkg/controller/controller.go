@@ -8,11 +8,13 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/radar"
-	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
 )
+
+var lowestAltitude = unit.Length(0)
+var highestAltitude = unit.Length(100000) * unit.Foot
 
 // Controller handles requests for GCI service.
 type Controller interface {
@@ -83,17 +85,4 @@ func (c *controller) hostileCoalition() coalitions.Coalition {
 		return coalitions.Red
 	}
 	return coalitions.Red
-}
-
-// findCallsign searches the controller's scope for a trackfile matching the given callsign.
-func (c *controller) findCallsign(callsign string) *trackfiles.Trackfile {
-	logger := log.With().Str("callsign", callsign).Logger()
-	logger.Debug().Msg("searching scope for trackfile matching callsign")
-	trackfile := c.scope.FindCallsign(callsign)
-	if trackfile == nil {
-		logger.Debug().Msg("no trackfile found for callsign")
-	} else {
-		logger.Debug().Str("name", trackfile.Contact.Name).Str("aircraft", trackfile.Contact.ACMIName).Int("unitID", int(trackfile.Contact.UnitID)).Msg("trackfile found for callsign")
-	}
-	return trackfile
 }

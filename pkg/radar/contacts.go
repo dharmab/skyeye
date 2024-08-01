@@ -7,13 +7,16 @@ import (
 
 	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
+	fuzz "github.com/hbollon/go-edlib"
+	"github.com/rs/zerolog/log"
 )
 
 // contactDatabase is a thread-safe trackfile database.
 type contactDatabase interface {
-	// getByCallsign returns the trackfile for the given callsign, or nil if no trackfile was found.
+	// getByCallsign returns the trackfile with the lowest edit distance to the given callsign, or nil if no closely named trackfile was found.
 	// The second return value is true if a trackfile was found, and false otherwise.
-	getByCallsign(string) (*trackfiles.Trackfile, bool)
+	// The callsign in the trackfile may differ from the input callsign!
+	getByCallsign(string) (string, *trackfiles.Trackfile, bool)
 	// getByUnitID returns the trackfile for the given unit ID, or nil if no trackfile was found.
 	// The second return value is true if a trackfile was found, and false otherwise.
 	getByUnitID(uint32) (*trackfiles.Trackfile, bool)
@@ -56,19 +59,34 @@ func newContactDatabase() contactDatabase {
 }
 
 // getByCallsign implements [contactDatabase.getByCallsign].
-func (d *database) getByCallsign(callsign string) (*trackfiles.Trackfile, bool) {
+func (d *database) getByCallsign(callsign string) (string, *trackfiles.Trackfile, bool) {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
 
+	foundCallsign := ""
 	unitId, ok := d.callsignIdx[callsign]
-	if !ok {
-		return nil, false
+	if ok {
+		foundCallsign = callsign
+	} else {
+		keys := make([]string, 0, len(d.callsignIdx))
+		for k := range d.callsignIdx {
+			keys = append(keys, k)
+		}
+		log.Info().Str("callsign", callsign).Msg("callsign not found in index, attempting fuzzy search")
+		var err error
+		foundCallsign, err = fuzz.FuzzySearchThreshold(callsign, keys, 0.63, fuzz.Levenshtein)
+		if foundCallsign == "" || err != nil {
+			log.Warn().Err(err).Str("callsign", callsign).Msg("callsign not found in index")
+			return "", nil, false
+		}
+		log.Info().Str("callsign", callsign).Str("foundCallsign", foundCallsign).Msg("similar callsign found in index")
+		unitId = d.callsignIdx[foundCallsign]
 	}
 	contact, ok := d.contacts[unitId]
 	if !ok {
-		return nil, false
+		return "", nil, false
 	}
-	return contact, true
+	return foundCallsign, contact, true
 }
 
 // getByUnitID implements [contactDatabase.getByUnitID].

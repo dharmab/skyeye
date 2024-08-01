@@ -16,20 +16,29 @@ import (
 )
 
 // FindNearestTrackfile implements [Radar.FindNearestTrackfile]
-func (s *scope) FindNearestTrackfile(origin orb.Point, coalition coalitions.Coalition, filter brevity.ContactCategory) *trackfiles.Trackfile {
+func (s *scope) FindNearestTrackfile(
+	origin orb.Point,
+	minAltitude unit.Length,
+	maxAltitude unit.Length,
+	radius unit.Length,
+	coalition coalitions.Coalition,
+	filter brevity.ContactCategory,
+) *trackfiles.Trackfile {
 	var nearestTrackfile *trackfiles.Trackfile
-	nearestDistance := 300 * unit.NauticalMile
+	nearestDistance := radius
 	itr := s.contacts.itr()
 	for itr.next() {
 		trackfile := itr.value()
-		if s.isMatch(trackfile, coalition, filter) {
+		altitude := trackfile.LastKnown().Altitude
+		if s.isMatch(trackfile, coalition, filter) && minAltitude <= altitude && altitude <= maxAltitude {
 			distance := unit.Length(math.Abs(geo.Distance(origin, trackfile.LastKnown().Point)))
 			isNearer := distance < nearestDistance
-			if nearestTrackfile == nil || isNearer {
+			if isNearer {
 				log.Debug().
 					Interface("origin", origin).
 					Int("distance", int(distance.NauticalMiles())).
 					Str("aircraft", trackfile.Contact.ACMIName).
+					Float64("altitude", altitude.Feet()).
 					Int("unitID", int(trackfile.Contact.UnitID)).
 					Str("name", trackfile.Contact.Name).
 					Msg("new candidate for nearest trackfile")
@@ -40,34 +49,49 @@ func (s *scope) FindNearestTrackfile(origin orb.Point, coalition coalitions.Coal
 	}
 	if nearestTrackfile != nil {
 		log.Debug().
-			Interface("origin", origin).
+			Any("origin", origin).
 			Str("aircraft", nearestTrackfile.Contact.ACMIName).
 			Int("unitID", int(nearestTrackfile.Contact.UnitID)).
 			Int("altitude", int(nearestTrackfile.LastKnown().Altitude.Feet())).
 			Msg("found nearest contact")
+	} else {
+		log.Debug().Msg("no contacts found within search volume")
 	}
 	return nearestTrackfile
 }
 
 // FindNearestGroupWithBRAA implements [Radar.FindNearestGroupWithBRAA]
-func (s *scope) FindNearestGroupWithBRAA(origin orb.Point, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
-	nearestTrackfile := s.FindNearestTrackfile(origin, coalition, filter)
-	group := s.findGroupForAircraft(nearestTrackfile)
+func (s *scope) FindNearestGroupWithBRAA(
+	origin orb.Point,
+	minAltitude unit.Length,
+	maxAltitude unit.Length,
+	radius unit.Length,
+	coalition coalitions.Coalition,
+	filter brevity.ContactCategory,
+) brevity.Group {
+	trackfile := s.FindNearestTrackfile(origin, minAltitude, maxAltitude, radius, coalition, filter)
+	if trackfile == nil {
+		return nil
+	}
+
+	group := s.findGroupForAircraft(trackfile)
 	if group == nil {
 		return nil
 	}
-	groupLocation := nearestTrackfile.LastKnown().Point
 
+	declination := s.Declination(origin)
 	bearing := bearings.NewTrueBearing(
 		unit.Angle(
-			geo.Bearing(origin, groupLocation),
+			geo.Bearing(origin, group.point()),
 		) * unit.Degree,
-	).Magnetic(s.Declination(origin))
-	_range := unit.Length(geo.Distance(origin, groupLocation)) * unit.Meter
-	altitude := nearestTrackfile.LastKnown().Altitude
-	aspect := brevity.AspectFromAngle(bearing, nearestTrackfile.Course())
+	)
+	magBearing := bearing.Magnetic(declination)
+	log.Debug().Float64("tru", bearing.Degrees()).Float64("dec", declination.Degrees()).Float64("mag", magBearing.Degrees()).Msg("determined bearing")
+	_range := unit.Length(geo.Distance(origin, group.point())) * unit.Meter
+	altitude := trackfile.LastKnown().Altitude
+	aspect := brevity.AspectFromAngle(magBearing, trackfile.Course())
 	group.braa = brevity.NewBRAA(
-		bearing,
+		magBearing,
 		_range,
 		altitude,
 		aspect,
@@ -80,8 +104,8 @@ func (s *scope) FindNearestGroupWithBRAA(origin orb.Point, coalition coalitions.
 }
 
 // FindNearestGroupWithBullseye implements [Radar.FindNearestGroupWithBullseye]
-func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
-	nearestTrackfile := s.FindNearestTrackfile(origin, coalition, filter)
+func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
+	nearestTrackfile := s.FindNearestTrackfile(origin, minAltitude, maxAltitude, radius, coalition, filter)
 	group := s.findGroupForAircraft(nearestTrackfile)
 	groupLocation := nearestTrackfile.LastKnown().Point
 	aspect := brevity.AspectFromAngle(
@@ -99,39 +123,42 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, coalition coaliti
 	return group
 }
 
-func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing bearings.Bearing, arc unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
+// FindNearestGroupInSector implements [Radar.FindNearestGroupInSector]
+func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltitude, length unit.Length, bearing bearings.Bearing, arc unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	logger := log.With().Interface("origin", origin).Float64("bearing", bearing.Degrees()).Float64("arc", arc.Degrees()).Logger()
-	maxDistance := conf.DefaultPictureRadius
+
 	declination := s.Declination(origin)
-	vertex := func(a unit.Angle) orb.Point {
-		return geo.PointAtBearingAndDistance(
-			origin,
-			(bearing.Magnetic(declination).Value() + a).Degrees(),
-			maxDistance.Meters(),
+	bearing = bearing.Magnetic(declination)
+
+	ring := orb.Ring{origin}
+	for a := arc / 2; a > -arc/2; a -= arc / 10 {
+		ring = append(
+			ring,
+			geo.PointAtBearingAndDistance(
+				origin,
+				(bearing.Value()+a).Degrees(),
+				length.Meters(),
+			),
 		)
 	}
-	cone := orb.Polygon{
-		orb.Ring{
-			origin,
-			vertex(arc / 2),
-			vertex(-arc / 2),
-			origin,
-		},
-	}
-	logger.Debug().Any("cone", cone).Msg("searching cone")
+	ring = append(ring, origin)
+	sector := orb.Polygon{ring}
 
+	logger.Debug().Any("sector", sector).Msg("searching sector")
 	nearestDistance := unit.Length(math.MaxFloat64)
 	var nearestContact *trackfiles.Trackfile
 	itr := s.contacts.itr()
 	for itr.next() {
 		trackfile := itr.value()
 		logger := logger.With().Int("unitID", int(trackfile.Contact.UnitID)).Logger()
-		if s.isMatch(trackfile, coalition, filter) {
+		isMatch := s.isMatch(trackfile, coalition, filter)
+		isWithinAltitude := minAltitude <= trackfile.LastKnown().Altitude && trackfile.LastKnown().Altitude <= maxAltitude
+		if isMatch && isWithinAltitude {
 			contactLocation := trackfile.LastKnown().Point
 			distanceToContact := unit.Length(geo.Distance(origin, contactLocation)) * unit.Meter
-			isWithinCone := planar.PolygonContains(cone, contactLocation)
-			logger.Debug().Float64("distanceNM", distanceToContact.NauticalMiles()).Bool("isWithinCone", isWithinCone).Msg("checking distance and location")
-			if distanceToContact < nearestDistance && distanceToContact > conf.DefaultMarginRadius && isWithinCone {
+			inSector := planar.PolygonContains(sector, contactLocation)
+			logger.Debug().Float64("distanceNM", distanceToContact.NauticalMiles()).Bool("isWithinCone", inSector).Msg("checking distance and location")
+			if distanceToContact < nearestDistance && distanceToContact > conf.DefaultMarginRadius && inSector {
 				nearestContact = trackfile
 			}
 		}

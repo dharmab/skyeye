@@ -19,42 +19,81 @@ import (
 
 // Radar consumes updates from the simulation, keeps track of each aircraft as a trackfile, and provides functions to collect the aircraft into groups.
 type Radar interface {
-	// SetBullseye updates the bullseye point.
+	// SetBullseye updates the bullseye point. The bullseye point is the reference point for polar
+	// coordinates provided in [Group.Bullseye].
 	SetBullseye(orb.Point)
-	// Bullseye returns the current bullseye point.
+	// Bullseye returns the bullseye point.
 	GetBullseye() orb.Point
-	// SetMissionTime updates the mission time used for computing magnetic declination.
+	// SetMissionTime updates the mission time. The mission time is used for computing magnetic declination.
 	SetMissionTime(time.Time)
-	/// MissionTime returns the current mission time.
-	GetMissionTime() time.Time
-	// Declination returns the magnetic declination at the given point.
+	// Declination returns the magnetic declination at the given point, at the time provided in SetMissionTime.
 	Declination(orb.Point) unit.Angle
 	// Run consumes updates from the simulation channels until the context is cancelled.
 	Run(context.Context)
-	// FindCallsign returns the trackfile for the given callsign, or nil if no trackfile was found.
-	FindCallsign(string) *trackfiles.Trackfile
+	// FindCallsign returns the trackfile that mosty closely matches the given callsign, or nil if no closely matching trackfile was found.
+	// The first return value is the callsign of the trackfile, and the second is the trackfile itself.
+	// The returned callsign may differ from the input callsign!
+	FindCallsign(string) (string, *trackfiles.Trackfile)
 	// FindUnit returns the trackfile for the given unit ID, or nil if no trackfile was found.
 	FindUnit(uint32) *trackfiles.Trackfile
-	// GetPicture returns a picture of the radar scope around the given location, within the given radius, filtered by the given coalition and contact category.
-	// The first return value is the total number of groups, and the second is a slice of up to to 3 high priority groups.
-	GetPicture(orb.Point, unit.Length, coalitions.Coalition, brevity.ContactCategory) (int, []brevity.Group)
-	// FindNearbyGroups returns all groups within the given radius of the given location, filtered by the given contact category.
-	// Location data is unset, since it is within radar margins of the given location.
-	FindNearbyGroups(orb.Point, unit.Length, coalitions.Coalition, brevity.ContactCategory) []brevity.Group
-	// FindNearestGroupWithBRAA returns the nearest group to the given location, with BRAA location embedded in the Group.
-	// The given point is the location to search from.
-	// The given coalition is the coalition to search for.
-	// The given filter is the contact category to filter by.
-	// Returns the nearest group to the given location which matches the given coalition and filter, with BRAA relative to the given location. Returns nil if no group was found.
-	FindNearestGroupWithBRAA(orb.Point, coalitions.Coalition, brevity.ContactCategory) brevity.Group
-	// FindNearestGroupWithBullseye returns the nearest group to the given location, with Bullseye location embedded in the Group.
-	// The given point is the location to search from.
-	// The given coalition is the coalition to search for.
-	// The given filter is the contact category to filter by.
-	// Returns the nearest group to the given location which matches the given coalition and filter, with Bullseye location. Returns nil if no group was found.
-	FindNearestGroupWithBullseye(orb.Point, coalitions.Coalition, brevity.ContactCategory) brevity.Group
-	// FindNearestGroupInCone returns the nearest group to the given location along the given bearing, ± the given angle, with BRAA relative to the given location. Returns nil if no group was found.
-	FindNearestGroupInCone(orb.Point, bearings.Bearing, unit.Angle, coalitions.Coalition, brevity.ContactCategory) brevity.Group
+	// GetPicture returns a picture of the radar scope anchored at the given origin, within the given radius,
+	// filtered by the given coalition and contact category. The first return value is the total number of groups
+	// and the second is a slice of up to to 3 high priority groups. Each group has Bullseye set relative to the
+	// the point provided in SetBullseye.
+	GetPicture(
+		origin orb.Point,
+		radius unit.Length,
+		coalition coalitions.Coalition,
+		category brevity.ContactCategory,
+	) (int, []brevity.Group)
+	// FindNearbyGroups returns all groups within the given radius of the given point of interest, within the given
+	// altitude block, filtered by the given coalition and contact category. Each group has BRAA set relative to the
+	// given origin.
+	FindNearbyGroups(
+		origin,
+		pointOfInterest orb.Point,
+		minAltitude,
+		maxAltitude,
+		radius unit.Length,
+		coalition coalitions.Coalition,
+		category brevity.ContactCategory,
+	) []brevity.Group
+	// FindNearestGroupWithBRAA returns the nearest group to the given origin (up to the given radius), within the
+	// given altitude block, filtered by the given coalition and contact category. The group has BRAA set relative to
+	// the given origin. Returns nil if no group was found.
+	FindNearestGroupWithBRAA(
+		origin orb.Point,
+		minAltitude,
+		maxAltitude,
+		radius unit.Length,
+		coalition coalitions.Coalition,
+		category brevity.ContactCategory,
+	) brevity.Group
+	// FindNearestGroupWithBullseye returns the nearest group to the given point of interest (up to the given radius),
+	// within the given altitude block, filtered by the given coalition and contact category. The group has Bullseye
+	// set relative to the point provided in SetBullseye. Returns nil if no group was found.
+	FindNearestGroupWithBullseye(
+		pointOfIntest orb.Point,
+		minAltitude,
+		maxAltitude,
+		radius unit.Length,
+		coalition coalitions.Coalition,
+		category brevity.ContactCategory,
+	) brevity.Group
+	// FindNearestGroupInSector returns the nearest group to the given origin (up to the given distance), within a 2D
+	// circular sector defined by the given origin ,radius, bearing and arc, within the given altitude block, filtered
+	// by the given coalition and contact category. The group has BRAA set relative to the given origin. Returns nil if
+	// no group was found.
+	FindNearestGroupInSector(
+		origin orb.Point,
+		minAltitude,
+		maxAltitude,
+		radius unit.Length,
+		bearing bearings.Bearing,
+		arc unit.Angle,
+		coalition coalitions.Coalition,
+		category brevity.ContactCategory,
+	) brevity.Group
 }
 
 var _ Radar = &scope{}
@@ -78,10 +117,6 @@ func New(coalition coalitions.Coalition, updates <-chan sim.Updated, fades <-cha
 
 func (s *scope) SetMissionTime(t time.Time) {
 	s.missionTime = t
-}
-
-func (s *scope) GetMissionTime() time.Time {
-	return s.missionTime
 }
 
 func (s *scope) SetBullseye(bullseye orb.Point) {

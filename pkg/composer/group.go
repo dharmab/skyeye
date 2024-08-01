@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
 
@@ -51,31 +52,14 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 	// Group location, altitude, and track direction or specific aspect
 	if bullseye := group.Bullseye(); bullseye != nil {
 		bullseye := c.ComposeBullseye(*bullseye)
-
-		var altitude string
-		if group.Altitude().Meters() < 1 {
-			// This is almost certainly a data error
-			altitude = "altitude unknown"
-		} else if group.Declaration() == brevity.Friendly {
-			if group.Altitude().Feet() < 1000 {
-				hundreds := int(math.Round(group.Altitude().Feet() / 100))
-				altitude = fmt.Sprintf("cherubs %d", hundreds)
-			} else {
-				thousands := int(math.Round(group.Altitude().Feet() / 1000))
-				altitude = fmt.Sprintf("angels %d", thousands)
-			}
-		} else if group.Weeds() {
-			altitude = "weeds"
-		} else {
-			altitude = fmt.Sprint(int(math.Round(group.Altitude().Feet()/1000) * 1000))
-		}
+		altitude := c.ComposeAltitude(group.Altitude(), group.Declaration())
 		speech.WriteString(fmt.Sprintf("%s %s, %s", label, bullseye.Speech, altitude))
 		subtitle.WriteString(fmt.Sprintf("%s %s, %s", label, bullseye.Subtitle, altitude))
 		if group.Track() != brevity.UnknownDirection {
 			writeBoth(fmt.Sprintf(", track %s", group.Track()))
 		}
 	} else if group.BRAA() != nil {
-		braa := c.ComposeBRAA(group.BRAA())
+		braa := c.ComposeBRAA(group.BRAA(), group.Declaration())
 		speech.WriteString(fmt.Sprintf("%s %s", label, braa.Speech))
 		subtitle.WriteString(fmt.Sprintf("%s %s", label, braa.Subtitle))
 		isCardinalAspect := slices.Contains([]brevity.Aspect{brevity.Flank, brevity.Beam, brevity.Drag}, group.BRAA().Aspect())
@@ -136,4 +120,22 @@ func (c *composer) ComposeContacts(n int) NaturalLanguageResponse {
 		Subtitle: s,
 		Speech:   s,
 	}
+}
+
+func (c *composer) ComposeAltitude(altitude unit.Length, declaration brevity.Declaration) string {
+	if altitude.Meters() < 100 {
+		return "altitude unknown"
+	}
+	if declaration == brevity.Friendly {
+		if altitude.Feet() < 1000 {
+			hundreds := int(math.Round(altitude.Feet() / 100))
+			return fmt.Sprintf("cherubs %d", hundreds)
+		}
+		thousands := int(math.Round(altitude.Feet() / 1000))
+		return fmt.Sprintf("angels %d", thousands)
+	}
+	if altitude > 1000 {
+		return fmt.Sprint(int(math.Round(altitude.Feet()/1000) * 1000))
+	}
+	return fmt.Sprint(int(math.Round(altitude.Feet()/100) * 100))
 }

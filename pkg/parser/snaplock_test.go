@@ -23,6 +23,18 @@ func TestParserSnaplock(t *testing.T) {
 			},
 			expectedOk: true,
 		},
+		{
+			text: "Anyface Fox 1 2 snap lock 0-5-8-147-3000",
+			expectedRequest: &brevity.SnaplockRequest{
+				Callsign: "fox 1 2",
+				BRA: brevity.NewBRA(
+					bearings.NewMagneticBearing(58*unit.Degree),
+					147*unit.NauticalMile,
+					3000*unit.Foot,
+				),
+			},
+			expectedOk: true,
+		},
 	}
 	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
 		expected := test.expectedRequest.(*brevity.SnaplockRequest)

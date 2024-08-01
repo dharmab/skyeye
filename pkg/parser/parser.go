@@ -49,6 +49,7 @@ const (
 	radioCheck requestWord = "radio"
 	spike      requestWord = "spike"
 	spiked     requestWord = "spiked"
+	snap       requestWord = "snap"
 	snaplock   requestWord = "snaplock"
 )
 
@@ -67,7 +68,7 @@ var alternateRequestWords = map[string]requestWord{
 }
 
 func requestWords() []requestWord {
-	return []requestWord{alphaCheck, bogeyDope, declare, picture, radioCheck, spiked, spike, snaplock}
+	return []requestWord{alphaCheck, bogeyDope, declare, picture, radioCheck, spiked, spike, snap, snaplock}
 }
 
 func (p *parser) parseWakeWord(scanner *bufio.Scanner) (string, bool) {
@@ -152,7 +153,6 @@ func (p *parser) Parse(tx string) (any, bool) {
 						_ = scanner.Scan()
 						log.Debug().Str("text", tx).Str("request", string(word)).Msg("found request word")
 					}
-					break
 				}
 			}
 		}
@@ -176,6 +176,8 @@ func (p *parser) Parse(tx string) (any, bool) {
 		return p.parseSpiked(callsign, scanner)
 	case spiked:
 		return p.parseSpiked(callsign, scanner)
+	case snap:
+		return p.parseSnaplock(callsign, scanner)
 	case snaplock:
 		return p.parseSnaplock(callsign, scanner)
 	default:
@@ -195,6 +197,7 @@ func (p *parser) sanitize(s string) string {
 
 	s = strings.ReplaceAll(lowercased, ",", "")
 	s = strings.ReplaceAll(s, "-", " ")
+	s = strings.ReplaceAll(s, ".", "")
 
 	punctuationCleaned := sanitizerRex.ReplaceAllString(s, " ")
 	if lowercased != punctuationCleaned {
@@ -251,6 +254,7 @@ var numberWords = map[string]int{
 //
 // Garbage in between the digits is ignored. The result is normalized so that each digit is lowercase and space-delimited.
 func ParseCallsign(tx string) (callsign string, isValid bool) {
+	tx, _, _ = strings.Cut(tx, "|")
 	tx = strings.Trim(tx, " ")
 	for i, char := range tx {
 		if unicode.IsDigit(char) {
