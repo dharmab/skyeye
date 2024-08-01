@@ -13,7 +13,7 @@ func (c *audioClient) transmit(ctx context.Context, packetCh <-chan []voice.Voic
 	for {
 		select {
 		case packets := <-packetCh:
-			c.tx(ctx, packets)
+			c.tx(packets)
 		case <-ctx.Done():
 			log.Info().Msg("stopping voice transmitter due to context cancellation")
 			return
@@ -21,7 +21,12 @@ func (c *audioClient) transmit(ctx context.Context, packetCh <-chan []voice.Voic
 	}
 }
 
-func (c *audioClient) tx(ctx context.Context, packets []voice.VoicePacket) {
+func (c *audioClient) tx(packets []voice.VoicePacket) {
+	if c.lastRx.deadline.After(time.Now()) {
+		delay := 250 * time.Millisecond
+		log.Info().Dur("delay", delay).Msg("delaying outgoing transmission to avoid interrupting incoming transmission")
+		time.Sleep(delay)
+	}
 	c.busy.Lock()
 	defer c.busy.Unlock()
 	// TODO in-game subtitles
