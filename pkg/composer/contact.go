@@ -8,7 +8,7 @@ import (
 )
 
 // ComposeNegativeRadarContactResponse implements [Composer.ComposeNegativeRadarContactResponse].
-func (c *composer) ComposeNegativeRadarContactResponse(r brevity.NegativeRadarContactResponse) NaturalLanguageResponse {
+func (c *composer) ComposeNegativeRadarContactResponse(response brevity.NegativeRadarContactResponse) NaturalLanguageResponse {
 	replies := []string{
 		"%s, negative radar contact. Double check your callsign.",
 		"%s, negative radar contact. Check your callsign.",
@@ -24,7 +24,7 @@ func (c *composer) ComposeNegativeRadarContactResponse(r brevity.NegativeRadarCo
 		"%s, negative radar contact. I don't have that callsign on scope.",
 		"%s, negative radar contact. I do not have that callsign on scope.",
 	}
-	s := fmt.Sprintf(replies[rand.Intn(len(replies))], r.Callsign)
+	s := fmt.Sprintf(replies[rand.Intn(len(replies))], response.Callsign)
 	return NaturalLanguageResponse{
 		Subtitle: s,
 		Speech:   s,

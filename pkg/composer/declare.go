@@ -8,16 +8,16 @@ import (
 )
 
 // ComposeDeclareResponse implements [Composer.ComposeDeclareResponse].
-func (c *composer) ComposeDeclareResponse(r brevity.DeclareResponse) NaturalLanguageResponse {
-	if slices.Contains([]brevity.Declaration{brevity.Furball, brevity.Unable, brevity.Clean}, r.Declaration) {
+func (c *composer) ComposeDeclareResponse(response brevity.DeclareResponse) NaturalLanguageResponse {
+	if slices.Contains([]brevity.Declaration{brevity.Furball, brevity.Unable, brevity.Clean}, response.Declaration) {
 		return NaturalLanguageResponse{
-			Subtitle: fmt.Sprintf("%s, %s.", r.Callsign, r.Declaration),
-			Speech:   fmt.Sprintf("%s, %s", r.Callsign, r.Declaration),
+			Subtitle: fmt.Sprintf("%s, %s.", response.Callsign, response.Declaration),
+			Speech:   fmt.Sprintf("%s, %s", response.Callsign, response.Declaration),
 		}
 	}
-	response := c.ComposeCoreInformationFormat(r.Group)
+	info := c.ComposeCoreInformationFormat(response.Group)
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", r.Callsign, response.Subtitle),
-		Speech:   fmt.Sprintf("%s, %s", r.Callsign, response.Speech),
+		Subtitle: fmt.Sprintf("%s, %s", response.Callsign, info.Subtitle),
+		Speech:   fmt.Sprintf("%s, %s", response.Callsign, info.Speech),
 	}
 }

@@ -8,7 +8,7 @@ import (
 )
 
 // ComposeRadioCheckResponse implements [Composer.ComposeRadioCheckResponse].
-func (c *composer) ComposeRadioCheckResponse(r brevity.RadioCheckResponse) NaturalLanguageResponse {
+func (c *composer) ComposeRadioCheckResponse(response brevity.RadioCheckResponse) NaturalLanguageResponse {
 	replies := []string{
 		"%s, 5 by 5.",
 		"%s, 5 by 5!",
@@ -21,10 +21,10 @@ func (c *composer) ComposeRadioCheckResponse(r brevity.RadioCheckResponse) Natur
 		"%s, Lima Charlie!",
 	}
 
-	f := replies[rand.Intn(len(replies))]
-	s := fmt.Sprintf(f, r.Callsign)
+	variation := replies[rand.Intn(len(replies))]
+	reply := fmt.Sprintf(variation, response.Callsign)
 	return NaturalLanguageResponse{
-		Subtitle: s,
-		Speech:   s,
+		Subtitle: reply,
+		Speech:   reply,
 	}
 }

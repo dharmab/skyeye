@@ -8,21 +8,21 @@ import (
 )
 
 // HandleDeclare implements Controller.HandleDeclare.
-func (c *controller) HandleDeclare(r *brevity.DeclareRequest) {
-	logger := log.With().Str("callsign", r.Callsign).Type("type", r).Logger()
+func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
+	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 	bullseye := c.scope.GetBullseye()
 	location := geo.PointAtBearingAndDistance(
 		bullseye,
-		r.Location.Bearing().Degrees(),
-		r.Location.Distance().Meters(),
+		request.Location.Bearing().Degrees(),
+		request.Location.Distance().Meters(),
 	)
 	radius := 10 * unit.NauticalMile // TODO reduce to 3 when magvar is available
 	friendlyGroups := c.scope.FindNearbyGroups(location, radius, c.coalition, brevity.Aircraft)
 	hostileGroups := c.scope.FindNearbyGroups(location, radius, c.hostileCoalition(), brevity.Aircraft)
 	logger.Debug().Int("friendly", len(friendlyGroups)).Int("hostile", len(hostileGroups)).Msg("queried groups near delcared location")
 
-	response := brevity.DeclareResponse{Callsign: r.Callsign}
+	response := brevity.DeclareResponse{Callsign: request.Callsign}
 	if len(friendlyGroups)+len(hostileGroups) == 0 {
 		logger.Debug().Msg("no groups found")
 		response.Declaration = brevity.Clean
