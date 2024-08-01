@@ -4,14 +4,14 @@ import (
 	"math"
 	"slices"
 
-	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
 )
 
 // findGroupForAircraft creates a new group for the given trackfile and adds all nearby aircraft which can be considered part of the group.
-func (s *scope) findGroupForAircraft(tf *trackfile.Trackfile) *group {
+func (s *scope) findGroupForAircraft(tf *trackfiles.Trackfile) *group {
 	if tf == nil {
 		return nil
 	}
@@ -31,14 +31,14 @@ func (s *scope) findGroupForAircraft(tf *trackfile.Trackfile) *group {
 //
 // These are tripled from the ATP numbers beacause the DCS AI isn't amazing at holding formation.
 // We allow mixed platform groups because these are fairly common in DCS.
-func (s *scope) addNearbyAircraftToGroup(this *trackfile.Trackfile, group *group) {
+func (s *scope) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *group) {
 	spreadInterval := unit.Length(3) * unit.NauticalMile
 	stackInterval := unit.Length(3000) * unit.Foot
 	itr := s.contacts.itr()
 	for itr.next() {
 		other := itr.value()
 		// Skip if this one is already in the group
-		if slices.ContainsFunc(group.contacts, func(t *trackfile.Trackfile) bool {
+		if slices.ContainsFunc(group.contacts, func(t *trackfiles.Trackfile) bool {
 			if t == nil {
 				return false
 			}

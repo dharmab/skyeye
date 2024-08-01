@@ -17,7 +17,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/tacview/properties"
 	"github.com/dharmab/skyeye/pkg/tacview/tags"
 	"github.com/dharmab/skyeye/pkg/tacview/types"
-	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
 )
@@ -334,7 +334,7 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 		callsign = fmt.Sprintf("Unit %d", object.ID)
 	}
 
-	frame := trackfile.Frame{
+	frame := trackfiles.Frame{
 		Timestamp: time.Now(),
 		Point:     coordinates.Location,
 		Altitude:  coordinates.Altitude,
@@ -342,7 +342,7 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 	}
 
 	return &sim.Updated{
-		Aircraft: trackfile.Aircraft{
+		Aircraft: trackfiles.Aircraft{
 			UnitID:    uint32(object.ID),
 			Name:      callsign,
 			Coalition: coalition,

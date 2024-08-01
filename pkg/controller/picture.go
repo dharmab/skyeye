@@ -10,15 +10,15 @@ func (c *controller) HandlePicture(r *brevity.PictureRequest) {
 	logger := log.With().Str("callsign", r.Callsign).Type("type", r).Logger()
 	logger.Debug().Msg("handling request")
 
-	tf := c.scope.FindCallsign(r.Callsign)
-	if tf == nil {
+	trackfile := c.scope.FindCallsign(r.Callsign)
+	if trackfile == nil {
 		logger.Warn().Msg("callsign not found")
 		c.out <- brevity.NegativeRadarContactResponse{Callsign: r.Callsign}
 		return
 	}
 
 	logger.Debug().Msg("building picture")
-	count, groups := c.scope.GetPicture(tf.LastKnown().Point, r.Radius, c.hostileCoalition(), brevity.FixedWing)
+	count, groups := c.scope.GetPicture(trackfile.LastKnown().Point, r.Radius, c.hostileCoalition(), brevity.FixedWing)
 	for _, g := range groups {
 		g.SetDeclaration(brevity.Bandit)
 	}

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
-	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/gammazero/deque"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -14,20 +14,20 @@ import (
 
 func TestGetByCallsign(t *testing.T) {
 	d := newContactDatabase()
-	tf := &trackfile.Trackfile{
-		Contact: trackfile.Aircraft{
+	trackfile := &trackfiles.Trackfile{
+		Contact: trackfiles.Aircraft{
 			UnitID:    1,
 			Name:      "Mobius 1 Reaper",
 			Coalition: coalitions.Blue,
 			ACMIName:  "F-15C",
 		},
-		Track: *deque.New[trackfile.Frame](),
+		Track: *deque.New[trackfiles.Frame](),
 	}
-	d.set(tf)
+	d.set(trackfile)
 
 	val, ok := d.getByCallsign("mobius 1")
 	require.True(t, ok)
-	require.EqualValues(t, tf, val)
+	require.EqualValues(t, trackfile, val)
 
 	_, ok = d.getByCallsign("yellow 13")
 	require.False(t, ok)
@@ -35,43 +35,43 @@ func TestGetByCallsign(t *testing.T) {
 
 func TestGetByUnitID(t *testing.T) {
 	d := newContactDatabase()
-	tf := &trackfile.Trackfile{
-		Contact: trackfile.Aircraft{
+	trackfile := &trackfiles.Trackfile{
+		Contact: trackfiles.Aircraft{
 			UnitID:    1,
 			Name:      "Mobius 1 Reaper",
 			Coalition: coalitions.Blue,
 			ACMIName:  "F-15C",
 		},
-		Track: *deque.New[trackfile.Frame](),
+		Track: *deque.New[trackfiles.Frame](),
 	}
-	d.set(tf)
+	d.set(trackfile)
 
 	val, ok := d.getByUnitID(1)
 	require.True(t, ok)
-	require.EqualValues(t, tf, val)
+	require.EqualValues(t, trackfile, val)
 
 	_, ok = d.getByUnitID(2)
 	require.False(t, ok)
 }
 
 func TestSet(t *testing.T) {
-	d := newContactDatabase()
-	tf := &trackfile.Trackfile{
-		Contact: trackfile.Aircraft{
+	database := newContactDatabase()
+	trackfile := &trackfiles.Trackfile{
+		Contact: trackfiles.Aircraft{
 			UnitID:    1,
 			Name:      "Mobius 1 Reaper",
 			Coalition: coalitions.Blue,
 			ACMIName:  "F-15C",
 		},
-		Track: *deque.New[trackfile.Frame](),
+		Track: *deque.New[trackfiles.Frame](),
 	}
-	d.set(tf)
+	database.set(trackfile)
 
-	val, ok := d.getByUnitID(1)
+	val, ok := database.getByUnitID(1)
 	require.True(t, ok)
-	require.EqualValues(t, tf, val)
+	require.EqualValues(t, trackfile, val)
 
-	tf.Update(trackfile.Frame{
+	trackfile.Update(trackfiles.Frame{
 		Timestamp: time.Now(),
 		Point: orb.Point{
 			1,
@@ -81,83 +81,87 @@ func TestSet(t *testing.T) {
 		Heading:  unit.Angle(90) * unit.Degree,
 	})
 
-	d.set(tf)
+	database.set(trackfile)
 
-	val, ok = d.getByUnitID(1)
+	val, ok = database.getByUnitID(1)
 	require.True(t, ok)
-	require.EqualValues(t, tf, val)
+	require.EqualValues(t, trackfile, val)
 }
 
 func TestDelete(t *testing.T) {
-	d := newContactDatabase()
-	tf := &trackfile.Trackfile{
-		Contact: trackfile.Aircraft{
+	database := newContactDatabase()
+	trackfile := &trackfiles.Trackfile{
+		Contact: trackfiles.Aircraft{
 			UnitID:    1,
 			Name:      "Mobius 1 Reaper",
 			Coalition: coalitions.Blue,
 			ACMIName:  "F-15C",
 		},
-		Track: *deque.New[trackfile.Frame](),
+		Track: *deque.New[trackfiles.Frame](),
 	}
-	d.set(tf)
+	database.set(trackfile)
 
-	_, ok := d.getByUnitID(1)
+	_, ok := database.getByUnitID(1)
 	require.True(t, ok)
 
-	d.delete(1)
+	ok = database.delete(1)
+	require.True(t, ok)
 
-	_, ok = d.getByUnitID(1)
+	_, ok = database.getByUnitID(1)
+	require.False(t, ok)
+
+	ok = database.delete(2)
 	require.False(t, ok)
 }
 
 func TestItr(t *testing.T) {
-	d := newContactDatabase()
-	tf1 := &trackfile.Trackfile{
-		Contact: trackfile.Aircraft{
+	database := newContactDatabase()
+	mobius := &trackfiles.Trackfile{
+		Contact: trackfiles.Aircraft{
 			UnitID:    1,
 			Name:      "Mobius 1 Reaper",
 			Coalition: coalitions.Blue,
 			ACMIName:  "F-15C",
 		},
-		Track: *deque.New[trackfile.Frame](),
+		Track: *deque.New[trackfiles.Frame](),
 	}
-	d.set(tf1)
+	database.set(mobius)
 
-	tf2 := &trackfile.Trackfile{
-		Contact: trackfile.Aircraft{
+	yellow := &trackfiles.Trackfile{
+		Contact: trackfiles.Aircraft{
 			UnitID:    2,
 			Name:      "Yellow 13 Reiher",
 			Coalition: coalitions.Red,
 			ACMIName:  "Su-27",
 		},
-		Track: *deque.New[trackfile.Frame](),
+		Track: *deque.New[trackfiles.Frame](),
 	}
-	d.set(tf2)
+	database.set(yellow)
 
-	itr := d.itr()
+	itr := database.itr()
 
-	tf1Found := false
-	tf2Found := false
+	foundMobius := false
+	foundYellow := false
 	iterate := func() {
 		for itr.next() {
-			tf := itr.value()
-			if tf.Contact.UnitID == tf1.Contact.UnitID {
-				require.EqualValues(t, tf1, tf)
-				tf1Found = true
-			} else if tf.Contact.UnitID == tf2.Contact.UnitID {
-				require.EqualValues(t, tf2, tf)
-				tf2Found = true
+			trackfile := itr.value()
+			if trackfile.Contact.UnitID == mobius.Contact.UnitID {
+				require.EqualValues(t, mobius, trackfile)
+				foundMobius = true
+			} else if trackfile.Contact.UnitID == yellow.Contact.UnitID {
+				require.EqualValues(t, yellow, trackfile)
+				foundYellow = true
 			}
 		}
 	}
 	iterate()
-	require.True(t, tf1Found)
-	require.True(t, tf2Found)
+	require.True(t, foundMobius)
+	require.True(t, foundYellow)
 
 	itr.reset()
 
-	tf1Found = false
-	tf2Found = false
+	foundMobius = false
+	foundYellow = false
 	iterate()
 
 }

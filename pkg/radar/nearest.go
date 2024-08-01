@@ -6,7 +6,7 @@ import (
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
-	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geo"
@@ -14,26 +14,25 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-
 // FindNearestTrackfile implements [Radar.FindNearestTrackfile]
-func (s *scope) FindNearestTrackfile(origin orb.Point, coalition coalitions.Coalition, filter brevity.ContactCategory) *trackfile.Trackfile {
-	var nearestTrackfile *trackfile.Trackfile
+func (s *scope) FindNearestTrackfile(origin orb.Point, coalition coalitions.Coalition, filter brevity.ContactCategory) *trackfiles.Trackfile {
+	var nearestTrackfile *trackfiles.Trackfile
 	nearestDistance := unit.Length(300) * unit.NauticalMile
 	itr := s.contacts.itr()
 	for itr.next() {
-		tf := itr.value()
-		if s.isMatch(tf, coalition, filter) {
-			distance := unit.Length(math.Abs(geo.Distance(origin, tf.LastKnown().Point)))
+		trackfile := itr.value()
+		if s.isMatch(trackfile, coalition, filter) {
+			distance := unit.Length(math.Abs(geo.Distance(origin, trackfile.LastKnown().Point)))
 			isNearer := distance < nearestDistance
 			if nearestTrackfile == nil || isNearer {
 				log.Debug().
 					Interface("origin", origin).
 					Int("distance", int(distance.NauticalMiles())).
-					Str("aircraft", tf.Contact.ACMIName).
-					Int("unitID", int(tf.Contact.UnitID)).
-					Str("name", tf.Contact.Name).
+					Str("aircraft", trackfile.Contact.ACMIName).
+					Int("unitID", int(trackfile.Contact.UnitID)).
+					Str("name", trackfile.Contact.Name).
 					Msg("new candidate for nearest trackfile")
-				nearestTrackfile = tf
+				nearestTrackfile = trackfile
 				nearestDistance = distance
 			}
 		}
@@ -101,18 +100,18 @@ func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing unit.Angle, arc
 	logger.Debug().Any("cone", cone).Msg("searching cone")
 
 	nearestDistance := unit.Length(math.MaxFloat64)
-	var nearestContact *trackfile.Trackfile
+	var nearestContact *trackfiles.Trackfile
 	itr := s.contacts.itr()
 	for itr.next() {
-		tf := itr.value()
-		logger := logger.With().Int("unitID", int(tf.Contact.UnitID)).Logger()
-		if s.isMatch(tf, coalition, filter) {
-			contactLocation := tf.LastKnown().Point
+		trackfile := itr.value()
+		logger := logger.With().Int("unitID", int(trackfile.Contact.UnitID)).Logger()
+		if s.isMatch(trackfile, coalition, filter) {
+			contactLocation := trackfile.LastKnown().Point
 			distanceToContact := unit.Length(geo.Distance(origin, contactLocation)) * unit.Meter
 			isWithinCone := planar.PolygonContains(cone, contactLocation)
 			logger.Debug().Float64("distanceNM", distanceToContact.NauticalMiles()).Bool("isWithinCone", isWithinCone).Msg("checking distance and location")
 			if distanceToContact < nearestDistance && distanceToContact > conf.DefaultMarginRadius && isWithinCone {
-				nearestContact = tf
+				nearestContact = trackfile
 			}
 		}
 	}

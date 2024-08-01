@@ -2,6 +2,7 @@
 package bearings
 
 import (
+	"math"
 	"time"
 
 	"github.com/martinlindhe/unit"
@@ -32,13 +33,13 @@ func (b Bearing) Kind() Kind {
 	return b.kind
 }
 
-// Normalize returns the normalized angle in the range (0, 360] degrees.
+// Normalize returns the normalized angle in the range (0, 360] degrees, rounded to the nearest degree.
 func Normalize(a unit.Angle) unit.Angle {
-	θ := int(a.Degrees())
+	θ := float64(a.Degrees())
 	for θ < 0 {
 		θ += 360
 	}
-	θ = θ % 360
+	θ = math.Mod(θ, 360)
 	if θ == 0 {
 		θ = 360
 	}

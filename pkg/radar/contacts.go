@@ -6,21 +6,21 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/parser"
-	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/dharmab/skyeye/pkg/trackfiles"
 )
 
 // contactDatabase is a thread-safe trackfile database.
 type contactDatabase interface {
 	// getByCallsign returns the trackfile for the given callsign, or nil if no trackfile was found.
 	// The second return value is true if a trackfile was found, and false otherwise.
-	getByCallsign(string) (*trackfile.Trackfile, bool)
+	getByCallsign(string) (*trackfiles.Trackfile, bool)
 	// getByUnitID returns the trackfile for the given unit ID, or nil if no trackfile was found.
 	// The second return value is true if a trackfile was found, and false otherwise.
-	getByUnitID(uint32) (*trackfile.Trackfile, bool)
+	getByUnitID(uint32) (*trackfiles.Trackfile, bool)
 	// lastUpdated returns the last time a trackfile was updated, using the real time timestamp.
 	lastUpdated(uint32) (time.Time, bool)
 	// set updates the trackfile for the given trackfile's unit ID, or inserts a new trackfile if no trackfile was found.
-	set(*trackfile.Trackfile)
+	set(*trackfiles.Trackfile)
 	// delete removes the trackfile for the given unit ID.
 	// It returns true if the trackfile was found and removed, and false otherwise.
 	delete(uint32) bool
@@ -37,26 +37,26 @@ type databaseIterator interface {
 	reset()
 	// value returns the trackfile at the current position of the iterator.
 	// It should only be called after Next returns true.
-	value() *trackfile.Trackfile
+	value() *trackfiles.Trackfile
 }
 
 type database struct {
 	lock           sync.RWMutex
-	contacts       map[uint32]*trackfile.Trackfile
+	contacts       map[uint32]*trackfiles.Trackfile
 	callsignIdx    map[string]uint32
 	lastUpdatedIdx map[uint32]time.Time
 }
 
 func newContactDatabase() contactDatabase {
 	return &database{
-		contacts:       make(map[uint32]*trackfile.Trackfile),
+		contacts:       make(map[uint32]*trackfiles.Trackfile),
 		callsignIdx:    make(map[string]uint32),
 		lastUpdatedIdx: make(map[uint32]time.Time),
 	}
 }
 
 // getByCallsign implements [contactDatabase.getByCallsign].
-func (d *database) getByCallsign(callsign string) (*trackfile.Trackfile, bool) {
+func (d *database) getByCallsign(callsign string) (*trackfiles.Trackfile, bool) {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
 
@@ -72,7 +72,7 @@ func (d *database) getByCallsign(callsign string) (*trackfile.Trackfile, bool) {
 }
 
 // getByUnitID implements [contactDatabase.getByUnitID].
-func (d *database) getByUnitID(unitId uint32) (*trackfile.Trackfile, bool) {
+func (d *database) getByUnitID(unitId uint32) (*trackfiles.Trackfile, bool) {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
 
@@ -84,7 +84,7 @@ func (d *database) getByUnitID(unitId uint32) (*trackfile.Trackfile, bool) {
 }
 
 // set implements [contactDatabase.set].
-func (d *database) set(tf *trackfile.Trackfile) {
+func (d *database) set(tf *trackfiles.Trackfile) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
@@ -114,9 +114,12 @@ func (d *database) delete(unitId uint32) bool {
 	defer d.lock.Unlock()
 
 	contact, ok := d.contacts[unitId]
-	delete(d.callsignIdx, contact.Contact.Name)
+	if ok {
+		delete(d.callsignIdx, contact.Contact.Name)
+	}
 	delete(d.contacts, unitId)
 	delete(d.lastUpdatedIdx, unitId)
+
 	return ok
 }
 
@@ -136,10 +139,10 @@ func (d *database) itr() databaseIterator {
 type iterator struct {
 	cursor  int
 	unitIds []uint32
-	getFn   func(uint32) (*trackfile.Trackfile, bool)
+	getFn   func(uint32) (*trackfiles.Trackfile, bool)
 }
 
-func newDatabaseIterator(unitIds []uint32, getFn func(uint32) (*trackfile.Trackfile, bool)) databaseIterator {
+func newDatabaseIterator(unitIds []uint32, getFn func(uint32) (*trackfiles.Trackfile, bool)) databaseIterator {
 	return &iterator{
 		cursor:  -1,
 		unitIds: unitIds,
@@ -159,7 +162,7 @@ func (i *iterator) reset() {
 }
 
 // value implements [iterator.value].
-func (i *iterator) value() *trackfile.Trackfile {
+func (i *iterator) value() *trackfiles.Trackfile {
 	contact, ok := i.getFn(i.unitIds[i.cursor])
 	if !ok {
 		return nil

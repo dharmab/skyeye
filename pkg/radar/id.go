@@ -3,12 +3,12 @@ package radar
 import (
 	"time"
 
-	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/rs/zerolog/log"
 )
 
-func (s *scope) FindCallsign(callsign string) *trackfile.Trackfile {
-	return find(func() (*trackfile.Trackfile, bool) {
+func (s *scope) FindCallsign(callsign string) *trackfiles.Trackfile {
+	return find(func() (*trackfiles.Trackfile, bool) {
 		logger := log.With().Str("callsign", callsign).Logger()
 		logger.Debug().Any("contacts", s.contacts).Msg("searching scope for trackfile matching callsign")
 		tf, ok := s.contacts.getByCallsign(callsign)
@@ -19,15 +19,15 @@ func (s *scope) FindCallsign(callsign string) *trackfile.Trackfile {
 	})
 }
 
-func (s *scope) FindUnit(unitId uint32) *trackfile.Trackfile {
-	return find(func() (*trackfile.Trackfile, bool) {
+func (s *scope) FindUnit(unitId uint32) *trackfiles.Trackfile {
+	return find(func() (*trackfiles.Trackfile, bool) {
 		logger := log.With().Uint32("unitId", unitId).Logger()
 		logger.Debug().Any("contacts", s.contacts).Msg("searching scope for trackfile matching unitId")
 		return s.contacts.getByUnitID(unitId)
 	})
 }
 
-func find(fn func() (*trackfile.Trackfile, bool)) *trackfile.Trackfile {
+func find(fn func() (*trackfiles.Trackfile, bool)) *trackfiles.Trackfile {
 	tf, ok := fn()
 	if !ok {
 		return nil

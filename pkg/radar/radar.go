@@ -8,7 +8,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/sim"
-	"github.com/dharmab/skyeye/pkg/trackfile"
+	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
@@ -18,9 +18,9 @@ type Radar interface {
 	// Run consumes updates from the simulation channels until the context is cancelled.
 	Run(context.Context)
 	// FindCallsign returns the trackfile for the given callsign, or nil if no trackfile was found.
-	FindCallsign(string) *trackfile.Trackfile
+	FindCallsign(string) *trackfiles.Trackfile
 	// FindUnit returns the trackfile for the given unit ID, or nil if no trackfile was found.
-	FindUnit(uint32) *trackfile.Trackfile
+	FindUnit(uint32) *trackfiles.Trackfile
 	// GetBullseye returns the bullseye for the configured coalition.
 	GetBullseye() orb.Point
 	// GetPicture returns a picture of the radar scope around the given location, within the given radius, filtered by the given coalition and contact category.
@@ -97,7 +97,7 @@ func (s *scope) handleUpdate(update sim.Updated) {
 		tf.Update(update.Frame)
 		logger.Trace().Msg("updated existing trackfile")
 	} else {
-		tf = trackfile.NewTrackfile(update.Aircraft)
+		tf = trackfiles.NewTrackfile(update.Aircraft)
 		s.contacts.set(tf)
 		logger.Info().Msg("created new trackfile")
 	}
@@ -129,20 +129,20 @@ func (s *scope) handleFade(fade sim.Faded) {
 func (s *scope) handleGarbageCollection() {
 	itr := s.contacts.itr()
 	for itr.next() {
-		tf := itr.value()
+		trackfile := itr.value()
 		logger := log.With().
-			Int("unitID", int(tf.Contact.UnitID)).
-			Str("name", tf.Contact.Name).
-			Str("aircraft", tf.Contact.ACMIName).
+			Int("unitID", int(trackfile.Contact.UnitID)).
+			Str("name", trackfile.Contact.Name).
+			Str("aircraft", trackfile.Contact.ACMIName).
 			Logger()
 
-		lastSeen, ok := s.contacts.lastUpdated(tf.Contact.UnitID)
+		lastSeen, ok := s.contacts.lastUpdated(trackfile.Contact.UnitID)
 		if !ok {
 			logger.Warn().Msg("last updated time is missing")
 			continue
 		}
 		if lastSeen.Before(time.Now().Add(-5 * time.Minute)) {
-			s.contacts.delete(tf.Contact.UnitID)
+			s.contacts.delete(trackfile.Contact.UnitID)
 			logger.Info().
 				Dur("age", time.Since(lastSeen)).
 				Msg("removed aged out trackfile")
@@ -159,7 +159,7 @@ func (s *scope) GetBullseye() orb.Point {
 // Last known position is not (0, 0)
 // Speed is above 50 knots
 // Altitude is above 10 meters above sea level
-func isValidTrack(tf *trackfile.Trackfile) bool {
+func isValidTrack(tf *trackfiles.Trackfile) bool {
 	point := tf.LastKnown().Point
 	isValidLongitude := point.Lon() != 0
 	isValidLatitude := point.Lat() != 0
@@ -185,7 +185,7 @@ func isValidTrack(tf *trackfile.Trackfile) bool {
 // - if the trackfile is of the given coalition
 // - if the trackfile is of the given contact category (or if the aircraft is not in the encyclopedia)
 // - if the trackfile is valid
-func (s *scope) isMatch(tf *trackfile.Trackfile, coalition coalitions.Coalition, filter brevity.ContactCategory) bool {
+func (s *scope) isMatch(tf *trackfiles.Trackfile, coalition coalitions.Coalition, filter brevity.ContactCategory) bool {
 	if tf.Contact.Coalition != coalition {
 		return false
 	}

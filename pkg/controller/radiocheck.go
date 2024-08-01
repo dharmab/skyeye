@@ -9,8 +9,8 @@ import (
 func (c *controller) HandleRadioCheck(r *brevity.RadioCheckRequest) {
 	logger := log.With().Str("callsign", r.Callsign).Type("type", r).Logger()
 	logger.Debug().Msg("handling request")
-	tf := c.findCallsign(r.Callsign)
-	status := tf != nil
+	trackfile := c.findCallsign(r.Callsign)
+	status := trackfile != nil
 	if !status {
 		logger.Debug().Msg("no trackfile found for requestor")
 		c.out <- brevity.NegativeRadarContactResponse{Callsign: r.Callsign}

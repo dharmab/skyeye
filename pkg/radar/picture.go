@@ -20,28 +20,28 @@ func (s *scope) GetPicture(origin orb.Point, radius unit.Length, coalition coali
 	groups := make([]*group, 0)
 	itr := s.contacts.itr()
 	for itr.next() {
-		tf := itr.value()
-		logger := log.With().Int("unitID", int(tf.Contact.UnitID)).Logger()
-		if visitedContacts[tf.Contact.UnitID] {
+		trackfile := itr.value()
+		logger := log.With().Int("unitID", int(trackfile.Contact.UnitID)).Logger()
+		if visitedContacts[trackfile.Contact.UnitID] {
 			logger.Trace().Msg("skipping visited contact")
 			continue
 		}
-		visitedContacts[tf.Contact.UnitID] = true
-		if tf.Contact.Coalition != coalition {
+		visitedContacts[trackfile.Contact.UnitID] = true
+		if trackfile.Contact.Coalition != coalition {
 			logger.Trace().Msg("skipping contact from other coalition")
 			continue
 		}
-		if !isValidTrack(tf) {
+		if !isValidTrack(trackfile) {
 			logger.Trace().Msg("skipping invalid track")
 			continue
 		}
-		distance := unit.Length(geo.Distance(origin, tf.LastKnown().Point)) * unit.Meter
+		distance := unit.Length(geo.Distance(origin, trackfile.LastKnown().Point)) * unit.Meter
 		if distance > radius {
 			logger.Debug().Float64("distanceNM", distance.NauticalMiles()).Float64("radiusNM", radius.NauticalMiles()).Msg("skipping contact outside radius")
 			continue
 		}
 
-		group := s.findGroupForAircraft(tf)
+		group := s.findGroupForAircraft(trackfile)
 		if group == nil {
 			logger.Error().Msg("failed to find group for aircraft - HOW DID YOU GET HERE")
 			continue
