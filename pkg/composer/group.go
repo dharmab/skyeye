@@ -50,6 +50,14 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 		if group.Altitude().Meters() < 1 {
 			// This is almost certainly a data error
 			altitude = "altitude unknown"
+		} else if group.Declaration() == brevity.Friendly {
+			if group.Altitude().Feet() < 1000 {
+				hundreds := int(math.Round(group.Altitude().Feet() / 100))
+				altitude = fmt.Sprintf("cherubs %d", hundreds)
+			} else {
+				thousands := int(math.Round(group.Altitude().Feet() / 1000))
+				altitude = fmt.Sprintf("angels %d", thousands)
+			}
 		} else if group.Weeds() {
 			altitude = "weeds"
 		} else {
