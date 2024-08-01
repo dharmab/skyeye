@@ -87,17 +87,17 @@ func (s *scope) Run(ctx context.Context) {
 // handleUpdate updates the database using the provided update.
 func (s *scope) handleUpdate(update sim.Updated) {
 	logger := log.With().
-		Str("name", update.Aircraft.Name).
-		Str("aircraft", update.Aircraft.ACMIName).
-		Int("unitID", int(update.Aircraft.UnitID)).
+		Str("name", update.Labels.Name).
+		Str("aircraft", update.Labels.ACMIName).
+		Int("unitID", int(update.Labels.UnitID)).
 		Logger()
 
-	tf, ok := s.contacts.getByUnitID(update.Aircraft.UnitID)
+	tf, ok := s.contacts.getByUnitID(update.Labels.UnitID)
 	if ok {
 		tf.Update(update.Frame)
 		logger.Trace().Msg("updated existing trackfile")
 	} else {
-		tf = trackfiles.NewTrackfile(update.Aircraft)
+		tf = trackfiles.NewTrackfile(update.Labels)
 		s.contacts.set(tf)
 		logger.Info().Msg("created new trackfile")
 	}

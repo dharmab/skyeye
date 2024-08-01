@@ -24,8 +24,8 @@ type Sim interface {
 
 // Updated is a message sent when an aircraft is updated.
 type Updated struct {
-	// Aircraft contains the aircraft's identity.
-	Aircraft trackfiles.Aircraft
+	// Labels contains the aircraft's identity.
+	Labels trackfiles.Labels
 	// Frame contains the aircraft's observed position data.
 	Frame trackfiles.Frame
 }

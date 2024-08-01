@@ -15,7 +15,7 @@ import (
 func TestGetByCallsign(t *testing.T) {
 	d := newContactDatabase()
 	trackfile := &trackfiles.Trackfile{
-		Contact: trackfiles.Aircraft{
+		Contact: trackfiles.Labels{
 			UnitID:    1,
 			Name:      "Mobius 1 Reaper",
 			Coalition: coalitions.Blue,
@@ -36,7 +36,7 @@ func TestGetByCallsign(t *testing.T) {
 func TestGetByUnitID(t *testing.T) {
 	d := newContactDatabase()
 	trackfile := &trackfiles.Trackfile{
-		Contact: trackfiles.Aircraft{
+		Contact: trackfiles.Labels{
 			UnitID:    1,
 			Name:      "Mobius 1 Reaper",
 			Coalition: coalitions.Blue,
@@ -57,7 +57,7 @@ func TestGetByUnitID(t *testing.T) {
 func TestSet(t *testing.T) {
 	database := newContactDatabase()
 	trackfile := &trackfiles.Trackfile{
-		Contact: trackfiles.Aircraft{
+		Contact: trackfiles.Labels{
 			UnitID:    1,
 			Name:      "Mobius 1 Reaper",
 			Coalition: coalitions.Blue,
@@ -77,8 +77,8 @@ func TestSet(t *testing.T) {
 			1,
 			1,
 		},
-		Altitude: unit.Length(1000) * unit.Foot,
-		Heading:  unit.Angle(90) * unit.Degree,
+		Altitude: 1000 * unit.Foot,
+		Heading:  90 * unit.Degree,
 	})
 
 	database.set(trackfile)
@@ -91,7 +91,7 @@ func TestSet(t *testing.T) {
 func TestDelete(t *testing.T) {
 	database := newContactDatabase()
 	trackfile := &trackfiles.Trackfile{
-		Contact: trackfiles.Aircraft{
+		Contact: trackfiles.Labels{
 			UnitID:    1,
 			Name:      "Mobius 1 Reaper",
 			Coalition: coalitions.Blue,
@@ -117,7 +117,7 @@ func TestDelete(t *testing.T) {
 func TestItr(t *testing.T) {
 	database := newContactDatabase()
 	mobius := &trackfiles.Trackfile{
-		Contact: trackfiles.Aircraft{
+		Contact: trackfiles.Labels{
 			UnitID:    1,
 			Name:      "Mobius 1 Reaper",
 			Coalition: coalitions.Blue,
@@ -128,7 +128,7 @@ func TestItr(t *testing.T) {
 	database.set(mobius)
 
 	yellow := &trackfiles.Trackfile{
-		Contact: trackfiles.Aircraft{
+		Contact: trackfiles.Labels{
 			UnitID:    2,
 			Name:      "Yellow 13 Reiher",
 			Coalition: coalitions.Red,

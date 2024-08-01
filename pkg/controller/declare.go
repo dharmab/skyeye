@@ -17,7 +17,7 @@ func (c *controller) HandleDeclare(r *brevity.DeclareRequest) {
 		r.Location.Bearing().Degrees(),
 		r.Location.Distance().Meters(),
 	)
-	radius := unit.Length(10) * unit.NauticalMile // TODO reduce to 3 when magvar is available
+	radius := 10 * unit.NauticalMile // TODO reduce to 3 when magvar is available
 	friendlyGroups := c.scope.FindNearbyGroups(location, radius, c.coalition, brevity.Aircraft)
 	hostileGroups := c.scope.FindNearbyGroups(location, radius, c.hostileCoalition(), brevity.Aircraft)
 	logger.Debug().Int("friendly", len(friendlyGroups)).Int("hostile", len(hostileGroups)).Msg("queried groups near delcared location")

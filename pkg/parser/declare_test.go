@@ -14,8 +14,8 @@ func TestParserDeclare(t *testing.T) {
 			expectedRequest: &brevity.DeclareRequest{
 				Callsign: "tater 1 1",
 				Location: *brevity.NewBullseye(
-					unit.Angle(54)*unit.Degree,
-					unit.Length(123)*unit.NauticalMile,
+					54*unit.Degree,
+					123*unit.NauticalMile,
 				),
 				Altitude: 3000 * unit.Foot,
 				Track:    brevity.UnknownDirection,
@@ -27,8 +27,8 @@ func TestParserDeclare(t *testing.T) {
 			expectedRequest: &brevity.DeclareRequest{
 				Callsign: "fox 1 2",
 				Location: *brevity.NewBullseye(
-					unit.Angle(43)*unit.Degree,
-					unit.Length(102)*unit.NauticalMile,
+					43*unit.Degree,
+					102*unit.NauticalMile,
 				),
 				Altitude: 12000 * unit.Foot,
 				Track:    brevity.UnknownDirection,
@@ -40,8 +40,8 @@ func TestParserDeclare(t *testing.T) {
 			expectedRequest: &brevity.DeclareRequest{
 				Callsign: "chaos 1 1",
 				Location: *brevity.NewBullseye(
-					unit.Angle(76)*unit.Degree,
-					unit.Length(44)*unit.NauticalMile,
+					76*unit.Degree,
+					44*unit.NauticalMile,
 				),
 				Altitude: 3000 * unit.Foot,
 				Track:    brevity.UnknownDirection,
@@ -53,8 +53,8 @@ func TestParserDeclare(t *testing.T) {
 			expectedRequest: &brevity.DeclareRequest{
 				Callsign: "dog 1 1",
 				Location: *brevity.NewBullseye(
-					unit.Angle(75)*unit.Degree,
-					unit.Length(26)*unit.NauticalMile,
+					75*unit.Degree,
+					26*unit.NauticalMile,
 				),
 				Altitude: 2000 * unit.Foot,
 				Track:    brevity.UnknownDirection,

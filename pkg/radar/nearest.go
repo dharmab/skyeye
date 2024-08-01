@@ -17,7 +17,7 @@ import (
 // FindNearestTrackfile implements [Radar.FindNearestTrackfile]
 func (s *scope) FindNearestTrackfile(origin orb.Point, coalition coalitions.Coalition, filter brevity.ContactCategory) *trackfiles.Trackfile {
 	var nearestTrackfile *trackfiles.Trackfile
-	nearestDistance := unit.Length(300) * unit.NauticalMile
+	nearestDistance := 300 * unit.NauticalMile
 	itr := s.contacts.itr()
 	for itr.next() {
 		trackfile := itr.value()
