@@ -18,6 +18,10 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
+      - name: Format
+        run: go fmt ./... && git diff --exit-code
+      - name: Tidy
+        run: go mod tidy && git diff --exit-code
   test:
     runs-on: ubuntu-latest
     steps:
