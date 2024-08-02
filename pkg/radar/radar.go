@@ -207,3 +207,11 @@ func (s *scope) isMatch(tf *trackfiles.Trackfile, coalition coalitions.Coalition
 	matchesFilter := !ok || data.Category() == filter || filter == brevity.Aircraft
 	return matchesFilter
 }
+
+func (s *scope) bestAvailableDeclination(p orb.Point) unit.Angle {
+	declination, err := bearings.Declination(p, s.missionTime)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to get declination")
+	}
+	return declination
+}

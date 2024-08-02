@@ -57,11 +57,12 @@ func (s *scope) FindNearestGroupWithBRAA(origin orb.Point, coalition coalitions.
 		return nil
 	}
 	groupLocation := nearestTrackfile.LastKnown().Point
+
 	bearing := bearings.NewTrueBearing(
 		unit.Angle(
 			geo.Bearing(origin, groupLocation),
 		) * unit.Degree,
-	)
+	).Magnetic(s.bestAvailableDeclination(origin))
 	_range := unit.Length(geo.Distance(origin, groupLocation)) * unit.Meter
 	altitude := nearestTrackfile.LastKnown().Altitude
 	aspect := brevity.AspectFromAngle(bearing, nearestTrackfile.Course())
@@ -88,7 +89,7 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, coalition coaliti
 			unit.Angle(
 				geo.Bearing(origin, groupLocation),
 			)*unit.Degree,
-		), nearestTrackfile.Course(),
+		).Magnetic(s.bestAvailableDeclination(origin)), nearestTrackfile.Course(),
 	)
 
 	group.aspect = &aspect
@@ -101,14 +102,13 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, coalition coaliti
 func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing bearings.Bearing, arc unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	logger := log.With().Interface("origin", origin).Float64("bearing", bearing.Degrees()).Float64("arc", arc.Degrees()).Logger()
 	maxDistance := conf.DefaultPictureRadius
-	declination, err := bearings.Declination(origin, s.missionTime)
-	if err != nil {
-		logger.Warn().Err(err).Msg("failed to determine declination, falling back to 0")
-		declination = 0
-	}
-
+	declination := s.bestAvailableDeclination(origin)
 	vertex := func(a unit.Angle) orb.Point {
-		return geo.PointAtBearingAndDistance(origin, (bearing.True(declination).Value() + a).Degrees(), maxDistance.Meters())
+		return geo.PointAtBearingAndDistance(
+			origin,
+			(bearing.Magnetic(declination).Value() + a).Degrees(),
+			maxDistance.Meters(),
+		)
 	}
 	cone := orb.Polygon{
 		orb.Ring{
@@ -151,8 +151,8 @@ func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing bearings.Bearin
 		unit.Angle(
 			geo.Bearing(origin, nearestContact.LastKnown().Point),
 		) * unit.Degree,
-	)
-	aspect := brevity.AspectFromAngle(bearing, nearestContact.Course())
+	).Magnetic(declination)
+	aspect := brevity.AspectFromAngle(exactBearing, nearestContact.Course())
 	log.Debug().Str("aspect", string(aspect)).Msg("determined aspect")
 	_range := unit.Length(geo.Distance(origin, nearestContact.LastKnown().Point)) * unit.Meter
 	group.aspect = &aspect

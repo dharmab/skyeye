@@ -5,10 +5,14 @@ import (
 	"slices"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/rs/zerolog/log"
 )
 
 // ComposeSpikedResponse implements [Composer.ComposeSpikedResponse].
 func (c *composer) ComposeSpikedResponse(response brevity.SpikedResponse) NaturalLanguageResponse {
+	if !response.Bearing.IsMagnetic() {
+		log.Error().Any("bearing", response.Bearing).Msg("bearing provided to ComposeSpikedResponse should be magnetic")
+	}
 	if response.Status {
 		reply := fmt.Sprintf("%s, spike range %d, %d, %s", response.Callsign, int(response.Range.NauticalMiles()), int(response.Altitude.Feet()), response.Aspect)
 		isCardinalAspect := slices.Contains([]brevity.Aspect{brevity.Flank, brevity.Beam, brevity.Drag}, response.Aspect)

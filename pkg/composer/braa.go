@@ -4,11 +4,15 @@ import (
 	"fmt"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/rs/zerolog/log"
 )
 
 // ComposeBRAA constructs natural language brevity for communicating BRAA information.
 // Example: "BRAA 270/20, 20000, hot"
 func (c *composer) ComposeBRAA(braa brevity.BRAA) NaturalLanguageResponse {
+	if !braa.Bearing().IsMagnetic() {
+		log.Error().Any("bearing", braa.Bearing()).Msg("bearing provided to ComposeBRAA should be magnetic")
+	}
 	var aspect string
 	if braa.Aspect() != brevity.UnknownAspect {
 		aspect = string(braa.Aspect())

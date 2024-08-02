@@ -11,6 +11,10 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 
+	if !request.BRA.Bearing().IsMagnetic() {
+		logger.Error().Any("bearing", request.BRA.Bearing()).Msg("bearing provided to HandleSnaplock should be magnetic")
+	}
+
 	requestorTrackfile := c.findCallsign(request.Callsign)
 	if requestorTrackfile == nil {
 		logger.Info().Msg("no trackfile found for requestor")

@@ -11,6 +11,11 @@ import (
 func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
+
+	if !request.Location.Bearing().IsMagnetic() {
+		logger.Error().Any("bearing", request.Location.Bearing()).Msg("bearing provided to HandleDeclare should be magnetic")
+	}
+
 	location := geo.PointAtBearingAndDistance(
 		c.bullseye,
 		request.Location.Bearing().Degrees(),

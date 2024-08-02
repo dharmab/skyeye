@@ -5,10 +5,14 @@ import (
 	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/rs/zerolog/log"
 )
 
 // ComposeFadedCall implements [Composer.ComposeFadedCall].
 func (c *composer) ComposeFadedCall(call brevity.FadedCall) NaturalLanguageResponse {
+	if !call.Group.BRAA().Bearing().IsMagnetic() {
+		log.Error().Msg("bearing provided to ComposeFadedCall should be magnetic")
+	}
 	var subtitle, speech strings.Builder
 
 	writeBoth := func(s string) {

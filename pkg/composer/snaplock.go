@@ -5,10 +5,14 @@ import (
 	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/rs/zerolog/log"
 )
 
 // ComposeSnaplockResponse implements [Composer.ComposeSnaplockResponse].
 func (c *composer) ComposeSnaplockResponse(response brevity.SnaplockResponse) NaturalLanguageResponse {
+	if !response.Group.BRAA().Bearing().IsMagnetic() {
+		log.Error().Any("bearing", response.Group.BRAA().Bearing()).Msg("bearing provided to ComposeSnaplockResponse should be magnetic")
+	}
 	isLocationMissing := response.Group.BRAA() == nil
 	isDeclarationUnable := response.Group.Declaration() == brevity.Unable
 	isDeclarationFurball := response.Group.Declaration() == brevity.Furball

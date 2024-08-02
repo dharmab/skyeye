@@ -2,6 +2,7 @@ package radar
 
 import (
 	"math"
+	"time"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -9,6 +10,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
+	"github.com/rs/zerolog/log"
 
 	"github.com/paulmach/orb/geo"
 )
@@ -59,10 +61,14 @@ func (g *group) Bullseye() *brevity.Bullseye {
 			geo.Bearing(*g.bullseye, point),
 		) * unit.Degree,
 	)
+	declination, err := bearings.Declination(g.point(), g.time())
+	if err != nil {
+		log.Error().Err(err).Any("group", g).Msg("failed to get declination for group")
+	}
 	distance := unit.Length(
 		geo.Distance(*g.bullseye, point),
 	) * unit.Meter
-	return brevity.NewBullseye(bearing, distance)
+	return brevity.NewBullseye(bearing.Magnetic(declination), distance)
 }
 
 // Altitude implements [brevity.Group.Altitude] by averaging the altitudes of all contacts in the group
@@ -179,6 +185,17 @@ func (g *group) point() orb.Point {
 		points = append(points, trackfile.LastKnown().Point)
 	}
 	return points.Bound().Center()
+}
+
+// time returns the timestamp of the most recent trackfile in the group
+func (g *group) time() time.Time {
+	var latest time.Time
+	for _, trackfile := range g.contacts {
+		if trackfile.LastKnown().Timestamp.After(latest) {
+			latest = trackfile.LastKnown().Timestamp
+		}
+	}
+	return latest
 }
 
 // threatClass returns the highest threat class of all contacts in the group.

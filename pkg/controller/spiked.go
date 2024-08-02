@@ -11,6 +11,10 @@ func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Float64("bearing", request.Bearing.Degrees()).Logger()
 	logger.Debug().Msg("handling request")
 
+	if !request.Bearing.IsMagnetic() {
+		logger.Error().Any("bearing", request.Bearing).Msg("bearing provided to HandleSpiked should be magnetic")
+	}
+
 	trackfile := c.scope.FindCallsign(request.Callsign)
 	if trackfile == nil {
 		logger.Info().Msg("no trackfile found for requestor")

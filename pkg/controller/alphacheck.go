@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/rs/zerolog/log"
 )
@@ -19,7 +20,11 @@ func (c *controller) HandleAlphaCheck(request *brevity.AlphaCheckRequest) {
 		return
 	}
 	logger.Debug().Msg("found requestor's trackfile")
-	location := trackfile.Bullseye(c.bullseye)
+	declination, err := bearings.Declination(c.bullseye, c.missionTime)
+	if err != nil {
+		logger.Error().Err(err).Msg("failed to calculate declination")
+	}
+	location := trackfile.Bullseye(c.bullseye, declination)
 	c.out <- brevity.AlphaCheckResponse{
 		Callsign: request.Callsign,
 		Status:   true,
