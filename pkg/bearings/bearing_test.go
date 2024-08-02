@@ -61,28 +61,28 @@ func TestBearingToString(t *testing.T) {
 		expected string
 	}{
 		{
-			bearing:  NewTrueBearing(unit.Angle(0) * unit.Degree),
+			bearing:  NewTrueBearing(0 * unit.Degree),
 			expected: "360",
 		},
 		{
 
-			bearing:  NewTrueBearing(unit.Angle(1) * unit.Degree),
+			bearing:  NewTrueBearing(1 * unit.Degree),
 			expected: "001",
 		},
 		{
-			bearing:  NewTrueBearing(unit.Angle(10) * unit.Degree),
+			bearing:  NewTrueBearing(10 * unit.Degree),
 			expected: "010",
 		},
 		{
-			bearing:  NewTrueBearing(unit.Angle(100) * unit.Degree),
+			bearing:  NewTrueBearing(100 * unit.Degree),
 			expected: "100",
 		},
 		{
-			bearing:  NewTrueBearing(unit.Angle(359) * unit.Degree),
+			bearing:  NewTrueBearing(359 * unit.Degree),
 			expected: "359",
 		},
 		{
-			bearing:  NewTrueBearing(unit.Angle(360) * unit.Degree),
+			bearing:  NewTrueBearing(360 * unit.Degree),
 			expected: "360",
 		},
 	}
