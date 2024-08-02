@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/rs/zerolog/log"
 )
 
 // ComposeCoreInformationFormat communicates information about groups.
@@ -30,8 +31,13 @@ func (c *composer) ComposeCoreInformationFormat(groups ...brevity.Group) Natural
 }
 
 func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
+	if group.BRAA() != nil && !group.BRAA().Bearing().IsMagnetic() {
+		log.Error().Any("bearing", group.BRAA().Bearing()).Msg("bearing provided to ComposeGroup should be magnetic")
+	}
+	if group.Bullseye() != nil && !group.Bullseye().Bearing().IsMagnetic() {
+		log.Error().Any("bearing", group.Bullseye().Bearing()).Msg("bearing provided to ComposeGroup should be magnetic")
+	}
 	var speech, subtitle strings.Builder
-
 	writeBoth := func(s string) {
 		speech.WriteString(s)
 		subtitle.WriteString(s)

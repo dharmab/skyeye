@@ -177,7 +177,7 @@ func TestTracking(t *testing.T) {
 			require.InDelta(t, test.expectedApproxSpeed.MetersPerSecond(), trackfile.Speed().MetersPerSecond(), 0.5)
 			require.Equal(t, test.expectedDirection, trackfile.Direction())
 			if test.expectedDirection != brevity.UnknownDirection {
-				require.InDelta(t, bearings.Normalize(test.expectedApproxCourse).Degrees(), trackfile.Course().Degrees(), 0.5)
+				require.InDelta(t, bearings.NewMagneticBearing(test.expectedApproxCourse).Degrees(), trackfile.Course().Degrees(), 0.5)
 			}
 		})
 	}

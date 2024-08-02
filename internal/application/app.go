@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -19,7 +20,6 @@ import (
 	"github.com/dharmab/skyeye/pkg/synthesizer/speakers"
 	tacview "github.com/dharmab/skyeye/pkg/tacview/client"
 	"github.com/martinlindhe/unit"
-	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
 )
 
@@ -51,7 +51,6 @@ type app struct {
 func NewApplication(ctx context.Context, config conf.Configuration) (Application, error) {
 	updates := make(chan sim.Updated)
 	fades := make(chan sim.Faded)
-	bullseyes := make(chan orb.Point)
 
 	log.Info().
 		Str("address", config.SRSAddress).
@@ -87,7 +86,6 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 			config.Coalition,
 			updates,
 			fades,
-			bullseyes,
 			config.RadarSweepInterval,
 		)
 	} else {
@@ -102,7 +100,6 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 			config.Coalition,
 			updates,
 			fades,
-			bullseyes,
 			config.RadarSweepInterval,
 		)
 	}
@@ -119,7 +116,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 
 	log.Info().Msg("constructing radar scope")
 
-	rdr := radar.New(config.Coalition, bullseyes, updates, fades)
+	rdr := radar.New(config.Coalition, updates, fades)
 	log.Info().Msg("constructing GCI controller")
 	controller := controller.New(rdr, config.Coalition, unit.Frequency(config.SRSFrequency)*unit.Hertz)
 
@@ -148,11 +145,29 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 
 // Run implements Application.Run.
 func (a *app) Run(ctx context.Context) error {
+
 	go func() {
 		log.Info().Msg("running telemetry client")
 		if err := a.tacviewClient.Run(ctx); err != nil {
 			if !errors.Is(err, context.Canceled) {
 				log.Error().Err(err).Msg("error running telemetry client")
+			}
+		}
+	}()
+
+	go func() {
+		log.Info().Msg("updating mission time and bullseye")
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				log.Info().Msg("stopping mission time and bullseye updates due to context cancellation")
+				return
+			case <-ticker.C:
+				log.Trace().Time("mTime", a.tacviewClient.Time()).Msg("updating mission time and bullseye")
+				a.radar.SetMissionTime(a.tacviewClient.Time())
+				a.radar.SetBullseye(a.tacviewClient.Bullseye())
 			}
 		}
 	}()

@@ -7,17 +7,16 @@ import (
 	"unicode"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
-	"github.com/martinlindhe/unit"
 )
 
-// PronounceBearing composes a text representation of a sequence of up to three digits, padded with zeros.
-func PronounceBearing(d int) (s string) {
-	d = int(bearings.Normalize(unit.Angle(d) * unit.Degree).Degrees())
-	s = PronounceInt(d)
-	if d < 10 {
+// PronounceBearing composes a text representation ofbearing.
+func PronounceBearing(bearing bearings.Bearing) (s string) {
+	θ := int(bearing.RoundedDegrees())
+	s = PronounceInt(θ)
+	if θ < 10 {
 		s = "zero " + s
 	}
-	if d < 100 {
+	if θ < 100 {
 		s = "zero " + s
 	}
 	return

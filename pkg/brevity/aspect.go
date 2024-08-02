@@ -1,10 +1,9 @@
 package brevity
 
 import (
-	"math"
-
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/martinlindhe/unit"
+	"github.com/rs/zerolog/log"
 )
 
 // Aspect indicates the target aspect or aspect angle between a contact and fighter.
@@ -23,17 +22,28 @@ const (
 	Drag = "drag"
 )
 
-// AspectFromAngle computes target aspect based on the bearing from an aircraft to the target and the track direction of the target.
-func AspectFromAngle(bearing unit.Angle, track unit.Angle) Aspect {
-	targetAspect := int(math.Abs(bearings.Normalize(track).Degrees()-bearings.Normalize(bearing).Degrees())) % 360
+// AspectFromAngle computes target aspect based on the magnetic bearing from an aircraft to the target and the track direction of the target.
+func AspectFromAngle(bearing bearings.Bearing, track bearings.Bearing) Aspect {
+	if !bearing.IsMagnetic() || !track.IsMagnetic() {
+		log.Warn().Any("bearing", bearing).Any("track", track).Msg("bearing and track provided to AspectFromAngle should be magnetic")
+	}
+
+	var targetAspect unit.Angle
+	if track.Value() > bearing.Value() {
+		targetAspect = track.Value() - bearing.Magnetic(0).Value()
+	} else {
+		targetAspect = bearing.Value() - track.Value()
+	}
+
+	θ := targetAspect.Degrees()
 	switch {
-	case targetAspect <= 30:
+	case θ <= 30:
 		return Hot
-	case targetAspect <= 70:
+	case θ <= 70:
 		return Flank
-	case targetAspect <= 110:
+	case θ <= 110:
 		return Beam
-	case targetAspect <= 180:
+	case θ <= 180:
 		return Drag
 	default:
 		return UnknownAspect

@@ -15,12 +15,18 @@ type parserTestCase struct {
 	expectedOk      bool
 }
 
-func runParserTestCases(t *testing.T, p Parser, testCases []parserTestCase) {
+func runParserTestCases(
+	t *testing.T,
+	p Parser,
+	testCases []parserTestCase,
+	fn func(*testing.T, parserTestCase, any),
+) {
 	for _, test := range testCases {
 		t.Run(test.text, func(t *testing.T) {
-			request, ok := p.Parse(test.text)
-			require.EqualValuesf(t, test.expectedRequest, request, "parser.Parse() request: expected = %v, actual %v", test.expectedRequest, request)
-			require.Equal(t, test.expectedOk, ok, "parser.Parse() ok: expected = %v, actual %v", test.expectedOk, ok)
+			result, ok := p.Parse(test.text)
+			require.Equal(t, test.expectedOk, ok)
+			require.IsType(t, test.expectedRequest, result)
+			fn(t, test, result)
 		})
 	}
 }
@@ -37,7 +43,12 @@ func TestParserSadPaths(t *testing.T) {
 			expectedOk:      true,
 		},
 	}
-	runParserTestCases(t, New(TestCallsign), testCases)
+	runParserTestCases(
+		t,
+		New(TestCallsign),
+		testCases,
+		func(*testing.T, parserTestCase, any) {},
+	)
 }
 
 func TestParserAlphaCheck(t *testing.T) {
@@ -64,7 +75,11 @@ func TestParserAlphaCheck(t *testing.T) {
 			expectedOk: true,
 		},
 	}
-	runParserTestCases(t, New(TestCallsign), testCases)
+	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
+		expected := test.expectedRequest.(*brevity.AlphaCheckRequest)
+		actual := request.(*brevity.AlphaCheckRequest)
+		require.Equal(t, expected.Callsign, actual.Callsign)
+	})
 }
 
 func TestParserRadioCheck(t *testing.T) {
@@ -147,5 +162,9 @@ func TestParserRadioCheck(t *testing.T) {
 			expectedOk: true,
 		},
 	}
-	runParserTestCases(t, New(TestCallsign), testCases)
+	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
+		expected := test.expectedRequest.(*brevity.RadioCheckRequest)
+		actual := request.(*brevity.RadioCheckRequest)
+		require.Equal(t, expected.Callsign, actual.Callsign)
+	})
 }

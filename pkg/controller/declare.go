@@ -11,10 +11,14 @@ import (
 func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
-	bullseye := c.scope.GetBullseye()
+
+	if !request.Location.Bearing().IsMagnetic() {
+		logger.Error().Any("bearing", request.Location.Bearing()).Msg("bearing provided to HandleDeclare should be magnetic")
+	}
+
 	location := geo.PointAtBearingAndDistance(
-		bullseye,
-		request.Location.Bearing().Degrees(),
+		c.scope.GetBullseye(),
+		request.Location.Bearing().True(c.scope.Declination(c.scope.GetBullseye())).Degrees(),
 		request.Location.Distance().Meters(),
 	)
 	radius := 10 * unit.NauticalMile // TODO reduce to 3 when magvar is available

@@ -32,8 +32,10 @@ type Updated struct {
 
 // Faded is a message sent when an aircraft disappears.
 type Faded struct {
-	// Timestamp when the aircraft disappeared.
+	// Real-time timestamp when the aircraft disappeared.
 	Timestamp time.Time
+	// Mission time when the aircraft disappeared.
+	MissionTimestamp time.Time
 	// UnitID of the aircraft that disappeared.
 	UnitID uint32
 }

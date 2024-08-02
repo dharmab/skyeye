@@ -1,9 +1,8 @@
 package brevity
 
 import (
-	"math"
-
-	"github.com/martinlindhe/unit"
+	"github.com/dharmab/skyeye/pkg/bearings"
+	"github.com/rs/zerolog/log"
 )
 
 // Track is a compass direction.
@@ -21,29 +20,28 @@ const (
 	Northwest        Track = "northwest"
 )
 
-// TrackFromBearing computes an aircraft's track direction based on the aircraft's heading.
-func TrackFromBearing(bearing unit.Angle) Track {
-	θ := int(math.Round(bearing.Degrees()))
-	for θ < 0 {
-		θ += 360
+// TrackFromBearing computes a track direction based on the given magnetic bearing.
+func TrackFromBearing(bearing bearings.Bearing) Track {
+	if !bearing.IsMagnetic() {
+		log.Warn().Any("bearing", bearing).Msg("bearing provided to TrackFromBearing should be magnetic")
 	}
-	θ = θ % 360
+	θ := bearing.Degrees()
 	switch {
-	case θ > 337 || θ <= 22:
+	case θ >= 337.5 || θ < 22.5:
 		return North
-	case θ > 22 && θ <= 67:
+	case θ < 67.5:
 		return Northeast
-	case θ > 67 && θ <= 112:
+	case θ < 112.5:
 		return East
-	case θ > 112 && θ <= 157:
+	case θ < 157.5:
 		return Southeast
-	case θ > 157 && θ <= 202:
+	case θ < 202.5:
 		return South
-	case θ > 202 && θ <= 247:
+	case θ < 247.5:
 		return Southwest
-	case θ > 247 && θ <= 292:
+	case θ < 292.5:
 		return West
-	case θ > 292 && θ <= 337:
+	case θ < 337.5:
 		return Northwest
 	default:
 		return UnknownDirection

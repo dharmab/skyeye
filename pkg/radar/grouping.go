@@ -53,7 +53,7 @@ func (s *scope) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *grou
 
 		isWithinSpread := geo.Distance(other.LastKnown().Point, this.LastKnown().Point) < spreadInterval.Meters()
 		isWithinStack := math.Abs(other.LastKnown().Altitude.Feet()-this.LastKnown().Altitude.Feet()) < stackInterval.Feet()
-		log.Debug().
+		log.Trace().
 			Any("initialContact", this.Contact).
 			Any("contact", other.Contact).
 			Int("unitID", int(other.Contact.UnitID)).

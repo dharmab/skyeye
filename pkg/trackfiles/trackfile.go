@@ -12,6 +12,7 @@ import (
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geo"
+	"github.com/rs/zerolog/log"
 )
 
 // Labels are identifying information attached to a trackfile.
@@ -41,8 +42,10 @@ type Trackfile struct {
 
 // Frame describes a contact's position and velocity at a point in time.
 type Frame struct {
-	// Timestamp of the observation.
+	// Timestamp of the observation, as measured by SkyEye's real-time wall clock.
 	Timestamp time.Time
+	// MissionTime is the simulation time when the event occurred.
+	MissionTime time.Time
 	// Point is the contact's 2D position.
 	Point orb.Point
 	// Altitude above sea level.
@@ -87,7 +90,13 @@ func (t *Trackfile) Update(f Frame) {
 // Bullseye returns the bearing and distance from the bullseye to the track's last known position.
 func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 	latest := t.Track.Front()
-	bearing := unit.Angle(geo.Bearing(bullseye, latest.Point)) * unit.Degree
+	declination, _ := bearings.Declination(bullseye, latest.MissionTime)
+	bearing := bearings.NewTrueBearing(
+		unit.Angle(
+			geo.Bearing(bullseye, latest.Point),
+		) * unit.Degree,
+	).Magnetic(declination)
+	log.Debug().Float64("bearing", bearing.Degrees()).Msg("calculated bullseye bearing for group")
 	distance := unit.Length(geo.Distance(bullseye, latest.Point)) * unit.Meter
 	return *brevity.NewBullseye(bearing, distance)
 }
@@ -106,19 +115,36 @@ func (t *Trackfile) LastKnown() Frame {
 	return t.Track.Front()
 }
 
+func (t *Trackfile) bestAvailableDeclination() unit.Angle {
+	log.Debug().Time("tfTime", t.LastKnown().MissionTime).Msg("getting declination for trackfile")
+	declincation, err := bearings.Declination(t.LastKnown().Point, t.LastKnown().MissionTime)
+	if err != nil {
+		return 0
+	}
+	return declincation
+}
+
 // Course returns the angle that the track is moving in.
 // If the track has not moved very far, the course may be unreliable.
 // You can check for this condition by checking if [Trackfile.Direction] returns [brevity.UnknownDirection].
-func (t *Trackfile) Course() unit.Angle {
+func (t *Trackfile) Course() bearings.Bearing {
 	if t.Track.Len() < 2 {
-		return unit.Angle(t.LastKnown().Heading) * unit.Degree
+		return bearings.NewTrueBearing(
+			unit.Angle(
+				t.LastKnown().Heading,
+			) * unit.Degree,
+		).Magnetic(t.bestAvailableDeclination())
 	}
 
 	latest := t.Track.Front()
 	previous := t.Track.At(1)
 
-	course := unit.Angle(geo.Bearing(previous.Point, latest.Point)) * unit.Degree
-	return bearings.Normalize(course)
+	course := bearings.NewTrueBearing(
+		unit.Angle(
+			geo.Bearing(previous.Point, latest.Point),
+		) * unit.Degree,
+	).Magnetic(t.bestAvailableDeclination())
+	return course
 }
 
 // Direction returns the cardinal direction that the track is moving in, or [brevity.UnknownDirection] if the track is not moving faster than 1 m/s.

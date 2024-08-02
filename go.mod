@@ -13,6 +13,7 @@ require (
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6
 	github.com/paulmach/orb v0.11.1
+	github.com/proway2/go-igrf v0.5.1
 	github.com/rodaine/numwords v0.0.0-20200910203654-405f4a455f79
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.8.4

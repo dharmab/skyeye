@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/dharmab/skyeye/internal/conf"
+	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
@@ -56,7 +57,12 @@ func (s *scope) FindNearestGroupWithBRAA(origin orb.Point, coalition coalitions.
 		return nil
 	}
 	groupLocation := nearestTrackfile.LastKnown().Point
-	bearing := unit.Angle(geo.Bearing(origin, groupLocation)) * unit.Degree
+
+	bearing := bearings.NewTrueBearing(
+		unit.Angle(
+			geo.Bearing(origin, groupLocation),
+		) * unit.Degree,
+	).Magnetic(s.Declination(origin))
 	_range := unit.Length(geo.Distance(origin, groupLocation)) * unit.Meter
 	altitude := nearestTrackfile.LastKnown().Altitude
 	aspect := brevity.AspectFromAngle(bearing, nearestTrackfile.Course())
@@ -78,7 +84,14 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, coalition coaliti
 	nearestTrackfile := s.FindNearestTrackfile(origin, coalition, filter)
 	group := s.findGroupForAircraft(nearestTrackfile)
 	groupLocation := nearestTrackfile.LastKnown().Point
-	aspect := brevity.AspectFromAngle(unit.Angle(geo.Bearing(origin, groupLocation))*unit.Degree, nearestTrackfile.Course())
+	aspect := brevity.AspectFromAngle(
+		bearings.NewTrueBearing(
+			unit.Angle(
+				geo.Bearing(origin, groupLocation),
+			)*unit.Degree,
+		).Magnetic(s.Declination(origin)), nearestTrackfile.Course(),
+	)
+
 	group.aspect = &aspect
 	rang := unit.Length(geo.Distance(origin, groupLocation)) * unit.Meter
 	group.isThreat = rang < brevity.MandatoryThreatDistance
@@ -86,17 +99,25 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, coalition coaliti
 	return group
 }
 
-func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing unit.Angle, arc unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
+func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing bearings.Bearing, arc unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
+	logger := log.With().Interface("origin", origin).Float64("bearing", bearing.Degrees()).Float64("arc", arc.Degrees()).Logger()
 	maxDistance := conf.DefaultPictureRadius
+	declination := s.Declination(origin)
+	vertex := func(a unit.Angle) orb.Point {
+		return geo.PointAtBearingAndDistance(
+			origin,
+			(bearing.Magnetic(declination).Value() + a).Degrees(),
+			maxDistance.Meters(),
+		)
+	}
 	cone := orb.Polygon{
 		orb.Ring{
 			origin,
-			geo.PointAtBearingAndDistance(origin, (bearing + (arc / 2)).Degrees(), maxDistance.Meters()),
-			geo.PointAtBearingAndDistance(origin, (bearing - (arc / 2)).Degrees(), maxDistance.Meters()),
+			vertex(arc / 2),
+			vertex(-arc / 2),
 			origin,
 		},
 	}
-	logger := log.With().Interface("origin", origin).Float64("bearing", bearing.Degrees()).Float64("arc", arc.Degrees()).Logger()
 	logger.Debug().Any("cone", cone).Msg("searching cone")
 
 	nearestDistance := unit.Length(math.MaxFloat64)
@@ -126,13 +147,17 @@ func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing unit.Angle, arc
 	if group == nil {
 		return nil
 	}
-	exactBearing := unit.Angle(geo.Bearing(origin, nearestContact.LastKnown().Point)) * unit.Degree
-	aspect := brevity.AspectFromAngle(bearing, nearestContact.Course())
+	preciseBearing := bearings.NewTrueBearing(
+		unit.Angle(
+			geo.Bearing(origin, nearestContact.LastKnown().Point),
+		) * unit.Degree,
+	).Magnetic(declination)
+	aspect := brevity.AspectFromAngle(preciseBearing, nearestContact.Course())
 	log.Debug().Str("aspect", string(aspect)).Msg("determined aspect")
 	_range := unit.Length(geo.Distance(origin, nearestContact.LastKnown().Point)) * unit.Meter
 	group.aspect = &aspect
 	group.braa = brevity.NewBRAA(
-		exactBearing,
+		preciseBearing,
 		_range,
 		group.Altitude(),
 		group.Aspect(),

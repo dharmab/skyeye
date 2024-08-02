@@ -22,7 +22,7 @@ type fileClient struct {
 	*tacviewClient
 }
 
-func NewFileClient(path string, coalition coalitions.Coalition, updates chan<- sim.Updated, fades chan<- sim.Faded, bullseyes chan<- orb.Point, updateInterval time.Duration) (Client, error) {
+func NewFileClient(path string, coalition coalitions.Coalition, updates chan<- sim.Updated, fades chan<- sim.Faded, updateInterval time.Duration) (Client, error) {
 	f, err := openFile(path)
 	if err != nil {
 		return nil, err
@@ -33,8 +33,8 @@ func NewFileClient(path string, coalition coalitions.Coalition, updates chan<- s
 			coalition:      coalition,
 			updates:        updates,
 			fades:          fades,
-			bullseyes:      bullseyes,
 			updateInterval: updateInterval,
+			missionTime:    time.Unix(0, 0),
 		},
 	}, nil
 }
@@ -76,6 +76,14 @@ func (c *fileClient) Run(ctx context.Context) error {
 	reader := bufio.NewReader(c.file)
 	acmi := acmi.New(c.coalition, reader, c.updateInterval)
 	return c.tacviewClient.run(ctx, acmi)
+}
+
+func (c *fileClient) Bullseye() orb.Point {
+	return c.tacviewClient.bullseye
+}
+
+func (c *fileClient) Time() time.Time {
+	return c.tacviewClient.missionTime
 }
 
 func (c *fileClient) Close() error {
