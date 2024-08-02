@@ -18,7 +18,7 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 
 	location := geo.PointAtBearingAndDistance(
 		c.bullseye,
-		request.Location.Bearing().Degrees(),
+		request.Location.Bearing().True(c.bestAvailableDeclination(c.bullseye)).Degrees(),
 		request.Location.Distance().Meters(),
 	)
 	radius := 10 * unit.NauticalMile // TODO reduce to 3 when magvar is available

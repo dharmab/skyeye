@@ -22,9 +22,10 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 		return
 	}
 
+	origin := requestorTrackfile.LastKnown().Point
 	targetLocation := geo.PointAtBearingAndDistance(
-		requestorTrackfile.LastKnown().Point,
-		request.BRA.Bearing().Degrees(),
+		origin,
+		request.BRA.Bearing().True(c.bestAvailableDeclination(origin)).Degrees(),
 		request.BRA.Range().Meters(),
 	)
 	group := c.scope.FindNearestGroupWithBullseye(targetLocation, c.hostileCoalition(), brevity.Aircraft)

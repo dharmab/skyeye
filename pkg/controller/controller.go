@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/internal/conf"
+	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/radar"
@@ -100,4 +101,12 @@ func (c *controller) findCallsign(callsign string) *trackfiles.Trackfile {
 		logger.Debug().Str("name", trackfile.Contact.Name).Str("aircraft", trackfile.Contact.ACMIName).Int("unitID", int(trackfile.Contact.UnitID)).Msg("trackfile found for callsign")
 	}
 	return trackfile
+}
+
+func (c *controller) bestAvailableDeclination(p orb.Point) unit.Angle {
+	declination, err := bearings.Declination(p, c.missionTime)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to compute best available declination")
+	}
+	return declination
 }

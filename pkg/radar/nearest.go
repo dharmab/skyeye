@@ -147,17 +147,17 @@ func (s *scope) FindNearestGroupInCone(origin orb.Point, bearing bearings.Bearin
 	if group == nil {
 		return nil
 	}
-	exactBearing := bearings.NewTrueBearing(
+	preciseBearing := bearings.NewTrueBearing(
 		unit.Angle(
 			geo.Bearing(origin, nearestContact.LastKnown().Point),
 		) * unit.Degree,
 	).Magnetic(declination)
-	aspect := brevity.AspectFromAngle(exactBearing, nearestContact.Course())
+	aspect := brevity.AspectFromAngle(preciseBearing, nearestContact.Course())
 	log.Debug().Str("aspect", string(aspect)).Msg("determined aspect")
 	_range := unit.Length(geo.Distance(origin, nearestContact.LastKnown().Point)) * unit.Meter
 	group.aspect = &aspect
 	group.braa = brevity.NewBRAA(
-		exactBearing,
+		preciseBearing,
 		_range,
 		group.Altitude(),
 		group.Aspect(),
