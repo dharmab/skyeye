@@ -222,7 +222,7 @@ func (c *dataClient) syncClient(other types.ClientInfo) {
 			delete(c.otherClients, other.GUID)
 			// TODO memory leak here due to continually adding and removing clients from the map. https://100go.co/28-maps-memory-leaks/
 		} else {
-			clientLogger.Debug().Msg("skipped client without matching radio")
+			clientLogger.Trace().Msg("skipped client without matching radio")
 		}
 	}
 }

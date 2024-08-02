@@ -31,7 +31,7 @@ type Configuration struct {
 	// SRSExternalAWACSModePassword is the password for connecting to the SimpleRadio Standalone server using External AWACS Mode
 	SRSExternalAWACSModePassword string
 	// SRSFrequency is the radio frequency the bot will listen to and talk on in Hz
-	SRSFrequency float64
+	SRSFrequency unit.Frequency
 	// Callsign is the GCI callsign used on SRS
 	Callsign string
 	// Coalition is the coalition that the bot will act on

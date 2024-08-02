@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -46,7 +47,7 @@ func main() {
 	SRSAddress := flag.String("srs-server-address", "127.0.0.1:5002", "address of the SRS server")
 	SRSConnectionTimeout := flag.Duration("srs-connection-timeout", 10*time.Second, "")
 	SRSExternalAWACSModePassword := flag.String("srs-eam-password", "", "SRS external AWACS mode password")
-	SRSFrequency := flag.Float64("srs-frequency", 251000000.0, "AWACS frequency in Hertz")
+	SRSFrequency := flag.Float64("srs-frequency", 251.0, "AWACS frequency in MHz")
 	GCICallsign := flag.String("callsign", "Magic", "GCI callsign. Used in radio transmissions")
 	Coalition := flag.String("coalition", "blue", "Coalition (either blue or red)")
 	RadarSweepInterval := flag.Duration("radar-sweep-interval", 2*time.Second, "Radar update tick rate")
@@ -111,6 +112,8 @@ func main() {
 		exitOnErr(err)
 	}
 
+	frequency := unit.Frequency(*SRSFrequency) * unit.Megahertz
+
 	// Configure and run the application.
 	config := conf.Configuration{
 		ACMIFile:                     *ACMIFile,
@@ -122,7 +125,7 @@ func main() {
 		SRSConnectionTimeout:         *SRSConnectionTimeout,
 		SRSClientName:                fmt.Sprintf("GCI %s [BOT]", *GCICallsign),
 		SRSExternalAWACSModePassword: *SRSExternalAWACSModePassword,
-		SRSFrequency:                 *SRSFrequency,
+		SRSFrequency:                 frequency,
 		Callsign:                     *GCICallsign,
 		Coalition:                    coalition,
 		RadarSweepInterval:           *RadarSweepInterval,
