@@ -31,7 +31,6 @@ func NewTelemetryClient(
 	coalition coalitions.Coalition,
 	updates chan<- sim.Updated,
 	fades chan<- sim.Faded,
-	bullseyes chan<- orb.Point,
 	updateInterval time.Duration,
 ) (Client, error) {
 	log.Info().Str("protocol", "tcp").Str("address", address).Msg("connecting to telemetry service")
@@ -51,7 +50,6 @@ func NewTelemetryClient(
 			coalition:      coalition,
 			updates:        updates,
 			fades:          fades,
-			bullseyes:      bullseyes,
 			updateInterval: updateInterval,
 		},
 	}, nil
@@ -66,6 +64,14 @@ func (c *telemetryClient) Run(ctx context.Context) error {
 
 	source := acmi.New(c.coalition, reader, c.updateInterval)
 	return c.run(ctx, source)
+}
+
+func (c *telemetryClient) Bullseye() orb.Point {
+	return c.bullseye
+}
+
+func (c *telemetryClient) Time() time.Time {
+	return c.missionTime
 }
 
 func (c *telemetryClient) handshake(reader *bufio.Reader, hostname, password string) error {

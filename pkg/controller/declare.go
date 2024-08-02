@@ -11,9 +11,8 @@ import (
 func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
-	bullseye := c.scope.GetBullseye()
 	location := geo.PointAtBearingAndDistance(
-		bullseye,
+		c.bullseye,
 		request.Location.Bearing().Degrees(),
 		request.Location.Distance().Meters(),
 	)

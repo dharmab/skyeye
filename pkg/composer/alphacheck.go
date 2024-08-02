@@ -21,7 +21,7 @@ func (c *composer) ComposeAlphaCheckResponse(response brevity.AlphaCheckResponse
 				"%s, %s, contact, alpha check bullseye %s, %d",
 				response.Callsign,
 				c.callsign,
-				PronounceBearing(int(response.Location.Bearing().Degrees())),
+				PronounceBearing(response.Location.Bearing()),
 				int(response.Location.Distance().NauticalMiles()),
 			),
 		}

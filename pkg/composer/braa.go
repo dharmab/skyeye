@@ -15,15 +15,15 @@ func (c *composer) ComposeBRAA(braa brevity.BRAA) NaturalLanguageResponse {
 	}
 	return NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf(
-			"BRAA %d/%d, %d, %s",
-			int(braa.Bearing().Degrees()),
+			"BRAA %s/%d, %d, %s",
+			braa.Bearing().String(),
 			int(braa.Range().NauticalMiles()),
 			int(braa.Altitude().Feet()),
 			aspect,
 		),
 		Speech: fmt.Sprintf(
 			"brah %s, %d, %d, %s",
-			PronounceBearing(int(braa.Bearing().Degrees())),
+			PronounceBearing(braa.Bearing()),
 			int(braa.Range().NauticalMiles()),
 			int(braa.Altitude().Feet()),
 			aspect,

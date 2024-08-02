@@ -19,7 +19,7 @@ func (c *controller) HandleAlphaCheck(request *brevity.AlphaCheckRequest) {
 		return
 	}
 	logger.Debug().Msg("found requestor's trackfile")
-	location := trackfile.Bullseye(c.scope.GetBullseye())
+	location := trackfile.Bullseye(c.bullseye)
 	c.out <- brevity.AlphaCheckResponse{
 		Callsign: request.Callsign,
 		Status:   true,

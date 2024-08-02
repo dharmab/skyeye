@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/martinlindhe/unit"
 	"github.com/rodaine/numwords"
@@ -76,8 +77,8 @@ func (p *parser) parseBRA(scanner *bufio.Scanner) (brevity.BRA, bool) {
 	return brevity.NewBRA(b, r, a), true
 }
 
-// parseBearing parses a 3 digit bearing. Each digit must be individually pronounced. Zeroes must be prefixed to values below 100.
-func (p *parser) parseBearing(scanner *bufio.Scanner) (unit.Angle, bool) {
+// parseBearing parses a 3 digit magnetic bearing. Each digit must be individually pronounced. Zeroes must be prefixed to values below 100.
+func (p *parser) parseBearing(scanner *bufio.Scanner) (bearings.Bearing, bool) {
 	bearing := 0 * unit.Degree
 	digitsParsed := 0
 	for digitsParsed < 3 {
@@ -87,15 +88,15 @@ func (p *parser) parseBearing(scanner *bufio.Scanner) (unit.Angle, bool) {
 				digitsParsed++
 			}
 			if digitsParsed == 3 {
-				return bearing, true
+				return bearings.NewMagneticBearing(bearing), true
 			}
 		}
 		ok := scanner.Scan()
 		if !ok {
-			return bearing, true
+			return bearings.NewMagneticBearing(bearing), true
 		}
 	}
-	return 0 * unit.Degree, false
+	return bearings.NewMagneticBearing(0), false
 }
 
 // parseRange parses a distance. The number must be pronounced as a whole cardinal number.

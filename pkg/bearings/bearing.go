@@ -2,59 +2,27 @@
 package bearings
 
 import (
-	"math"
-	"time"
-
 	"github.com/martinlindhe/unit"
-	"github.com/paulmach/orb"
 )
 
-type Kind int
-
-const (
-	True Kind = iota
-	Magnetic
-)
-
-type Bearing struct {
-	value unit.Angle
-	kind  Kind
-}
-
-func New(kind Kind, value unit.Angle) Bearing {
-	return Bearing{value: Normalize(value), kind: kind}
-}
-
-func (b Bearing) Value() unit.Angle {
-	return b.value
-}
-
-func (b Bearing) Kind() Kind {
-	return b.kind
-}
-
-// Normalize returns the normalized angle in the range (0, 360] degrees, rounded to the nearest degree.
-func Normalize(a unit.Angle) unit.Angle {
-	θ := float64(a.Degrees())
-	for θ < 0 {
-		θ += 360
-	}
-	θ = math.Mod(θ, 360)
-	if θ == 0 {
-		θ = 360
-	}
-	return unit.Angle(θ) * unit.Degree
-}
-
-func Variation(p orb.Point, t time.Time) unit.Angle {
-	// TODO compute from model
-	return unit.Angle(0) * unit.Degree
-}
-
-func TrueToMagnetic(tru unit.Angle, variation unit.Angle) unit.Angle {
-	return Normalize(tru + variation)
-}
-
-func MagneticToTrue(magnetic unit.Angle, variation unit.Angle) unit.Angle {
-	return Normalize(magnetic - variation)
+// Bearing is a compass bearing that can be converted to true or magnetic bearing. Use either True or Magnetic immediately before use to assert which kind is used.
+type Bearing interface {
+	// Value returns the compass heading, normalized in range (0, 360].
+	Value() unit.Angle
+	// Rounded returns the compass heading, normalized in range (0, 360] rounded to the nearest degree.
+	Rounded() unit.Angle
+	// Degrees returns the compass heading in degrees, normalized in range (0, 360].
+	Degrees() float64
+	// RoundedDegrees returns the compass heading in degrees, normalized in range (0, 360] rounded to the nearest degree.
+	RoundedDegrees() float64
+	// True bearing conversion computed with the given declination.
+	True(declination unit.Angle) Bearing
+	// Magnetic bearing conversion computed with the given declination.
+	Magnetic(declination unit.Angle) Bearing
+	// IsTrue returns true if the bearing is a true bearing.
+	IsTrue() bool
+	// IsMagnetic returns true if the bearing is a magnetic bearing.
+	IsMagnetic() bool
+	// String returns the value as a three-digit string.
+	String() string
 }

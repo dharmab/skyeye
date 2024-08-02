@@ -3,7 +3,9 @@ package brevity
 import (
 	"math"
 
+	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/martinlindhe/unit"
+	"github.com/rs/zerolog/log"
 )
 
 // BRAA provides target bearing, range, altitude and aspect relative to a specified friendly aircraft.
@@ -17,7 +19,7 @@ type BRAA interface {
 // BRA is an abbreviated form of BRAA without aspect.
 type BRA interface {
 	// Bearing is the heading from the fighter to the contact, rounded to the nearest degree.
-	Bearing() unit.Angle
+	Bearing() bearings.Bearing
 	// Range is the distance from the fighter to the contact, rounded to the nearest nautical mile.
 	Range() unit.Length
 	// Altitude of the contact above sea level, rounded to the nearest thousands of feet.
@@ -25,32 +27,35 @@ type BRA interface {
 }
 
 type bra struct {
-	bearingDegrees      int
-	rangeNM             int
-	altitudeThousandsFt int
+	bearing  bearings.Bearing
+	_range   unit.Length
+	altitude unit.Length
 }
 
-func NewBRA(b unit.Angle, r unit.Length, a unit.Length) BRA {
+func NewBRA(b bearings.Bearing, r unit.Length, a unit.Length) BRA {
+	if !b.IsMagnetic() {
+		log.Warn().Any("bearing", b).Msg("bearing provided to NewBRA should be magnetic")
+	}
 	return &bra{
-		bearingDegrees:      int(math.Round(b.Degrees())),
-		rangeNM:             int(math.Round(r.NauticalMiles())),
-		altitudeThousandsFt: int(math.Round(a.Feet() / 1000)),
+		bearing:  b,
+		_range:   r,
+		altitude: a,
 	}
 }
 
 // Bearing implements [BRA.Bearing].
-func (b *bra) Bearing() unit.Angle {
-	return unit.Angle(b.bearingDegrees) * unit.Degree
+func (b *bra) Bearing() bearings.Bearing {
+	return b.bearing
 }
 
 // Range implements [BRA.Range].
 func (b *bra) Range() unit.Length {
-	return unit.Length(b.rangeNM) * unit.NauticalMile
+	return unit.Length(math.Round(b._range.NauticalMiles())) * unit.NauticalMile
 }
 
 // Altitude implements [BRA.Altitude].
 func (b *bra) Altitude() unit.Length {
-	return unit.Length(b.altitudeThousandsFt*1000) * unit.Foot
+	return unit.Length(math.Round(b.altitude.Feet()/1000)*1000) * unit.Foot
 }
 
 type braa struct {
@@ -58,7 +63,10 @@ type braa struct {
 	aspect Aspect
 }
 
-func NewBRAA(b unit.Angle, r unit.Length, a unit.Length, aspect Aspect) BRAA {
+func NewBRAA(b bearings.Bearing, r unit.Length, a unit.Length, aspect Aspect) BRAA {
+	if !b.IsMagnetic() {
+		log.Warn().Any("bearing", b).Msg("bearing provided to NewBRAA should be magnetic")
+	}
 	return &braa{
 		bra:    NewBRA(b, r, a),
 		aspect: aspect,
@@ -66,7 +74,7 @@ func NewBRAA(b unit.Angle, r unit.Length, a unit.Length, aspect Aspect) BRAA {
 }
 
 // Bearing implements [BRA.Bearing].
-func (b *braa) Bearing() unit.Angle {
+func (b *braa) Bearing() bearings.Bearing {
 	return b.bra.Bearing()
 }
 

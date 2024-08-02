@@ -3,6 +3,7 @@ package radar
 import (
 	"math"
 
+	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
@@ -53,8 +54,14 @@ func (g *group) Bullseye() *brevity.Bullseye {
 	}
 
 	point := g.point()
-	bearing := unit.Angle(geo.Bearing(*g.bullseye, point)) * unit.Degree
-	distance := unit.Length(geo.Distance(*g.bullseye, point)) * unit.Meter
+	bearing := bearings.NewTrueBearing(
+		unit.Angle(
+			geo.Bearing(*g.bullseye, point),
+		) * unit.Degree,
+	)
+	distance := unit.Length(
+		geo.Distance(*g.bullseye, point),
+	) * unit.Meter
 	return brevity.NewBullseye(bearing, distance)
 }
 

@@ -54,3 +54,42 @@ func TestNormalize(t *testing.T) {
 		})
 	}
 }
+
+func TestBearingToString(t *testing.T) {
+	testCases := []struct {
+		bearing  Bearing
+		expected string
+	}{
+		{
+			bearing:  NewTrueBearing(unit.Angle(0) * unit.Degree),
+			expected: "360",
+		},
+		{
+
+			bearing:  NewTrueBearing(unit.Angle(1) * unit.Degree),
+			expected: "001",
+		},
+		{
+			bearing:  NewTrueBearing(unit.Angle(10) * unit.Degree),
+			expected: "010",
+		},
+		{
+			bearing:  NewTrueBearing(unit.Angle(100) * unit.Degree),
+			expected: "100",
+		},
+		{
+			bearing:  NewTrueBearing(unit.Angle(359) * unit.Degree),
+			expected: "359",
+		},
+		{
+			bearing:  NewTrueBearing(unit.Angle(360) * unit.Degree),
+			expected: "360",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.expected, func(t *testing.T) {
+			require.Equal(t, tc.expected, tc.bearing.String())
+		})
+	}
+}

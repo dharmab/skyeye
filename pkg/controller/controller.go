@@ -2,12 +2,15 @@ package controller
 
 import (
 	"context"
+	"time"
 
+	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
+	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
 )
 
@@ -15,6 +18,10 @@ type Controller interface {
 	// Run starts the controller's control loops. It should be called exactly once. It blocks until the context is canceled.
 	// The controller publishes responses to the given channel.
 	Run(context.Context, chan<- any)
+	// SetTime updates the mission time used for computing magnetic declination.
+	SetTime(time.Time)
+	// SetBullseye updates the bullseye point.
+	SetBullseye(orb.Point)
 	// HandleAlphaCheck handles an ALPHA CHECK by reporting the position of the requesting aircraft.
 	HandleAlphaCheck(*brevity.AlphaCheckRequest)
 	// HandleBogeyDope handles a BOGEY DOPE by reporting the closest enemy group to the requesting aircraft.
@@ -34,17 +41,20 @@ type Controller interface {
 }
 
 type controller struct {
-	out       chan<- any
-	scope     radar.Radar
-	coalition coalitions.Coalition
-	frequency unit.Frequency
+	out         chan<- any
+	scope       radar.Radar
+	coalition   coalitions.Coalition
+	bullseye    orb.Point
+	missionTime time.Time
+	frequency   unit.Frequency
 }
 
 func New(rdr radar.Radar, coalition coalitions.Coalition, frequency unit.Frequency) Controller {
 	return &controller{
-		scope:     rdr,
-		coalition: coalition,
-		frequency: frequency,
+		scope:       rdr,
+		coalition:   coalition,
+		frequency:   frequency,
+		missionTime: conf.InitialTime,
 	}
 }
 
@@ -57,6 +67,18 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 	<-ctx.Done()
 
 	// TODO control loops for FADED and THREAT
+}
+
+// SetTime implements [Controller.SetTime].
+func (c *controller) SetTime(t time.Time) {
+	c.missionTime = t
+	c.scope.SetMissionTime(t)
+}
+
+// SetBullseye implements [Controller.SetBullseye].
+func (c *controller) SetBullseye(bullseye orb.Point) {
+	c.bullseye = bullseye
+	c.scope.SetBullseye(bullseye)
 }
 
 // hostileCoalition returns the coalition that is hostile to the controller's coalition.

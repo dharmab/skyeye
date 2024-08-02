@@ -87,7 +87,11 @@ func (t *Trackfile) Update(f Frame) {
 // Bullseye returns the bearing and distance from the bullseye to the track's last known position.
 func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 	latest := t.Track.Front()
-	bearing := unit.Angle(geo.Bearing(bullseye, latest.Point)) * unit.Degree
+	bearing := bearings.NewTrueBearing(
+		unit.Angle(
+			geo.Bearing(bullseye, latest.Point),
+		) * unit.Degree,
+	)
 	distance := unit.Length(geo.Distance(bullseye, latest.Point)) * unit.Meter
 	return *brevity.NewBullseye(bearing, distance)
 }
@@ -109,16 +113,22 @@ func (t *Trackfile) LastKnown() Frame {
 // Course returns the angle that the track is moving in.
 // If the track has not moved very far, the course may be unreliable.
 // You can check for this condition by checking if [Trackfile.Direction] returns [brevity.UnknownDirection].
-func (t *Trackfile) Course() unit.Angle {
+func (t *Trackfile) Course() bearings.Bearing {
 	if t.Track.Len() < 2 {
-		return unit.Angle(t.LastKnown().Heading) * unit.Degree
+		return bearings.NewTrueBearing(
+			unit.Angle(
+				t.LastKnown().Heading,
+			) * unit.Degree,
+		)
 	}
 
 	latest := t.Track.Front()
 	previous := t.Track.At(1)
 
-	course := unit.Angle(geo.Bearing(previous.Point, latest.Point)) * unit.Degree
-	return bearings.Normalize(course)
+	course := unit.Angle(
+		geo.Bearing(previous.Point, latest.Point),
+	) * unit.Degree
+	return bearings.NewTrueBearing(course)
 }
 
 // Direction returns the cardinal direction that the track is moving in, or [brevity.UnknownDirection] if the track is not moving faster than 1 m/s.

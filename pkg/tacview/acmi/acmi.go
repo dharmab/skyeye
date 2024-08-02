@@ -277,7 +277,7 @@ func (s *streamer) Bullseye() orb.Point {
 }
 
 func (s *streamer) Time() time.Time {
-	return s.referenceTime
+	return s.cursorTime
 }
 
 func (s *streamer) updateBullseye(object *types.Object) error {

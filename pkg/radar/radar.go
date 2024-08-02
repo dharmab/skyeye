@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/dharmab/skyeye/internal/conf"
+	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
@@ -15,14 +17,16 @@ import (
 )
 
 type Radar interface {
+	// SetBullseye updates the bullseye point.
+	SetBullseye(orb.Point)
+	// SetMissionTime updates the mission time used for computing magnetic declination.
+	SetMissionTime(time.Time)
 	// Run consumes updates from the simulation channels until the context is cancelled.
 	Run(context.Context)
 	// FindCallsign returns the trackfile for the given callsign, or nil if no trackfile was found.
 	FindCallsign(string) *trackfiles.Trackfile
 	// FindUnit returns the trackfile for the given unit ID, or nil if no trackfile was found.
 	FindUnit(uint32) *trackfiles.Trackfile
-	// GetBullseye returns the bullseye for the configured coalition.
-	GetBullseye() orb.Point
 	// GetPicture returns a picture of the radar scope around the given location, within the given radius, filtered by the given coalition and contact category.
 	// The first return value is the total number of groups, and the second is a slice of up to to 3 high priority groups.
 	GetPicture(orb.Point, unit.Length, coalitions.Coalition, brevity.ContactCategory) (int, []brevity.Group)
@@ -42,26 +46,34 @@ type Radar interface {
 	// Returns the nearest group to the given location which matches the given coalition and filter, with Bullseye location. Returns nil if no group was found.
 	FindNearestGroupWithBullseye(orb.Point, coalitions.Coalition, brevity.ContactCategory) brevity.Group
 	// FindNearestGroupInCone returns the nearest group to the given location along the given bearing, ± the given angle, with BRAA relative to the given location. Returns nil if no group was found.
-	FindNearestGroupInCone(orb.Point, unit.Angle, unit.Angle, coalitions.Coalition, brevity.ContactCategory) brevity.Group
+	FindNearestGroupInCone(orb.Point, bearings.Bearing, unit.Angle, coalitions.Coalition, brevity.ContactCategory) brevity.Group
 }
 
 var _ Radar = &scope{}
 
 type scope struct {
-	updates   <-chan sim.Updated
-	fades     <-chan sim.Faded
-	bullseyes <-chan orb.Point
-	bullseye  orb.Point
-	contacts  contactDatabase
+	updates     <-chan sim.Updated
+	fades       <-chan sim.Faded
+	missionTime time.Time
+	bullseye    orb.Point
+	contacts    contactDatabase
 }
 
-func New(coalition coalitions.Coalition, bullseyes <-chan orb.Point, updates <-chan sim.Updated, fades <-chan sim.Faded) Radar {
+func New(coalition coalitions.Coalition, updates <-chan sim.Updated, fades <-chan sim.Faded) Radar {
 	return &scope{
-		updates:   updates,
-		fades:     fades,
-		bullseyes: bullseyes,
-		contacts:  newContactDatabase(),
+		updates:     updates,
+		fades:       fades,
+		missionTime: conf.InitialTime,
+		contacts:    newContactDatabase(),
 	}
+}
+
+func (s *scope) SetMissionTime(t time.Time) {
+	s.missionTime = t
+}
+
+func (s *scope) SetBullseye(bullseye orb.Point) {
+	s.bullseye = bullseye
 }
 
 // Run implements [Radar.Run]
@@ -74,8 +86,6 @@ func (s *scope) Run(ctx context.Context) {
 			s.handleUpdate(update)
 		case fade := <-s.fades:
 			s.handleFade(fade)
-		case bullseye := <-s.bullseyes:
-			s.bullseye = bullseye
 		case <-ticker.C:
 			s.handleGarbageCollection()
 		case <-ctx.Done():

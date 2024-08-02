@@ -11,13 +11,13 @@ import (
 func (c *composer) ComposeBullseye(bullseye brevity.Bullseye) NaturalLanguageResponse {
 	return NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf(
-			"bullseye %d/%d",
-			int(bullseye.Bearing().Degrees()),
+			"bullseye %s/%d",
+			bullseye.Bearing().String(),
 			int(bullseye.Distance().NauticalMiles()),
 		),
 		Speech: fmt.Sprintf(
 			"bullseye %s, %d",
-			PronounceBearing(int(bullseye.Bearing().Degrees())),
+			PronounceBearing(bullseye.Bearing()),
 			int(bullseye.Distance().NauticalMiles()),
 		),
 	}

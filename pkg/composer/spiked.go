@@ -29,6 +29,6 @@ func (c *composer) ComposeSpikedResponse(response brevity.SpikedResponse) Natura
 	}
 	return NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf("%s, %s clean %d.", response.Callsign, c.callsign, int(response.Bearing.Degrees())),
-		Speech:   fmt.Sprintf("%s, %s clean %s", response.Callsign, c.callsign, PronounceBearing(int(response.Bearing.Degrees()))),
+		Speech:   fmt.Sprintf("%s, %s clean %s", response.Callsign, c.callsign, PronounceBearing(response.Bearing)),
 	}
 }

@@ -3,8 +3,10 @@ package parser
 import (
 	"testing"
 
+	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/martinlindhe/unit"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParserDeclare(t *testing.T) {
@@ -14,7 +16,7 @@ func TestParserDeclare(t *testing.T) {
 			expectedRequest: &brevity.DeclareRequest{
 				Callsign: "tater 1 1",
 				Location: *brevity.NewBullseye(
-					54*unit.Degree,
+					bearings.NewMagneticBearing(54*unit.Degree),
 					123*unit.NauticalMile,
 				),
 				Altitude: 3000 * unit.Foot,
@@ -27,7 +29,7 @@ func TestParserDeclare(t *testing.T) {
 			expectedRequest: &brevity.DeclareRequest{
 				Callsign: "fox 1 2",
 				Location: *brevity.NewBullseye(
-					43*unit.Degree,
+					bearings.NewMagneticBearing(43*unit.Degree),
 					102*unit.NauticalMile,
 				),
 				Altitude: 12000 * unit.Foot,
@@ -40,7 +42,7 @@ func TestParserDeclare(t *testing.T) {
 			expectedRequest: &brevity.DeclareRequest{
 				Callsign: "chaos 1 1",
 				Location: *brevity.NewBullseye(
-					76*unit.Degree,
+					bearings.NewMagneticBearing(76*unit.Degree),
 					44*unit.NauticalMile,
 				),
 				Altitude: 3000 * unit.Foot,
@@ -53,7 +55,7 @@ func TestParserDeclare(t *testing.T) {
 			expectedRequest: &brevity.DeclareRequest{
 				Callsign: "dog 1 1",
 				Location: *brevity.NewBullseye(
-					75*unit.Degree,
+					bearings.NewMagneticBearing(75*unit.Degree),
 					26*unit.NauticalMile,
 				),
 				Altitude: 2000 * unit.Foot,
@@ -62,5 +64,13 @@ func TestParserDeclare(t *testing.T) {
 			expectedOk: true,
 		},
 	}
-	runParserTestCases(t, New(TestCallsign), testCases)
+	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
+		expected := test.expectedRequest.(*brevity.DeclareRequest)
+		actual := request.(*brevity.DeclareRequest)
+		require.Equal(t, expected.Callsign, actual.Callsign)
+		require.InDelta(t, expected.Location.Bearing().Degrees(), actual.Location.Bearing().Degrees(), 0.5)
+		require.InDelta(t, expected.Location.Distance().NauticalMiles(), actual.Location.Distance().NauticalMiles(), 1)
+		require.InDelta(t, expected.Altitude.Feet(), actual.Altitude.Feet(), 50)
+		require.Equal(t, expected.Track, actual.Track)
+	})
 }
