@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -44,6 +45,9 @@ func ParseObjectUpdate(line string) (*ObjectUpdate, error) {
 	id, err := strconv.ParseInt(idStr, 16, 64)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing object ID: %w", err)
+	}
+	if id > math.MaxInt {
+		return nil, fmt.Errorf("object ID is too large: %d", id)
 	}
 	update.ID = int(id)
 	if id == GlobalObjectID {
