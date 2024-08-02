@@ -6,6 +6,7 @@ import (
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/martinlindhe/unit"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParserPicture(t *testing.T) {
@@ -27,5 +28,10 @@ func TestParserPicture(t *testing.T) {
 			expectedOk: true,
 		},
 	}
-	runParserTestCases(t, New(TestCallsign), testCases)
+	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
+		expected := test.expectedRequest.(*brevity.PictureRequest)
+		actual := request.(*brevity.PictureRequest)
+		require.Equal(t, expected.Callsign, actual.Callsign)
+		require.Equal(t, expected.Radius, actual.Radius)
+	})
 }

@@ -1,6 +1,9 @@
 package brevity
 
-import "github.com/martinlindhe/unit"
+import (
+	"github.com/dharmab/skyeye/pkg/bearings"
+	"github.com/martinlindhe/unit"
+)
 
 // SpikedRequest is a request to correlate a radar spike within ±30 degrees.
 // Reference: ATP 3-52.4 Chapter V section 13
@@ -8,7 +11,7 @@ type SpikedRequest struct {
 	// Callsign of the friendly aircraft calling SPIKED.
 	Callsign string
 	// Bearing to the radar spike.
-	Bearing unit.Angle
+	Bearing bearings.Bearing
 }
 
 // SpikedResponse reports any contacts within ±30 degrees of a reported radar spike.
@@ -31,5 +34,5 @@ type SpikedResponse struct {
 	// Number of contacts in the correlated group. If Status is false, this may be zero.
 	Contacts int
 	// Reported spike bearing. This is used if the response did not correlate to a group.
-	Bearing unit.Angle
+	Bearing bearings.Bearing
 }

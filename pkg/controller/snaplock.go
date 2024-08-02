@@ -11,6 +11,10 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 
+	if !request.BRA.Bearing().IsMagnetic() {
+		logger.Error().Any("bearing", request.BRA.Bearing()).Msg("bearing provided to HandleSnaplock should be magnetic")
+	}
+
 	requestorTrackfile := c.findCallsign(request.Callsign)
 	if requestorTrackfile == nil {
 		logger.Info().Msg("no trackfile found for requestor")
@@ -18,9 +22,10 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 		return
 	}
 
+	origin := requestorTrackfile.LastKnown().Point
 	targetLocation := geo.PointAtBearingAndDistance(
-		requestorTrackfile.LastKnown().Point,
-		request.BRA.Bearing().Degrees(),
+		origin,
+		request.BRA.Bearing().True(c.scope.Declination(origin)).Degrees(),
 		request.BRA.Range().Meters(),
 	)
 	group := c.scope.FindNearestGroupWithBullseye(targetLocation, c.hostileCoalition(), brevity.Aircraft)

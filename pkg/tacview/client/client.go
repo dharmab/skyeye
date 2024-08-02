@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/tacview/acmi"
@@ -13,6 +14,8 @@ import (
 
 type Client interface {
 	Run(context.Context) error
+	Bullseye() orb.Point
+	Time() time.Time
 	Close() error
 }
 
@@ -20,11 +23,13 @@ type tacviewClient struct {
 	coalition      coalitions.Coalition
 	updates        chan<- sim.Updated
 	fades          chan<- sim.Faded
-	bullseyes      chan<- orb.Point
 	updateInterval time.Duration
+	bullseye       orb.Point
+	missionTime    time.Time
 }
 
 func (c *tacviewClient) run(ctx context.Context, source acmi.ACMI) error {
+	c.missionTime = conf.InitialTime
 	go func() {
 		err := source.Start(ctx)
 		if err != nil {
@@ -39,7 +44,8 @@ func (c *tacviewClient) run(ctx context.Context, source acmi.ACMI) error {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				c.bullseyes <- source.Bullseye()
+				c.bullseye = source.Bullseye()
+				c.missionTime = source.Time()
 			}
 		}
 	}()

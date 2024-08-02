@@ -49,8 +49,47 @@ func TestNormalize(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprint(test.input), func(t *testing.T) {
-			actual := Normalize(unit.Angle(test.input) * unit.Degree).Degrees()
+			actual := normalize(unit.Angle(test.input) * unit.Degree).Degrees()
 			require.Equal(t, test.expected, actual)
+		})
+	}
+}
+
+func TestBearingToString(t *testing.T) {
+	testCases := []struct {
+		bearing  Bearing
+		expected string
+	}{
+		{
+			bearing:  NewTrueBearing(0 * unit.Degree),
+			expected: "360",
+		},
+		{
+
+			bearing:  NewTrueBearing(1 * unit.Degree),
+			expected: "001",
+		},
+		{
+			bearing:  NewTrueBearing(10 * unit.Degree),
+			expected: "010",
+		},
+		{
+			bearing:  NewTrueBearing(100 * unit.Degree),
+			expected: "100",
+		},
+		{
+			bearing:  NewTrueBearing(359 * unit.Degree),
+			expected: "359",
+		},
+		{
+			bearing:  NewTrueBearing(360 * unit.Degree),
+			expected: "360",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.expected, func(t *testing.T) {
+			require.Equal(t, tc.expected, tc.bearing.String())
 		})
 	}
 }

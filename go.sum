@@ -79,6 +79,8 @@ github.com/paulmach/protoscan v0.2.1/go.mod h1:SpcSwydNLrxUGSDvXvO0P7g7AuhJ7lcKf
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/proway2/go-igrf v0.5.1 h1:GLxkN5hHGJHoAVfrkFHgJ8SfKKCTzGWHg3aZweX1lwc=
+github.com/proway2/go-igrf v0.5.1/go.mod h1:nkA3o+7eci3SXLj0nx2yi14e9Td+AAwHFdglavT+oZI=
 github.com/rodaine/numwords v0.0.0-20200910203654-405f4a455f79 h1:0fk+jnjduMBhQ2WNA3BubRESs5HgiqujdpxUUWCqsts=
 github.com/rodaine/numwords v0.0.0-20200910203654-405f4a455f79/go.mod h1:6O99ZbuNiiFpvPTMhvF4natmeT+oFrfSbtbC7LIJwss=
 github.com/rogpeppe/go-internal v1.11.0 h1:cWPaGQEPrBb5/AsnsZesgZZ9yb1OQ+GOISoDNXVBh4M=

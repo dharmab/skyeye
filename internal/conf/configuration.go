@@ -48,3 +48,5 @@ type Configuration struct {
 var DefaultPictureRadius = encyclopedia.NoLaterThanCommitRange(encyclopedia.SAR2OrAR1) + 50*unit.NauticalMile
 
 const DefaultMarginRadius = 3 * unit.NauticalMile
+
+var InitialTime time.Time = time.Date(1903, time.December, 17, 2, 35, 0, 0, time.UTC) // https://www.nps.gov/articles/firstflight.htm

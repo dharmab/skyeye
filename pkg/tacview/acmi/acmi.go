@@ -277,7 +277,7 @@ func (s *streamer) Bullseye() orb.Point {
 }
 
 func (s *streamer) Time() time.Time {
-	return s.referenceTime
+	return s.cursorTime
 }
 
 func (s *streamer) updateBullseye(object *types.Object) error {
@@ -335,10 +335,11 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 	}
 
 	frame := trackfiles.Frame{
-		Timestamp: time.Now(),
-		Point:     coordinates.Location,
-		Altitude:  coordinates.Altitude,
-		Heading:   coordinates.Heading,
+		Timestamp:   time.Now(),
+		MissionTime: s.cursorTime,
+		Point:       coordinates.Location,
+		Altitude:    coordinates.Altitude,
+		Heading:     coordinates.Heading,
 	}
 
 	return &sim.Updated{

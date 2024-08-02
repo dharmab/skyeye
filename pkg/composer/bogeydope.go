@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/rs/zerolog/log"
 )
 
 // ComposeBogeyDopeResponse implements [Composer.ComposeBogeyDopeResponse].
@@ -14,6 +15,9 @@ func (c *composer) ComposeBogeyDopeResponse(response brevity.BogeyDopeResponse) 
 			Subtitle: reply,
 			Speech:   reply,
 		}
+	}
+	if !response.Group.BRAA().Bearing().IsMagnetic() {
+		log.Error().Any("bearing", response.Group.BRAA().Bearing()).Msg("bearing provided to ComposeBogeyDopeResponse should be magnetic")
 	}
 	info := c.ComposeCoreInformationFormat(response.Group)
 	return NaturalLanguageResponse{
