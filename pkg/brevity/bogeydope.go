@@ -24,5 +24,4 @@ type BogeyDopeResponse struct {
 	Group Group
 }
 
-
 // Not actual brevity, but useful for internal controller logic
