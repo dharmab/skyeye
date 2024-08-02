@@ -58,7 +58,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		Dur("timeout", config.SRSConnectionTimeout).
 		Str("clientName", config.SRSClientName).
 		Int("coalitionID", int(config.Coalition)).
-		Float64("frequency", config.SRSFrequency).
+		Float64("frequency", config.SRSFrequency.Megahertz()).
 		Int("modulationID", int(srs.ModulationAM)).
 		Msg("constructing SRS client")
 	srsClient, err := simpleradio.NewClient(
@@ -69,7 +69,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 			ExternalAWACSModePassword: config.SRSExternalAWACSModePassword,
 			Coalition:                 config.Coalition,
 			Radio: srs.Radio{
-				Frequency:        config.SRSFrequency,
+				Frequency:        config.SRSFrequency.Hertz(),
 				Modulation:       srs.ModulationAM,
 				ShouldRetransmit: true,
 			},

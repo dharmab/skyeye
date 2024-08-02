@@ -167,7 +167,7 @@ func isValidTrack(tf *trackfiles.Trackfile) bool {
 	isAboveSpeedFilter := tf.Speed() > 50*unit.Knot
 	isAboveAltitudeFilter := tf.LastKnown().Altitude > 10*unit.Meter
 	isValid := isValidPosition && isAboveSpeedFilter && isAboveAltitudeFilter
-	log.Debug().
+	log.Trace().
 		Str("aircraft", tf.Contact.ACMIName).
 		Int("unitID", int(tf.Contact.UnitID)).
 		Str("callsign", tf.Contact.Name).
