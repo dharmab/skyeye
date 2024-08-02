@@ -85,12 +85,6 @@ func (g *group) Altitude() unit.Length {
 	return rounded
 }
 
-// Weeds implements [brevity.Group.Weeds]
-func (g *group) Weeds() bool {
-	// TODO use AGL instead of MSL
-	return g.Altitude() < 1000*unit.Foot
-}
-
 // Track implements [brevity.Group.Track]
 func (g *group) Track() brevity.Track {
 	if len(g.contacts) == 0 {

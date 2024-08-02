@@ -24,8 +24,6 @@ type Group interface {
 	Bullseye() *Bullseye
 	// Altitude is the group's altitude above sea level. This may be nil for BOGEY DOPE, SNAPLOCK, and THREAT calls.
 	Altitude() unit.Length
-	// Weeds is true if the group is in the weeds (below 1000 ft AGL).
-	Weeds() bool
 	// Track is the group's track direction. This may be UnknownDirection for BOGEY DOPE, SNAPLOCK, and THREAT calls.
 	Track() Track
 	// Aspect is the group's aspect angle relative to another aircraft. This may be nil for BOGEY DOPE, SNAPLOCK, and some THREAT calls.
