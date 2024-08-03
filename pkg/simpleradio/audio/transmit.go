@@ -30,19 +30,24 @@ func (c *audioClient) tx(packets []voice.VoicePacket) {
 	c.busy.Lock()
 	defer c.busy.Unlock()
 	// TODO in-game subtitles
-	for _, vp := range packets {
-		startTime := time.Now()
+	startTime := time.Now()
+	for i, vp := range packets {
 		b := vp.Encode()
+		// Tight timing is important here - don't write the next packet until halfway through the previous packet's frame.
+		// Write too quickly, and the server will skip audio to play the latest packet.
+		// Write too slowly, and the transmission will stutter.
+		delay := time.Until(
+			startTime.
+				Add(time.Duration(i) * frameLength).
+				Add(-frameLength / 2),
+		)
+		time.Sleep(delay)
 		n, err := c.connection.Write(b)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to transmit voice packet")
 		} else {
 			log.Trace().Uint64("packetID", vp.PacketID).Int("length", n).Msg("transmitted voice packet")
-
 		}
-		// sleeping half the frame length somehow fixes a PTT stutter issue (???)
-		// This might be a performance issue with my debug build of SRS.
-		sleepDuration := (frameLength - (time.Since(startTime) * 512))
-		time.Sleep(sleepDuration)
+
 	}
 }
