@@ -1,3 +1,4 @@
+// package data implements the SRS data client.
 package data
 
 // https://gitlab.com/overlordbot/srs-bot/-/blob/master/OverlordBot.SimpleRadio/Network/DataClient.cs

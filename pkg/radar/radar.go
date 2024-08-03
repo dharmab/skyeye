@@ -1,3 +1,4 @@
+// package radar implements mid-level logic for Ground-Controlled Interception (GCI)
 package radar
 
 import (
@@ -16,6 +17,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Radar consumes updates from the simulation, keeps track of each aircraft as a trackfile, and provides functions to collect the aircraft into groups.
 type Radar interface {
 	// SetBullseye updates the bullseye point.
 	SetBullseye(orb.Point)

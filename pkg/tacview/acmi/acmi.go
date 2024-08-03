@@ -1,3 +1,5 @@
+// package acmi streams simulation data from a TacView Air Combat Maneuvering
+// Instrumentation (ACMI) data source.
 package acmi
 
 import (

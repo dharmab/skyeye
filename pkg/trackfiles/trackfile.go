@@ -1,3 +1,4 @@
+// package trackfiles records aircraft movement over time.
 package trackfiles
 
 import (

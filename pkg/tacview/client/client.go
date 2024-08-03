@@ -1,3 +1,4 @@
+// client contains clients to stream ACMI data from a local or remote source.
 package client
 
 import (

@@ -1,3 +1,4 @@
+// package coalitions defines the coalitions in DCS World.
 package coalitions
 
 // Coalition is the ID of a coalition in DCS World.
