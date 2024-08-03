@@ -19,8 +19,8 @@ func (c *controller) HandlePicture(request *brevity.PictureRequest) {
 
 	logger.Debug().Msg("building picture")
 	count, groups := c.scope.GetPicture(trackfile.LastKnown().Point, request.Radius, c.hostileCoalition(), brevity.FixedWing)
-	for _, g := range groups {
-		g.SetDeclaration(brevity.Bandit)
+	for _, group := range groups {
+		group.SetDeclaration(brevity.Bandit)
 	}
 
 	logger.Debug().Int("groups", len(groups)).Int("count", count).Msg("sending response")

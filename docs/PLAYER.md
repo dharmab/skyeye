@@ -277,6 +277,14 @@ If you hear this in the middle of a mission, it probably means the bot crashed a
 
 🚧 NOT YET IMPLEMENTED 🚧
 
-### FADED
+### FADED / VANISHED
 
-🚧 NOT YET IMPLEMENTED 🚧
+When the GCI controller sees a contact disappear from the radar scope for at least 30 seconds, it will announce the contact is FADED or VANISHED.
+
+**This is not a confirmation that the contact has been destroyed!** In DCS, it is possible for aircraft to be marked dead while they are still alive and dangerous.
+
+Example:
+
+```
+THUNDERHEAD: "Thunderhead, single contact vanished Bullseye 146/123, track west, hostile, Flanker"
+```

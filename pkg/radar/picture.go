@@ -41,17 +41,17 @@ func (s *scope) GetPicture(origin orb.Point, radius unit.Length, coalition coali
 			continue
 		}
 
-		group := s.findGroupForAircraft(trackfile)
-		if group == nil {
+		grp := s.findGroupForAircraft(trackfile)
+		if grp == nil {
 			logger.Error().Msg("failed to find group for aircraft - HOW DID YOU GET HERE")
 			continue
 		}
-		logger = logger.With().Str("group", group.String()).Logger()
-		for _, contact := range group.contacts {
+		logger = logger.With().Str("group", grp.String()).Logger()
+		for _, contact := range grp.contacts {
 			visitedContacts[contact.Contact.UnitID] = true
 		}
 		logger.Debug().Msg("accounted group")
-		groups = append(groups, group)
+		groups = append(groups, grp)
 	}
 
 	aIsHigherThreat := -1
