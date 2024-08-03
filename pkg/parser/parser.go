@@ -11,6 +11,7 @@ import (
 	"unicode"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
+	fuzz "github.com/hbollon/go-edlib"
 	"github.com/rs/zerolog/log"
 )
 
@@ -77,10 +78,18 @@ func (p *parser) parseWakeWord(scanner *bufio.Scanner) (string, bool) {
 		return "", false
 	}
 	firstSegment := scanner.Text()
-	if !(firstSegment == strings.ToLower(p.callsign) || firstSegment == anyface) {
-		return "", false
+
+	for word, threshold := range map[string]float64{strings.ToLower(p.callsign): 0.5, anyface: 0.9} {
+		v, err := fuzz.StringsSimilarity(strings.ToLower(word), strings.ToLower(firstSegment), fuzz.Levenshtein)
+		if err != nil {
+			log.Error().Err(err).Str("callsign", word).Str("text", firstSegment).Msg("failed to calculate similarity")
+			return "", false
+		}
+		if v > float32(threshold) {
+			return firstSegment, true
+		}
 	}
-	return firstSegment, true
+	return "", false
 }
 
 // Parse implements Parser.Parse.
