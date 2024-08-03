@@ -74,39 +74,39 @@ func (s *scope) FindNearestGroupWithBRAA(
 		return nil
 	}
 
-	group := s.findGroupForAircraft(trackfile)
-	if group == nil {
+	grp := s.findGroupForAircraft(trackfile)
+	if grp == nil {
 		return nil
 	}
 
 	declination := s.Declination(origin)
 	bearing := bearings.NewTrueBearing(
 		unit.Angle(
-			geo.Bearing(origin, group.point()),
+			geo.Bearing(origin, grp.point()),
 		) * unit.Degree,
 	)
 	magBearing := bearing.Magnetic(declination)
 	log.Debug().Float64("tru", bearing.Degrees()).Float64("dec", declination.Degrees()).Float64("mag", magBearing.Degrees()).Msg("determined bearing")
-	_range := unit.Length(geo.Distance(origin, group.point())) * unit.Meter
+	_range := unit.Length(geo.Distance(origin, grp.point())) * unit.Meter
 	altitude := trackfile.LastKnown().Altitude
 	aspect := brevity.AspectFromAngle(magBearing, trackfile.Course())
-	group.braa = brevity.NewBRAA(
+	grp.braa = brevity.NewBRAA(
 		magBearing,
 		_range,
 		altitude,
 		aspect,
 	)
-	group.bullseye = nil
-	group.aspect = &aspect
-	group.isThreat = _range < brevity.MandatoryThreatDistance
+	grp.bullseye = nil
+	grp.aspect = &aspect
+	grp.isThreat = _range < brevity.MandatoryThreatDistance
 
-	return group
+	return grp
 }
 
 // FindNearestGroupWithBullseye implements [Radar.FindNearestGroupWithBullseye]
 func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	nearestTrackfile := s.FindNearestTrackfile(origin, minAltitude, maxAltitude, radius, coalition, filter)
-	group := s.findGroupForAircraft(nearestTrackfile)
+	grp := s.findGroupForAircraft(nearestTrackfile)
 	groupLocation := nearestTrackfile.LastKnown().Point
 	aspect := brevity.AspectFromAngle(
 		bearings.NewTrueBearing(
@@ -116,11 +116,11 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxA
 		).Magnetic(s.Declination(origin)), nearestTrackfile.Course(),
 	)
 
-	group.aspect = &aspect
+	grp.aspect = &aspect
 	rang := unit.Length(geo.Distance(origin, groupLocation)) * unit.Meter
-	group.isThreat = rang < brevity.MandatoryThreatDistance
-	log.Debug().Any("origin", origin).Str("group", group.String()).Msg("determined nearest group")
-	return group
+	grp.isThreat = rang < brevity.MandatoryThreatDistance
+	log.Debug().Any("origin", origin).Str("group", grp.String()).Msg("determined nearest group")
+	return grp
 }
 
 // FindNearestGroupInSector implements [Radar.FindNearestGroupInSector]
@@ -170,8 +170,8 @@ func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 
 	logger = log.With().Int("unitID", int(nearestContact.Contact.UnitID)).Logger()
 	logger.Debug().Msg("found nearest contact")
-	group := s.findGroupForAircraft(nearestContact)
-	if group == nil {
+	grp := s.findGroupForAircraft(nearestContact)
+	if grp == nil {
 		return nil
 	}
 	preciseBearing := bearings.NewTrueBearing(
@@ -182,14 +182,14 @@ func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 	aspect := brevity.AspectFromAngle(preciseBearing, nearestContact.Course())
 	log.Debug().Str("aspect", string(aspect)).Msg("determined aspect")
 	_range := unit.Length(geo.Distance(origin, nearestContact.LastKnown().Point)) * unit.Meter
-	group.aspect = &aspect
-	group.braa = brevity.NewBRAA(
+	grp.aspect = &aspect
+	grp.braa = brevity.NewBRAA(
 		preciseBearing,
 		_range,
-		group.Altitude(),
-		group.Aspect(),
+		grp.Altitude(),
+		grp.Aspect(),
 	)
-	logger.Debug().Str("group", group.String()).Msg("determined nearest group")
-	group.bullseye = nil
-	return group
+	logger.Debug().Str("group", grp.String()).Msg("determined nearest group")
+	grp.bullseye = nil
+	return grp
 }

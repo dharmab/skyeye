@@ -5,11 +5,13 @@ import (
 	"context"
 	"time"
 
+	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
 )
 
@@ -62,11 +64,32 @@ func New(rdr radar.Radar, coalition coalitions.Coalition, frequency unit.Frequen
 func (c *controller) Run(ctx context.Context, out chan<- any) {
 	c.out = out
 
+	log.Info().Msg("attaching FADED callback")
+	c.scope.SetFadedCallback(func(group brevity.Group, coalition coalitions.Coalition) {
+		if coalition == c.hostileCoalition() {
+			group.SetDeclaration(brevity.Hostile)
+
+			bullseye := c.scope.GetBullseye()
+			bearing := bearings.NewMagneticBearing(
+				group.Bullseye().Bearing().Value(),
+			).True(c.scope.Declination(c.scope.GetBullseye()))
+			distance := group.Bullseye().Distance()
+			origin := geo.PointAtBearingAndDistance(bullseye, bearing.Degrees(), distance.Meters())
+
+			friendlyGroups := c.scope.FindNearbyGroups(origin, origin, lowestAltitude, highestAltitude, 40*unit.NauticalMile, c.coalition, brevity.FixedWing)
+			if len(friendlyGroups) == 0 {
+				c.out <- brevity.FadedCall{Group: group}
+			} else {
+				c.out <- brevity.VanishedCall{Group: group}
+			}
+		}
+	})
+
 	log.Info().Int("frequency", int(c.frequency.Megahertz())).Msg("broadcasting SUNRISE call")
 	c.out <- brevity.SunriseCall{Frequency: c.frequency}
-	<-ctx.Done()
 
-	// TODO control loops for FADED and THREAT
+	// TODO control loop for THREAT
+	<-ctx.Done()
 }
 
 // SetTime implements [Controller.SetTime].

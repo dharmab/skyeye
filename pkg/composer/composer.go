@@ -16,6 +16,8 @@ type Composer interface {
 	ComposeDeclareResponse(brevity.DeclareResponse) NaturalLanguageResponse
 	// ComposeFadedCall constructs natural language brevity for announcing a contact has faded.
 	ComposeFadedCall(brevity.FadedCall) NaturalLanguageResponse
+	// ComposeVanishedCall constructs natural language brevity for announcing a contact has vanished.
+	ComposeVanishedCall(brevity.VanishedCall) NaturalLanguageResponse
 	// ComposeNegativeRadarContactResponse constructs natural language brevity for saying the controller cannot find a contact on the radar.
 	ComposeNegativeRadarContactResponse(brevity.NegativeRadarContactResponse) NaturalLanguageResponse
 	// ComposePictureResponse constructs natural language brevity for responding to a PICTURE call.

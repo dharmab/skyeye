@@ -21,20 +21,20 @@ func (s *scope) FindNearbyGroups(origin, interest orb.Point, minAltitude, maxAlt
 		inCircle := circle.Contains(trackfile.LastKnown().Point)
 		inStack := minAltitude <= trackfile.LastKnown().Altitude && trackfile.LastKnown().Altitude <= maxAltitude
 		if isMatch && inCircle && inStack {
-			group := s.findGroupForAircraft(trackfile)
+			grp := s.findGroupForAircraft(trackfile)
 
 			bearing := bearings.NewTrueBearing(
 				unit.Angle(
-					geo.Bearing(origin, group.point()),
+					geo.Bearing(origin, grp.point()),
 				) * unit.Degree,
 			).Magnetic(s.Declination(origin))
-			_range := unit.Length(math.Abs(geo.Distance(origin, group.point())))
-			altitude := group.Altitude()
-			aspect := brevity.AspectFromAngle(bearing, group.course())
-			group.braa = brevity.NewBRAA(bearing, _range, altitude, aspect)
-			group.bullseye = nil
+			_range := unit.Length(math.Abs(geo.Distance(origin, grp.point())))
+			altitude := grp.Altitude()
+			aspect := brevity.AspectFromAngle(bearing, grp.course())
+			grp.braa = brevity.NewBRAA(bearing, _range, altitude, aspect)
+			grp.bullseye = nil
 
-			groups = append(groups, group)
+			groups = append(groups, grp)
 		}
 	}
 

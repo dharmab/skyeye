@@ -3,6 +3,7 @@ package radar
 
 import (
 	"context"
+	"math/rand/v2"
 	"time"
 
 	"github.com/dharmab/skyeye/internal/conf"
@@ -94,24 +95,28 @@ type Radar interface {
 		coalition coalitions.Coalition,
 		category brevity.ContactCategory,
 	) brevity.Group
+	// SetFadedCallback sets the callback function to be called when a trackfile fades.
+	SetFadedCallback(FadedCallback)
 }
 
 var _ Radar = &scope{}
 
 type scope struct {
-	updates     <-chan sim.Updated
-	fades       <-chan sim.Faded
-	missionTime time.Time
-	bullseye    orb.Point
-	contacts    contactDatabase
+	updates       <-chan sim.Updated
+	fades         <-chan sim.Faded
+	missionTime   time.Time
+	bullseye      orb.Point
+	contacts      contactDatabase
+	fadedCallback FadedCallback
 }
 
 func New(coalition coalitions.Coalition, updates <-chan sim.Updated, fades <-chan sim.Faded) Radar {
 	return &scope{
-		updates:     updates,
-		fades:       fades,
-		missionTime: conf.InitialTime,
-		contacts:    newContactDatabase(),
+		updates:       updates,
+		fades:         fades,
+		missionTime:   conf.InitialTime,
+		contacts:      newContactDatabase(),
+		fadedCallback: func(brevity.Group, coalitions.Coalition) {},
 	}
 }
 
@@ -136,7 +141,7 @@ func (s *scope) Run(ctx context.Context) {
 		case update := <-s.updates:
 			s.handleUpdate(update)
 		case fade := <-s.fades:
-			s.handleFade(fade)
+			s.handleFade(ctx, fade)
 		case <-ticker.C:
 			s.handleGarbageCollection()
 		case <-ctx.Done():
@@ -164,26 +169,45 @@ func (s *scope) handleUpdate(update sim.Updated) {
 	}
 }
 
-// handleFade removed any trackfiles for the faded unit.
-func (s *scope) handleFade(fade sim.Faded) {
-	tf, ok := s.contacts.getByUnitID(fade.UnitID)
+// handleFade removes any trackfiles for the faded unit.
+func (s *scope) handleFade(ctx context.Context, fade sim.Faded) {
+	trackfile, ok := s.contacts.getByUnitID(fade.UnitID)
 	if !ok {
 		log.Trace().Uint32("unitID", fade.UnitID).Msg("faded trackfile not found - probably not an aircraft")
 		return
 	}
 	logger := log.With().
 		Int("unitID", int(fade.UnitID)).
-		Str("name", tf.Contact.Name).
-		Str("aircraft", tf.Contact.ACMIName).
+		Str("name", trackfile.Contact.Name).
+		Str("aircraft", trackfile.Contact.ACMIName).
 		Logger()
 
 	if !ok {
 		logger.Warn().Msg("faded trackfile not found")
 		return
 	}
+	grp := newGroupUsingBullseye(s.bullseye)
+	grp.contacts = append(grp.contacts, trackfile)
 	s.contacts.delete(fade.UnitID)
 	logger.Info().Msg("removed faded trackfile")
-	// TODO pass fade to controller to broadcast message
+	if s.fadedCallback != nil {
+		go func() {
+			delay := time.Duration(rand.IntN(30)+30) * time.Second
+			timer := time.NewTimer(delay)
+			defer timer.Stop()
+			select {
+			case <-ctx.Done():
+				log.Info().Msg("stopping FADED goroutine due to context cancellation")
+				return
+			case <-timer.C:
+				if _, ok := s.contacts.getByUnitID(fade.UnitID); !ok {
+					log.Info().Uint32("unitID", fade.UnitID).Str("group", grp.String()).Msg("calling faded callback for group")
+					s.fadedCallback(grp, trackfile.Contact.Coalition)
+				}
+			}
+
+		}()
+	}
 }
 
 // handleGarbageCollection removes trackfiles that have not been updated in a long time.

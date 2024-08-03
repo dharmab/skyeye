@@ -15,10 +15,10 @@ func (s *scope) findGroupForAircraft(tf *trackfiles.Trackfile) *group {
 	if tf == nil {
 		return nil
 	}
-	group := newGroupUsingBullseye(s.bullseye)
-	group.contacts = append(group.contacts, tf)
-	s.addNearbyAircraftToGroup(tf, group)
-	return group
+	grp := newGroupUsingBullseye(s.bullseye)
+	grp.contacts = append(grp.contacts, tf)
+	s.addNearbyAircraftToGroup(tf, grp)
+	return grp
 }
 
 // addNearbyAircraftToGroup recursively adds all nearby aircraft which:
