@@ -46,7 +46,7 @@ func (s *scope) GetPicture(origin orb.Point, radius unit.Length, coalition coali
 			logger.Error().Msg("failed to find group for aircraft - HOW DID YOU GET HERE")
 			continue
 		}
-		logger = logger.With().Any("group", group).Logger()
+		logger = logger.With().Str("group", group.String()).Logger()
 		for _, contact := range group.contacts {
 			visitedContacts[contact.Contact.UnitID] = true
 		}

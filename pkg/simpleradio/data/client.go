@@ -172,19 +172,19 @@ func (c *dataClient) handleMessage(message types.Message) {
 		c.syncClient(message.Client)
 	case types.MessageExternalAWACSModePassword:
 		if message.Client.Coalition == c.clientInfo.Coalition {
-			log.Info().Interface("remoteClient", message.Client).Msg("received external AWACS mode password message")
+			log.Info().Any("remoteClient", message.Client).Msg("received external AWACS mode password message")
 			if err := c.updateRadios(); err != nil {
 				log.Error().Err(err).Msg("failed to update radios")
 			}
 		}
 	default:
-		log.Warn().Interface("message", message).Msg("received unrecognized message")
+		log.Warn().Any("message", message).Msg("received unrecognized message")
 	}
 }
 
 // logMessageAndIgnore logs a message at DEBUG level.
 func logMessageAndIgnore(message types.Message) {
-	log.Debug().Interface("message", message).Msg("received message")
+	log.Debug().Any("message", message).Msg("received message")
 }
 
 // syncClients calls syncClient for each client in the given slice.
@@ -197,7 +197,7 @@ func (c *dataClient) syncClients(others []types.ClientInfo) {
 
 // syncClient checks if the given client matches this client's coalition and radios, and if so, stores it in the otherClients map. Non-matching clients are removed from the map if previously stored.
 func (c *dataClient) syncClient(other types.ClientInfo) {
-	clientLogger := log.With().Str("guid", string(other.GUID)).Str("name", other.Name).Interface("coalitionID", other.Coalition).Interface("radios", other.RadioInfo).Logger()
+	clientLogger := log.With().Str("guid", string(other.GUID)).Str("name", other.Name).Any("coalitionID", other.Coalition).Any("radios", other.RadioInfo).Logger()
 
 	clientLogger.Trace().Msg("syncronizing client")
 

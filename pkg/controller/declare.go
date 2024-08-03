@@ -58,6 +58,6 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 		response.Group.SetDeclaration(response.Declaration)
 	}
 
-	logger.Debug().Interface("declaration", response.Declaration).Msg("responding to DECLARE request")
+	logger.Debug().Any("declaration", response.Declaration).Msg("responding to DECLARE request")
 	c.out <- response
 }

@@ -47,4 +47,6 @@ type Group interface {
 	Fast() bool
 	// VeryFast is true is the group's speed is above 900kts ground speed or 1.5 Mach.
 	VeryFast() bool
+	// String returns a human-readable description of the group.
+	String() string
 }

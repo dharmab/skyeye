@@ -257,7 +257,7 @@ func (a *app) parse(ctx context.Context, in <-chan string, out chan<- any) {
 			logger.Info().Msg("parsing text")
 			request, ok := a.parser.Parse(text)
 			if ok {
-				logger.Info().Interface("request", request).Msg("parsed text")
+				logger.Info().Any("request", request).Msg("parsed text")
 				out <- request
 			} else {
 				logger.Info().Msg("unable to parse text")
@@ -304,7 +304,7 @@ func (a *app) control(ctx context.Context, in <-chan any, out chan<- any) {
 				logger.Debug().Msg("routing unable to understand request to controller")
 				a.controller.HandleUnableToUnderstand(request)
 			default:
-				logger.Error().Interface("request", brev).Msg("unable to route request to handler")
+				logger.Error().Any("request", brev).Msg("unable to route request to handler")
 			}
 		}
 	}
@@ -318,7 +318,7 @@ func (a *app) compose(ctx context.Context, in <-chan any, out chan<- composer.Na
 			log.Info().Msg("stopping brevity composition due to context cancellation")
 			return
 		case call := <-in:
-			logger := log.With().Type("type", call).Interface("params", call).Logger()
+			logger := log.With().Type("type", call).Any("params", call).Logger()
 			logger.Info().Msg("composing brevity call")
 			var response composer.NaturalLanguageResponse
 			switch c := call.(type) {

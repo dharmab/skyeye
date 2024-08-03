@@ -35,7 +35,7 @@ func (s *scope) FindNearestTrackfile(
 			isNearer := distance < nearestDistance
 			if isNearer {
 				log.Debug().
-					Interface("origin", origin).
+					Any("origin", origin).
 					Int("distance", int(distance.NauticalMiles())).
 					Str("aircraft", trackfile.Contact.ACMIName).
 					Float64("altitude", altitude.Feet()).
@@ -119,13 +119,13 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxA
 	group.aspect = &aspect
 	rang := unit.Length(geo.Distance(origin, groupLocation)) * unit.Meter
 	group.isThreat = rang < brevity.MandatoryThreatDistance
-	log.Debug().Interface("origin", origin).Interface("group", group).Msg("determined nearest group")
+	log.Debug().Any("origin", origin).Str("group", group.String()).Msg("determined nearest group")
 	return group
 }
 
 // FindNearestGroupInSector implements [Radar.FindNearestGroupInSector]
 func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltitude, length unit.Length, bearing bearings.Bearing, arc unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
-	logger := log.With().Interface("origin", origin).Float64("bearing", bearing.Degrees()).Float64("arc", arc.Degrees()).Logger()
+	logger := log.With().Any("origin", origin).Float64("bearing", bearing.Degrees()).Float64("arc", arc.Degrees()).Logger()
 
 	declination := s.Declination(origin)
 	bearing = bearing.Magnetic(declination)
@@ -189,7 +189,7 @@ func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 		group.Altitude(),
 		group.Aspect(),
 	)
-	logger.Debug().Interface("group", group).Msg("determined nearest group")
+	logger.Debug().Str("group", group.String()).Msg("determined nearest group")
 	group.bullseye = nil
 	return group
 }
