@@ -1,7 +1,9 @@
 package radar
 
 import (
+	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/dharmab/skyeye/internal/conf"
@@ -64,7 +66,7 @@ func (g *group) Bullseye() *brevity.Bullseye {
 	)
 	declination, err := bearings.Declination(*g.bullseye, g.missionTime())
 	if err != nil {
-		log.Error().Err(err).Any("group", g).Msg("failed to get declination for group")
+		log.Error().Err(err).Str("group", g.String()).Msg("failed to get declination for group")
 	}
 	distance := unit.Length(
 		geo.Distance(*g.bullseye, point),
@@ -172,6 +174,33 @@ func (g *group) Fast() bool {
 // VeryFast implements [brevity.Group.VeryFast]
 func (g *group) VeryFast() bool {
 	return false
+}
+
+func (g *group) String() string {
+	location := ""
+	if g.braa != nil {
+		location = fmt.Sprintf(
+			"BRAA %d %d %d %s",
+			int(g.BRAA().Bearing().RoundedDegrees()),
+			int(g.BRAA().Range().NauticalMiles()),
+			int(g.BRAA().Altitude().Feet()),
+			g.BRAA().Aspect(),
+		)
+	} else if g.bullseye != nil {
+		location = fmt.Sprintf(
+			"BULLSEYE %d/%d",
+			int(g.Bullseye().Bearing().RoundedDegrees()),
+			int(g.Bullseye().Distance().NauticalMiles()),
+		)
+	}
+
+	return fmt.Sprintf(
+		"%s %s (%d) %s",
+		location,
+		g.Declaration(),
+		g.Contacts(),
+		strings.Join(g.Platforms(), ","),
+	)
 }
 
 // category of the group

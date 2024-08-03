@@ -239,7 +239,7 @@ func (s *streamer) processUpdates(updates chan<- sim.Updated) {
 			logger.Error().Err(err).Msg("error getting object types")
 			continue
 		}
-		logger.Trace().Interface("types", types).Msg("checking object types")
+		logger.Trace().Any("types", types).Msg("checking object types")
 
 		if slices.Contains(types, tags.Bullseye) {
 			logger.Trace().Msg("object is bullseye")

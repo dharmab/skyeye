@@ -217,7 +217,7 @@ func NewVoicePacketFrom(b []byte) VoicePacket {
 		RelayGUID:  b[relayIDPtr : relayIDPtr+types.GUIDLength],
 		OriginGUID: b[originIDPtr : originIDPtr+types.GUIDLength],
 	}
-	log.Trace().Interface("struct", packet).Msg("decoded voice packet headers and fixed segment")
+	log.Trace().Any("struct", packet).Msg("decoded voice packet headers and fixed segment")
 
 	/* Audio Segment */
 	// The audio segment is the next segment after the headers. It always starts at byte 6 and is AudioSegmentLength bytes long.
@@ -244,7 +244,7 @@ func NewVoicePacketFrom(b []byte) VoicePacket {
 		}
 		packet.Frequencies = append(packet.Frequencies, frequency)
 	}
-	log.Trace().Interface("frequencies", packet.Frequencies).Msg("decoded voice packet frequencies segment")
+	log.Trace().Any("frequencies", packet.Frequencies).Msg("decoded voice packet frequencies segment")
 
 	// That wasn't so bad, was it?
 

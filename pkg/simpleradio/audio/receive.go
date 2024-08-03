@@ -89,7 +89,7 @@ func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out ch
 				continue
 			}
 
-			log.Trace().Str("originGUID", string(vp.OriginGUID)).Uint64("packetID", vp.PacketID).Interface("frequencies", vp.Frequencies).Msg("checking voice packet")
+			log.Trace().Str("originGUID", string(vp.OriginGUID)).Uint64("packetID", vp.PacketID).Any("frequencies", vp.Frequencies).Msg("checking voice packet")
 			// isNewPacket is true if the packet is the first packet of a new transmission. This is the case if c.lastRx's fields are zero values.
 			isNewPacket := c.lastRx.origin == "" && c.lastRx.packetNumber == 0
 			// isSameOrigin is true if the packet's origin GUID matches the last received packet's origin GUID.

@@ -65,7 +65,7 @@ func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.V
 					[]byte(c.guid),
 					[]byte(c.guid),
 				)
-				logger.Trace().Interface("packet", vp).Msg("encoded voice packet")
+				logger.Trace().Any("packet", vp).Msg("encoded voice packet")
 				c.packetNumber++
 				// TODO transmission struct with attached text and trace id
 				txPackets = append(txPackets, vp)

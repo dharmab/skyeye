@@ -31,7 +31,7 @@ func main() {
 	signal.Notify(interuptChan, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		s := <-interuptChan
-		log.Info().Interface("signal", s).Msg("received shutdown signal")
+		log.Info().Any("signal", s).Msg("received shutdown signal")
 		cancel()
 		time.Sleep(time.Second)
 		os.Exit(0)

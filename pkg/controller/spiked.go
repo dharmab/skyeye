@@ -43,7 +43,7 @@ func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
 		return
 	}
 
-	logger = logger.With().Any("group", nearestGroup).Logger()
+	logger = logger.With().Str("group", nearestGroup.String()).Logger()
 	logger.Debug().Msg("hostile group found within spike cone")
 	c.out <- brevity.SpikedResponse{
 		Callsign:    request.Callsign,
