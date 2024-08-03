@@ -160,24 +160,28 @@ func TestTracking(t *testing.T) {
 			alt := 20000 * unit.Foot
 
 			trackfile.Update(Frame{
-				Timestamp: now.Add(-2 * time.Second),
-				Point:     orb.Point{-115.0338, 36.2350},
-				Altitude:  alt,
-				Heading:   test.heading,
+				Timestamp:   now.Add(-1 * time.Millisecond),
+				MissionTime: now.Add(-1 * test.ΔT),
+				Point:       orb.Point{-115.0338, 36.2350},
+				Altitude:    alt,
+				Heading:     test.heading,
 			})
 			dest := geo.PointAtBearingAndDistance(trackfile.LastKnown().Point, 0, test.ΔY.Meters())
 			dest = geo.PointAtBearingAndDistance(dest, 90, test.ΔX.Meters())
 			trackfile.Update(Frame{
-				Timestamp: now,
-				Point:     dest,
-				Altitude:  alt + test.ΔZ,
-				Heading:   test.heading,
+				Timestamp:   now,
+				MissionTime: now,
+				Point:       dest,
+				Altitude:    alt + test.ΔZ,
+				Heading:     test.heading,
 			})
 
 			require.InDelta(t, test.expectedApproxSpeed.MetersPerSecond(), trackfile.Speed().MetersPerSecond(), 0.5)
 			require.Equal(t, test.expectedDirection, trackfile.Direction())
 			if test.expectedDirection != brevity.UnknownDirection {
-				require.InDelta(t, bearings.NewMagneticBearing(test.expectedApproxCourse).Degrees(), trackfile.Course().Degrees(), 0.5)
+				declination, err := bearings.Declination(dest, now)
+				require.NoError(t, err)
+				require.InDelta(t, bearings.NewTrueBearing(test.expectedApproxCourse).Magnetic(declination).Degrees(), trackfile.Course().Degrees(), 0.5)
 			}
 		})
 	}
