@@ -1,3 +1,4 @@
+// package controller implements high-level logic for Ground-Controlled Interception (GCI)
 package controller
 
 import (
@@ -13,6 +14,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Controller handles requests for GCI service.
 type Controller interface {
 	// Run starts the controller's control loops. It should be called exactly once. It blocks until the context is canceled.
 	// The controller publishes responses to the given channel.

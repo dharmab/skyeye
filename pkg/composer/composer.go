@@ -1,3 +1,4 @@
+// package composer converts brevity responses from structured forms into natural language.
 package composer
 
 import (

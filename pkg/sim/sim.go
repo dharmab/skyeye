@@ -1,3 +1,4 @@
+// package sim provides an inteface for receiving telemetry data from DCS World
 package sim
 
 import (
