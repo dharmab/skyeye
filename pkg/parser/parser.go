@@ -55,11 +55,11 @@ const (
 var alternateRequestWords = map[string]requestWord{
 	"ready":     radioCheck,
 	"read your": radioCheck,
+	"bogeydope": bogeyDope,
 	"bogeido":   bogeyDope,
 	"bokeido":   bogeyDope,
 	"bokey":     bogeyDope,
 	"bokeh":     bogeyDope,
-	"bogeydope": bogeyDope,
 	"okey":      bogeyDope,
 	"boogie":    bogeyDope,
 	"oogie":     bogeyDope,

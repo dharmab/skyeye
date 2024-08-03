@@ -19,6 +19,7 @@ type telemetryClient struct {
 	connection *net.TCPConn
 	hostname   string
 	password   string
+	duration   time.Duration
 	*tacviewClient
 }
 
@@ -32,6 +33,7 @@ func NewTelemetryClient(
 	updates chan<- sim.Updated,
 	fades chan<- sim.Faded,
 	updateInterval time.Duration,
+	duration time.Duration,
 ) (Client, error) {
 	log.Info().Str("protocol", "tcp").Str("address", address).Msg("connecting to telemetry service")
 	addr, err := net.ResolveTCPAddr("tcp", address)
@@ -46,6 +48,7 @@ func NewTelemetryClient(
 		connection: connection,
 		hostname:   clientHostname,
 		password:   password,
+		duration:   duration,
 		tacviewClient: &tacviewClient{
 			coalition:      coalition,
 			updates:        updates,
@@ -63,7 +66,7 @@ func (c *telemetryClient) Run(ctx context.Context) error {
 	}
 
 	source := acmi.New(c.coalition, reader, c.updateInterval)
-	return c.run(ctx, source)
+	return c.run(ctx, source, c.duration)
 }
 
 func (c *telemetryClient) Bullseye() orb.Point {

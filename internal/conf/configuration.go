@@ -12,8 +12,11 @@ import (
 
 // Configuration for the SkyEye application.
 type Configuration struct {
-	// ACMIFile is the path to the ACMI file
+	// ACMIFile is the path to an ACMI file to stream data from. If provided, this overrides TelemetryAddress.
 	ACMIFile string
+	// ACMIDuration is a duration after the reference time when ACMI streaming will stop.
+	// This is useful when replaying ACMI data for debugging.
+	ACMIDuration time.Duration
 	// TelemetryAddress is the network address of the real-time telemetry server (including port)
 	TelemetryAddress string
 	// TelemetryConnectionTimeout is the connection timeout for connecting to the real-time telemetry server
@@ -49,4 +52,5 @@ var DefaultPictureRadius = encyclopedia.NoLaterThanCommitRange(encyclopedia.SAR2
 
 const DefaultMarginRadius = 3 * unit.NauticalMile
 
-var InitialTime time.Time = time.Date(1903, time.December, 17, 2, 35, 0, 0, time.UTC) // https://www.nps.gov/articles/firstflight.htm
+var InitialTime = time.Date(1903, time.December, 17, 2, 35, 0, 0, time.UTC) // https://www.nps.gov/articles/firstflight.htm
+var DistantFutureTime = time.Date(2100, time.January, 1, 0, 0, 0, 0, time.UTC)

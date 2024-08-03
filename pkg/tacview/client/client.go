@@ -29,10 +29,10 @@ type tacviewClient struct {
 	missionTime    time.Time
 }
 
-func (c *tacviewClient) run(ctx context.Context, source acmi.ACMI) error {
+func (c *tacviewClient) run(ctx context.Context, source acmi.ACMI, duration time.Duration) error {
 	c.missionTime = conf.InitialTime
 	go func() {
-		err := source.Start(ctx)
+		err := source.Start(ctx, duration)
 		if err != nil {
 			log.Error().Err(err).Msg("error starting ACMI client")
 		}

@@ -41,6 +41,7 @@ func main() {
 	LogLevel := flag.String("log-level", "info", "logging level (trace, debug, info, warn, error, fatal)")
 	LogFormat := flag.String("log-format", "json", "logging format (json, pretty)")
 	ACMIFile := flag.String("acmi-file", "", "path to ACMI file")
+	ACMIDuration := flag.String("acmi-duration", "10000d", "Duration after which ACMI streaming will stop")
 	TelemetryAddress := flag.String("telemetry-address", "127.0.0.1:42674", "address of the real-time telemetry service")
 	TelemetryConnectionTimeout := flag.Duration("telemetry-connection-timeout", 10*time.Second, "")
 	TelemetryPassword := flag.String("telemetry-password", "", "password for the real-time telemetry service")
@@ -81,6 +82,8 @@ func main() {
 		exitOnErr(errors.New("either ACMI file or telemetry address must be provided"))
 	}
 
+	acmiDuration, err := time.ParseDuration(*ACMIDuration)
+
 	var coalition coalitions.Coalition
 	log.Info().Str("coalition", *Coalition).Msg("setting GCI coalition")
 	if strings.EqualFold(*Coalition, "blue") {
@@ -117,6 +120,7 @@ func main() {
 	// Configure and run the application.
 	config := conf.Configuration{
 		ACMIFile:                     *ACMIFile,
+		ACMIDuration:                 acmiDuration,
 		TelemetryAddress:             *TelemetryAddress,
 		TelemetryConnectionTimeout:   *TelemetryConnectionTimeout,
 		TelemetryClientName:          *GCICallsign,

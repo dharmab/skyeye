@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/tacview/properties"
@@ -30,7 +31,8 @@ import (
 type ACMI interface {
 	sim.Sim
 	// Start should be called before Stream() to initialize the ACMI stream.
-	Start(context.Context) error
+	// It runs until the context is cancelled or the given duration past the reference time has been reached.
+	Start(context.Context, time.Duration) error
 }
 
 type streamer struct {
@@ -51,8 +53,8 @@ func New(coalition coalitions.Coalition, acmi *bufio.Reader, updateInterval time
 	return &streamer{
 		acmi:           acmi,
 		referencePoint: orb.Point{0, 0},
-		referenceTime:  time.Now(),
-		cursorTime:     time.Now(),
+		referenceTime:  conf.InitialTime,
+		cursorTime:     conf.InitialTime,
 		objects:        make(map[int]*types.Object),
 		fades:          make(chan *types.Object),
 		updateInterval: updateInterval,
@@ -61,13 +63,17 @@ func New(coalition coalitions.Coalition, acmi *bufio.Reader, updateInterval time
 	}
 }
 
-func (s *streamer) Start(ctx context.Context) error {
+func (s *streamer) Start(ctx context.Context, duration time.Duration) error {
 	log.Info().Msg("starting ACMI protocol handler")
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		default:
+			if s.referenceTime.After(conf.InitialTime) && s.cursorTime.After(s.referenceTime.Add(duration)) {
+				delay := s.cursorTime.Sub(s.referenceTime.Add(duration))
+				time.Sleep(delay)
+			}
 			line, err := s.acmi.ReadString('\n')
 			if err != nil {
 				if errors.Is(err, io.EOF) {

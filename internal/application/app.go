@@ -87,6 +87,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 			updates,
 			fades,
 			config.RadarSweepInterval,
+			config.ACMIDuration,
 		)
 	} else {
 		log.Info().
@@ -101,6 +102,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 			updates,
 			fades,
 			config.RadarSweepInterval,
+			config.ACMIDuration,
 		)
 	}
 

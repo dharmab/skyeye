@@ -18,17 +18,26 @@ import (
 )
 
 type fileClient struct {
-	file io.ReadCloser
+	file     io.ReadCloser
+	duration time.Duration
 	*tacviewClient
 }
 
-func NewFileClient(path string, coalition coalitions.Coalition, updates chan<- sim.Updated, fades chan<- sim.Faded, updateInterval time.Duration) (Client, error) {
+func NewFileClient(
+	path string,
+	coalition coalitions.Coalition,
+	updates chan<- sim.Updated,
+	fades chan<- sim.Faded,
+	updateInterval time.Duration,
+	duration time.Duration,
+) (Client, error) {
 	f, err := openFile(path)
 	if err != nil {
 		return nil, err
 	}
 	return &fileClient{
-		file: f,
+		file:     f,
+		duration: duration,
 		tacviewClient: &tacviewClient{
 			coalition:      coalition,
 			updates:        updates,
@@ -75,7 +84,7 @@ func openFile(path string) (io.ReadCloser, error) {
 func (c *fileClient) Run(ctx context.Context) error {
 	reader := bufio.NewReader(c.file)
 	acmi := acmi.New(c.coalition, reader, c.updateInterval)
-	return c.tacviewClient.run(ctx, acmi)
+	return c.tacviewClient.run(ctx, acmi, c.duration)
 }
 
 func (c *fileClient) Bullseye() orb.Point {
