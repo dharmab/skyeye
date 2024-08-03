@@ -5,6 +5,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
@@ -78,7 +79,7 @@ func (t *Trackfile) String() string {
 
 // Update the trackfile with a new frame. Frames older than the most recent one are discarded.
 func (t *Trackfile) Update(f Frame) {
-	if t.Track.Len() > 0 && f.Timestamp.Before(t.Track.Front().Timestamp) {
+	if t.Track.Len() > 0 && f.MissionTime.Before(t.Track.Front().MissionTime) {
 		return
 	}
 	t.Track.PushFront(f)
@@ -106,10 +107,8 @@ func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 func (t *Trackfile) LastKnown() Frame {
 	if t.Track.Len() == 0 {
 		return Frame{
-			Timestamp: time.Now().Add(-time.Hour),
-			Point:     orb.Point{},
-			Altitude:  0,
-			Heading:   0,
+			Timestamp:   time.Now().Add(-time.Hour),
+			MissionTime: conf.InitialTime,
 		}
 	}
 	return t.Track.Front()
@@ -169,7 +168,7 @@ func (t *Trackfile) groundSpeed() unit.Speed {
 	latest := t.Track.Front()
 	previous := t.Track.At(1)
 
-	timeDelta := latest.Timestamp.Sub(previous.Timestamp)
+	timeDelta := latest.MissionTime.Sub(previous.MissionTime) + 1*time.Millisecond
 
 	groundDistance := unit.Length(math.Abs(geo.Distance(latest.Point, previous.Point))) * unit.Meter
 	groundSpeed := unit.Speed(
@@ -188,11 +187,7 @@ func (t *Trackfile) Speed() unit.Speed {
 
 	latest := t.Track.Front()
 	previous := t.Track.At(1)
-
-	timeDelta := latest.Timestamp.Sub(previous.Timestamp)
-
-	groundSpeed := t.groundSpeed()
-
+	timeDelta := latest.MissionTime.Sub(previous.MissionTime) + 1*time.Millisecond
 	var verticalDistance unit.Length
 	if latest.Altitude > previous.Altitude {
 		verticalDistance = latest.Altitude - previous.Altitude
@@ -203,6 +198,8 @@ func (t *Trackfile) Speed() unit.Speed {
 		verticalDistance.Meters()/
 			timeDelta.Seconds(),
 	) * unit.MetersPerSecond
+
+	groundSpeed := t.groundSpeed()
 
 	trueSpeed := unit.Speed(
 		math.Sqrt(
