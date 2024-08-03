@@ -117,7 +117,7 @@ func (c *audioClient) Run(ctx context.Context) error {
 	go c.decodeVoice(ctx, voiceBytesRxChan)
 
 	// voicePacketsTxChan is a channel for transmissions which are ready to send.
-	voicePacketsTxChan := make(chan []voice.VoicePacket, 0xFFFFF) // TODO configurable transmission buffer size
+	voicePacketsTxChan := make(chan []voice.VoicePacket, 3)
 
 	// transmit queued audio. This is the logic for sending audio to the SRS server.
 	go c.encodeVoice(ctx, voicePacketsTxChan)
