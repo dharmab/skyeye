@@ -39,7 +39,7 @@ type Configuration struct {
 	// It only impacts the update rate of the GCI radar picture.
 	RadarSweepInterval time.Duration
 	// WhisperModel is a whisper.cpp model used for Speech To Text
-	WhisperModel whisper.Model
+	WhisperModel *whisper.Model
 	// Voice is the voice used for SRS transmissions
 	Voice voices.Voice
 }
