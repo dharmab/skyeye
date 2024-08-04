@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -143,4 +144,19 @@ func TestParserRadioCheck(t *testing.T) {
 		actual := request.(*brevity.RadioCheckRequest)
 		require.Equal(t, expected.Callsign, actual.Callsign)
 	})
+}
+
+func TestIsSimilar(t *testing.T) {
+	tests := []struct {
+		a        string
+		b        string
+		expected bool
+	}{
+		{"SkyEye", "Sky Eye", true},
+	}
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%s_%s", test.a, test.b), func(t *testing.T) {
+			require.Equal(t, test.expected, IsSimilar(test.a, test.b))
+		})
+	}
 }
