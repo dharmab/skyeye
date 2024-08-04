@@ -103,11 +103,22 @@ func main() {
 	log.Info().Msg("whisper model loaded")
 	defer whisperModel.Close()
 
+	hour := time.Now().Hour()
+	seed := time.Now().YearDay()
+	if 0 <= hour && hour < 8 {
+		seed = seed + 1
+	} else if 8 <= hour && hour < 16 {
+		seed = seed * 2
+	} else if 16 <= hour && hour < 24 {
+		seed = seed - 3
+	}
+	rando := rand.New(rand.NewSource(int64(seed)))
+
 	var voice voices.Voice
 	switch strings.ToLower(*Voice) {
 	case "":
 		voices := []voices.Voice{voices.FeminineVoice, voices.MasculineVoice}
-		voice = voices[rand.Intn(len(voices))]
+		voice = voices[rando.Intn(len(voices))]
 		log.Info().Type("voice", voice).Msg("randomly selected voice")
 	case "feminine":
 		log.Info().Msg("using feminine voice")
@@ -124,7 +135,7 @@ func main() {
 
 	callsign := *GCICallsign
 	if callsign == "" {
-		callsign = conf.DefaultCallsigns[rand.Intn(len(conf.DefaultCallsigns))]
+		callsign = conf.DefaultCallsigns[rando.Intn(len(conf.DefaultCallsigns))]
 		log.Info().Str("callsign", callsign).Msg("randomly selected callsign")
 	}
 
