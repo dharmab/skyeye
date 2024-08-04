@@ -2,6 +2,7 @@ package audio
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/voice"
@@ -14,6 +15,9 @@ func (c *audioClient) transmit(ctx context.Context, packetCh <-chan []voice.Voic
 		select {
 		case packets := <-packetCh:
 			c.tx(packets)
+			// Pause between transmissions to sound more natural.
+			pause := time.Duration(250+rand.Intn(400)) * time.Millisecond
+			time.Sleep(pause)
 		case <-ctx.Done():
 			log.Info().Msg("stopping voice transmitter due to context cancellation")
 			return
@@ -48,6 +52,5 @@ func (c *audioClient) tx(packets []voice.VoicePacket) {
 		} else {
 			log.Trace().Uint64("packetID", vp.PacketID).Int("length", n).Msg("transmitted voice packet")
 		}
-
 	}
 }
