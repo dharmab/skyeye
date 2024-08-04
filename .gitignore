@@ -59,7 +59,7 @@ third_party/whisper.cpp
 *.bin
 
 # ELF binary
-./skyeye
+/skyeye
 
 # Local dev scripts ignored by default
 scripts/
