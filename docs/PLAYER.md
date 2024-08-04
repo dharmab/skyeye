@@ -28,22 +28,25 @@ This is a silly piece of software for a silly computer game. Don't take it too s
 
 ## Choosing Your Callsign
 
-You need a callsign to use SkyEye. A callsign contains a word followed by a sequence of numbers. SkyEye will make its best effort to figure out your callsign from your in-game name, but it works best if you have a name like `Mobius 1 Reaper` (MOBIUS ONE) or `Hitman 11 Monarch` (HITMAN ONE ONE).
+You need a callsign to use SkyEye. SkyEye will make its best effort to figure out your callsign from your in-game name, but it works best if you have a name like `Mobius 1 | Reaper` (MOBIUS ONE) or `Hitman 11 | Monarch` (HITMAN ONE ONE).
 
 That is:
 
-1. A two or three syllable English word that does not have any homonyms. Avoid compound words for best results.
-2. One or two digits, none of which are 0.
-3. A name that does not contain digits.
+1. A two or three syllable English word.
+2. One to three digits.
+3. A pipe character (`|`)
+3. Your non-callsign username.
 
-Your callsign should be unique within a server. If multiple players have the same callsign, SkyEye will respond but you may receive inconsistent information. Note that callsigns are normalized in capitalization and numbers - "WARDOG 14", "Wardog 14" and "Wardog 1 4" are all considered to be the same callsign.
+Your callsign should be unique within a server. If multiple players have the same callsign, SkyEye will respond but you may receive inconsistent information. Note that callsigns are normalized in capitalization and numbers - "WARDOG 14", "Wardog 14" and "Wardog 1 4" are all considered to be the same callsign. Numbers ar pronounced individually - "Spare 15" is prnounced "Spare One Five", not "Spare Fifteen".
 
 Avoid:
 
 * Names that contain brevity codewords, including "alpha", "radio", "bogey", "picture", "declare", "snaplock", "spiked", "bullseye".
-* Names that are hard to distinguish, like "Spare"/"Spear", "Jester"/"Gesture", "Witch"/"Which". The bot will make a best effort, but may be less accurage.
-* Names that aren't widely recognized words in common parlance, like "Razgriz". The bot will make a best effort, but may be less accurate.
+* Names that are hard to distinguish, like "Spare"/"Spear", "Jester"/"Gesture", "Witch"/"Which". The bot will make a best effort, but may be less accurate.
+* Names that aren't widely recognized words in common parlance, like "Razgriz" or "Beskar". The bot will make a best effort, but may be less accurate.
 * Names in poor taste.
+
+If your callsign doesn't follow this format, SkyEye makes a best effort to understand it while still applying its parser rules. A bare username like "Jeff" (with no numbers) may still work, but do not expect this to work reliably.
 
 ## Using Skyeye
 

@@ -47,11 +47,22 @@ type Radar interface {
 		coalition coalitions.Coalition,
 		category brevity.ContactCategory,
 	) (int, []brevity.Group)
-	// FindNearbyGroups returns all groups within the given radius of the given point of interest, within the given
+	// FindNearbyGroupsWithBRAA returns all groups within the given radius of the given point of interest, within the given
 	// altitude block, filtered by the given coalition and contact category. Each group has BRAA set relative to the
 	// given origin.
-	FindNearbyGroups(
+	FindNearbyGroupsWithBRAA(
 		origin,
+		pointOfInterest orb.Point,
+		minAltitude,
+		maxAltitude,
+		radius unit.Length,
+		coalition coalitions.Coalition,
+		category brevity.ContactCategory,
+	) []brevity.Group
+	// FindNearbyGroupsWithBullseye returns all groups within the given radius of the given point of interest, within the given
+	// altitude block, filtered by the given coalition and contact category. Each group has Bullseye set relative to the
+	// point provided in SetBullseye.
+	FindNearbyGroupsWithBullseye(
 		pointOfInterest orb.Point,
 		minAltitude,
 		maxAltitude,

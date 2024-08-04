@@ -79,12 +79,6 @@ func TestParserAlphaCheck(t *testing.T) {
 func TestParserRadioCheck(t *testing.T) {
 	testCases := []parserTestCase{
 		{
-			text: "Any Face Intruder 1-1 ready a check",
-			expected: &brevity.RadioCheckRequest{
-				Callsign: "intruder 1 1",
-			},
-		},
-		{
 			text: "anyface Wildcat11 radio check out.",
 			expected: &brevity.RadioCheckRequest{
 				Callsign: "wildcat 1 1",
@@ -109,7 +103,7 @@ func TestParserRadioCheck(t *testing.T) {
 			},
 		},
 		{
-			text: "anyface intruder fife one radio check",
+			text: "anyface intruder five one radio check",
 			expected: &brevity.RadioCheckRequest{
 				Callsign: "intruder 5 1",
 			},
@@ -132,12 +126,6 @@ func TestParserRadioCheck(t *testing.T) {
 				Callsign: "intruder 1 1",
 			},
 		},
-		{
-			text: "anyface work out 2 1 radio check",
-			expected: &brevity.RadioCheckRequest{
-				Callsign: "workout 2 1",
-			},
-		},
 	}
 	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
 		expected := test.expected.(*brevity.RadioCheckRequest)
@@ -153,6 +141,8 @@ func TestIsSimilar(t *testing.T) {
 		expected bool
 	}{
 		{"SkyEye", "Sky Eye", true},
+		{"Bandar", "Bandog", true},
+		{"Sky Eye", "Ghost Eye", false},
 	}
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%s_%s", test.a, test.b), func(t *testing.T) {

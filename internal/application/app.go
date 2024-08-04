@@ -260,7 +260,7 @@ func (a *app) parse(ctx context.Context, in <-chan string, out chan<- any) {
 				logger.Info().Any("request", request).Msg("parsed text")
 				out <- request
 			} else {
-				logger.Info().Msg("unable to parse text")
+				logger.Info().Msg("unable to parse text, could be silence, chatter, missing GCI callsign")
 			}
 		}
 	}

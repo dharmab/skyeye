@@ -39,7 +39,7 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 	altitudeMargin := unit.Length(5000) * unit.Foot
 	minAltitude := request.BRA.Altitude() - altitudeMargin
 	maxAltitude := request.BRA.Altitude() + altitudeMargin
-	friendlyGroups := c.scope.FindNearbyGroups(
+	friendlyGroups := c.scope.FindNearbyGroupsWithBRAA(
 		origin,
 		pointOfInterest,
 		minAltitude,
@@ -48,7 +48,7 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 		c.coalition,
 		brevity.Aircraft,
 	)
-	hostileGroups := c.scope.FindNearbyGroups(
+	hostileGroups := c.scope.FindNearbyGroupsWithBRAA(
 		origin,
 		pointOfInterest,
 		minAltitude,
