@@ -334,9 +334,6 @@ func (a *app) compose(ctx context.Context, in <-chan any, out chan<- composer.Na
 			case brevity.FadedCall:
 				logger.Debug().Msg("composing FADED call")
 				response = a.composer.ComposeFadedCall(c)
-			case brevity.VanishedCall:
-				logger.Debug().Msg("composing VANISHED call")
-				response = a.composer.ComposeVanishedCall(c)
 			case brevity.NegativeRadarContactResponse:
 				logger.Debug().Msg("composing NEGATIVE RADAR CONTACT call")
 				response = a.composer.ComposeNegativeRadarContactResponse(c)
