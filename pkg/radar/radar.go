@@ -192,7 +192,7 @@ func (s *scope) handleFade(ctx context.Context, fade sim.Faded) {
 	logger.Info().Msg("removed faded trackfile")
 	if s.fadedCallback != nil {
 		go func() {
-			delay := time.Duration(rand.IntN(30)+30) * time.Second
+			delay := time.Duration(rand.IntN(25)+10) * time.Second
 			timer := time.NewTimer(delay)
 			defer timer.Stop()
 			select {
@@ -205,7 +205,6 @@ func (s *scope) handleFade(ctx context.Context, fade sim.Faded) {
 					s.fadedCallback(grp, trackfile.Contact.Coalition)
 				}
 			}
-
 		}()
 	}
 }
