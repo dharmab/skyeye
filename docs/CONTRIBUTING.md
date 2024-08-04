@@ -59,18 +59,7 @@ Launch the DCS server and SRS server. Load a mission on the DCS server.
 
 You will need to download an OpenAI Whisper model. The main source of these models is [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). The larger models have better accuracy but higher memory consumption and take longer to recognize text. There are also faster distilled models available [here](https://huggingface.co/distil-whisper/distil-medium.en#whispercpp), [although these have some quality trade-offs with the library used in this software.](https://github.com/ggerganov/whisper.cpp/tree/master/models#distilled-models). Whichever model you choose, put the model next to `skyeye.exe`.
 
-Run SkyEye by passing command line flags to `skyeye.exe`. You can run `./skyeye.exe -help` for some hints. A simple example:
-
-```sh
-./skyeye.exe \
-  -telemetry-address=your-tacview-server-ip:42674 \
-  -telemetry-password=yourtelemetrypassword \
-  -srs-server-address=your-srs-server-ip:5002 \
-  -srs-eam-password=yourSRSEAMpassword \
-  -whisper-model=ggml-medium.en.bin
-```
-
-If all goes well, you should see the SkyEye software start up and start logging JSON lines to the console.
+Run SkyEye by passing command line flags to `skyeye.exe`. You can run `./skyeye.exe --help` for an example and a list of available flags. If all goes well, you should see the SkyEye software start up and start logging to the console.
 
 If you get an error, double check the following:
 
@@ -79,9 +68,9 @@ If you get an error, double check the following:
 
 ## Run Using an ACMI File (Experimental)
 
-As an alternative to using a live DCS server, experimental support has been added for loading a `.txt.acmi` or `.acmi.zip` file. Use the `-acmi-file=path/to/file.acmi.zip` flag instead of `-telemetry-address`/`-telemetry-password`.
+As an alternative to using a live DCS server, experimental support has been added for loading a `.txt.acmi` or `.acmi.zip` file. Use the `--acmi-file=path/to/file.acmi.zip` flag instead of `--telemetry-address`/`--telemetry-password`.
 
-Currently, SkyEye will read until the end of the file and continue running. To examine a particular moment in time (e.g. for debugging), use the Tacview Client to clip the ACMI file to one that ends at the moment you want to examine. If demand exists I may add a flag to specify a timestamp via the command line.s
+Currently, SkyEye will read until the end of the file and continue running. To examine a particular moment in time (e.g. for debugging), use the Tacview Client to clip the ACMI file to one that ends at the moment you want to examine. If demand exists I may add a flag to specify a timestamp via the command line.
 
 ## Develop
 
