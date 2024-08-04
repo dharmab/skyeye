@@ -148,7 +148,7 @@ func main() {
 		TelemetryPassword:            *TelemetryPassword,
 		SRSAddress:                   *SRSAddress,
 		SRSConnectionTimeout:         *SRSConnectionTimeout,
-		SRSClientName:                fmt.Sprintf("GCI %s [BOT]", *GCICallsign),
+		SRSClientName:                fmt.Sprintf("GCI %s [BOT]", callsign),
 		SRSExternalAWACSModePassword: *SRSExternalAWACSModePassword,
 		SRSFrequency:                 frequency,
 		Callsign:                     callsign,
@@ -161,19 +161,28 @@ func main() {
 	log.Info().Msg("starting application")
 	for {
 		runCtx, cancel := context.WithTimeout(ctx, *ShiftLength)
-
-		log.Info().Msg("starting new application instance")
-		app, err := application.NewApplication(ctx, config)
-		if err != nil {
-			log.Error().Err(err).Msg("failed to construct application instance")
-			continue
-		}
-		err = app.Run(runCtx, cancel)
-		if err != nil {
-			log.Error().Err(err).Msg("application exited with error")
-			continue
-		}
+		err := runApplication(runCtx, cancel, config)
+		exitOnErr(err)
+		time.Sleep(5 * time.Second)
 	}
+}
+
+func runApplication(ctx context.Context, cancel context.CancelFunc, config conf.Configuration) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error().Any("recovered", r).Msg("!!! APPLICATION PANIC RECOVERY !!!")
+		}
+	}()
+	log.Info().Msg("starting new application instance")
+	app, err := application.NewApplication(ctx, config)
+	if err != nil {
+		return err
+	}
+	err = app.Run(ctx, cancel)
+	if err != nil {
+		log.Error().Err(err).Msg("application exited with error")
+	}
+	return nil
 }
 
 // exitOnErr logs the error and exits the application if the error is not nil.

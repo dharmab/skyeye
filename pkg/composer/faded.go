@@ -17,9 +17,9 @@ func (c *composer) ComposeFadedCall(call brevity.FadedCall) NaturalLanguageRespo
 
 	writeBoth(c.callsign + ", ")
 	if call.Group.Contacts() == 1 {
-		writeBoth("single contact faded")
+		writeBoth("single contact faded,")
 	} else {
-		writeBoth(fmt.Sprintf("%d contacts faded", call.Group.Contacts()))
+		writeBoth(fmt.Sprintf("%d contacts faded,", call.Group.Contacts()))
 	}
 
 	if bullseye := call.Group.Bullseye(); bullseye != nil {

@@ -84,14 +84,12 @@ func (s *scope) FindNearestGroupWithBRAA(
 		unit.Angle(
 			geo.Bearing(origin, grp.point()),
 		) * unit.Degree,
-	)
-	magBearing := bearing.Magnetic(declination)
-	log.Debug().Float64("tru", bearing.Degrees()).Float64("dec", declination.Degrees()).Float64("mag", magBearing.Degrees()).Msg("determined bearing")
+	).Magnetic(declination)
 	_range := unit.Length(geo.Distance(origin, grp.point())) * unit.Meter
 	altitude := trackfile.LastKnown().Altitude
-	aspect := brevity.AspectFromAngle(magBearing, trackfile.Course())
+	aspect := brevity.AspectFromAngle(bearing, trackfile.Course())
 	grp.braa = brevity.NewBRAA(
-		magBearing,
+		bearing,
 		_range,
 		altitude,
 		aspect,

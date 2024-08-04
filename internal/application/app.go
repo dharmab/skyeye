@@ -255,8 +255,8 @@ func (a *app) parse(ctx context.Context, in <-chan string, out chan<- any) {
 		case text := <-in:
 			logger := log.With().Str("text", text).Logger()
 			logger.Info().Msg("parsing text")
-			request, ok := a.parser.Parse(text)
-			if ok {
+			request := a.parser.Parse(text)
+			if request != nil {
 				logger.Info().Any("request", request).Msg("parsed text")
 				out <- request
 			} else {

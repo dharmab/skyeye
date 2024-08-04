@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
-	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 	"github.com/martinlindhe/unit"
@@ -47,7 +46,7 @@ type Configuration struct {
 
 var DefaultCallsigns = []string{"Sky Eye", "Thunderhead", "Eagle Eye", "Ghost Eye", "Sky Keeper", "Bandog", "Long Caster", "Galaxy"}
 
-var DefaultPictureRadius = encyclopedia.NoLaterThanCommitRange(encyclopedia.SAR2OrAR1) + 50*unit.NauticalMile
+var DefaultPictureRadius = 200 * unit.NauticalMile
 
 const DefaultMarginRadius = 3 * unit.NauticalMile
 

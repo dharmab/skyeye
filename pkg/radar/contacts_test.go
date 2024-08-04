@@ -66,7 +66,7 @@ func TestRealCallsigns(t *testing.T) {
 	}
 
 	for i, test := range testCases {
-		parsedCallsign, ok := parser.ParseCallsign(test.Name)
+		parsedCallsign, ok := parser.ParsePilotCallsign(test.Name)
 		require.True(t, ok)
 		foundCallsign, tf, ok := d.getByCallsign(test.heardAs)
 		require.True(t, ok, "queried %s, expected %s, but result was %v", test.heardAs, test.Name, ok)
