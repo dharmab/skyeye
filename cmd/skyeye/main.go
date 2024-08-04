@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/signal"
 	"strings"
@@ -48,11 +49,12 @@ func main() {
 	SRSConnectionTimeout := flag.Duration("srs-connection-timeout", 10*time.Second, "")
 	SRSExternalAWACSModePassword := flag.String("srs-eam-password", "", "SRS external AWACS mode password")
 	SRSFrequency := flag.Float64("srs-frequency", 251.0, "AWACS frequency in MHz")
-	GCICallsign := flag.String("callsign", "Magic", "GCI callsign. Used in radio transmissions")
+	GCICallsign := flag.String("callsign", "", "GCI callsign. Used in radio transmissions")
 	Coalition := flag.String("coalition", "blue", "Coalition (either blue or red)")
 	RadarSweepInterval := flag.Duration("radar-sweep-interval", 2*time.Second, "Radar update tick rate")
 	WhisperModelPath := flag.String("whisper-model", "", "Path to whisper.cpp model")
-	Voice := flag.String("voice", "feminine", "Voice to use for SRS transmissions (feminine, masculine)")
+	Voice := flag.String("voice", "", "Voice to use for SRS transmissions (feminine, masculine)")
+	ShiftLength := flag.Duration("shift-length", 8*time.Hour, "Bot will internally restart on this interval")
 
 	flag.Parse()
 
@@ -103,9 +105,15 @@ func main() {
 
 	var voice voices.Voice
 	switch strings.ToLower(*Voice) {
+	case "":
+		voices := []voices.Voice{voices.FeminineVoice, voices.MasculineVoice}
+		voice = voices[rand.Intn(len(voices))]
+		log.Info().Type("voice", voice).Msg("randomly selected voice")
 	case "feminine":
+		log.Info().Msg("using feminine voice")
 		voice = voices.FeminineVoice
 	case "masculine":
+		log.Info().Msg("using masculine voice")
 		voice = voices.MasculineVoice
 	default:
 		err = fmt.Errorf("unknown voice: %s", *Voice)
@@ -114,19 +122,25 @@ func main() {
 
 	frequency := unit.Frequency(*SRSFrequency) * unit.Megahertz
 
+	callsign := *GCICallsign
+	if callsign == "" {
+		callsign = conf.DefaultCallsigns[rand.Intn(len(conf.DefaultCallsigns))]
+		log.Info().Str("callsign", callsign).Msg("randomly selected callsign")
+	}
+
 	// Configure and run the application.
 	config := conf.Configuration{
 		ACMIFile:                     *ACMIFile,
 		TelemetryAddress:             *TelemetryAddress,
 		TelemetryConnectionTimeout:   *TelemetryConnectionTimeout,
-		TelemetryClientName:          *GCICallsign,
+		TelemetryClientName:          callsign,
 		TelemetryPassword:            *TelemetryPassword,
 		SRSAddress:                   *SRSAddress,
 		SRSConnectionTimeout:         *SRSConnectionTimeout,
 		SRSClientName:                fmt.Sprintf("GCI %s [BOT]", *GCICallsign),
 		SRSExternalAWACSModePassword: *SRSExternalAWACSModePassword,
 		SRSFrequency:                 frequency,
-		Callsign:                     *GCICallsign,
+		Callsign:                     callsign,
 		Coalition:                    coalition,
 		RadarSweepInterval:           *RadarSweepInterval,
 		WhisperModel:                 whisperModel,
@@ -134,10 +148,21 @@ func main() {
 	}
 
 	log.Info().Msg("starting application")
-	app, err := application.NewApplication(ctx, config)
-	exitOnErr(err)
-	err = app.Run(ctx)
-	exitOnErr(err)
+	for {
+		runCtx, cancel := context.WithTimeout(ctx, *ShiftLength)
+
+		log.Info().Msg("starting new application instance")
+		app, err := application.NewApplication(ctx, config)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to construct application instance")
+			continue
+		}
+		err = app.Run(runCtx, cancel)
+		if err != nil {
+			log.Error().Err(err).Msg("application exited with error")
+			continue
+		}
+	}
 }
 
 // exitOnErr logs the error and exits the application if the error is not nil.

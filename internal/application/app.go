@@ -26,7 +26,7 @@ import (
 // Application is the interface for running the SkyEye application.
 type Application interface {
 	// Run runs the SkyEye application. It should be called exactly once.
-	Run(context.Context) error
+	Run(context.Context, context.CancelFunc) error
 }
 
 // app implements the Application.
@@ -144,11 +144,11 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 }
 
 // Run implements Application.Run.
-func (a *app) Run(ctx context.Context) error {
+func (a *app) Run(ctx context.Context, cancel context.CancelFunc) error {
 
 	go func() {
 		log.Info().Msg("running telemetry client")
-		if err := a.tacviewClient.Run(ctx); err != nil {
+		if err := a.tacviewClient.Run(ctx, cancel); err != nil {
 			if !errors.Is(err, context.Canceled) {
 				log.Error().Err(err).Msg("error running telemetry client")
 			}

@@ -45,6 +45,8 @@ type Configuration struct {
 	Voice voices.Voice
 }
 
+var DefaultCallsigns = []string{"SkyEye", "Thunderhead", "EagleEye", "GhostEye", "SnakePit", "SkyKeeper", "Bandog", "LongCaster", "Galaxy"}
+
 var DefaultPictureRadius = encyclopedia.NoLaterThanCommitRange(encyclopedia.SAR2OrAR1) + 50*unit.NauticalMile
 
 const DefaultMarginRadius = 3 * unit.NauticalMile
