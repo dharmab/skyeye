@@ -30,7 +30,7 @@ import (
 type ACMI interface {
 	sim.Sim
 	// Start should be called before Stream() to initialize the ACMI stream.
-	Start(context.Context) error
+	Start(context.Context, context.CancelFunc) error
 }
 
 type streamer struct {
@@ -45,6 +45,7 @@ type streamer struct {
 	updateInterval time.Duration
 	inMultiline    bool
 	coalition      coalitions.Coalition
+	catchUpCounter int
 }
 
 func New(coalition coalitions.Coalition, acmi *bufio.Reader, updateInterval time.Duration) ACMI {
@@ -61,7 +62,7 @@ func New(coalition coalitions.Coalition, acmi *bufio.Reader, updateInterval time
 	}
 }
 
-func (s *streamer) Start(ctx context.Context) error {
+func (s *streamer) Start(ctx context.Context, cancel context.CancelFunc) error {
 	log.Info().Msg("starting ACMI protocol handler")
 	for {
 		select {
@@ -71,8 +72,13 @@ func (s *streamer) Start(ctx context.Context) error {
 			line, err := s.acmi.ReadString('\n')
 			if err != nil {
 				if errors.Is(err, io.EOF) {
-					log.Debug().Msg("caught up to ACMI stream")
+					log.Debug().Int("count", s.catchUpCounter).Msg("caught up to ACMI stream")
+					s.catchUpCounter++
 					time.Sleep(1 * time.Second)
+					if s.catchUpCounter > 120 {
+						log.Warn().Int("count", s.catchUpCounter).Msg("!!! SUSPECTED END OF STREAM - POSSIBLE SERVER RESTART - CANCELING APPLICATION CONTEXT !!!")
+						cancel()
+					}
 				} else {
 					return fmt.Errorf("error reading ACMI stream: %w", err)
 				}

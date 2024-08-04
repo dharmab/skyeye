@@ -264,6 +264,7 @@ var numberWords = map[string]int{
 // Garbage in between the digits is ignored. The result is normalized so that each digit is lowercase and space-delimited.
 func ParseCallsign(tx string) (callsign string, isValid bool) {
 	tx, _, _ = strings.Cut(tx, "|")
+	tx, _, _ = strings.Cut(tx, "#")
 	tx = strings.Trim(tx, " ")
 	for i, char := range tx {
 		if unicode.IsDigit(char) {

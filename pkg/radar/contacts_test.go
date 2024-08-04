@@ -69,7 +69,7 @@ func TestRealCallsigns(t *testing.T) {
 		parsedCallsign, ok := parser.ParseCallsign(test.Name)
 		require.True(t, ok)
 		foundCallsign, tf, ok := d.getByCallsign(test.heardAs)
-		require.True(t, ok)
+		require.True(t, ok, "queried %s, expected %s, but result was %v", test.heardAs, test.Name, ok)
 		require.Equal(t, parsedCallsign, foundCallsign)
 		require.EqualValues(t, uint32(i), tf.Contact.UnitID)
 	}

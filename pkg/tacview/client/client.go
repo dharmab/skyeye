@@ -14,7 +14,7 @@ import (
 )
 
 type Client interface {
-	Run(context.Context) error
+	Run(context.Context, context.CancelFunc) error
 	Bullseye() orb.Point
 	Time() time.Time
 	Close() error
@@ -29,10 +29,10 @@ type tacviewClient struct {
 	missionTime    time.Time
 }
 
-func (c *tacviewClient) run(ctx context.Context, source acmi.ACMI) error {
+func (c *tacviewClient) run(ctx context.Context, cancel context.CancelFunc, source acmi.ACMI) error {
 	c.missionTime = conf.InitialTime
 	go func() {
-		err := source.Start(ctx)
+		err := source.Start(ctx, cancel)
 		if err != nil {
 			log.Error().Err(err).Msg("error starting ACMI client")
 		}

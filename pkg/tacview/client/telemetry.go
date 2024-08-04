@@ -55,7 +55,7 @@ func NewTelemetryClient(
 	}, nil
 }
 
-func (c *telemetryClient) Run(ctx context.Context) error {
+func (c *telemetryClient) Run(ctx context.Context, cancel context.CancelFunc) error {
 	reader := bufio.NewReader(c.connection)
 
 	if err := c.handshake(reader, c.hostname, c.password); err != nil {
@@ -63,7 +63,7 @@ func (c *telemetryClient) Run(ctx context.Context) error {
 	}
 
 	source := acmi.New(c.coalition, reader, c.updateInterval)
-	return c.run(ctx, source)
+	return c.run(ctx, cancel, source)
 }
 
 func (c *telemetryClient) Bullseye() orb.Point {
