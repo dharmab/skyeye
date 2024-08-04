@@ -40,9 +40,10 @@ Your callsign should be unique within a server. If multiple players have the sam
 
 Avoid:
 
-* Names that are hard to distinguish, like "Spare"/"Spear", "Jester"/"Gesture", "Witch"/"Which"
-* Names that aren't widely recognized words in common parlance, like "Razgriz"
-* Names in poor taste
+* Names that contain brevity codewords, including "alpha", "radio", "bogey", "picture", "declare", "snaplock", "spiked", "bullseye".
+* Names that are hard to distinguish, like "Spare"/"Spear", "Jester"/"Gesture", "Witch"/"Which". The bot will make a best effort, but may be less accurage.
+* Names that aren't widely recognized words in common parlance, like "Razgriz". The bot will make a best effort, but may be less accurate.
+* Names in poor taste.
 
 ## Using Skyeye
 
@@ -232,7 +233,7 @@ THUNDERHEAD: "Mobius 1, threat group BRAA 125/10, 8000, hot, hostile, two contac
 
 ### SPIKED
 
-Keyword: `SPIKE` or `SPIKED`
+Keyword: `SPIKED`
 
 Function: You tell the GCI the approximate bearing to an airborne threat on your Radar Warning Receiver (RWR). The GCI responds with information about the nearest potential source within a 30 degree cone in that direction.
 

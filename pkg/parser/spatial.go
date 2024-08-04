@@ -3,7 +3,6 @@ package parser
 import (
 	"bufio"
 	"slices"
-	"strings"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -83,7 +82,7 @@ func (p *parser) parseBearing(scanner *bufio.Scanner) (bearings.Bearing, bool) {
 	digitsParsed := 0
 	for digitsParsed < 3 {
 		for _, char := range scanner.Text() {
-			if d, ok := numberWords[string(char)]; ok {
+			if d, err := numwords.ParseInt(string(char)); err == nil {
 				bearing = bearing*10 + unit.Degree*unit.Angle(d)
 				digitsParsed++
 			}
@@ -153,7 +152,6 @@ func (p *parser) parseNaturalNumber(scanner *bufio.Scanner) (int, bool) {
 	}
 
 	s := scanner.Text()
-	s = strings.ReplaceAll(s, ",", "")
 	d, err := numwords.ParseInt(s)
 	if err != nil {
 		log.Error().Err(err).Str("text", s).Msg("failed to parse natural number")

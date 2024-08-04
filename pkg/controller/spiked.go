@@ -39,14 +39,14 @@ func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
 
 	if nearestGroup == nil {
 		logger.Info().Msg("no hostile groups found within spike cone")
-		c.out <- brevity.SpikedResponse{Callsign: foundCallsign, Status: false}
+		c.out <- brevity.SpikedResponse{Callsign: foundCallsign, Status: false, Bearing: request.Bearing}
 		return
 	}
 
 	logger = logger.With().Str("group", nearestGroup.String()).Logger()
 	logger.Debug().Msg("hostile group found within spike cone")
 	c.out <- brevity.SpikedResponse{
-		Callsign:    request.Callsign,
+		Callsign:    foundCallsign,
 		Status:      true,
 		Bearing:     request.Bearing,
 		Range:       nearestGroup.BRAA().Range(),

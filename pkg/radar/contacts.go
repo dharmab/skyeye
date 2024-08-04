@@ -108,7 +108,7 @@ func (d *database) set(tf *trackfiles.Trackfile) {
 
 	// TODO get this string munging out of here
 	callsign, _, _ := strings.Cut(tf.Contact.Name, "|")
-	callsign, ok := parser.ParseCallsign(callsign)
+	callsign, ok := parser.ParsePilotCallsign(callsign)
 	if !ok {
 		callsign = tf.Contact.Name
 	}
