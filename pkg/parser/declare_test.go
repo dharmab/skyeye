@@ -59,6 +59,18 @@ func TestParserDeclare(t *testing.T) {
 				Track:    brevity.UnknownDirection,
 			},
 		},
+		{
+			text: "Anyface Goblin11, declare 052-77-2000",
+			expected: &brevity.DeclareRequest{
+				Callsign: "goblin 1 1",
+				Location: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(52*unit.Degree),
+					77*unit.NauticalMile,
+				),
+				Altitude: 2000 * unit.Foot,
+				Track:    brevity.UnknownDirection,
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
 		expected := test.expected.(*brevity.DeclareRequest)

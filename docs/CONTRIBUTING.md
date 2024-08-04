@@ -57,7 +57,14 @@ Install [DCS-SRS](http://dcssimpleradio.com/). This can be on a different comput
 
 Launch the DCS server and SRS server. Load a mission on the DCS server.
 
-You will need to download an OpenAI Whisper model. The main source of these models is [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). The larger models have better accuracy but higher memory consumption and take longer to recognize text. There are also faster distilled models available [here](https://huggingface.co/distil-whisper/distil-medium.en#whispercpp), [although these have some quality trade-offs with the library used in this software.](https://github.com/ggerganov/whisper.cpp/tree/master/models#distilled-models). Whichever model you choose, put the model next to `skyeye.exe`.
+You will need to download an OpenAI Whisper model. The main source of these models is [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). The larger models have better accuracy but higher memory consumption and take longer to recognize text. 
+
+Recommended models:
+
+- `ggml-small.en.bin` - Good balance between accuracy and performance on high end hardware, even if you don't speak perfectly clearly.
+- `ggml-tiny.en.bin` - Significantly faster, but requires you to speak more clearly.
+
+Whichever model you choose, put the model next to `skyeye.exe`.
 
 Run SkyEye by passing command line flags to `skyeye.exe`. You can run `./skyeye.exe --help` for an example and a list of available flags. If all goes well, you should see the SkyEye software start up and start logging to the console.
 

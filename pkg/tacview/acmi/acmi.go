@@ -345,7 +345,7 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 		if ok {
 			logger = logger.With().Str("aircraft", acmiName).Logger()
 		}
-		logger.Warn().Str("name", name).Msg("object has no pilot, using unitID as callsign")
+		logger.Trace().Str("name", name).Msg("object has no pilot, using unitID as callsign")
 		callsign = fmt.Sprintf("Unit %d", object.ID)
 	}
 

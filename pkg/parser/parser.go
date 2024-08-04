@@ -3,12 +3,12 @@ package parser
 
 import (
 	"bufio"
-	"fmt"
 	"strings"
 	"unicode"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 	fuzz "github.com/hbollon/go-edlib"
+	"github.com/rodaine/numwords"
 	"github.com/rs/zerolog/log"
 )
 
@@ -45,17 +45,17 @@ const (
 var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, snaplock}
 
 var alternateRequestWords = map[string]string{
-	"ready":     radioCheck,
-	"read your": radioCheck,
-	"bogeido":   bogeyDope,
-	"bokeido":   bogeyDope,
-	"bokey":     bogeyDope,
-	"bokeh":     bogeyDope,
-	"bogeydope": bogeyDope,
-	"okey":      bogeyDope,
-	"boogie":    bogeyDope,
-	"oogie":     bogeyDope,
-	"snap lock": snaplock,
+	"radiocheck": radioCheck,
+	"bogeido":    bogeyDope,
+	"bokeido":    bogeyDope,
+	"bokeydope":  bogeyDope,
+	"bokey":      bogeyDope,
+	"bokeh":      bogeyDope,
+	"bogeydope":  bogeyDope,
+	"okey":       bogeyDope,
+	"boogie":     bogeyDope,
+	"oogie":      bogeyDope,
+	"snap lock":  snaplock,
 }
 
 func IsSimilar(a, b string) bool {
@@ -64,24 +64,19 @@ func IsSimilar(a, b string) bool {
 		log.Error().Err(err).Str("a", a).Str("b", b).Msg("failed to calculate similarity")
 		return false
 	}
-	return v > 0.7
+	return v > 0.6
 }
 
-func (p *parser) findGCICallsign(fields []string) (string, int, bool) {
-	found := false
-	candidate := ""
-	pivot := -1
-	for i, field := range fields {
-		candidate += field
+func (p *parser) findGCICallsign(fields []string) (string, string, bool) {
+	for i := range fields {
+		candidate := strings.Join(fields[:i+1], " ")
 		for _, wakePhrase := range []string{p.gciCallsign, Anyface} {
-			if IsSimilar(candidate, strings.ToLower(wakePhrase)) {
-				found = true
-				pivot = i
-				break
+			if IsSimilar(strings.TrimSpace(candidate), strings.ToLower(wakePhrase)) {
+				return candidate, strings.Join(fields[i+1:], " "), true
 			}
 		}
 	}
-	return candidate, pivot, found
+	return "", "", false
 }
 
 func findRequestWord(fields []string) (string, int, bool) {
@@ -95,10 +90,8 @@ func findRequestWord(fields []string) (string, int, bool) {
 	return "", 0, false
 }
 
-// Parse implements Parser.Parse.
-func (p *parser) Parse(tx string) any {
-	logger := log.With().Str("gci", p.gciCallsign).Logger()
-	logger.Debug().Str("text", tx).Msg("parsing text")
+func normalize(tx string) string {
+	tx, _, _ = strings.Cut(tx, "|")
 	tx = strings.ToLower(tx)
 	tx = strings.ReplaceAll(tx, ",", "")
 	tx = strings.ReplaceAll(tx, ".", "")
@@ -107,12 +100,33 @@ func (p *parser) Parse(tx string) any {
 	for alt, word := range alternateRequestWords {
 		tx = strings.ReplaceAll(tx, alt, string(word))
 	}
-	logger = logger.With().Str("text", tx).Logger()
-	logger.Debug().Msg("normalized text")
+	tx = strings.Join(strings.Fields(tx), " ")
+	return tx
+}
 
+func spaceDigits(tx string) string {
+	txBuilder := strings.Builder{}
+	for _, char := range tx {
+		if unicode.IsDigit(char) {
+			txBuilder.WriteRune(' ')
+		}
+		txBuilder.WriteRune(char)
+
+	}
+	tx = txBuilder.String()
+	return normalize(tx)
+}
+
+// Parse implements Parser.Parse.
+func (p *parser) Parse(tx string) any {
+	logger := log.With().Str("gci", p.gciCallsign).Logger()
+	logger.Debug().Str("text", tx).Msg("parsing text")
+	tx = normalize(tx)
 	if tx == "" {
 		return nil
 	}
+	logger = logger.With().Str("text", tx).Logger()
+	logger.Debug().Msg("normalized text")
 
 	// Tokenize the text.
 	fields := strings.Fields(tx)
@@ -131,24 +145,20 @@ func (p *parser) Parse(tx string) any {
 	// Search the first part of the text for text that looks similar to a GCI
 	// callsign. If we find such text, search the rest for a valid pilot
 	// callsign.
-	_, pivot, foundGCICallsign := p.findGCICallsign(before)
-	if foundGCICallsign {
-		logger.Debug().Int("pivot", pivot).Msg("found GCI callsign")
-	}
+	heardGCICallsign, afterGCICallsign, foundGCICallsign := p.findGCICallsign(before)
 
 	// If we didn't hear the GCI callsign, this was probably chatter rather
 	// than a request.
 	if !foundGCICallsign {
 		logger.Trace().Msg("no GCI callsign found")
 		return nil
+	} else {
+		logger.Debug().Str("heard", heardGCICallsign).Str("after", afterGCICallsign).Msg("found GCI callsign")
 	}
 
-	if len(before) < pivot {
-		logger.Trace().Msg("nothing left to search for pilot callsign")
-		return &brevity.UnableToUnderstandRequest{}
-	}
-
-	pilotCallsign, foundPilotCallsign := ParsePilotCallsign(strings.Join(before[pivot+1:], " "))
+	logger.Debug().Str("rest", afterGCICallsign).Msg("searching for pilot callsign in rest of text")
+	afterGCICallsign = numwords.ParseString(afterGCICallsign)
+	pilotCallsign, foundPilotCallsign := ParsePilotCallsign(afterGCICallsign)
 	if foundPilotCallsign {
 		logger = logger.With().Str("pilot", pilotCallsign).Logger()
 		logger.Debug().Msg("found pilot callsign")
@@ -166,7 +176,6 @@ func (p *parser) Parse(tx string) any {
 	}
 
 	// Try to parse a request from the remaining text.
-
 	switch requestWord {
 	case alphaCheck:
 		return &brevity.AlphaCheckRequest{Callsign: pilotCallsign}
@@ -200,103 +209,42 @@ func (p *parser) Parse(tx string) any {
 			return request
 		}
 	}
+	logger.Debug().Msg("unrecognized request")
 	return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
-}
-
-var numberWords = map[string]int{
-	"0":    0,
-	"zero": 0,
-	//"o":     0,
-	"oh":    0,
-	"1":     1,
-	"one":   1,
-	"wun":   1,
-	"2":     2,
-	"two":   2,
-	"3":     3,
-	"three": 3,
-	"tree":  3,
-	"4":     4,
-	"four":  4,
-	"fower": 4,
-	"5":     5,
-	"five":  5,
-	"fife":  5,
-	"6":     6,
-	"six":   6,
-	"7":     7,
-	"seven": 7,
-	"8":     8,
-	"eight": 8,
-	"ait":   8,
-	"9":     9,
-	"nine":  9,
-	"niner": 9,
 }
 
 // ParsePilotCallsign attempts to parse a callsign in one of the following formats:
 //
 // - A single word, followed by a number consisting of any digits
 //
-// - A number consisting of any digits
+// - A number consisting of up to 3 digits
 //
 // Garbage in between the digits is ignored. The result is normalized so that each digit is lowercase and space-delimited.
 func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
-	tx, _, _ = strings.Cut(tx, "|")
-	tx, _, _ = strings.Cut(tx, "#")
-	tx = strings.Trim(tx, " ")
-	for i, char := range tx {
-		if unicode.IsDigit(char) {
-			tx = fmt.Sprintf("%s %s", strings.TrimSpace(tx[:i]), strings.TrimSpace(tx[i:]))
+	tx = normalize(tx)
+	tx = spaceDigits(tx)
+	log.Trace().Str("tx", tx).Msg("normalized text")
+
+	var builder strings.Builder
+	numDigits := 0
+	for _, char := range tx {
+		if numDigits >= 3 {
 			break
 		}
-	}
-	var scanner = bufio.NewScanner(strings.NewReader(tx))
-	scanner.Split(bufio.ScanWords)
-
-	ok := scanner.Scan()
-	if !ok {
-		return
-	}
-	firstToken := scanner.Text()
-	if firstToken == "" {
-		return
-	}
-	callsign, ok = appendNumber(callsign, firstToken)
-	if !ok {
-		callsign = firstToken
-	} else {
-		isValid = true
-	}
-
-	for scanner.Scan() {
-		nextToken := scanner.Text()
-		// Handle single digit
-		s, ok := appendNumber(callsign, nextToken)
-		if ok {
-			callsign = s
-			isValid = true
-		} else {
-			// Handle case where multiple digits are not space-delimited
-			for _, char := range nextToken {
-				s, ok := appendNumber(callsign, string(char))
-				if ok {
-					callsign = s
-					isValid = true
-				}
-			}
-			if !isValid {
-				callsign = fmt.Sprintf("%s%s", callsign, nextToken)
-			}
+		if unicode.IsDigit(char) {
+			numDigits++
+		}
+		if numDigits == 0 || unicode.IsDigit(char) || unicode.IsSpace(char) {
+			builder.WriteRune(char)
 		}
 	}
-	callsign = strings.ToLower(callsign)
-	return
-}
 
-func appendNumber(callsign string, number string) (string, bool) {
-	if d, ok := numberWords[number]; ok {
-		return fmt.Sprintf("%s %d", callsign, d), true
+	callsign = spaceDigits(normalize(builder.String()))
+	if callsign == "" {
+		return "", false
 	}
-	return callsign, false
+
+	log.Debug().Str("callsign", callsign).Str("text", tx).Msg("parsed callsign")
+	return callsign, true
+
 }
