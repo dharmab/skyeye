@@ -103,6 +103,7 @@ install-debian-dependencies:
 install-macos-dependencies:
 	brew install \
 	  git \
+	  go \
 	  opus \
 	  libsoxr
 
