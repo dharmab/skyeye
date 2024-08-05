@@ -11,13 +11,13 @@ import (
 )
 
 // findGroupForAircraft creates a new group for the given trackfile and adds all nearby aircraft which can be considered part of the group.
-func (s *scope) findGroupForAircraft(tf *trackfiles.Trackfile) *group {
-	if tf == nil {
+func (s *scope) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {
+	if trackfile == nil {
 		return nil
 	}
 	grp := newGroupUsingBullseye(s.bullseye)
-	grp.contacts = append(grp.contacts, tf)
-	s.addNearbyAircraftToGroup(tf, grp)
+	grp.contacts = append(grp.contacts, trackfile)
+	s.addNearbyAircraftToGroup(trackfile, grp)
 	return grp
 }
 

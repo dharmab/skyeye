@@ -26,17 +26,20 @@ func TestGetByCallsign(t *testing.T) {
 	}
 	d.set(trackfile)
 
-	name, tf, ok := d.getByCallsign("mobius 1")
+	name, tf, ok := d.getByCallsignAndCoalititon("mobius 1", coalitions.Blue)
 	require.True(t, ok)
 	require.Equal(t, "mobius 1", name)
 	require.EqualValues(t, trackfile, tf)
 
-	name, tf, ok = d.getByCallsign("moebius 1")
+	_, _, ok = d.getByCallsignAndCoalititon("mobius 1", coalitions.Red)
+	require.False(t, ok)
+
+	name, tf, ok = d.getByCallsignAndCoalititon("moebius 1", coalitions.Blue)
 	require.True(t, ok)
 	require.Equal(t, "mobius 1", name)
 	require.EqualValues(t, trackfile, tf)
 
-	_, _, ok = d.getByCallsign("yellow 13")
+	_, _, ok = d.getByCallsignAndCoalititon("yellow 13", coalitions.Red)
 	require.False(t, ok)
 }
 
@@ -68,7 +71,7 @@ func TestRealCallsigns(t *testing.T) {
 	for i, test := range testCases {
 		parsedCallsign, ok := parser.ParsePilotCallsign(test.Name)
 		require.True(t, ok)
-		foundCallsign, tf, ok := d.getByCallsign(test.heardAs)
+		foundCallsign, tf, ok := d.getByCallsignAndCoalititon(test.heardAs, coalitions.Blue)
 		require.True(t, ok, "queried %s, expected %s, but result was %v", test.heardAs, test.Name, ok)
 		require.Equal(t, parsedCallsign, foundCallsign)
 		require.EqualValues(t, uint32(i), tf.Contact.UnitID)
