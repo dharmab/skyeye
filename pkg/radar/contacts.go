@@ -151,12 +151,18 @@ func (d *database) itr() databaseIterator {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
 
+	// Iterate over a copy, for thread safety
 	unitIds := make([]uint32, 0, len(d.contacts))
+	copy := make(map[uint32]*trackfiles.Trackfile)
 	for unitId := range d.contacts {
 		unitIds = append(unitIds, unitId)
+		copy[unitId] = d.contacts[unitId]
 	}
 
-	return newDatabaseIterator(unitIds, d.getByUnitID)
+	return newDatabaseIterator(unitIds, func(id uint32) (*trackfiles.Trackfile, bool) {
+		contact, ok := copy[id]
+		return contact, ok
+	})
 }
 
 type iterator struct {
