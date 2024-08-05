@@ -7,7 +7,6 @@
     },
     "go.alternateTools": {
         "go": "c:\\msys64\\mingw64\\bin\\go.exe",
-        "LIBRARY_PATH": "${workspaceFolder}/third_party/whisper.cpp/"
     },
     "logViewer.watch": [
         {
