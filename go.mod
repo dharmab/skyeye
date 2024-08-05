@@ -3,7 +3,6 @@ module github.com/dharmab/skyeye
 go 1.22.1
 
 require (
-	github.com/amitybell/piper v0.0.0-20240130090909-b170e42b1e09
 	github.com/amitybell/piper-asset v0.0.0-20231030194325-d36a29e3b1fd
 	github.com/amitybell/piper-voice-alan v0.0.0-20231118093148-059963c24dbd
 	github.com/amitybell/piper-voice-jenny v0.0.0-20231118093224-dcf0d49e46b7
@@ -13,6 +12,7 @@ require (
 	github.com/hbollon/go-edlib v1.6.0
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6
+	github.com/nabbl/piper v0.0.0-20240805090620-b2bece3d75e2
 	github.com/paulmach/orb v0.11.1
 	github.com/proway2/go-igrf v0.5.1
 	github.com/rodaine/numwords v0.0.0-20200910203654-405f4a455f79
@@ -44,6 +44,7 @@ require (
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/nabbl/piper-bin-macos v0.0.0-20240805085459-7f1b1df8c68d // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/amitybell/piper"
+	"github.com/nabbl/piper"
 	asset "github.com/amitybell/piper-asset"
 	masculine "github.com/amitybell/piper-voice-alan"
 	feminine "github.com/amitybell/piper-voice-jenny"

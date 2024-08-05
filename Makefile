@@ -8,6 +8,14 @@ else
 default: $(SKYEYE_ELF)
 endif
 
+UNAME_M := $(shell uname -m)
+
+ifeq ($(UNAME_M),arm64)
+GOARCH = arm64
+else
+GOARCH = amd64
+endif
+
 .PHONY: install-msys2-dependencies
 install-msys2-dependencies:
 	pacman -Syu --needed git base-devel $(MINGW_PACKAGE_PREFIX)-toolchain $(MINGW_PACKAGE_PREFIX)-go $(MINGW_PACKAGE_PREFIX)-opus $(MINGW_PACKAGE_PREFIX)-libsoxr
@@ -20,6 +28,10 @@ install-arch-linux-dependencies:
 install-debian-dependencies:
 	sudo apt-get update
 	sudo apt-get install -y git libasound2-dev libopus-dev libsoxr-dev
+
+.PHONY: install-darwin-dependencies
+install-darwin-dependencies:
+	brew install git opus libsoxr
 
 WHISPER_CPP_PATH = third_party/whisper.cpp
 LIBWHISPER_PATH = $(WHISPER_CPP_PATH)/libwhisper.a
@@ -40,7 +52,7 @@ SKYEYE_PATH = $(shell pwd)
 SKYEYE_SOURCES = $(shell find . -type f -name '*.go')
 SKYEYE_SOURCES += go.mod go.sum
 
-BUILD_VARS = CGO_ENABLED=1 C_INCLUDE_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" LIBRARY_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)"
+BUILD_VARS = CGO_ENABLED=1 C_INCLUDE_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" LIBRARY_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" GOARCH=$(GOARCH)
 BUILD_TAGS = -tags nolibopusfile
 
 MSYS2_GOPATH = /mingw64
