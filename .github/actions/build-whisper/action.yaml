@@ -9,6 +9,10 @@ inputs:
     description: 'The operating system to build for'
     required: true
     default: 'linux'
+  arch:
+    description: 'The architecture to build for'
+    required: true
+    default: 'amd64'
   shell:
     description: 'The shell to use'
     required: true
@@ -23,7 +27,7 @@ runs:
         path: |
           third_party/whisper.cpp/libwhisper.a
           third_party/whisper.cpp/*.h
-        key: whisper-${{ inputs.whisper-cpp-version }}-${{ inputs.os }}-amd64-cache
+        key: whisper-${{ inputs.whisper-cpp-version }}-${{ inputs.os }}-{{ inputs.arch }}-cache
     - name: Checkout whisper.cpp
       if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
       uses: actions/checkout@v4
@@ -40,6 +44,7 @@ runs:
       run: |
         echo "C_INCLUDE_PATH=${{ github.workspace }}/third_party/whisper.cpp/" >> $GITHUB_ENV
         echo "LIBRARY_PATH=${{ github.workspace }}/third_party/whisper.cpp/" >> $GITHUB_ENV
+        echo "GOARCH=${{ inputs.arch }}" >> $GITHUB_ENV
     - name: Save whisper.cpp artifacts
       if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
       id: cache-whisper-save
