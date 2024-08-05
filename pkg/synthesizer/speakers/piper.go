@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/amitybell/piper"
 	asset "github.com/amitybell/piper-asset"
 	masculine "github.com/amitybell/piper-voice-alan"
 	feminine "github.com/amitybell/piper-voice-jenny"
 	"github.com/dharmab/skyeye/pkg/pcm"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
+	"github.com/nabbl/piper"
 	"github.com/rs/zerolog/log"
 	"github.com/zaf/resample"
 )

@@ -14,6 +14,13 @@ Requirements to develop SkyEye:
 
 ## Build
 
+### General
+
+If you do not use Windows as a platform but want to use VSCode for Go development you need to adjust the workspace settings of Vscode, otherwise the go extensions won't work:
+```sh
+ cp -f .vscode/settings_linuxbased.json .vscode/settings.json
+```
+
 ### Windows
 
 I apologize upfront for how involved the setup is on Windows. I tried putting it all in Docker but Docker Desktop's latency is terrible and the bot wasn't able to transmit audio consistently. Oh well...
@@ -46,6 +53,24 @@ make install-debian-dependencies
 Run `make` to build `skyeye`.
 
 Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
+
+### MACOS (experimental)
+
+Clone this Git repository somewhere, and navigate to it in the terminal
+
+Run the following to install dependency libraries:
+
+First install [Homebrew](https://brew.sh/).
+
+```sh
+make install-darwin-dependencies
+```
+
+Run `make` to build `skyeye`.
+
+Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
+
+This was tested on a Macbook Pro M3
 
 ## Run Against a Live Server
 
