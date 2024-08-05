@@ -3,7 +3,7 @@ package radar
 
 import (
 	"context"
-	"math/rand/v2"
+	"sync"
 	"time"
 
 	"github.com/dharmab/skyeye/internal/conf"
@@ -30,7 +30,7 @@ type Radar interface {
 	// Declination returns the magnetic declination at the given point, at the time provided in SetMissionTime.
 	Declination(orb.Point) unit.Angle
 	// Run consumes updates from the simulation channels until the context is cancelled.
-	Run(context.Context)
+	Run(context.Context, *sync.WaitGroup)
 	// FindCallsign returns the trackfile on the given coalition that mosty closely matches the given callsign,
 	// or nil if no closely matching trackfile was found.
 	// The first return value is the callsign of the trackfile, and the second is the trackfile itself.
@@ -145,15 +145,20 @@ func (s *scope) Bullseye() orb.Point {
 }
 
 // Run implements [Radar.Run]
-func (s *scope) Run(ctx context.Context) {
+func (s *scope) Run(ctx context.Context, wg *sync.WaitGroup) {
 	ticker := time.NewTicker(60 * time.Second)
 	defer ticker.Stop()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		s.collectFaded(ctx)
+	}()
+
 	for {
 		select {
 		case update := <-s.updates:
 			s.handleUpdate(update)
-		case fade := <-s.fades:
-			s.handleFade(ctx, fade)
 		case <-ticker.C:
 			s.handleGarbageCollection()
 		case <-ctx.Done():
@@ -178,46 +183,6 @@ func (s *scope) handleUpdate(update sim.Updated) {
 		trackfile = trackfiles.NewTrackfile(update.Labels)
 		s.contacts.set(trackfile)
 		logger.Info().Msg("created new trackfile")
-	}
-}
-
-// handleFade removes any trackfiles for the faded unit.
-func (s *scope) handleFade(ctx context.Context, fade sim.Faded) {
-	trackfile, ok := s.contacts.getByUnitID(fade.UnitID)
-	if !ok {
-		log.Trace().Uint32("unitID", fade.UnitID).Msg("faded trackfile not found - probably not an aircraft")
-		return
-	}
-	logger := log.With().
-		Int("unitID", int(fade.UnitID)).
-		Str("name", trackfile.Contact.Name).
-		Str("aircraft", trackfile.Contact.ACMIName).
-		Logger()
-
-	if !ok {
-		logger.Warn().Msg("faded trackfile not found")
-		return
-	}
-	grp := newGroupUsingBullseye(s.bullseye)
-	grp.contacts = append(grp.contacts, trackfile)
-	s.contacts.delete(fade.UnitID)
-	logger.Info().Msg("removed faded trackfile")
-	if s.fadedCallback != nil {
-		go func() {
-			delay := time.Duration(rand.IntN(25)+10) * time.Second
-			timer := time.NewTimer(delay)
-			defer timer.Stop()
-			select {
-			case <-ctx.Done():
-				log.Info().Msg("stopping FADED goroutine due to context cancellation")
-				return
-			case <-timer.C:
-				if _, ok := s.contacts.getByUnitID(fade.UnitID); !ok {
-					log.Info().Uint32("unitID", fade.UnitID).Str("group", grp.String()).Msg("calling faded callback for group")
-					s.fadedCallback(grp, trackfile.Contact.Coalition)
-				}
-			}
-		}()
 	}
 }
 
