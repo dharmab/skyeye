@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
@@ -21,7 +22,7 @@ type DataClient interface {
 	// Name returns the name of the client as it appears in the SRS client list and in in-game transmissions.
 	Name() string
 	// Run starts the SRS data client. It should be called exactly once. The given channel will be closed when the client is ready.
-	Run(context.Context, chan<- any) error
+	Run(context.Context, *sync.WaitGroup, chan<- any) error
 	// Send sends a message to the SRS server.
 	Send(types.Message) error
 }
@@ -79,7 +80,7 @@ func (c *dataClient) Name() string {
 }
 
 // Run implements DataClient.Run.
-func (c *dataClient) Run(ctx context.Context, readyCh chan<- any) error {
+func (c *dataClient) Run(ctx context.Context, wg *sync.WaitGroup, readyCh chan<- any) error {
 	log.Info().Msg("SRS data client starting")
 	defer func() {
 		if err := c.close(); err != nil {
@@ -90,7 +91,9 @@ func (c *dataClient) Run(ctx context.Context, readyCh chan<- any) error {
 	messageChan := make(chan types.Message)
 	errorChan := make(chan error)
 
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		reader := bufio.NewReader(c.connection)
 		for {
 			if ctx.Err() != nil {

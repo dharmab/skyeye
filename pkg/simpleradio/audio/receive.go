@@ -18,7 +18,11 @@ const maxRxGap = 300 * time.Millisecond
 func (c *audioClient) receiveUDP(ctx context.Context, pingCh chan<- []byte, voiceCh chan<- []byte) {
 	for {
 		if ctx.Err() != nil {
-			log.Error().Err(ctx.Err()).Msg("stopping packet receiver due to context error")
+			if ctx.Err() == context.Canceled {
+				log.Info().Msg("stopping packet receiver due to context cancellation")
+			} else {
+				log.Error().Err(ctx.Err()).Msg("stopping packet receiver due to context error")
+			}
 			return
 		}
 

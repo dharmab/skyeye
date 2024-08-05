@@ -23,7 +23,7 @@ type AudioClient interface {
 	// Frequency returns the SRS frequency this client is configured to receive and transmit on in Hz.
 	Frequency() float64
 	// Run executes the control loops of the SRS audio client. It should be called exactly once. When the context is canceled or if the client encounters a non-recoverable error, the client will close its resources.
-	Run(context.Context) error
+	Run(context.Context, *sync.WaitGroup) error
 	// Transmit queues the given audio to play on the audio client's SRS frequency.
 	Transmit(Audio)
 	// Receive returns a channel which receives audio from the audio client's SRS frequency.
@@ -91,21 +91,30 @@ func (c *audioClient) Frequency() float64 {
 }
 
 // Run implements AudioClient.Run
-func (c *audioClient) Run(ctx context.Context) error {
+func (c *audioClient) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	defer func() {
 		if err := c.close(); err != nil {
 			log.Error().Err(err).Msg("error closing SRS client")
 		}
 	}()
+	defer c.close()
 
 	// We need to send pings to the server to keep our connection alive. The server won't send us any audio until it receives a ping from us.
-	go c.sendPings(ctx)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		c.sendPings(ctx, wg)
+	}()
 
 	// udpPingRxChan is a channel for received ping packets.
 	udpPingRxChan := make(chan []byte, 0xF)
 
 	// Handle incoming pings - mostly for debugging. We don't need to echo them back.
-	go c.receivePings(ctx, udpPingRxChan)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		c.receivePings(ctx, udpPingRxChan)
+	}()
 
 	// udpVoiceRxChan is a channel for received voice packets.
 	udpVoiceRxChan := make(chan []byte, 64*0xFFFFF) // TODO configurable packet buffer size
@@ -113,22 +122,39 @@ func (c *audioClient) Run(ctx context.Context) error {
 	voiceBytesRxChan := make(chan []voice.VoicePacket, 0xFFFFF) // TODO configurable tranmission buffer size
 
 	// receive voice packets and decode them. This is the logic for receiving audio from the SRS server.
-	go c.receiveVoice(ctx, udpVoiceRxChan, voiceBytesRxChan)
-	go c.decodeVoice(ctx, voiceBytesRxChan)
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		c.receiveVoice(ctx, udpVoiceRxChan, voiceBytesRxChan)
+	}()
+	go func() {
+		defer wg.Done()
+		c.decodeVoice(ctx, voiceBytesRxChan)
+	}()
 
 	// voicePacketsTxChan is a channel for transmissions which are ready to send.
 	voicePacketsTxChan := make(chan []voice.VoicePacket, 3)
 
 	// transmit queued audio. This is the logic for sending audio to the SRS server.
-	go c.encodeVoice(ctx, voicePacketsTxChan)
-	go c.transmit(ctx, voicePacketsTxChan)
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		c.encodeVoice(ctx, voicePacketsTxChan)
+	}()
+	go func() {
+		defer wg.Done()
+		c.transmit(ctx, voicePacketsTxChan)
+	}()
 
 	// Start listening for incoming UDP packets and routing them to receivePings and receiveVoice.
-	go c.receiveUDP(ctx, udpPingRxChan, udpVoiceRxChan)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		c.receiveUDP(ctx, udpPingRxChan, udpVoiceRxChan)
+	}()
 
 	// Sit and wait, until the context is canceled.
 	<-ctx.Done()
-	c.close()
 	return nil
 }
 

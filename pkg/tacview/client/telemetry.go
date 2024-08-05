@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
@@ -55,7 +56,7 @@ func NewTelemetryClient(
 	}, nil
 }
 
-func (c *telemetryClient) Run(ctx context.Context, cancel context.CancelFunc) error {
+func (c *telemetryClient) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	reader := bufio.NewReader(c.connection)
 
 	if err := c.handshake(reader, c.hostname, c.password); err != nil {
@@ -63,7 +64,7 @@ func (c *telemetryClient) Run(ctx context.Context, cancel context.CancelFunc) er
 	}
 
 	source := acmi.New(c.coalition, reader, c.updateInterval)
-	return c.run(ctx, cancel, source)
+	return c.run(ctx, wg, source)
 }
 
 func (c *telemetryClient) Bullseye() orb.Point {

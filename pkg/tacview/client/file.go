@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
@@ -74,10 +75,10 @@ func openFile(path string) (io.ReadCloser, error) {
 	return acmi, nil
 }
 
-func (c *fileClient) Run(ctx context.Context, cancel context.CancelFunc) error {
+func (c *fileClient) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	reader := bufio.NewReader(c.file)
 	acmi := acmi.New(c.coalition, reader, c.updateInterval)
-	return c.tacviewClient.run(ctx, cancel, acmi)
+	return c.tacviewClient.run(ctx, wg, acmi)
 }
 
 func (c *fileClient) Bullseye() orb.Point {
