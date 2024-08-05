@@ -2,6 +2,11 @@
     "go.toolsEnvVars": {
         "CGO_ENABLED": "1",
         "C_INCLUDE_PATH": "${workspaceFolder}/third_party/whisper.cpp/",
+        "LIBRARY_PATH": "${workspaceFolder}/third_party/whisper.cpp/",
+        "GOROOT": "c:\\msys64\\mingw64\\lib\\go",
+    },
+    "go.alternateTools": {
+        "go": "c:\\msys64\\mingw64\\bin\\go.exe",
         "LIBRARY_PATH": "${workspaceFolder}/third_party/whisper.cpp/"
     },
     "logViewer.watch": [
