@@ -54,12 +54,14 @@ Clone this Git repository somewhere, and navigate to it in your favorite termina
 Run the following to install dependency libraries:
 
 ```sh
-make install-darwin-dependencies
+make install-macos-dependencies
 ```
 
 Run `make` to build `skyeye`.
 
-_This was tested on a Macbook Pro M3 by a contributor. The maintainer does not currently have any Apple Sillicon hardware for regression testing. Your mileage may vary._
+Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
+
+_macOS support was graciously contributed to this repo by a contributor testing using a Macbook Pro with M3. The project maintainer does not have an Apple Silicon device for regression and QA testing, so macOS is currently marked as experimental._
 
 ## Run Against a Live Server
 

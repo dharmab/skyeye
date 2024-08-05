@@ -13,10 +13,18 @@ inputs:
     description: 'The operating system to build for'
     required: true
     default: 'linux'
+  arch:
+    description: 'The architecture to build for'
+    required: true
+    default: 'amd64'
   shell:
     description: 'The shell to use'
     required: true
     default: 'bash'
+  cc:
+    description: 'The C compiler to use'
+    required: true
+    default: 'gcc'
 runs:
   using: composite
   steps:
@@ -27,9 +35,7 @@ runs:
         path: |
           third_party/whisper.cpp/libwhisper.a
           third_party/whisper.cpp/*.h
-        # Increment the number after the version if the cache must be invalidated within a version
-        # v1.6.2-openmp-1: OpenBLAS support on Windows/Linux, OpenMP support on all platforms
-        key: whisper-${{ inputs.whisper-cpp-version }}-1-${{ inputs.os }}-amd64-cache
+        key: whisper-${{ inputs.whisper-cpp-version }}-${{ inputs.os }}-{{ inputs.arch }}-cache
     - name: Checkout whisper.cpp
       if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
       uses: actions/checkout@v4
@@ -40,7 +46,7 @@ runs:
     - name: Build whisper.cpp
       if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
       env:
-        CC: gcc
+        CC: ${{ inputs.cc }}
       shell: ${{ inputs.shell }}
       run: make whisper
     - name: Set whisper paths
@@ -48,6 +54,7 @@ runs:
       run: |
         echo "C_INCLUDE_PATH=${{ github.workspace }}/third_party/whisper.cpp/" >> $GITHUB_ENV
         echo "LIBRARY_PATH=${{ github.workspace }}/third_party/whisper.cpp/" >> $GITHUB_ENV
+        echo "GOARCH=${{ inputs.arch }}" >> $GITHUB_ENV
     - name: Save whisper.cpp artifacts
       if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
       id: cache-whisper-save
