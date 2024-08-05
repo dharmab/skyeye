@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"reflect"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -42,7 +43,6 @@ var (
 	telemetryUpdateInterval      time.Duration
 	whisperModelPath             string
 	voiceName                    string
-	shiftLength                  time.Duration
 )
 
 func init() {
@@ -79,9 +79,6 @@ func init() {
 	_ = skyeye.MarkFlagRequired("whisper-model")
 	voiceFlag := NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine)")
-
-	// Lifecycle
-	skyeye.Flags().DurationVar(&shiftLength, "shift-length", 8*time.Hour, "Interval at which bot internally restarts")
 }
 
 // Top-level CLI command
@@ -100,20 +97,6 @@ var skyeye = &cobra.Command{
 }
 
 func main() {
-	// Set up an application-scoped context and a cancel function to shut down the application.
-	_, cancel := context.WithCancel(context.Background())
-
-	// Set up a signal handler to shut down the application when an interrupt or TERM signal is received.
-	interuptChan := make(chan os.Signal, 1)
-	signal.Notify(interuptChan, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		s := <-interuptChan
-		log.Info().Any("signal", s).Msg("received shutdown signal")
-		cancel()
-		time.Sleep(time.Second)
-		os.Exit(0)
-	}()
-
 	if err := skyeye.Execute(); err != nil {
 		log.Error().Err(err).Msg("application exited with error")
 		os.Exit(1)
@@ -224,9 +207,24 @@ func loadFrequency() (frequency unit.Frequency) {
 }
 
 func Supervise(cmd *cobra.Command, args []string) {
-	ctx := context.Context(context.Background())
+	// Set up an application-scoped context and a cancel function to shut down the application.
+	ctx, cancel := context.WithCancel(context.Background())
 
+	// Set up logging
 	setupLogging()
+
+	log.Info().Msg("setting up interrupt and TERM signal handler")
+	interuptChan := make(chan os.Signal, 1)
+	signal.Notify(interuptChan, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		s := <-interuptChan
+		log.Info().Any("signal", s).Msg("received shutdown signal")
+		cancel()
+		time.Sleep(1 * time.Second)
+		os.Exit(0)
+	}()
+
+	log.Info().Msg("loading configuration")
 	coalition := loadCoalition()
 	whisperModel := loadWhisperModel()
 	rando := randomizer()
@@ -234,7 +232,6 @@ func Supervise(cmd *cobra.Command, args []string) {
 	callsign := loadCallsign(rando)
 	frequency := loadFrequency()
 
-	// Configure and run the application.
 	config := conf.Configuration{
 		ACMIFile:                     acmiFile,
 		TelemetryAddress:             telemetryAddress,
@@ -254,15 +251,12 @@ func Supervise(cmd *cobra.Command, args []string) {
 	}
 
 	log.Info().Msg("starting application")
-	for {
-		runCtx, cancel := context.WithTimeout(ctx, shiftLength)
-		err := runApplication(runCtx, cancel, config)
-		exitOnErr(err)
-		time.Sleep(5 * time.Second)
-	}
+	var wg sync.WaitGroup
+	err := runApplication(ctx, &wg, config)
+	exitOnErr(err)
 }
 
-func runApplication(ctx context.Context, cancel context.CancelFunc, config conf.Configuration) error {
+func runApplication(ctx context.Context, wg *sync.WaitGroup, config conf.Configuration) error {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Error().Any("recovered", r).Msg("!!! APPLICATION PANIC RECOVERY !!!")
@@ -273,10 +267,11 @@ func runApplication(ctx context.Context, cancel context.CancelFunc, config conf.
 	if err != nil {
 		return err
 	}
-	err = app.Run(ctx, cancel)
+	err = app.Run(ctx, wg)
 	if err != nil {
 		log.Error().Err(err).Msg("application exited with error")
 	}
+	wg.Wait()
 	return nil
 }
 

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/dharmab/skyeye/internal/conf"
@@ -26,7 +27,7 @@ import (
 // Application is the interface for running the SkyEye application.
 type Application interface {
 	// Run runs the SkyEye application. It should be called exactly once.
-	Run(context.Context, context.CancelFunc) error
+	Run(context.Context, *sync.WaitGroup) error
 }
 
 // app implements the Application.
@@ -144,18 +145,23 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 }
 
 // Run implements Application.Run.
-func (a *app) Run(ctx context.Context, cancel context.CancelFunc) error {
+func (a *app) Run(ctx context.Context, wg *sync.WaitGroup) error {
 
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		log.Info().Msg("running telemetry client")
-		if err := a.tacviewClient.Run(ctx, cancel); err != nil {
+		if err := a.tacviewClient.Run(ctx, wg); err != nil {
 			if !errors.Is(err, context.Canceled) {
 				log.Error().Err(err).Msg("error running telemetry client")
 			}
 		}
+
 	}()
 
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		log.Info().Msg("updating mission time and bullseye")
 		ticker := time.NewTicker(1 * time.Second)
 		defer ticker.Stop()
@@ -172,9 +178,11 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc) error {
 		}
 	}()
 
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		log.Info().Msg("running SRS client")
-		if err := a.srsClient.Run(ctx); err != nil {
+		if err := a.srsClient.Run(ctx, wg); err != nil {
 			if !errors.Is(err, context.Canceled) {
 				log.Error().Err(err).Msg("error running SRS client")
 			}
@@ -189,38 +197,50 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc) error {
 
 	log.Info().Msg("starting subroutines")
 	log.Info().Msg("starting speech recognition routine")
-	go a.recognize(ctx, rxTextChan)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		a.recognize(ctx, rxTextChan)
+	}()
 	log.Info().Msg("starting speech-to-text parsing routine")
-	go a.parse(ctx, rxTextChan, requestChan)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		a.parse(ctx, rxTextChan, requestChan)
+	}()
 	log.Info().Msg("starting radar scope routine")
-	go a.radar.Run(ctx)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		a.radar.Run(ctx)
+	}()
 	log.Info().Msg("starting GCI controller routine")
-	go a.control(ctx, requestChan, responseAndCallsChan)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		a.control(ctx, wg, requestChan, responseAndCallsChan)
+	}()
 	log.Info().Msg("starting response composer routine")
-	go a.compose(ctx, responseAndCallsChan, txTextChan)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		a.compose(ctx, responseAndCallsChan, txTextChan)
+	}()
 	log.Info().Msg("starting speech synthesis routine")
-	go a.synthesize(ctx, txTextChan, txAudioChan)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		a.synthesize(ctx, txTextChan, txAudioChan)
+	}()
 	log.Info().Msg("starting radio transmission routine")
-	go a.transmit(ctx, txAudioChan)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		a.transmit(ctx, txAudioChan)
+	}()
 
-	for {
-		select {
-		case <-ctx.Done():
-			log.Info().Msg("received context cancellation signal")
-			log.Info().Msg("stopping application due to context cancellation")
-			return nil
-		case sample := <-a.srsClient.Receive():
-			log.Info().Int("byteLength", len(sample)).Msg("recognizing audio sample received from SRS client")
-			text, err := a.recognizer.Recognize(sample)
-			if err != nil {
-				log.Error().Err(err).Msg("error recognizing audio sample")
-			} else {
-				// TODO make this log line configurable for privacy reasons
-				log.Info().Str("text", text).Msg("recognized audio sample")
-				rxTextChan <- text
-			}
-		}
-	}
+	wg.Wait()
+	return nil
 }
 
 // recognize runs speech recognition on audio received from SRS and forwards recognized text to the given channel.
@@ -267,9 +287,13 @@ func (a *app) parse(ctx context.Context, in <-chan string, out chan<- any) {
 }
 
 // control routes requests to GCI controller handlers.
-func (a *app) control(ctx context.Context, in <-chan any, out chan<- any) {
+func (a *app) control(ctx context.Context, wg *sync.WaitGroup, in <-chan any, out chan<- any) {
 	log.Info().Msg("running controller")
-	go a.controller.Run(ctx, out)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		a.controller.Run(ctx, out)
+	}()
 	for {
 		select {
 		case <-ctx.Done():

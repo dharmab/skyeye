@@ -3,6 +3,7 @@ package client
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/dharmab/skyeye/internal/conf"
@@ -14,7 +15,7 @@ import (
 )
 
 type Client interface {
-	Run(context.Context, context.CancelFunc) error
+	Run(context.Context, *sync.WaitGroup) error
 	Bullseye() orb.Point
 	Time() time.Time
 	Close() error
@@ -29,16 +30,22 @@ type tacviewClient struct {
 	missionTime    time.Time
 }
 
-func (c *tacviewClient) run(ctx context.Context, cancel context.CancelFunc, source acmi.ACMI) error {
+func (c *tacviewClient) run(ctx context.Context, wg *sync.WaitGroup, source acmi.ACMI) error {
 	c.missionTime = conf.InitialTime
+	wg.Add(3)
 	go func() {
-		err := source.Start(ctx, cancel)
+		defer wg.Done()
+		err := source.Start(ctx)
 		if err != nil {
 			log.Error().Err(err).Msg("error starting ACMI client")
 		}
 	}()
-	go source.Stream(ctx, c.updates, c.fades)
 	go func() {
+		defer wg.Done()
+		source.Stream(ctx, c.updates, c.fades)
+	}()
+	go func() {
+		defer wg.Done()
 		ticker := time.NewTicker(c.updateInterval)
 		for {
 			select {

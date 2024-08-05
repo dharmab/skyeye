@@ -4,6 +4,7 @@ package simpleradio
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/audio"
 	"github.com/dharmab/skyeye/pkg/simpleradio/data"
@@ -20,7 +21,7 @@ type Client interface {
 	// FrequencyMHz returns Client.Frequency in MHz.
 	FrequencyMHz() float64
 	// Run starts the SimpleRadio-Standalone client. It should be called exactly once.
-	Run(context.Context) error
+	Run(context.Context, *sync.WaitGroup) error
 	// Receive returns a channel that receives transmissions over the radio. Each transmission is F32LE PCM audio data.
 	Receive() <-chan audio.Audio
 	// Transmit queues a transmission to send over the radio. The audio data should be in F32LE PCM format.
@@ -71,22 +72,26 @@ func (c *client) FrequencyMHz() float64 {
 }
 
 // Run implements Client.Run.
-func (c *client) Run(ctx context.Context) error {
+func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	errorChan := make(chan error)
 
 	// TODO return a ready channel and wait for each. This resolves a minor race condition on startup
 	dataReadyCh := make(chan any)
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		log.Info().Msg("running SRS data client")
-		if err := c.dataClient.Run(ctx, dataReadyCh); err != nil {
+		if err := c.dataClient.Run(ctx, wg, dataReadyCh); err != nil {
 			errorChan <- err
 		}
 	}()
 	<-dataReadyCh
 
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		log.Info().Msg("running SRS audio client")
-		if err := c.audioClient.Run(ctx); err != nil {
+		if err := c.audioClient.Run(ctx, wg); err != nil {
 			errorChan <- err
 		}
 	}()
@@ -98,7 +103,6 @@ func (c *client) Run(ctx context.Context) error {
 		case err := <-errorChan:
 			return fmt.Errorf("client error: %w", err)
 		}
-
 	}
 }
 
