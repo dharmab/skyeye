@@ -2,20 +2,39 @@ package composer
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
 // ComposeSayAgainResponse implements [Composer.ComposeSayAgainResponse].
 func (c *composer) ComposeSayAgainResponse(response brevity.SayAgainResponse) NaturalLanguageResponse {
-	if response.Callsign != "" {
-		return NaturalLanguageResponse{
-			Subtitle: fmt.Sprintf("%s, sorry, I didn't understand. Say again.", response.Callsign),
-			Speech:   fmt.Sprintf("%s, sorry, I didn't understand. Say again.", response.Callsign),
-		}
+	replies := map[bool][]string{
+		true: {
+			"%s, sorry, I didn't understand. Say again.",
+			"%s, I didn't catch that. Say again.",
+			"%s, I didn't understand. Say again.",
+			"%s, say again.",
+			"%s, I didn't get that. Say again.",
+			"%s, I only got the first part of that. Say again.",
+		},
+		false: {
+			"I heard my callsign, but I did not understand the request. Say again.",
+			"I heard someone call me, but I didn't understand what they said. Say again.",
+			"I only got the first part of that. Say again.",
+			"Sorry, I only caught part of that. Say again.",
+		},
+	}
+	haveCallsign := response.Callsign != ""
+	variation := replies[haveCallsign][rand.Intn(len(replies[haveCallsign]))]
+	reply := ""
+	if haveCallsign {
+		reply = fmt.Sprintf(variation, response.Callsign)
+	} else {
+		reply = variation
 	}
 	return NaturalLanguageResponse{
-		Subtitle: "I heard my callsign, but I did not understand the request. Say again.",
-		Speech:   "I heard my callsign, but I did not understand the request. Say again.",
+		Subtitle: reply,
+		Speech:   reply,
 	}
 }
