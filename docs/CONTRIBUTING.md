@@ -14,6 +14,21 @@ Requirements to develop SkyEye:
 
 ## Build
 
+### General
+
+If you do not use Windows as a platform but want to use VSCode for Go development you need to adjust the workspace settings of Vscode, otherwise the go extensions won't work:
+```
+"go.toolsEnvVars": {
+    "CGO_ENABLED": "1",
+    "C_INCLUDE_PATH": "${workspaceFolder}/third_party/whisper.cpp/",
+    "LIBRARY_PATH": "${workspaceFolder}/third_party/whisper.cpp/",
+    "GOROOT": "c:\\msys64\\mingw64\\lib\\go", <-- REMOVE THIS LINE
+},
+"go.alternateTools": { <-- REMOVE THIS ENTIRE BLOCK
+    "go": "c:\\msys64\\mingw64\\bin\\go.exe",
+}
+```
+
 ### Windows
 
 I apologize upfront for how involved the setup is on Windows. I tried putting it all in Docker but Docker Desktop's latency is terrible and the bot wasn't able to transmit audio consistently. Oh well...
@@ -46,6 +61,22 @@ make install-debian-dependencies
 Run `make` to build `skyeye`.
 
 Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
+
+### MACOS
+
+Clone this Git repository somewhere, and navigate to it in the terminal
+
+Run the following to install dependency libraries:
+
+```sh
+make install-darwin-dependencies
+```
+
+Run `make` to build `skyeye`.
+
+Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
+
+This was tested on a Macbook Pro M3
 
 ## Run Against a Live Server
 
