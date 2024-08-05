@@ -1,10 +1,10 @@
 # SkyEye: AI Powered GCI Bot for DCS
 
-SkyEye is a concept for a new [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-controlled_interception) (GCI) bot for the flight simulator [Digital Combat Simulator](https://www.digitalcombatsimulator.com) (DCS). A GCI bot allows players to request information about the airspace in English using either voice commands or text entry, and to receive answers via verbal speech and text messages
+SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-controlled_interception) (GCI) bot for the flight simulator [Digital Combat Simulator](https://www.digitalcombatsimulator.com) (DCS). A GCI bot allows players to request information about the airspace in English using either voice commands or text entry, and to receive answers via verbal speech and text messages
 
-SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same server as SkyEye. No cloud APIs are required. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can even run SkyEye on your own PC to provide GCI service on a remote multiplayer server.
+SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same computer as SkyEye. No cloud APIs are required. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can even run SkyEye on your own PC to provide GCI service on a remote multiplayer server.
 
-SkyEye is under active development. Several types of radio calls, such as `BOGEY DOPE`, `PICTURE`, `DECLARE`, `RADIO CHECK`, `ALPHA CHECK` and `SPIKED`, are functional running against live multiplayer servers. Howevever, there's still plenty to do before this is ready for widespread use. To see what I'm working on, check out the [branch network](https://github.com/dharmab/skyeye/network)!
+SkyEye is under active development. Most types of radio calls are functional running against live multiplayer servers. Howevever, there's still plenty to do before this is ready for widespread use. To see what I'm working on, check out the [milestones](https://github.com/dharmab/skyeye/milestones?direction=asc&sort=due_date&state=open)!
 
 ## Goals
 
@@ -17,7 +17,7 @@ SkyEye is under active development. Several types of radio calls, such as `BOGEY
 * Excellent documentation for developers, server administrators and players
 * Be easy for a beginner programmer to customize
 * Have useful test coverage, especially of controller logic
-* Support Windows x86-64, Linux x86-64 and Linux ARM
+* Support Windows x86-64, Linux x86-64 and Linux ARM. Experimental functionality on macOS with Apple Sillicon.
 * Allow multiple GCI bots to run on the same DCS and SRS instance with different callsigns and frequencies
 * Minimize maintenance burden. Ship a static binary with as many pinned dependencies as possible, so this software continues to function with reduced maintainer activity
 
@@ -40,21 +40,24 @@ Skyeye would not be possible without these people and projects, for whom I am de
 
 * [DCS-SRS](https://github.com/ciribob/DCS-SimpleRadioStandalone) by @ciribob. Ciribob also patiently answered many of my questions on SRS internals and provided helpful debugging tips whenever I ran into a block in the SRS integration.
 * [Tacview](https://www.tacview.net/) - specifically, [ACMI real time telemetry](https://www.tacview.net/documentation/realtime/en/) - provides the data feed from DCS World.
-* @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against Skyeye during early development, and Jones himself was also patient with my questions on Discord.
+* @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against SkyEye during early development, and Jones himself was also patient with my questions on Discord.
 * @ggerganov's [whisper.cpp](https://github.com/ggerganov/whisper.cpp) models provides text-to-speech.
 * @rodaine's [numwords](https://github.com/rodaine/numwords) module is invaluable for parsing numeric quantities from voice input.
 * [Piper](https://github.com/rhasspy/piper) by the [Rhasspy](https://rhasspy.readthedocs.io/en/latest/) voice assistant project is used for speech-to-text.
-* The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for Skyeye.
-* @popey's dataset provides the masculine voice for Skyeye.
-* @amitybell's [embedded Piper module](https://github.com/amitybell/piper) makes distribution and implementation of Piper a breeze.
-* The [Opus codec](https://opus-codec.org/) and the [`hraban/opus`](https://github.com/hraban/opus) module provides audio compression for the SRS protocol.
+* The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for SkyEye.
+* @popey's dataset provides the masculine voice for SkyEye.
+* @amitybell's [embedded Piper module](https://github.com/amitybell/piper) makes distribution and implementation of Piper a breeze. @nabbl improved this module by adding support for macOS.
+* The [Opus codec](https://opus-codec.org) and the [`hraban/opus`](https://github.com/hraban/opus) module provides audio compression for the SRS protocol.
+* @hbollon's [go-edlib](github.com/hbollon/go-edlib) provides algorithms to help SkyEye understand when it slightly mishears/the user slightly misspeaks a callsign or command over the radio.
 * @lithammer's [shortuuid](https://github.com/lithammer/shortuuid) module provides a GUID implementation compatible with the SRS protocols.
 * @zaf's [resample](https://github.com/zaf/resample) module helps with audio format conversion between Piper and SRS.
 * @martinlindhe's [unit](https://github.com/martinlindhe/unit) module provides easy angular, length, speed and frequency unit conversion.
 * @paulmach's [orb](https://github.com/paulmach/orb) module provides a simple, flexible GIS library for analyzing the geometric relationships between aircraft.
+* [Cobra](https://cobra.dev) is used for the CLI frontend, including configuration, help and examples.
 * [MSYS2](https://www.msys2.org/) provides a Windows build environment.
 * [Oto](https://github.com/ebitengine/oto) is helpful for debugging audio format conversion problems.
 * [zerolog](https://github.com/rs/zerolog) is helpful for general logging and printf debugging.
+* [testify](https://github.com/stretchr/testify) is used in unit tests.
 * Multiple DCS communities provide invaluable feedback and morale-booster energy:
   * [Team Lima Kilo](https://github.com/team-limakilo/) and the Flashpoint Levant community 
   * The Hoggit Discord server
@@ -87,10 +90,10 @@ Current status:
     - ✅ BOGEY DOPE
     - ✅ SPIKED
     - ✅ DECLARE
-    - 🚧 FADED
-    - 🚧 SNAPLOCK
+    - ✅ SNAPLOCK
+    - ✅ FADED
     - 🚧 THREAT
-- 🚧 Controller: Magnetic variation correction not yet implemented
+- ✅ Controller: Magnetic variation correction - bot uses a geomagnetic model to correct for magnetic variation, including on the Kola Peninsula terrain
 - 🚧 Controller: Elevation maps not yet implemented 
 - 🚧 Accessibility: Keyboard input not yet implemented
 - 🚧 Accessibility: In-game subtitles not yet implemented
@@ -107,6 +110,7 @@ I'm not sure yet but it shouldn't be too bad. Currently the dev build takes abou
 * I'm making unecessary copies of data all over the place - this is usually the default practice in Go unless you either need the receiving function to mutate the passed object, you need to do so for concurrency safety, or you can provably improve performance. I plan to revisit this when the bot is closer to release.
 * I'm using an off the shelf general purpose Whisper model in my development environment. There's some exciting research into faster [distilled models](https://github.com/huggingface/distil-whisper) and custom trained models that will be revisited in a few months. I also strongly suspect a combination of advances in AI and Moore's Law will significantly improve Speech-To-Text performance within the next year or so.
 * I need to investigate tuning Go performance parameters. In particular, the software runs poorly when you try to play DCS at the same time on the same machine, I suspect due to CPU contention.
+* I need to investigate hardware acceleration using [CUDA](https://developer.nvidia.com/cuda-toolkit), [OpenVINO](https://docs.openvino.ai) and [Core ML](https://developer.apple.com/machine-learning/core-ml/). This is challenging because I have limited hardware - if you're interested in this and have hardware please get in touch!
 
 ### Why not update OverlordBot?
 
@@ -149,6 +153,20 @@ OverlordBot also optionally supports this feature, although less than 1% of user
 ### Will this work with DCS's built-in VoIP?
 
 Hopefully in the future Eagle Dynamics will add support for external GCI bots. If anyone at ED is reading this, access to any relevant preview builds would be really helpful!
+
+### Could this use a Large Language Model? (llama, mistral, etc.)
+
+This deserves a longer answer, for now see [this issue](https://github.com/dharmab/skyeye/issues/57)
+
+TL;DR most of the controller logic is simple geometry that completes in about a millisecond. An LLM is several orders of magnitude slower, less accurate and a more difficult user experience.
+
+We use AI for the "squishy" problems - understanding human speech, and synthesizing human-like speech. We use traditional code for the algorithmic problems.
+
+### Could this provide ATC services?
+
+This deserves a longer answer, for now see [this issue](https://github.com/dharmab/skyeye/issues/56)
+
+TL;DR I have no plans to attempt an ATC bot.
 
 ### When is SkyEye's birthday?
 
