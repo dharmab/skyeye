@@ -49,6 +49,7 @@ func TestRealCallsigns(t *testing.T) {
 		{Name: "Hussein 1-1 | SpyderF16", heardAs: "houston 1 1"},
 		{Name: "Witch 1-1", heardAs: "which 1 1"},
 		{Name: "Spare 15", heardAs: "spear 15"},
+		{Name: "Olympus-1-1", heardAs: "olympus 1 1"},
 	}
 	d := newContactDatabase()
 
@@ -205,5 +206,4 @@ func TestItr(t *testing.T) {
 	foundMobius = false
 	foundYellow = false
 	iterate()
-
 }
