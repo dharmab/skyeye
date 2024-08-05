@@ -22,7 +22,7 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 		logger.Error().Any("bearing", request.BRA.Bearing()).Msg("bearing provided to HandleSnaplock should be magnetic")
 	}
 
-	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign)
+	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
 	if trackfile == nil {
 		logger.Info().Msg("no trackfile found for requestor")
 		c.out <- brevity.NegativeRadarContactResponse{Callsign: request.Callsign}

@@ -10,7 +10,7 @@ import (
 func (c *controller) HandleBogeyDope(request *brevity.BogeyDopeRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Any("filter", request.Filter).Logger()
 	logger.Debug().Msg("handling request")
-	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign)
+	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
 	if trackfile == nil {
 		logger.Info().Msg("no trackfile found for requestor")
 		c.out <- brevity.NegativeRadarContactResponse{Callsign: request.Callsign}

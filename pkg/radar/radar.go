@@ -31,11 +31,12 @@ type Radar interface {
 	Declination(orb.Point) unit.Angle
 	// Run consumes updates from the simulation channels until the context is cancelled.
 	Run(context.Context)
-	// FindCallsign returns the trackfile that mosty closely matches the given callsign, or nil if no closely matching trackfile was found.
+	// FindCallsign returns the trackfile on the given coalition that mosty closely matches the given callsign,
+	// or nil if no closely matching trackfile was found.
 	// The first return value is the callsign of the trackfile, and the second is the trackfile itself.
 	// The returned callsign may differ from the input callsign!
-	FindCallsign(string) (string, *trackfiles.Trackfile)
-	// FindUnit returns the trackfile for the given unit ID, or nil if no trackfile was found.
+	FindCallsign(string, coalitions.Coalition) (string, *trackfiles.Trackfile)
+	// FindUnit returns the trackfile for the given unit ID and coalition, or nil if no trackfile was found.
 	FindUnit(uint32) *trackfiles.Trackfile
 	// GetPicture returns a picture of the radar scope anchored at the given origin, within the given radius,
 	// filtered by the given coalition and contact category. The first return value is the total number of groups
@@ -169,13 +170,13 @@ func (s *scope) handleUpdate(update sim.Updated) {
 		Int("unitID", int(update.Labels.UnitID)).
 		Logger()
 
-	tf, ok := s.contacts.getByUnitID(update.Labels.UnitID)
+	trackfile, ok := s.contacts.getByUnitID(update.Labels.UnitID)
 	if ok {
-		tf.Update(update.Frame)
+		trackfile.Update(update.Frame)
 		logger.Trace().Msg("updated existing trackfile")
 	} else {
-		tf = trackfiles.NewTrackfile(update.Labels)
-		s.contacts.set(tf)
+		trackfile = trackfiles.NewTrackfile(update.Labels)
+		s.contacts.set(trackfile)
 		logger.Info().Msg("created new trackfile")
 	}
 }
@@ -254,18 +255,18 @@ func (s *scope) GetBullseye() orb.Point {
 // Last known position is not (0, 0)
 // Speed is above 50 knots
 // Altitude is above 10 meters above sea level
-func isValidTrack(tf *trackfiles.Trackfile) bool {
-	point := tf.LastKnown().Point
+func isValidTrack(trackfile *trackfiles.Trackfile) bool {
+	point := trackfile.LastKnown().Point
 	isValidLongitude := point.Lon() != 0
 	isValidLatitude := point.Lat() != 0
 	isValidPosition := isValidLongitude && isValidLatitude
-	isAboveSpeedFilter := tf.Speed() > 50*unit.Knot
-	isAboveAltitudeFilter := tf.LastKnown().Altitude > 10*unit.Meter
+	isAboveSpeedFilter := trackfile.Speed() > 50*unit.Knot
+	isAboveAltitudeFilter := trackfile.LastKnown().Altitude > 10*unit.Meter
 	isValid := isValidPosition && isAboveSpeedFilter && isAboveAltitudeFilter
 	log.Trace().
-		Str("aircraft", tf.Contact.ACMIName).
-		Int("unitID", int(tf.Contact.UnitID)).
-		Str("callsign", tf.Contact.Name).
+		Str("aircraft", trackfile.Contact.ACMIName).
+		Int("unitID", int(trackfile.Contact.UnitID)).
+		Str("callsign", trackfile.Contact.Name).
 		Bool("isValid", isValid).
 		Bool("isValidLongitude", isValidLongitude).
 		Bool("isValidLatitude", isValidLatitude).
@@ -280,14 +281,14 @@ func isValidTrack(tf *trackfiles.Trackfile) bool {
 // - if the trackfile is of the given coalition
 // - if the trackfile is of the given contact category (or if the aircraft is not in the encyclopedia)
 // - if the trackfile is valid
-func (s *scope) isMatch(tf *trackfiles.Trackfile, coalition coalitions.Coalition, filter brevity.ContactCategory) bool {
-	if tf.Contact.Coalition != coalition {
+func (s *scope) isMatch(trackfile *trackfiles.Trackfile, coalition coalitions.Coalition, filter brevity.ContactCategory) bool {
+	if trackfile.Contact.Coalition != coalition {
 		return false
 	}
-	if !isValidTrack(tf) {
+	if !isValidTrack(trackfile) {
 		return false
 	}
-	data, ok := encyclopedia.GetAircraftData(tf.Contact.ACMIName)
+	data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName)
 	// If the aircraft is not in the encyclopedia, assume it matches
 	matchesFilter := !ok || data.Category() == filter || filter == brevity.Aircraft
 	return matchesFilter

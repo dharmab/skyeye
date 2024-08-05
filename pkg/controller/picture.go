@@ -10,7 +10,7 @@ func (c *controller) HandlePicture(request *brevity.PictureRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 
-	_, trackfile := c.scope.FindCallsign(request.Callsign)
+	_, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
 	if trackfile == nil {
 		logger.Warn().Msg("callsign not found")
 		c.out <- brevity.NegativeRadarContactResponse{Callsign: request.Callsign}

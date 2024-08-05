@@ -22,7 +22,7 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 		logger.Error().Any("bearing", request.Location.Bearing()).Msg("bearing provided to HandleDeclare should be magnetic")
 	}
 
-	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign)
+	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
 	if trackfile == nil {
 		logger.Info().Msg("no trackfile found for requestor")
 		c.out <- brevity.NegativeRadarContactResponse{Callsign: request.Callsign}
