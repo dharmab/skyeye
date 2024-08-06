@@ -1,6 +1,9 @@
 package brevity
 
-import "github.com/martinlindhe/unit"
+import (
+	"github.com/dharmab/skyeye/pkg/bearings"
+	"github.com/martinlindhe/unit"
+)
 
 // Reference ATP 3-52.4 Chapter V section 6
 type Declaration string
@@ -37,8 +40,14 @@ const (
 type DeclareRequest struct {
 	// Callsign of the friendly aircraft requesting DECLARE.
 	Callsign string
-	// Location of the contact.
-	Location Bullseye
+	// IsBRAA indicates if the contact is provided using Bullseye (false) or BRAA (true).
+	IsBRAA bool
+	// Bullseye of the contact, if provided using Bullseye.
+	Bullseye Bullseye
+	// Bearing of the contact, if provided using BRAA.
+	Bearing bearings.Bearing
+	/// Range to the contact, if provided using BRAA.
+	Range unit.Length
 	// Altitude of the contact above sea level, rounded to the nearest thousands of feet.
 	Altitude unit.Length
 	// Track direction. Optional, used to discriminate between multiple contacts at the same location.

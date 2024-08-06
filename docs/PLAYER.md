@@ -173,9 +173,11 @@ Keyword: `DECLARE`
 
 Function: You provide the position of a radar contact on your scope. The GCI will look for contacts in that area and tell you if they are hostile, friendly, a furball (mixed) or clean (nothing on scope).
 
+You can provide the position using either Bullseye or BRAA format .
+
 Arguments:
 
-1. Bullseye (bearing and distance) (required)
+1. Bullseye (bearing and distance) or BR (bearing and range) (required)
 2. Altitude (optional)
 3. Track direction (optional)
 

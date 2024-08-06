@@ -111,7 +111,6 @@ func spaceDigits(tx string) string {
 			txBuilder.WriteRune(' ')
 		}
 		txBuilder.WriteRune(char)
-
 	}
 	tx = txBuilder.String()
 	return normalize(tx)
