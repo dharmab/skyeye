@@ -5,6 +5,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/paulmach/orb"
 )
@@ -17,7 +18,7 @@ type Sim interface {
 	// This function blocks until the context is cancelled.
 	Stream(context.Context, chan<- Updated, chan<- Faded)
 	// Bullseye returns the coalition's bullseye center.
-	Bullseye() orb.Point
+	Bullseye(coalitions.Coalition) orb.Point
 	// Time returns the starting time of the mission.
 	// This is useful for looking up magnetic variation.
 	Time() time.Time

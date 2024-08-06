@@ -59,7 +59,7 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 		if !request.Bullseye.Bearing().IsMagnetic() {
 			logger.Warn().Any("bearing", request.Bullseye.Bearing()).Msg("bearing provided to HandleDeclare should be magnetic")
 		}
-		origin = c.scope.GetBullseye()
+		origin = c.scope.Bullseye(trackfile.Contact.Coalition)
 		bearing = request.Bullseye.Bearing().True(c.scope.Declination(origin))
 		distance = request.Bullseye.Distance()
 	}

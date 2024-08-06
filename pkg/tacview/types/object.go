@@ -187,3 +187,7 @@ func (o *Object) GetLength(property string) (unit.Length, error) {
 	}
 	return unit.Length(n) * unit.Meter, nil
 }
+
+func (o *Object) Properties() map[string]string {
+	return o.properties
+}

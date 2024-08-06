@@ -15,7 +15,8 @@ func (s *scope) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {
 	if trackfile == nil {
 		return nil
 	}
-	grp := newGroupUsingBullseye(s.bullseye)
+	bullseye := s.Bullseye(trackfile.Contact.Coalition)
+	grp := newGroupUsingBullseye(bullseye)
 	grp.contacts = append(grp.contacts, trackfile)
 	s.addNearbyAircraftToGroup(trackfile, grp)
 	return grp

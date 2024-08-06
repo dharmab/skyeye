@@ -12,7 +12,6 @@ import (
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/tacview/acmi"
 	"github.com/dharmab/skyeye/pkg/tacview/types"
-	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
 )
 
@@ -43,16 +42,12 @@ func NewTelemetryClient(
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to telemetry service %v: %w", address, err)
 	}
+	tacviewClient := newTacviewClient(updates, fades, updateInterval)
 	return &telemetryClient{
-		connection: connection,
-		hostname:   clientHostname,
-		password:   password,
-		tacviewClient: &tacviewClient{
-			coalition:      coalition,
-			updates:        updates,
-			fades:          fades,
-			updateInterval: updateInterval,
-		},
+		connection:    connection,
+		hostname:      clientHostname,
+		password:      password,
+		tacviewClient: tacviewClient,
 	}, nil
 }
 
@@ -63,12 +58,8 @@ func (c *telemetryClient) Run(ctx context.Context, wg *sync.WaitGroup) error {
 		return fmt.Errorf("handshake error: %w", err)
 	}
 
-	source := acmi.New(c.coalition, reader, c.updateInterval)
+	source := acmi.New(reader, c.updateInterval)
 	return c.run(ctx, wg, source)
-}
-
-func (c *telemetryClient) Bullseye() orb.Point {
-	return c.bullseye
 }
 
 func (c *telemetryClient) Time() time.Time {

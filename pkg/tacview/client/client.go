@@ -16,18 +16,28 @@ import (
 
 type Client interface {
 	Run(context.Context, *sync.WaitGroup) error
-	Bullseye() orb.Point
+	Bullseye(coalitions.Coalition) orb.Point
 	Time() time.Time
 	Close() error
 }
 
 type tacviewClient struct {
-	coalition      coalitions.Coalition
 	updates        chan<- sim.Updated
 	fades          chan<- sim.Faded
 	updateInterval time.Duration
-	bullseye       orb.Point
+	bullseyes      map[coalitions.Coalition]orb.Point
+	bullseyesLock  sync.RWMutex
 	missionTime    time.Time
+}
+
+func newTacviewClient(updates chan<- sim.Updated, fades chan<- sim.Faded, updateInterval time.Duration) *tacviewClient {
+	return &tacviewClient{
+		updates:        updates,
+		fades:          fades,
+		updateInterval: updateInterval,
+		bullseyes:      map[coalitions.Coalition]orb.Point{},
+		missionTime:    conf.InitialTime,
+	}
 }
 
 func (c *tacviewClient) run(ctx context.Context, wg *sync.WaitGroup, source acmi.ACMI) error {
@@ -52,12 +62,22 @@ func (c *tacviewClient) run(ctx context.Context, wg *sync.WaitGroup, source acmi
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				c.bullseye = source.Bullseye()
-				c.missionTime = source.Time()
+				for _, coalition := range []coalitions.Coalition{coalitions.Red, coalitions.Blue} {
+					c.bullseyesLock.Lock()
+					c.bullseyes[coalition] = source.Bullseye(coalition)
+					c.bullseyesLock.Unlock()
+					c.missionTime = source.Time()
+				}
 			}
 		}
 	}()
 
 	<-ctx.Done()
 	return nil
+}
+
+func (c *tacviewClient) Bullseye(coalition coalitions.Coalition) orb.Point {
+	c.bullseyesLock.RLock()
+	defer c.bullseyesLock.RUnlock()
+	return c.bullseyes[coalition]
 }

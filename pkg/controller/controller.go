@@ -85,7 +85,7 @@ func (c *controller) SetTime(t time.Time) {
 
 // SetBullseye implements [Controller.SetBullseye].
 func (c *controller) SetBullseye(bullseye orb.Point) {
-	c.scope.SetBullseye(bullseye)
+	c.scope.SetBullseye(bullseye, c.coalition)
 }
 
 // hostileCoalition returns the coalition that is hostile to the controller's coalition.

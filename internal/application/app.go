@@ -10,6 +10,7 @@ import (
 
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/composer"
 	"github.com/dharmab/skyeye/pkg/controller"
 	"github.com/dharmab/skyeye/pkg/parser"
@@ -146,7 +147,6 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 
 // Run implements Application.Run.
 func (a *app) Run(ctx context.Context, wg *sync.WaitGroup) error {
-
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -171,9 +171,19 @@ func (a *app) Run(ctx context.Context, wg *sync.WaitGroup) error {
 				log.Info().Msg("stopping mission time and bullseye updates due to context cancellation")
 				return
 			case <-ticker.C:
-				log.Trace().Time("mTime", a.tacviewClient.Time()).Msg("updating mission time and bullseye")
 				a.radar.SetMissionTime(a.tacviewClient.Time())
-				a.radar.SetBullseye(a.tacviewClient.Bullseye())
+				log.Trace().
+					Time("mTime", a.tacviewClient.Time()).
+					Msg("updated mission time")
+				for _, coalition := range []coalitions.Coalition{coalitions.Red, coalitions.Blue} {
+					bullseye := a.tacviewClient.Bullseye(coalition)
+					a.radar.SetBullseye(bullseye, coalition)
+					log.Trace().
+						Int("coalitionID", int(coalition)).
+						Float64("lon", bullseye.Lon()).
+						Float64("lat", bullseye.Lat()).
+						Msg("updated bullseye")
+				}
 			}
 		}
 	}()
