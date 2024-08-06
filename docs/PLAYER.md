@@ -7,8 +7,8 @@
 1. Get airborne.
 1. Tune to the server's SkyEye frequency in SRS.
 1. Say "Anyface, Callsign 1, radio check" and see if the bot understands you.
-1. Say "Anyface, Callsign 1, picture" to be told about the highest priority threats near you. 
-1. Say "Anyface, Callsign 1, bogey" to get a bearing to the nearest threat.
+1. Say "Anyface, Callsign 1, picture" to be told about the highest priority threats to your coalition. 
+1. Say "Anyface, Callsign 1, bogey" to get a bearing to the nearest threat to you.
 
 ## A Word of Warning
 
@@ -193,7 +193,7 @@ Examples:
 
 Keyword: `PICTURE`
 
-Function: The GCI will look for threats near you and rank them by relative danger. It will tell you the total number of groups in your area, as well as detailed information on the three highest priority threats.
+Function: The GCI will rank threats by priority, then report the top three. Threats are considered relative to the coalition as a whole, not to an individual.
 
 Arguments:
 
@@ -214,7 +214,7 @@ GALAXY: "Hitman One One, 6 groups. Group bullseye 211/27, 18000, track northwest
 Tips:
 
 * Repeat this call at regular intervals to maintain situational awareness.
-* Air combat is highly complex and the threat ranking algorithm is imperfect. The GCI might omit a highly dangerous adversary from the response if it is slightly further away or at a lower altitude compared to other threats. Exercise caution!
+* Air combat is highly complex and the threat ranking algorithm is imperfect. The GCI might omit a highly dangerous adversary from the response. Exercise caution!
 * Be considerate of your allies on the channel. The response contains a great deal of useful information, but can occupy the channel for 20-30 seconds. 
 
 ### SNAPLOCK
@@ -284,6 +284,7 @@ If you hear this in the middle of a mission, it probably means the bot crashed a
 🚧 NOT YET IMPLEMENTED 🚧
 
 ### FADED
+
 When the GCI controller sees a contact disappear from the radar scope for at least 30 seconds, it will announce the contact is FADED.
 
 **This is not a confirmation that the contact has been destroyed!** In DCS, it is possible for aircraft to be marked dead while they are still alive and dangerous.

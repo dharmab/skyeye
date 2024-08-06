@@ -237,6 +237,14 @@ var flankerData = Aircraft{
 	NATOReportingName:   "Flanker",
 }
 
+var kc135Data = Aircraft{
+	tags: map[AircraftTag]bool{
+		FixedWing: true,
+	},
+	PlatformDesignation: "KC-135",
+	OfficialName:        "Stratotanker",
+}
+
 var l39Data = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing:           true,
@@ -268,6 +276,18 @@ var tornadoData = Aircraft{
 
 var aircraftData = append([]Aircraft{
 	{
+		ACMIShortName: "A-4E",
+		tags: map[AircraftTag]bool{
+			FixedWing:           true,
+			HasInfraredMissiles: true,
+			HasCannon:           true,
+		},
+		PlatformDesignation: "A-4",
+		TypeDesignation:     "A-4E",
+		OfficialName:        "Skyhawk",
+		Nickname:            "Scooter",
+	},
+	{
 		ACMIShortName:       "A-10A",
 		tags:                a10Data.tags,
 		PlatformDesignation: a10Data.PlatformDesignation,
@@ -284,16 +304,12 @@ var aircraftData = append([]Aircraft{
 		Nickname:            a10Data.Nickname,
 	},
 	{
-		ACMIShortName: "A-4E",
-		tags: map[AircraftTag]bool{
-			FixedWing:           true,
-			HasInfraredMissiles: true,
-			HasCannon:           true,
-		},
-		PlatformDesignation: "A-4",
-		TypeDesignation:     "A-4E",
-		OfficialName:        "Skyhawk",
-		Nickname:            "Scooter",
+		ACMIShortName:       "A-10C_2",
+		tags:                a10Data.tags,
+		PlatformDesignation: a10Data.PlatformDesignation,
+		TypeDesignation:     "A-10C",
+		OfficialName:        a10Data.OfficialName,
+		Nickname:            a10Data.Nickname,
 	},
 	{
 		ACMIShortName:       "A-50",
@@ -312,7 +328,7 @@ var aircraftData = append([]Aircraft{
 		OfficialName:        "Viggen",
 	},
 	{
-		ACMIShortName: "AV-8BNA",
+		ACMIShortName: "AV8BNA",
 		tags: map[AircraftTag]bool{
 			FixedWing:           true,
 			HasInfraredMissiles: true,
@@ -555,7 +571,7 @@ var aircraftData = append([]Aircraft{
 		OfficialName:        "Thunder",
 	},
 	{
-		ACMIShortName:       "KC-130",
+		ACMIShortName:       "KC130",
 		tags:                map[AircraftTag]bool{FixedWing: true},
 		PlatformDesignation: "KC-130",
 		TypeDesignation:     "KC-130",
@@ -564,10 +580,17 @@ var aircraftData = append([]Aircraft{
 	},
 	{
 		ACMIShortName:       "KC-135",
-		tags:                map[AircraftTag]bool{FixedWing: true},
-		PlatformDesignation: "KC-135",
+		tags:                kc135Data.tags,
+		PlatformDesignation: kc135Data.PlatformDesignation,
 		TypeDesignation:     "KC-135",
-		OfficialName:        "Stratotanker",
+		OfficialName:        kc135Data.OfficialName,
+	},
+	{
+		ACMIShortName:       "KC135MPRS",
+		tags:                kc135Data.tags,
+		PlatformDesignation: kc135Data.PlatformDesignation,
+		TypeDesignation:     "KC-135",
+		OfficialName:        kc135Data.OfficialName,
 	},
 	{
 		ACMIShortName:       "KJ-2000",
@@ -591,7 +614,7 @@ var aircraftData = append([]Aircraft{
 		OfficialName:        l39Data.OfficialName,
 	},
 	{
-		ACMIShortName: "M2000C",
+		ACMIShortName: "M-2000C",
 		tags: map[AircraftTag]bool{
 			FixedWing:                  true,
 			HasSemiActiveRadarMissiles: true,
@@ -756,7 +779,7 @@ var aircraftData = append([]Aircraft{
 		OfficialName:        "Reaper",
 	},
 	{
-		ACMIShortName:       "S-3B",
+		ACMIShortName:       "S-3B Tanker",
 		tags:                map[AircraftTag]bool{FixedWing: true},
 		PlatformDesignation: "S-3",
 		TypeDesignation:     "S-3B",

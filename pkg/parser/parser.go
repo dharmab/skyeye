@@ -182,6 +182,8 @@ func (p *parser) Parse(tx string) any {
 		return &brevity.AlphaCheckRequest{Callsign: pilotCallsign}
 	case radioCheck:
 		return &brevity.RadioCheckRequest{Callsign: pilotCallsign}
+	case picture:
+		return &brevity.PictureRequest{Callsign: pilotCallsign}
 	}
 
 	logger.Debug().Strs("args", requestArgs).Msg("parsing request arguments")
@@ -195,10 +197,6 @@ func (p *parser) Parse(tx string) any {
 		}
 	case declare:
 		if request, ok := p.parseDeclare(pilotCallsign, scanner); ok {
-			return request
-		}
-	case picture:
-		if request, ok := p.parsePicture(pilotCallsign, scanner); ok {
 			return request
 		}
 	case spiked:

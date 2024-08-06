@@ -9,20 +9,28 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/martinlindhe/unit"
-	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
 )
 
 // GetPicture implements [Radar.GetPicture]
-func (s *scope) GetPicture(origin orb.Point, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) (int, []brevity.Group) {
+func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) (int, []brevity.Group) {
+	origin := s.center
+	if origin.Lon() == 0 && origin.Lat() == 0 {
+		log.Warn().Msg("center point is not set yet, using bullseye")
+		origin = s.Bullseye(coalition)
+		if origin.Lon() == 0 && origin.Lat() == 0 {
+			log.Warn().Msg("bullseye point is not yet set, picture will be incoherent")
+		}
+	}
+
 	visitedContacts := make(map[uint32]bool)
 	groups := make([]*group, 0)
 	itr := s.contacts.itr()
 	for itr.next() {
 		trackfile := itr.value()
 		logger := log.With().Int("unitID", int(trackfile.Contact.UnitID)).Logger()
-		if visitedContacts[trackfile.Contact.UnitID] {
+		if _, ok := visitedContacts[trackfile.Contact.UnitID]; ok {
 			logger.Trace().Msg("skipping visited contact")
 			continue
 		}
@@ -75,7 +83,7 @@ func (s *scope) GetPicture(origin orb.Point, radius unit.Length, coalition coali
 			return bIsHigherThreat
 		}
 
-		// Prioritize aircraft based on distance from caller
+		// Prioritize aircraft based on distance from origin
 		distanceA := unit.Length(geo.Distance(origin, a.point())) * unit.Meter
 		distanceB := unit.Length(geo.Distance(origin, b.point())) * unit.Meter
 		isDistanceSimilar := math.Abs(

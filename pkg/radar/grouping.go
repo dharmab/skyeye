@@ -30,10 +30,10 @@ func (s *scope) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {
 //
 // - are within 3000 feet in altitude of each other
 //
-// These are tripled from the ATP numbers beacause the DCS AI isn't amazing at holding formation.
+// These are increased from the ATP numbers beacause the DCS AI isn't amazing at holding formation.
 // We allow mixed platform groups because these are fairly common in DCS.
 func (s *scope) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *group) {
-	spreadInterval := 3 * unit.NauticalMile
+	spreadInterval := 5 * unit.NauticalMile
 	stackInterval := 3000 * unit.Foot
 	itr := s.contacts.itr()
 	for itr.next() {
