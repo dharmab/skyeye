@@ -14,7 +14,6 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/tacview/acmi"
-	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
 )
 
@@ -30,15 +29,10 @@ func NewFileClient(path string, coalition coalitions.Coalition, updates chan<- s
 	if err != nil {
 		return nil, err
 	}
+	tacviewClient := newTacviewClient(updates, fades, updateInterval)
 	return &fileClient{
-		file: f,
-		tacviewClient: &tacviewClient{
-			coalition:      coalition,
-			updates:        updates,
-			fades:          fades,
-			updateInterval: updateInterval,
-			missionTime:    time.Unix(0, 0),
-		},
+		file:          f,
+		tacviewClient: tacviewClient,
 	}, nil
 }
 
@@ -77,12 +71,8 @@ func openFile(path string) (io.ReadCloser, error) {
 
 func (c *fileClient) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	reader := bufio.NewReader(c.file)
-	acmi := acmi.New(c.coalition, reader, c.updateInterval)
+	acmi := acmi.New(reader, c.updateInterval)
 	return c.tacviewClient.run(ctx, wg, acmi)
-}
-
-func (c *fileClient) Bullseye() orb.Point {
-	return c.tacviewClient.bullseye
 }
 
 func (c *fileClient) Time() time.Time {

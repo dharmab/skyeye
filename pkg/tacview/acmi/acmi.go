@@ -41,14 +41,13 @@ type streamer struct {
 	objects        map[int]*types.Object
 	objectsLock    sync.RWMutex
 	fades          chan *types.Object
-	bullseye       orb.Point
+	bullseyesIdx   sync.Map
 	updateInterval time.Duration
 	inMultiline    bool
-	coalition      coalitions.Coalition
 	catchUpCounter int
 }
 
-func New(coalition coalitions.Coalition, acmi *bufio.Reader, updateInterval time.Duration) ACMI {
+func New(acmi *bufio.Reader, updateInterval time.Duration) ACMI {
 	return &streamer{
 		acmi:           acmi,
 		referencePoint: orb.Point{0, 0},
@@ -57,8 +56,8 @@ func New(coalition coalitions.Coalition, acmi *bufio.Reader, updateInterval time
 		objects:        make(map[int]*types.Object),
 		fades:          make(chan *types.Object),
 		updateInterval: updateInterval,
-		coalition:      coalition,
 		objectsLock:    sync.RWMutex{},
+		bullseyesIdx:   sync.Map{},
 	}
 }
 
@@ -248,11 +247,7 @@ func (s *streamer) processUpdates(updates chan<- sim.Updated) {
 
 		if slices.Contains(types, tags.Bullseye) {
 			logger.Trace().Msg("object is bullseye")
-			if err := s.updateBullseye(object); err != nil {
-				logger.Error().Err(err).Msg("error updating bullseye")
-				continue
-			}
-			logger.Trace().Msg("bullseye update")
+			s.updateBullseye(object)
 		}
 		if slices.Contains(types, tags.FixedWing) || slices.Contains(types, tags.Rotorcraft) {
 			logger.Trace().Msg("object is an aircraft")
@@ -279,29 +274,40 @@ func (s *streamer) updateAircraft(updates chan<- sim.Updated, object *types.Obje
 	return nil
 }
 
-func (s *streamer) Bullseye() orb.Point {
-	return s.bullseye
+func (s *streamer) updateBullseye(object *types.Object) {
+	logger := log.With().Int("id", object.ID).Logger()
+	prop, ok := object.GetProperty(properties.Coalition)
+	if !ok {
+		logger.Warn().Msg("bullseye has no coalition")
+		return
+	}
+	coalition := properties.PropertyToCoalition(prop)
+	s.bullseyesIdx.Store(coalition, object.ID)
+	logger.Trace().Int("coalitionID", int(coalition)).Int("id", object.ID).Msg("bullseye updated")
+}
+
+func (s *streamer) Bullseye(coalition coalitions.Coalition) (p orb.Point) {
+	val, ok := s.bullseyesIdx.Load(coalition)
+	if !ok {
+		return
+	}
+	objectID := val.(int)
+	s.objectsLock.RLock()
+	defer s.objectsLock.RUnlock()
+	object, ok := s.objects[objectID]
+	if !ok {
+		return
+	}
+	coordinates, err := object.GetCoordinates(s.referencePoint)
+	if err != nil {
+		return
+	}
+	return coordinates.Location
+
 }
 
 func (s *streamer) Time() time.Time {
 	return s.cursorTime
-}
-
-func (s *streamer) updateBullseye(object *types.Object) error {
-
-	types, err := object.GetTypes()
-	if err != nil {
-		return err
-	}
-	if !slices.Contains(types, tags.Bullseye) {
-		return nil
-	}
-	coordinates, err := object.GetCoordinates(s.referencePoint)
-	if err != nil {
-		return err
-	}
-	s.bullseye = coordinates.Location
-	return nil
 }
 
 func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {

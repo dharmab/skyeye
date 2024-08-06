@@ -245,7 +245,7 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 		return "", false
 	}
 
-	log.Debug().Str("callsign", callsign).Str("text", tx).Msg("parsed callsign")
+	log.Trace().Str("callsign", callsign).Str("text", tx).Msg("parsed callsign")
 	return callsign, true
 
 }

@@ -20,11 +20,11 @@ import (
 
 // Radar consumes updates from the simulation, keeps track of each aircraft as a trackfile, and provides functions to collect the aircraft into groups.
 type Radar interface {
-	// SetBullseye updates the bullseye point. The bullseye point is the reference point for polar
-	// coordinates provided in [Group.Bullseye].
-	SetBullseye(orb.Point)
-	// Bullseye returns the bullseye point.
-	GetBullseye() orb.Point
+	// SetBullseye updates the bullseye point for the given coalition.
+	// The bullseye point is the reference point for polar coordinates provided in [Group.Bullseye].
+	SetBullseye(orb.Point, coalitions.Coalition)
+	// Bullseye returns the bullseye point for the given coalition.
+	Bullseye(coalitions.Coalition) orb.Point
 	// SetMissionTime updates the mission time. The mission time is used for computing magnetic declination.
 	SetMissionTime(time.Time)
 	// Declination returns the magnetic declination at the given point, at the time provided in SetMissionTime.
@@ -117,7 +117,7 @@ type scope struct {
 	updates       <-chan sim.Updated
 	fades         <-chan sim.Faded
 	missionTime   time.Time
-	bullseye      orb.Point
+	bullseyes     sync.Map
 	contacts      contactDatabase
 	fadedCallback FadedCallback
 }
@@ -129,6 +129,7 @@ func New(coalition coalitions.Coalition, updates <-chan sim.Updated, fades <-cha
 		missionTime:   conf.InitialTime,
 		contacts:      newContactDatabase(),
 		fadedCallback: func(brevity.Group, coalitions.Coalition) {},
+		bullseyes:     sync.Map{},
 	}
 }
 
@@ -136,12 +137,24 @@ func (s *scope) SetMissionTime(t time.Time) {
 	s.missionTime = t
 }
 
-func (s *scope) SetBullseye(bullseye orb.Point) {
-	s.bullseye = bullseye
+func (s *scope) SetBullseye(bullseye orb.Point, coalition coalitions.Coalition) {
+	current := s.Bullseye(coalition)
+	if current.Lon() != bullseye.Lon() || current.Lat() != bullseye.Lat() {
+		log.Info().
+			Int("coalitionID", int(coalition)).
+			Float64("lon", bullseye.Lon()).
+			Float64("lat", bullseye.Lat()).
+			Msg("updating bullseye")
+	}
+	s.bullseyes.Store(coalition, bullseye)
 }
 
-func (s *scope) Bullseye() orb.Point {
-	return s.bullseye
+func (s *scope) Bullseye(coalition coalitions.Coalition) orb.Point {
+	p, ok := s.bullseyes.Load(coalition)
+	if !ok {
+		return orb.Point{}
+	}
+	return p.(orb.Point)
 }
 
 // Run implements [Radar.Run]
@@ -205,11 +218,6 @@ func (s *scope) handleGarbageCollection() {
 				Msg("removed aged out trackfile")
 		}
 	}
-}
-
-// GetBullseye implements [Radar.GetBullseye]
-func (s *scope) GetBullseye() orb.Point {
-	return s.bullseye
 }
 
 // isValidTrack checks if the trackfile is valid. This means all of the following conditions are met:

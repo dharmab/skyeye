@@ -16,7 +16,7 @@ func (c *audioClient) transmit(ctx context.Context, packetCh <-chan []voice.Voic
 		case packets := <-packetCh:
 			c.tx(packets)
 			// Pause between transmissions to sound more natural.
-			pause := time.Duration(250+rand.Intn(400)) * time.Millisecond
+			pause := time.Duration(500+rand.Intn(500)) * time.Millisecond
 			time.Sleep(pause)
 		case <-ctx.Done():
 			log.Info().Msg("stopping voice transmitter due to context cancellation")

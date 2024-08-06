@@ -12,3 +12,8 @@ const (
 	// Neutrals is the ID of the neutral coalition.
 	Neutrals = 3
 )
+
+// All returns all coalitions.
+func All() []Coalition {
+	return []Coalition{Red, Blue, Neutrals}
+}
