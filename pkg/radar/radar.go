@@ -38,12 +38,11 @@ type Radar interface {
 	FindCallsign(string, coalitions.Coalition) (string, *trackfiles.Trackfile)
 	// FindUnit returns the trackfile for the given unit ID and coalition, or nil if no trackfile was found.
 	FindUnit(uint32) *trackfiles.Trackfile
-	// GetPicture returns a picture of the radar scope anchored at the given origin, within the given radius,
+	// GetPicture returns a picture of the radar scope anchored at the center point, within the given radius,
 	// filtered by the given coalition and contact category. The first return value is the total number of groups
 	// and the second is a slice of up to to 3 high priority groups. Each group has Bullseye set relative to the
 	// the point provided in SetBullseye.
 	GetPicture(
-		origin orb.Point,
 		radius unit.Length,
 		coalition coalitions.Coalition,
 		category brevity.ContactCategory,
@@ -120,6 +119,7 @@ type scope struct {
 	bullseyes     sync.Map
 	contacts      contactDatabase
 	fadedCallback FadedCallback
+	center        orb.Point
 }
 
 func New(coalition coalitions.Coalition, updates <-chan sim.Updated, fades <-chan sim.Faded) Radar {
@@ -159,21 +159,26 @@ func (s *scope) Bullseye(coalition coalitions.Coalition) orb.Point {
 
 // Run implements [Radar.Run]
 func (s *scope) Run(ctx context.Context, wg *sync.WaitGroup) {
-	ticker := time.NewTicker(60 * time.Second)
-	defer ticker.Stop()
-
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		s.collectFaded(ctx)
 	}()
 
+	s.updateCenterPoint()
+
+	gcTicker := time.NewTicker(1 * time.Minute)
+	defer gcTicker.Stop()
+	recenterTicker := time.NewTicker(5 * time.Second)
+	defer recenterTicker.Stop()
 	for {
 		select {
 		case update := <-s.updates:
 			s.handleUpdate(update)
-		case <-ticker.C:
+		case <-gcTicker.C:
 			s.handleGarbageCollection()
+		case <-recenterTicker.C:
+			s.updateCenterPoint()
 		case <-ctx.Done():
 			return
 		}

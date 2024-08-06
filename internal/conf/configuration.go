@@ -46,7 +46,7 @@ type Configuration struct {
 
 var DefaultCallsigns = []string{"Sky Eye", "Thunderhead", "Eagle Eye", "Ghost Eye", "Sky Keeper", "Bandog", "Long Caster", "Galaxy"}
 
-var DefaultPictureRadius = 200 * unit.NauticalMile
+var DefaultPictureRadius = 300 * unit.NauticalMile
 
 const DefaultMarginRadius = 3 * unit.NauticalMile
 
