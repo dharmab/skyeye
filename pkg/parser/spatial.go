@@ -2,7 +2,6 @@ package parser
 
 import (
 	"bufio"
-	"slices"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -11,13 +10,15 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var bullseyeWords = []string{"bullseye", "bulls", "eye"}
+var bullseyeWords = []string{"bullseye", "bulls"}
 
 func (p *parser) parseBullseye(scanner *bufio.Scanner) *brevity.Bullseye {
-	for slices.Contains(bullseyeWords, scanner.Text()) {
-		ok := scanner.Scan()
-		if !ok {
-			return nil
+	for _, word := range bullseyeWords {
+		if IsSimilar(scanner.Text(), word) {
+			ok := scanner.Scan()
+			if !ok {
+				return nil
+			}
 		}
 	}
 
@@ -44,10 +45,12 @@ func (p *parser) parseBullseye(scanner *bufio.Scanner) *brevity.Bullseye {
 var braaWords = []string{"bra", "brah", "braa"}
 
 func (p *parser) parseBRA(scanner *bufio.Scanner) (brevity.BRA, bool) {
-	for slices.Contains(braaWords, scanner.Text()) {
-		ok := scanner.Scan()
-		if !ok {
-			return nil, false
+	for _, word := range braaWords {
+		if IsSimilar(scanner.Text(), word) {
+			ok := scanner.Scan()
+			if !ok {
+				return nil, false
+			}
 		}
 	}
 

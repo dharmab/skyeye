@@ -1,8 +1,10 @@
 package controller
 
 import (
+	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/martinlindhe/unit"
+	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
 )
@@ -12,15 +14,22 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 
-	logger.Info().
-		Float64("bearingDegrees", request.Location.Bearing().Degrees()).
-		Float64("distanceNM", request.Location.Distance().NauticalMiles()).
-		Float64("altitudeFeet", request.Altitude.Feet()).
-		Msg("handling DECLARE request")
-
-	if !request.Location.Bearing().IsMagnetic() {
-		logger.Error().Any("bearing", request.Location.Bearing()).Msg("bearing provided to HandleDeclare should be magnetic")
+	if request.IsBRAA {
+		logger = logger.With().
+			Float64("bearingDegrees", request.Bearing.Degrees()).
+			Float64("rangeNM", request.Range.NauticalMiles()).
+			Logger()
+	} else {
+		logger = logger.With().
+			Float64("bearingDegrees", request.Bullseye.Bearing().Degrees()).
+			Float64("distanceNM", request.Bullseye.Distance().NauticalMiles()).
+			Logger()
 	}
+	logger = logger.With().
+		Bool("isBRAA", request.IsBRAA).
+		Float64("altitudeFeet", request.Altitude.Feet()).
+		Logger()
+	logger.Info().Msg("handling DECLARE request")
 
 	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
 	if trackfile == nil {
@@ -29,11 +38,33 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 		return
 	}
 
-	aoi := geo.PointAtBearingAndDistance(
-		c.scope.GetBullseye(),
-		request.Location.Bearing().True(c.scope.Declination(c.scope.GetBullseye())).Degrees(),
-		request.Location.Distance().Meters(),
-	)
+	var origin orb.Point
+	var bearing bearings.Bearing
+	var distance unit.Length
+	if request.IsBRAA {
+		logger.Debug().Msg("locating point of interest using BRAA")
+		if !request.Bearing.IsMagnetic() {
+			logger.Warn().Any("bearing", request.Bearing).Msg("bearing provided to HandleDeclare should be magnetic")
+		}
+		origin = trackfile.LastKnown().Point
+		bearing = request.Bearing
+		distance = request.Range
+	} else {
+		logger.Debug().Msg("locating point of interest using bullseye")
+		if request == nil {
+			logger.Error().Msg("request is nil")
+		} else if request.Bullseye.Bearing() == nil {
+			logger.Error().Msg("request.Bullseye.Bearing() is nil")
+		}
+		if !request.Bullseye.Bearing().IsMagnetic() {
+			logger.Warn().Any("bearing", request.Bullseye.Bearing()).Msg("bearing provided to HandleDeclare should be magnetic")
+		}
+		origin = c.scope.GetBullseye()
+		bearing = request.Bullseye.Bearing().True(c.scope.Declination(origin))
+		distance = request.Bullseye.Distance()
+	}
+	aoi := geo.PointAtBearingAndDistance(origin, bearing.Degrees(), distance.Meters())
+
 	radius := 7 * unit.NauticalMile // TODO reduce to 3 when magvar is available
 	altitudeMargin := unit.Length(5000) * unit.Foot
 	minAltitude := request.Altitude - altitudeMargin
