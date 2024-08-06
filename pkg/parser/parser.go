@@ -51,6 +51,7 @@ var alternateRequestWords = map[string]string{
 	"bokeydope":  bogeyDope,
 	"bokey":      bogeyDope,
 	"bokeh":      bogeyDope,
+	"bogy":       bogeyDope,
 	"bogeydope":  bogeyDope,
 	"okey":       bogeyDope,
 	"boogie":     bogeyDope,
@@ -82,7 +83,7 @@ func (p *parser) findGCICallsign(fields []string) (string, string, bool) {
 func findRequestWord(fields []string) (string, int, bool) {
 	for i, field := range fields {
 		for _, word := range requestWords {
-			if IsSimilar(string(word), field) {
+			if IsSimilar(word, field) {
 				return word, i, true
 			}
 		}
@@ -93,12 +94,13 @@ func findRequestWord(fields []string) (string, int, bool) {
 func normalize(tx string) string {
 	tx, _, _ = strings.Cut(tx, "|")
 	tx = strings.ToLower(tx)
-	tx = strings.ReplaceAll(tx, ",", "")
-	tx = strings.ReplaceAll(tx, ".", "")
+	for _, r := range ".,;:!?()[]/\\" {
+		tx = strings.ReplaceAll(tx, string(r), "")
+	}
 	tx = strings.ReplaceAll(tx, "-", " ")
 	tx = strings.TrimSpace(tx)
 	for alt, word := range alternateRequestWords {
-		tx = strings.ReplaceAll(tx, alt, string(word))
+		tx = strings.ReplaceAll(tx, alt, word)
 	}
 	tx = strings.Join(strings.Fields(tx), " ")
 	return tx
@@ -136,7 +138,7 @@ func (p *parser) Parse(tx string) any {
 	var requestArgs []string
 	requestWord, requestWordIndex, foundRequestWord := findRequestWord(fields)
 	if foundRequestWord {
-		logger = logger.With().Str("request", string(requestWord)).Logger()
+		logger = logger.With().Str("request", requestWord).Logger()
 		logger.Debug().Int("position", requestWordIndex).Msg("found request word")
 		before, requestArgs = fields[:requestWordIndex], fields[requestWordIndex+1:]
 	}
