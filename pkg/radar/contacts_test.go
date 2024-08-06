@@ -118,7 +118,7 @@ func TestSet(t *testing.T) {
 	require.EqualValues(t, trackfile, val)
 
 	trackfile.Update(trackfiles.Frame{
-		Timestamp: time.Now(),
+		Time: time.Now(),
 		Point: orb.Point{
 			1,
 			1,

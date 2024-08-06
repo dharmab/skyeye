@@ -349,11 +349,10 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 	}
 
 	frame := trackfiles.Frame{
-		Timestamp:   time.Now(),
-		MissionTime: s.cursorTime,
-		Point:       coordinates.Location,
-		Altitude:    coordinates.Altitude,
-		Heading:     coordinates.Heading,
+		Time:     s.cursorTime,
+		Point:    coordinates.Location,
+		Altitude: coordinates.Altitude,
+		Heading:  coordinates.Heading,
 	}
 
 	return &sim.Updated{

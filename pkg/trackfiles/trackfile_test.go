@@ -160,20 +160,18 @@ func TestTracking(t *testing.T) {
 			alt := 20000 * unit.Foot
 
 			trackfile.Update(Frame{
-				Timestamp:   now.Add(-1 * time.Millisecond),
-				MissionTime: now.Add(-1 * test.ΔT),
-				Point:       orb.Point{-115.0338, 36.2350},
-				Altitude:    alt,
-				Heading:     test.heading,
+				Time:     now.Add(-1 * test.ΔT),
+				Point:    orb.Point{-115.0338, 36.2350},
+				Altitude: alt,
+				Heading:  test.heading,
 			})
 			dest := geo.PointAtBearingAndDistance(trackfile.LastKnown().Point, 0, test.ΔY.Meters())
 			dest = geo.PointAtBearingAndDistance(dest, 90, test.ΔX.Meters())
 			trackfile.Update(Frame{
-				Timestamp:   now,
-				MissionTime: now,
-				Point:       dest,
-				Altitude:    alt + test.ΔZ,
-				Heading:     test.heading,
+				Time:     now,
+				Point:    dest,
+				Altitude: alt + test.ΔZ,
+				Heading:  test.heading,
 			})
 
 			require.InDelta(t, test.expectedApproxSpeed.MetersPerSecond(), trackfile.Speed().MetersPerSecond(), 0.5)

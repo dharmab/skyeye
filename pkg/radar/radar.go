@@ -197,15 +197,11 @@ func (s *scope) handleGarbageCollection() {
 			Str("aircraft", trackfile.Contact.ACMIName).
 			Logger()
 
-		lastSeen, ok := s.contacts.lastUpdated(trackfile.Contact.UnitID)
-		if !ok {
-			logger.Warn().Msg("last updated time is missing")
-			continue
-		}
-		if lastSeen.Before(time.Now().Add(-5 * time.Minute)) {
+		lastSeen := trackfile.LastKnown().Time
+		if lastSeen.Before(s.missionTime.Add(-5 * time.Minute)) {
 			s.contacts.delete(trackfile.Contact.UnitID)
 			logger.Info().
-				Dur("age", time.Since(lastSeen)).
+				Dur("age", s.missionTime.Sub(lastSeen)).
 				Msg("removed aged out trackfile")
 		}
 	}
