@@ -44,10 +44,9 @@ type Trackfile struct {
 
 // Frame describes a contact's position and velocity at a point in time.
 type Frame struct {
-	// Timestamp of the observation, as measured by SkyEye's real-time wall clock.
-	Timestamp time.Time
-	// MissionTime is the simulation time when the event occurred.
-	MissionTime time.Time
+	// Time within the simulation when the event occurred.
+	// This is not a wall-clock time. It may be decades in the past or years in the future, relative to the system clock.
+	Time time.Time
 	// Point is the contact's 2D position.
 	Point orb.Point
 	// Altitude above sea level.
@@ -80,7 +79,7 @@ func (t *Trackfile) String() string {
 
 // Update the trackfile with a new frame. Frames older than the most recent one are discarded.
 func (t *Trackfile) Update(f Frame) {
-	if t.Track.Len() > 0 && f.MissionTime.Before(t.Track.Front().MissionTime) {
+	if t.Track.Len() > 0 && f.Time.Before(t.Track.Front().Time) {
 		return
 	}
 	t.Track.PushFront(f)
@@ -92,7 +91,7 @@ func (t *Trackfile) Update(f Frame) {
 // Bullseye returns the bearing and distance from the bullseye to the track's last known position.
 func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 	latest := t.Track.Front()
-	declination, _ := bearings.Declination(bullseye, latest.MissionTime)
+	declination, _ := bearings.Declination(bullseye, latest.Time)
 	bearing := bearings.NewTrueBearing(
 		unit.Angle(
 			geo.Bearing(bullseye, latest.Point),
@@ -108,16 +107,15 @@ func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 func (t *Trackfile) LastKnown() Frame {
 	if t.Track.Len() == 0 {
 		return Frame{
-			Timestamp:   time.Now().Add(-time.Hour),
-			MissionTime: conf.InitialTime,
+			Time: conf.InitialTime,
 		}
 	}
 	return t.Track.Front()
 }
 
 func (t *Trackfile) bestAvailableDeclination() unit.Angle {
-	log.Debug().Time("tfTime", t.LastKnown().MissionTime).Msg("getting declination for trackfile")
-	declincation, err := bearings.Declination(t.LastKnown().Point, t.LastKnown().MissionTime)
+	log.Debug().Time("tfTime", t.LastKnown().Time).Msg("getting declination for trackfile")
+	declincation, err := bearings.Declination(t.LastKnown().Point, t.LastKnown().Time)
 	if err != nil {
 		return 0
 	}
@@ -169,7 +167,7 @@ func (t *Trackfile) groundSpeed() unit.Speed {
 	latest := t.Track.Front()
 	previous := t.Track.At(1)
 
-	timeDelta := latest.MissionTime.Sub(previous.MissionTime) + 1*time.Millisecond
+	timeDelta := latest.Time.Sub(previous.Time) + 1*time.Millisecond
 
 	groundDistance := unit.Length(math.Abs(geo.Distance(latest.Point, previous.Point))) * unit.Meter
 	groundSpeed := unit.Speed(
@@ -188,7 +186,7 @@ func (t *Trackfile) Speed() unit.Speed {
 
 	latest := t.Track.Front()
 	previous := t.Track.At(1)
-	timeDelta := latest.MissionTime.Sub(previous.MissionTime) + 1*time.Millisecond
+	timeDelta := latest.Time.Sub(previous.Time) + 1*time.Millisecond
 	var verticalDistance unit.Length
 	if latest.Altitude > previous.Altitude {
 		verticalDistance = latest.Altitude - previous.Altitude

@@ -220,8 +220,8 @@ func (g *group) point() orb.Point {
 func (g *group) missionTime() time.Time {
 	latest := conf.InitialTime
 	for _, trackfile := range g.contacts {
-		if trackfile.LastKnown().MissionTime.After(latest) {
-			latest = trackfile.LastKnown().Timestamp
+		if trackfile.LastKnown().Time.After(latest) {
+			latest = trackfile.LastKnown().Time
 		}
 	}
 	return latest
