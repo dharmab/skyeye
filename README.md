@@ -48,11 +48,12 @@ Skyeye would not be possible without these people and projects, for whom I am de
 * @popey's dataset provides the masculine voice for SkyEye.
 * @amitybell's [embedded Piper module](https://github.com/amitybell/piper) makes distribution and implementation of Piper a breeze. @nabbl improved this module by adding support for macOS.
 * The [Opus codec](https://opus-codec.org) and the [`hraban/opus`](https://github.com/hraban/opus) module provides audio compression for the SRS protocol.
-* @hbollon's [go-edlib](github.com/hbollon/go-edlib) provides algorithms to help SkyEye understand when it slightly mishears/the user slightly misspeaks a callsign or command over the radio.
+* @hbollon's [go-edlib](github.com/hbollon/go-edlib) module provides algorithms to help SkyEye understand when it slightly mishears/the user slightly misspeaks a callsign or command over the radio.
 * @lithammer's [shortuuid](https://github.com/lithammer/shortuuid) module provides a GUID implementation compatible with the SRS protocols.
 * @zaf's [resample](https://github.com/zaf/resample) module helps with audio format conversion between Piper and SRS.
 * @martinlindhe's [unit](https://github.com/martinlindhe/unit) module provides easy angular, length, speed and frequency unit conversion.
 * @paulmach's [orb](https://github.com/paulmach/orb) module provides a simple, flexible GIS library for analyzing the geometric relationships between aircraft.
+* @proway's [go-igrf](github.com/proway2/go-igrf) module implements the [Internation Geomagnetic Reference Field](https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html) used to correct for magnetic declination.
 * [Cobra](https://cobra.dev) is used for the CLI frontend, including configuration, help and examples.
 * [MSYS2](https://www.msys2.org/) provides a Windows build environment.
 * [Oto](https://github.com/ebitengine/oto) is helpful for debugging audio format conversion problems.
@@ -65,13 +66,14 @@ Skyeye would not be possible without these people and projects, for whom I am de
   * [1VSC](https://1stvsc.com/wing/)
   * [CVW8](https://virtualcvw8.com/)
   * @Frosty-nee
-* And of course, [DCS World](https://www.digitalcombatsimulator.com/en/) is produced by Eagle Dynamics.
+* The _Ace Combat_ series by PROJECT ACES/Bandai Namco and _Project Wingman_ by Sector D2 are _massive_ influences on my interest in GCI/AWACS, and aviation in general. This project would not exist without the imapct of _Ace Combat 04: Shattered Skies_.
+* And of course, [_DCS World_](https://www.digitalcombatsimulator.com/en/) is produced by Eagle Dynamics.
 
 ## FAQ
 
 ### Is this ready?
 
-No- but it will be soon! I am anticipating to begin testing with friends' servers within the next few months and a general availability release by winter 2024-2025.
+This project is close to a Limited Availability release by early fall 2024. A General Availability release is expected during winter 2024-2025.
 
 Current status:
 
@@ -105,7 +107,7 @@ Current status:
 
 ### What kind of hardware does it require?
 
-I'm not sure yet but it shouldn't be too bad. Currently the dev build takes about 4GB of RAM and recognizes commands near-instantly on an AMD 5900X. I have done essentially no performance optimization yet and I expect performance to improve by release. Some areas to improve:
+I'm not sure yet but it shouldn't be too bad. Currently the dev build takes about 2.5GB of RAM and recognizes commands near-instantly on an AMD 5900X. I have done essentially no performance optimization yet and I expect performance to improve by release. Some areas to improve:
 
 * I'm making unecessary copies of data all over the place - this is usually the default practice in Go unless you either need the receiving function to mutate the passed object, you need to do so for concurrency safety, or you can provably improve performance. I plan to revisit this when the bot is closer to release.
 * I'm using an off the shelf general purpose Whisper model in my development environment. There's some exciting research into faster [distilled models](https://github.com/huggingface/distil-whisper) and custom trained models that will be revisited in a few months. I also strongly suspect a combination of advances in AI and Moore's Law will significantly improve Speech-To-Text performance within the next year or so.
