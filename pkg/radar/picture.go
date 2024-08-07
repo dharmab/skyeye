@@ -7,7 +7,6 @@ import (
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
-	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
@@ -66,8 +65,8 @@ func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, f
 	bIsHigherThreat := 1
 	slices.SortFunc(groups, func(a, b *group) int {
 		// Priotize armed aircraft over unarmed aircraft
-		aIsArmed := a.threatClass() != encyclopedia.NoFactor
-		bIsArmed := b.threatClass() != encyclopedia.NoFactor
+		aIsArmed := a.threatFactor() > 0
+		bIsArmed := b.threatFactor() > 0
 		if aIsArmed && !bIsArmed {
 			return aIsHigherThreat
 		} else if !aIsArmed && bIsArmed {
@@ -93,9 +92,9 @@ func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, f
 			return int(distanceA - distanceB)
 		}
 
-		// Prioritize groups with a higher threat class
-		if a.threatClass() != b.threatClass() {
-			return int(b.threatClass() - a.threatClass())
+		// Prioritize groups with a higher threat
+		if a.threatFactor() != b.threatFactor() {
+			return int(b.threatFactor() - a.threatFactor())
 		}
 
 		// Prioritize HIGH groups

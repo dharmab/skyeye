@@ -13,11 +13,6 @@ const (
 	AnyAircraft AircraftTag = iota
 	FixedWing
 	RotaryWing
-
-	HasActiveRadarMissiles
-	HasSemiActiveRadarMissiles
-	HasInfraredMissiles
-	HasCannon
 )
 
 type Aircraft struct {
@@ -39,6 +34,9 @@ type Aircraft struct {
 	// Nickname is a common nickname for the aircraft. Not all aircraft have a nickname.
 	// e.g. Warthog, Viper, Mudhen
 	Nickname string
+	// threatFactor is a weight roughly indicating how dangerous the aircraft is.
+	// 0 is unarmed. Threat factor increases with both airframe and weapon capabilities.
+	threatFactor int
 }
 
 func (a Aircraft) Category() brevity.ContactCategory {
@@ -72,16 +70,22 @@ func (a Aircraft) HasAnyTag(tags ...AircraftTag) bool {
 	return false
 }
 
-func (a Aircraft) ThreatClass() ThreatClass {
-	if a.HasAnyTag(HasActiveRadarMissiles, HasSemiActiveRadarMissiles) {
-		return SAR2OrAR1
-	} else if a.HasTag(HasInfraredMissiles) {
-		return SAR1OrIR
-	} else if a.HasTag(HasCannon) {
-		return Guns
-	}
-	return NoFactor
+func (a Aircraft) ThreatFactor() int {
+	return a.threatFactor
 }
+
+const (
+	Unarmed               int = 0
+	Helicopter            int = 1
+	AttackerWithGuns      int = 2
+	AttackerWithIR        int = 3
+	FighterWithGuns       int = 4
+	FighterWithIR         int = 10
+	DefaultThreat         int = 20
+	FighterWithSAR        int = 25
+	FighterWithAR         int = 40
+	AirSuperiorityFighter int = 60
+)
 
 func variants(data Aircraft, naming map[string]string) []Aircraft {
 	variants := []Aircraft{}
@@ -92,6 +96,7 @@ func variants(data Aircraft, naming map[string]string) []Aircraft {
 			PlatformDesignation: data.PlatformDesignation,
 			TypeDesignation:     data.TypeDesignation + designation,
 			OfficialName:        data.OfficialName,
+			threatFactor:        data.threatFactor,
 		})
 	}
 	return variants
@@ -99,13 +104,12 @@ func variants(data Aircraft, naming map[string]string) []Aircraft {
 
 var a10Data = Aircraft{
 	tags: map[AircraftTag]bool{
-		FixedWing:           true,
-		HasInfraredMissiles: true,
-		HasCannon:           true,
+		FixedWing: true,
 	},
 	PlatformDesignation: "A-10",
 	OfficialName:        "Thunderbolt",
 	Nickname:            "Warthog",
+	threatFactor:        AttackerWithIR,
 }
 
 func a10Variants() []Aircraft {
@@ -120,13 +124,10 @@ func a10Variants() []Aircraft {
 }
 
 var c101Data = Aircraft{
-	tags: map[AircraftTag]bool{
-		FixedWing:           true,
-		HasInfraredMissiles: true,
-		HasCannon:           true,
-	},
+	tags:                map[AircraftTag]bool{FixedWing: true},
 	PlatformDesignation: "C-101",
 	OfficialName:        "Aviojet",
+	threatFactor:        FighterWithIR,
 }
 
 func c101Variants() []Aircraft {
@@ -140,12 +141,10 @@ func c101Variants() []Aircraft {
 }
 
 var f86Data = Aircraft{
-	tags: map[AircraftTag]bool{
-		FixedWing: true,
-		HasCannon: true,
-	},
+	tags:                map[AircraftTag]bool{FixedWing: true},
 	PlatformDesignation: "F-86",
 	OfficialName:        "Sabre",
+	threatFactor:        FighterWithGuns,
 }
 
 func f86Variants() []Aircraft {
@@ -159,14 +158,10 @@ func f86Variants() []Aircraft {
 }
 
 var f4Data = Aircraft{
-	tags: map[AircraftTag]bool{
-		FixedWing:                  true,
-		HasSemiActiveRadarMissiles: true,
-		HasInfraredMissiles:        true,
-		HasCannon:                  true,
-	},
+	tags:                map[AircraftTag]bool{FixedWing: true},
 	PlatformDesignation: "F-4",
 	OfficialName:        "Phantom",
+	threatFactor:        FighterWithSAR,
 }
 
 func f4Variants() []Aircraft {
@@ -181,12 +176,11 @@ func f4Variants() []Aircraft {
 
 var f5Data = Aircraft{
 	tags: map[AircraftTag]bool{
-		FixedWing:           true,
-		HasInfraredMissiles: true,
-		HasCannon:           true,
+		FixedWing: true,
 	},
 	PlatformDesignation: "F-5",
 	OfficialName:        "Tiger",
+	threatFactor:        FighterWithGuns,
 }
 
 func f5Variants() []Aircraft {
@@ -202,14 +196,11 @@ func f5Variants() []Aircraft {
 
 var f14Data = Aircraft{
 	tags: map[AircraftTag]bool{
-		FixedWing:                  true,
-		HasActiveRadarMissiles:     true,
-		HasSemiActiveRadarMissiles: true,
-		HasInfraredMissiles:        true,
-		HasCannon:                  true,
+		FixedWing: true,
 	},
 	PlatformDesignation: "F-14",
 	OfficialName:        "Tomcat",
+	threatFactor:        AirSuperiorityFighter,
 }
 
 func f14Variants() []Aircraft {
@@ -226,14 +217,11 @@ func f14Variants() []Aircraft {
 var f15Data = Aircraft{
 	PlatformDesignation: "F-15",
 	tags: map[AircraftTag]bool{
-		FixedWing:                  true,
-		HasActiveRadarMissiles:     true,
-		HasSemiActiveRadarMissiles: true,
-		HasInfraredMissiles:        true,
-		HasCannon:                  true,
+		FixedWing: true,
 	},
 	// Use "Eagle" for Strike Eagle because radar cannot distinguish between the two
 	OfficialName: "Eagle",
+	threatFactor: AirSuperiorityFighter,
 }
 
 func f15Variants() []Aircraft {
@@ -248,14 +236,12 @@ func f15Variants() []Aircraft {
 
 var f16Data = Aircraft{
 	tags: map[AircraftTag]bool{
-		FixedWing:              true,
-		HasActiveRadarMissiles: true,
-		HasInfraredMissiles:    true,
-		HasCannon:              true,
+		FixedWing: true,
 	},
 	PlatformDesignation: "F-16",
 	OfficialName:        "Falcon",
 	Nickname:            "Viper",
+	threatFactor:        FighterWithAR,
 }
 
 func f16Variants() []Aircraft {
@@ -273,14 +259,11 @@ func f16Variants() []Aircraft {
 
 var fa18Data = Aircraft{
 	tags: map[AircraftTag]bool{
-		FixedWing:                  true,
-		HasActiveRadarMissiles:     true,
-		HasSemiActiveRadarMissiles: true,
-		HasInfraredMissiles:        true,
-		HasCannon:                  true,
+		FixedWing: true,
 	},
 	PlatformDesignation: "F/A-18",
 	OfficialName:        "Hornet",
+	threatFactor:        FighterWithAR,
 }
 
 func fa18Variants() []Aircraft {
@@ -296,13 +279,11 @@ func fa18Variants() []Aircraft {
 
 var mirageF1Data = Aircraft{
 	tags: map[AircraftTag]bool{
-		FixedWing:                  true,
-		HasSemiActiveRadarMissiles: true,
-		HasInfraredMissiles:        true,
-		HasCannon:                  true,
+		FixedWing: true,
 	},
 	PlatformDesignation: "Mirage F1",
 	OfficialName:        "Mirage F1",
+	threatFactor:        FighterWithSAR,
 }
 
 func mirageF1Variants() []Aircraft {
@@ -338,12 +319,11 @@ func mirageF1Variants() []Aircraft {
 
 var ftData = Aircraft{
 	tags: map[AircraftTag]bool{
-		FixedWing:           true,
-		HasInfraredMissiles: true,
-		HasCannon:           true,
+		FixedWing: true,
 	},
 	PlatformDesignation: "MiG-15",
 	NATOReportingName:   mig15NATOReportingName,
+	threatFactor:        FighterWithSAR,
 }
 
 func ftVariants() []Aircraft {
@@ -358,13 +338,11 @@ func ftVariants() []Aircraft {
 
 var fencerData = Aircraft{
 	tags: map[AircraftTag]bool{
-		FixedWing:                  true,
-		HasSemiActiveRadarMissiles: true,
-		HasInfraredMissiles:        true,
-		HasCannon:                  true,
+		FixedWing: true,
 	},
 	PlatformDesignation: "Su-24",
 	NATOReportingName:   "Fencer",
+	threatFactor:        FighterWithSAR,
 }
 
 func fencerVariants() []Aircraft {
@@ -379,13 +357,11 @@ func fencerVariants() []Aircraft {
 
 var foxbatData = Aircraft{
 	tags: map[AircraftTag]bool{
-		FixedWing:                  true,
-		HasSemiActiveRadarMissiles: true,
-		HasInfraredMissiles:        true,
-		HasCannon:                  true,
+		FixedWing: true,
 	},
 	PlatformDesignation: "MiG-25",
 	NATOReportingName:   "Foxbat",
+	threatFactor:        FighterWithSAR,
 }
 
 func foxbatVariants() []Aircraft {
@@ -400,13 +376,11 @@ func foxbatVariants() []Aircraft {
 
 var fulcrumData = Aircraft{
 	tags: map[AircraftTag]bool{
-		FixedWing:                  true,
-		HasSemiActiveRadarMissiles: true,
-		HasInfraredMissiles:        true,
-		HasCannon:                  true,
+		FixedWing: true,
 	},
 	PlatformDesignation: "MiG-29",
 	NATOReportingName:   "Fulcrum",
+	threatFactor:        FighterWithAR,
 }
 
 func fulcrumVariants() []Aircraft {
@@ -422,12 +396,11 @@ func fulcrumVariants() []Aircraft {
 
 var frogfootData = Aircraft{
 	tags: map[AircraftTag]bool{
-		FixedWing:           true,
-		HasInfraredMissiles: true,
-		HasCannon:           true,
+		FixedWing: true,
 	},
 	PlatformDesignation: "Su-25",
 	NATOReportingName:   "Frogfoot",
+	threatFactor:        AttackerWithIR,
 }
 
 func frogfootVariants() []Aircraft {
@@ -443,14 +416,11 @@ func frogfootVariants() []Aircraft {
 
 var flankerData = Aircraft{
 	tags: map[AircraftTag]bool{
-		FixedWing:                  true,
-		HasActiveRadarMissiles:     true,
-		HasSemiActiveRadarMissiles: true,
-		HasInfraredMissiles:        true,
-		HasCannon:                  true,
+		FixedWing: true,
 	},
 	PlatformDesignation: "Su-27",
 	NATOReportingName:   "Flanker",
+	threatFactor:        AirSuperiorityFighter,
 }
 
 var kc135Data = Aircraft{
@@ -472,13 +442,10 @@ func kc135Variants() []Aircraft {
 }
 
 var l39Data = Aircraft{
-	tags: map[AircraftTag]bool{
-		FixedWing:           true,
-		HasInfraredMissiles: true,
-		HasCannon:           true,
-	},
+	tags:                map[AircraftTag]bool{FixedWing: true},
 	PlatformDesignation: "L-39",
 	OfficialName:        "Albatros",
+	threatFactor:        FighterWithIR,
 }
 
 func l39Variants() []Aircraft {
@@ -492,11 +459,9 @@ func l39Variants() []Aircraft {
 }
 
 var mb339Data = Aircraft{
-	tags: map[AircraftTag]bool{
-		FixedWing: true,
-		HasCannon: true,
-	},
+	tags:                map[AircraftTag]bool{FixedWing: true},
 	PlatformDesignation: "MB-339",
+	threatFactor:        FighterWithGuns,
 }
 
 func mb339Variants() []Aircraft {
@@ -526,14 +491,10 @@ func s3Variants() []Aircraft {
 }
 
 var tornadoData = Aircraft{
-	tags: map[AircraftTag]bool{
-		FixedWing:                  true,
-		HasSemiActiveRadarMissiles: true,
-		HasInfraredMissiles:        true,
-		HasCannon:                  true,
-	},
+	tags:                map[AircraftTag]bool{FixedWing: true},
 	PlatformDesignation: "Tornado",
 	OfficialName:        "Tornado",
+	threatFactor:        FighterWithSAR,
 }
 
 func tornadoVariants() []Aircraft {
@@ -579,14 +540,13 @@ var aircraftData = append([]Aircraft{
 	{
 		ACMIShortName: "A-4E",
 		tags: map[AircraftTag]bool{
-			FixedWing:           true,
-			HasInfraredMissiles: true,
-			HasCannon:           true,
+			FixedWing: true,
 		},
 		PlatformDesignation: "A-4",
 		TypeDesignation:     "A-4E",
 		OfficialName:        "Skyhawk",
 		Nickname:            "Scooter",
+		threatFactor:        AttackerWithIR,
 	},
 	{
 		ACMIShortName:       "A-20G",
@@ -594,6 +554,7 @@ var aircraftData = append([]Aircraft{
 		PlatformDesignation: "A-20",
 		TypeDesignation:     "A-20G",
 		OfficialName:        "Havoc",
+		threatFactor:        AttackerWithGuns,
 	},
 	{
 		ACMIShortName:       "A-50",
@@ -605,22 +566,21 @@ var aircraftData = append([]Aircraft{
 	{
 		ACMIShortName: "AJS 37",
 		tags: map[AircraftTag]bool{
-			FixedWing:           true,
-			HasInfraredMissiles: true,
+			FixedWing: true,
 		},
 		PlatformDesignation: "AJS37",
 		OfficialName:        "Viggen",
+		threatFactor:        AttackerWithIR,
 	},
 	{
 		ACMIShortName: "AV8BNA",
 		tags: map[AircraftTag]bool{
-			FixedWing:           true,
-			HasInfraredMissiles: true,
-			HasCannon:           true,
+			FixedWing: true,
 		},
 		PlatformDesignation: "AV-8",
 		TypeDesignation:     "AV-8B",
 		OfficialName:        "Harrier",
+		threatFactor:        FighterWithIR,
 	},
 	{
 		ACMIShortName:       "An-26B",
@@ -729,18 +689,15 @@ var aircraftData = append([]Aircraft{
 		PlatformDesignation: flankerData.PlatformDesignation,
 		TypeDesignation:     "J-11A",
 		NATOReportingName:   flankerData.NATOReportingName,
+		threatFactor:        flankerData.threatFactor,
 	},
 	{
-		ACMIShortName: "JF-17",
-		tags: map[AircraftTag]bool{
-			FixedWing:              true,
-			HasActiveRadarMissiles: true,
-			HasInfraredMissiles:    true,
-			// Gun is A-G only
-		},
+		ACMIShortName:       "JF-17",
+		tags:                map[AircraftTag]bool{FixedWing: true},
 		PlatformDesignation: "JF-17",
 		TypeDesignation:     "JF-17",
 		OfficialName:        "Thunder",
+		threatFactor:        FighterWithAR,
 	},
 	{
 		ACMIShortName:       "KC130",
@@ -760,25 +717,22 @@ var aircraftData = append([]Aircraft{
 	{
 		ACMIShortName: "M-2000C",
 		tags: map[AircraftTag]bool{
-			FixedWing:                  true,
-			HasSemiActiveRadarMissiles: true,
-			HasInfraredMissiles:        true,
-			HasCannon:                  true,
+			FixedWing: true,
 		},
 		PlatformDesignation: "Mirage 2000",
 		TypeDesignation:     "Mirage 2000C",
 		OfficialName:        "Mirage 2000",
+		threatFactor:        FighterWithSAR,
 	},
 	{
 		ACMIShortName: "Mi-24P",
 		tags: map[AircraftTag]bool{
-			RotaryWing:          true,
-			HasInfraredMissiles: true,
-			HasCannon:           true,
+			RotaryWing: true,
 		},
 		PlatformDesignation: "Mi-24",
 		TypeDesignation:     "Mi-24P",
 		NATOReportingName:   "Hind",
+		threatFactor:        Helicopter,
 	},
 	{
 		ACMIShortName:       "Mi-26",
@@ -788,84 +742,64 @@ var aircraftData = append([]Aircraft{
 		NATOReportingName:   "Hip",
 	},
 	{
-		ACMIShortName: "MiG-15bis",
-		tags: map[AircraftTag]bool{
-			FixedWing: true,
-			HasCannon: true,
-		},
-		PlatformDesignation: "MiG-15",
-		TypeDesignation:     "MiG-15bis",
-		NATOReportingName:   mig15NATOReportingName,
-	},
-	{
 		ACMIShortName: "MiG-19P",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
-			HasCannon: true,
 		},
 		PlatformDesignation: "MiG-19",
 		TypeDesignation:     "MiG-19P",
 		NATOReportingName:   "Farmer",
+		threatFactor:        FighterWithGuns,
 	},
 	{
 		ACMIShortName: "MiG-21Bis",
 		tags: map[AircraftTag]bool{
-			FixedWing:                  true,
-			HasSemiActiveRadarMissiles: true,
-			HasInfraredMissiles:        true,
-			HasCannon:                  true,
+			FixedWing: true,
 		},
 		PlatformDesignation: "MiG-21",
 		TypeDesignation:     "MiG-21bis",
 		NATOReportingName:   "Fishbed",
+		threatFactor:        FighterWithSAR,
 	},
 	{
 		ACMIShortName: "MiG-23MLD",
 		tags: map[AircraftTag]bool{
-			FixedWing:                  true,
-			HasSemiActiveRadarMissiles: true,
-			HasInfraredMissiles:        true,
-			HasCannon:                  true,
+			FixedWing: true,
 		},
 		PlatformDesignation: "MiG-23",
 		TypeDesignation:     "MiG-23MLD",
 		NATOReportingName:   "Flogger",
+		threatFactor:        FighterWithSAR,
 	},
 	{
 		ACMIShortName: "MiG-27K",
 		tags: map[AircraftTag]bool{
-			FixedWing:                  true,
-			HasSemiActiveRadarMissiles: true,
-			HasInfraredMissiles:        true,
-			HasCannon:                  true,
+			FixedWing: true,
 		},
 		PlatformDesignation: "MiG-27",
 		TypeDesignation:     "MiG-27K",
 		NATOReportingName:   "Flogger",
+		threatFactor:        FighterWithSAR,
 	},
 	{
 		ACMIShortName: "MiG-31",
 		tags: map[AircraftTag]bool{
-			FixedWing:                  true,
-			HasSemiActiveRadarMissiles: true,
-			HasInfraredMissiles:        true,
-			HasCannon:                  true,
+			FixedWing: true,
 		},
 		PlatformDesignation: "MiG-31",
 		TypeDesignation:     "MiG-31",
 		NATOReportingName:   "Foxhound",
+		threatFactor:        FighterWithSAR,
 	},
 	{
 		ACMIShortName: "M2000-5",
 		tags: map[AircraftTag]bool{
-			FixedWing:                  true,
-			HasSemiActiveRadarMissiles: true,
-			HasInfraredMissiles:        true,
-			HasCannon:                  true,
+			FixedWing: true,
 		},
 		PlatformDesignation: "Mirage 2000",
 		TypeDesignation:     "Mirage 2000-5",
 		OfficialName:        "Mirage 2000",
+		threatFactor:        FighterWithSAR,
 	},
 	{
 		ACMIShortName:       "MQ-1",
@@ -885,11 +819,11 @@ var aircraftData = append([]Aircraft{
 		ACMIShortName: "Su-17M4",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
-			HasCannon: true,
 		},
 		PlatformDesignation: "Su-17",
 		TypeDesignation:     "Su-17M4",
 		NATOReportingName:   "Fitter",
+		threatFactor:        FighterWithSAR,
 	},
 	{
 		ACMIShortName:       "Su-27",
@@ -897,6 +831,7 @@ var aircraftData = append([]Aircraft{
 		PlatformDesignation: flankerData.PlatformDesignation,
 		TypeDesignation:     "Su-27",
 		NATOReportingName:   flankerData.NATOReportingName,
+		threatFactor:        flankerData.threatFactor,
 	},
 	{
 		ACMIShortName:       "Su-30",
@@ -904,6 +839,7 @@ var aircraftData = append([]Aircraft{
 		PlatformDesignation: flankerData.PlatformDesignation,
 		TypeDesignation:     "Su-30",
 		NATOReportingName:   flankerData.NATOReportingName,
+		threatFactor:        flankerData.threatFactor,
 	},
 	{
 		ACMIShortName:       "Su-33",
@@ -911,26 +847,17 @@ var aircraftData = append([]Aircraft{
 		PlatformDesignation: flankerData.PlatformDesignation,
 		TypeDesignation:     "Su-33",
 		NATOReportingName:   flankerData.NATOReportingName,
+		threatFactor:        flankerData.threatFactor,
 	},
 	{
 		ACMIShortName: "Su-34",
 		tags: map[AircraftTag]bool{
-			FixedWing:                  true,
-			HasActiveRadarMissiles:     true,
-			HasSemiActiveRadarMissiles: true,
-			HasInfraredMissiles:        true,
-			HasCannon:                  true,
+			FixedWing: true,
 		},
 		PlatformDesignation: "Su-34",
 		TypeDesignation:     "Su-34",
 		OfficialName:        "Fullback",
-	},
-	{
-		ACMIShortName:       "Tornado GR4",
-		tags:                tornadoData.tags,
-		PlatformDesignation: tornadoData.PlatformDesignation,
-		TypeDesignation:     "Tornado",
-		OfficialName:        tornadoData.OfficialName,
+		threatFactor:        flankerData.threatFactor,
 	},
 	{
 		ACMIShortName:       "Tu-22M3",

@@ -227,18 +227,18 @@ func (g *group) missionTime() time.Time {
 	return latest
 }
 
-// threatClass returns the highest threat class of all contacts in the group.
-func (g *group) threatClass() encyclopedia.ThreatClass {
-	var groupThreatClass encyclopedia.ThreatClass
+// threatFactor returns the highest threat factor of all contacts in the group
+func (g *group) threatFactor() int {
+	highest := 0
 	for _, trackfile := range g.contacts {
 		data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName)
 		if !ok {
-			continue
+			highest = encyclopedia.DefaultThreat
 		}
-		contactThreatClass := data.ThreatClass()
-		if contactThreatClass > groupThreatClass {
-			groupThreatClass = contactThreatClass
+		factor := data.ThreatFactor()
+		if factor > highest {
+			highest = factor
 		}
 	}
-	return groupThreatClass
+	return highest
 }
