@@ -36,7 +36,7 @@ type Aircraft struct {
 	Nickname string
 	// threatFactor is a weight roughly indicating how dangerous the aircraft is.
 	// 0 is unarmed. Threat factor increases with both airframe and weapon capabilities.
-	threatFactor int
+	threatFactor float64
 }
 
 func (a Aircraft) Category() brevity.ContactCategory {
@@ -70,34 +70,41 @@ func (a Aircraft) HasAnyTag(tags ...AircraftTag) bool {
 	return false
 }
 
-func (a Aircraft) ThreatFactor() int {
+func (a Aircraft) ThreatFactor() float64 {
 	return a.threatFactor
 }
 
 const (
-	Unarmed               int = 0
-	Helicopter            int = 1
-	AttackerWithGuns      int = 2
-	AttackerWithIR        int = 3
-	FighterWithGuns       int = 4
-	FighterWithIR         int = 10
-	DefaultThreat         int = 20
-	FighterWithSAR        int = 25
-	FighterWithAR         int = 40
-	AirSuperiorityFighter int = 60
+	Unarmed               float64 = 0
+	Helicopter            float64 = 0.01
+	AttackerWithGuns      float64 = 0.02
+	AttackerWithIR        float64 = 0.05
+	FighterWithGuns       float64 = 0.10
+	FighterWithIR         float64 = 0.50
+	DefaultThreat         float64 = 0.50
+	FighterWithSAR        float64 = 0.75
+	FighterWithAR         float64 = 0.90
+	AirSuperiorityFighter float64 = 1.00
 )
 
 func variants(data Aircraft, naming map[string]string) []Aircraft {
 	variants := []Aircraft{}
-	for acmiName, designation := range naming {
-		variants = append(variants, Aircraft{
-			ACMIShortName:       data.PlatformDesignation + acmiName,
+	for nameSuffix, designationSuffx := range naming {
+		aircraft := Aircraft{
 			tags:                data.tags,
 			PlatformDesignation: data.PlatformDesignation,
-			TypeDesignation:     data.TypeDesignation + designation,
+			TypeDesignation:     data.TypeDesignation + designationSuffx,
+			NATOReportingName:   data.NATOReportingName,
 			OfficialName:        data.OfficialName,
+			Nickname:            data.Nickname,
 			threatFactor:        data.threatFactor,
-		})
+		}
+		if data.ACMIShortName != "" {
+			aircraft.ACMIShortName = data.ACMIShortName + nameSuffix
+		} else {
+			aircraft.ACMIShortName = data.PlatformDesignation + nameSuffix
+		}
+		variants = append(variants, aircraft)
 	}
 	return variants
 }
@@ -228,8 +235,8 @@ func f15Variants() []Aircraft {
 	return variants(
 		f15Data,
 		map[string]string{
-			"C": "C",
-			"E": "E",
+			"C":   "C",
+			"ESE": "E",
 		},
 	)
 }
@@ -261,7 +268,7 @@ var fa18Data = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
 	},
-	PlatformDesignation: "F/A-18",
+	PlatformDesignation: "FA-18",
 	OfficialName:        "Hornet",
 	threatFactor:        FighterWithAR,
 }
@@ -278,6 +285,7 @@ func fa18Variants() []Aircraft {
 }
 
 var mirageF1Data = Aircraft{
+	ACMIShortName: "Mirage-F1",
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
 	},
@@ -432,13 +440,20 @@ var kc135Data = Aircraft{
 }
 
 func kc135Variants() []Aircraft {
-	return variants(
-		kc135Data,
-		map[string]string{
-			"":     "",
-			"MPRS": "",
+	return []Aircraft{
+		{
+			ACMIShortName:       "KC-135",
+			tags:                kc135Data.tags,
+			PlatformDesignation: kc135Data.PlatformDesignation,
+			OfficialName:        kc135Data.OfficialName,
 		},
-	)
+		{
+			ACMIShortName:       "KC135MPRS",
+			tags:                kc135Data.tags,
+			PlatformDesignation: kc135Data.PlatformDesignation,
+			OfficialName:        kc135Data.OfficialName,
+		},
+	}
 }
 
 var l39Data = Aircraft{
@@ -507,36 +522,7 @@ func tornadoVariants() []Aircraft {
 	)
 }
 
-func allVariants() []Aircraft {
-	v := []Aircraft{}
-	for _, vars := range [][]Aircraft{
-		a10Variants(),
-		c101Variants(),
-		f86Variants(),
-		f4Variants(),
-		f5Variants(),
-		f14Variants(),
-		f15Variants(),
-		f16Variants(),
-		fa18Variants(),
-		kc135Variants(),
-		l39Variants(),
-		mb339Variants(),
-		mirageF1Variants(),
-		s3Variants(),
-		tornadoVariants(),
-		ftVariants(),
-		fencerVariants(),
-		foxbatVariants(),
-		fulcrumVariants(),
-		frogfootVariants(),
-	} {
-		v = append(v, vars...)
-	}
-	return v
-}
-
-var aircraftData = append([]Aircraft{
+var aircraftData = []Aircraft{
 	{
 		ACMIShortName: "A-4E",
 		tags: map[AircraftTag]bool{
@@ -888,15 +874,39 @@ var aircraftData = append([]Aircraft{
 		OfficialName:        "Iroquois",
 		Nickname:            "Huey",
 	},
-}, allVariants()...)
+}
 
 // aircraftDataLUT maps the name exported in ACMI data to aircraft data
 var aircraftDataLUT map[string]Aircraft
 
 func init() {
 	aircraftDataLUT = make(map[string]Aircraft)
-	for _, data := range aircraftData {
-		aircraftDataLUT[data.ACMIShortName] = data
+	for _, vars := range [][]Aircraft{
+		aircraftData,
+		a10Variants(),
+		c101Variants(),
+		f86Variants(),
+		f4Variants(),
+		f5Variants(),
+		f14Variants(),
+		f15Variants(),
+		f16Variants(),
+		fa18Variants(),
+		mirageF1Variants(),
+		ftVariants(),
+		fencerVariants(),
+		foxbatVariants(),
+		fulcrumVariants(),
+		frogfootVariants(),
+		kc135Variants(),
+		l39Variants(),
+		mb339Variants(),
+		s3Variants(),
+		tornadoVariants(),
+	} {
+		for _, data := range vars {
+			aircraftDataLUT[data.ACMIShortName] = data
+		}
 	}
 }
 

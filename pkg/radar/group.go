@@ -228,8 +228,8 @@ func (g *group) missionTime() time.Time {
 }
 
 // threatFactor returns the highest threat factor of all contacts in the group
-func (g *group) threatFactor() int {
-	highest := 0
+func (g *group) threatFactor() float64 {
+	highest := 0.0
 	for _, trackfile := range g.contacts {
 		data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName)
 		if !ok {
