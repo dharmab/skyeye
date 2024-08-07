@@ -21,7 +21,6 @@ import (
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/synthesizer/speakers"
 	tacview "github.com/dharmab/skyeye/pkg/tacview/client"
-	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
 
@@ -120,7 +119,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 
 	rdr := radar.New(config.Coalition, updates, fades)
 	log.Info().Msg("constructing GCI controller")
-	controller := controller.New(rdr, config.Coalition, unit.Frequency(config.SRSFrequency)*unit.Hertz)
+	controller := controller.New(rdr, config.Coalition, config.SRSFrequency, config.PictureBroadcastInterval)
 
 	log.Info().Msg("constructing text composer")
 	composer := composer.New(config.Callsign)

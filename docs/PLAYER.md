@@ -277,7 +277,9 @@ If you hear this in the middle of a mission, it probably means the bot crashed a
 
 ### PICTURE
 
-🚧 NOT YET IMPLEMENTED 🚧
+Server operators may optionally configure the GCI controller to automatically broadcast a PICTURE at regualr intervals. The content and format is the same as described in the PICTURE request above.
+
+Requesting a PICTURE will reset the interval on any automatic broadcast.
 
 ### THREAT
 

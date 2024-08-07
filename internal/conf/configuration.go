@@ -42,6 +42,8 @@ type Configuration struct {
 	WhisperModel *whisper.Model
 	// Voice is the voice used for SRS transmissions
 	Voice voices.Voice
+	// PictureBroadcastInterval is the interval at which the controller will automatically broadcast a PICTURE.
+	PictureBroadcastInterval time.Duration
 }
 
 var DefaultCallsigns = []string{"Sky Eye", "Thunderhead", "Eagle Eye", "Ghost Eye", "Sky Keeper", "Bandog", "Long Caster", "Galaxy"}
