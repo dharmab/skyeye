@@ -2,7 +2,7 @@
 
 ## Quickstart for Multiplayer
 
-1. Set your in-game callsign to a simple callsign in the format `Callsign 1 yourname`.
+1. Set your in-game callsign to a simple callsign in the format `Callsign 1 | yourname`.
 1. Join a server that uses SRS and SkyEye.
 1. Get airborne.
 1. Tune to the server's SkyEye frequency in SRS.
@@ -37,7 +37,7 @@ That is:
 3. A pipe character (`|`)
 3. Your non-callsign username.
 
-Your callsign should be unique within a server. If multiple players have the same callsign, SkyEye will respond but you may receive inconsistent information. Note that callsigns are normalized in capitalization and numbers - "WARDOG 14", "Wardog 14" and "Wardog 1 4" are all considered to be the same callsign. Numbers ar pronounced individually - "Spare 15" is prnounced "Spare One Five", not "Spare Fifteen".
+Your callsign should be unique within a server. If multiple players have the same callsign, SkyEye will respond but you may receive inconsistent information. Note that callsigns are normalized in capitalization and numbers - "WARDOG 14", "Wardog 14" and "Wardog 1 4" are all considered to be the same callsign. Numbers ar pronounced individually - "Spare 15" is pronounced "Spare One Five", not "Spare Fifteen".
 
 Avoid:
 

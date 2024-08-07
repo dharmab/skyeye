@@ -94,10 +94,12 @@ func findRequestWord(fields []string) (string, int, bool) {
 func normalize(tx string) string {
 	tx, _, _ = strings.Cut(tx, "|")
 	tx = strings.ToLower(tx)
-	for _, r := range ".,;:!?()[]/\\" {
-		tx = strings.ReplaceAll(tx, string(r), "")
-	}
 	tx = strings.ReplaceAll(tx, "-", " ")
+	for _, r := range tx {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && !unicode.IsSpace(r) {
+			tx = strings.ReplaceAll(tx, string(r), "")
+		}
+	}
 	tx = strings.TrimSpace(tx)
 	for alt, word := range alternateRequestWords {
 		tx = strings.ReplaceAll(tx, alt, word)
