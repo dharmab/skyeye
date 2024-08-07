@@ -24,9 +24,6 @@ func (s *scope) updateCenterPoint() {
 	for itr.next() {
 		contact := itr.value()
 		data, ok := encyclopedia.GetAircraftData(contact.Contact.ACMIName)
-		if !ok {
-			log.Warn().Str("aircraft", contact.Contact.ACMIName).Msg("aircraft not found in encyclopedia")
-		}
 		isArmed := ok && data.ThreatClass() != encyclopedia.NoFactor
 		isValid := isValidTrack(contact)
 		if isArmed && isValid {
