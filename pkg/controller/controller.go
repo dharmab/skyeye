@@ -44,17 +44,21 @@ type Controller interface {
 }
 
 type controller struct {
-	out       chan<- any
-	scope     radar.Radar
-	coalition coalitions.Coalition
-	frequency unit.Frequency
+	out                      chan<- any
+	scope                    radar.Radar
+	coalition                coalitions.Coalition
+	frequency                unit.Frequency
+	pictureBroadcastInterval time.Duration
+	pictureBroadcastDeadline time.Time
 }
 
-func New(rdr radar.Radar, coalition coalitions.Coalition, frequency unit.Frequency) Controller {
+func New(rdr radar.Radar, coalition coalitions.Coalition, frequency unit.Frequency, pictureBroadcastInterval time.Duration) Controller {
 	return &controller{
-		scope:     rdr,
-		coalition: coalition,
-		frequency: frequency,
+		scope:                    rdr,
+		coalition:                coalition,
+		frequency:                frequency,
+		pictureBroadcastInterval: pictureBroadcastInterval,
+		pictureBroadcastDeadline: time.Now().Add(pictureBroadcastInterval),
 	}
 }
 
@@ -74,8 +78,23 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 	log.Info().Int("frequency", int(c.frequency.Megahertz())).Msg("broadcasting SUNRISE call")
 	c.out <- brevity.SunriseCall{Frequency: c.frequency}
 
-	// TODO control loop for THREAT
-	<-ctx.Done()
+	ticker := time.NewTicker(10 * time.Second)
+
+	for {
+		select {
+		case <-ctx.Done():
+			log.Info().Msg("detaching FADED callback")
+			c.scope.SetFadedCallback(nil)
+			return
+		case <-ticker.C:
+			if time.Now().After(c.pictureBroadcastDeadline) {
+				logger := log.With().Logger()
+				logger.Info().Msg("broadcasting PICTURE call")
+				c.broadcastPicture(&logger)
+
+			}
+		}
+	}
 }
 
 // SetTime implements [Controller.SetTime].
