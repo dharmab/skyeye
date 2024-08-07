@@ -24,7 +24,7 @@ func (s *scope) updateCenterPoint() {
 	for itr.next() {
 		contact := itr.value()
 		data, ok := encyclopedia.GetAircraftData(contact.Contact.ACMIName)
-		isArmed := ok && data.ThreatClass() != encyclopedia.NoFactor
+		isArmed := !ok || data.ThreatFactor() > 0
 		isValid := isValidTrack(contact)
 		if isArmed && isValid {
 			contactLocation := contact.LastKnown().Point
