@@ -43,6 +43,7 @@ var (
 	telemetryUpdateInterval      time.Duration
 	whisperModelPath             string
 	voiceName                    string
+	playbackSpeed                float32
 	enableAutomaticPicture       bool
 	automaticPictureInterval     time.Duration
 )
@@ -81,6 +82,7 @@ func init() {
 	_ = skyeye.MarkFlagRequired("whisper-model")
 	voiceFlag := NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine)")
+	skyeye.Flags().Float32Var(&playbackSpeed, "voice-playback-speed", 1.0, "Voice playback speed of GCI")
 
 	// Controller behavior
 	skyeye.Flags().BoolVar(&enableAutomaticPicture, "auto-picture", false, "Enable automatic PICTURE broadcasts")
@@ -254,6 +256,7 @@ func Supervise(cmd *cobra.Command, args []string) {
 		RadarSweepInterval:           telemetryUpdateInterval,
 		WhisperModel:                 whisperModel,
 		Voice:                        voice,
+		PlaybackSpeed:                playbackSpeed,
 	}
 
 	if enableAutomaticPicture {
