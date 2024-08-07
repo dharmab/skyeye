@@ -1,0 +1,7 @@
+{
+    "go.toolsEnvVars": {
+        "CGO_ENABLED": "1",
+        "C_INCLUDE_PATH": "${workspaceFolder}/third_party/whisper.cpp/",
+        "LIBRARY_PATH": "${workspaceFolder}/third_party/whisper.cpp/"
+    }
+}

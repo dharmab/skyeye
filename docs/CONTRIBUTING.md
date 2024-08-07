@@ -4,7 +4,7 @@ Requirements to develop SkyEye:
 
 - Windows or Linux PC
   - If on Windows, willing to learn to use Visual Studio Code
-  - Does not build on macOS due to [this issue](https://github.com/amitybell/piper/issues/1)
+  - macOS support is experimental. It is currently not included in regression tests, so the build might be broken.
 - Beginner level skills in the Go programming language. If you already know another programming language, [A Tour of Go](https://go.dev/tour) can get you up to speed in an afternoon.
 - Comfortable with Git
 - Familiar with *nix command line basics (not much, mostly `cd` and `make`)
@@ -13,13 +13,6 @@ Requirements to develop SkyEye:
 # Setup
 
 ## Build
-
-### General
-
-If you do not use Windows as a platform but want to use VSCode for Go development you need to adjust the workspace settings of Vscode, otherwise the go extensions won't work:
-```sh
- cp -f .vscode/settings_linuxbased.json .vscode/settings.json
-```
 
 ### Windows
 
@@ -54,13 +47,13 @@ Run `make` to build `skyeye`.
 
 Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
 
-### MACOS (experimental)
+### macOS (Experimental)
 
-Clone this Git repository somewhere, and navigate to it in the terminal
+Install [Homebrew](https://brew.sh/).
+
+Clone this Git repository somewhere, and navigate to it in your favorite terminal.
 
 Run the following to install dependency libraries:
-
-First install [Homebrew](https://brew.sh/).
 
 ```sh
 make install-darwin-dependencies
@@ -70,7 +63,7 @@ Run `make` to build `skyeye`.
 
 Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
 
-This was tested on a Macbook Pro M3
+_This was tested on a Macbook Pro M3 by a contributor. The maintainer does not currently have any Apple Sillicon hardware for regression testing. Your mileage may vary._
 
 ## Run Against a Live Server
 
@@ -106,6 +99,26 @@ Currently, SkyEye will read until the end of the file and continue running. To e
 
 ## Develop
 
+### Editor Settings
+
+The project comes already set up for development with Visual Studio Code, or from the command line using Make. If you prefer another IDE you will need to set the following environment variables in your editor:
+
+```sh
+CGO_ENABLED=1
+C_INCLUDE_PATH=$(pwd)/third_party/whisper.cpp/
+LIBRARY_PATH=$(pwd)/third_party/whisper.cpp/"
+```
+
+Where `$(pwd)` is the **absolute path** to the repository directory.
+
+You will also need to set the following build tags:
+
+```
+nolibopusfile
+```
+
+A contributor got [JetBrains Goland](https://www.jetbrains.com/go/) working by setting the above configuration.
+
 ### Windows
 
 Install [Visual Studio Code](https://code.visualstudio.com/).
@@ -132,15 +145,19 @@ You can then run all the development commands through the "MSYS2" shell in the n
 
 I don't have this project set up to build/run/debug through VSC yet- but it's possible to do interactive debugging with [Delve](https://github.com/go-delve/delve) by running `skyeye.exe` through `dlv --headless --listen=:2345 exec skyeye.exe...` and then attaching VSC to a remote debugger on port 2345.
 
-### Linux
+### Linux/macOS
 
-🐧 Use your favorite editor. Build with `make`/`go`. Debug with Delve or your IDE. Wow, that was easy!
+🐧 🍎 Use your favorite editor. Build with `make`/`go`. Debug with Delve or your IDE.
+
+If your preferred editor is Visual Studio Code, copy `.vscode/settings-linux.json` to `.vscode/settings.json`.
+
+Wow, that was easy!
 
 ## Test
 
 The canonical way to run the unit tests is by running `make test`. This can run tests for code that uses CGO. **This is the gate used for MR checks.**
 
-I have made an effort to structure packages so that CGO is never imported directly or indirectly within packages that aren't directly related to the Speech-To-Text and Text-To-Speech models. This means that most tests can be run though Visual Studio Code without the complexity and performance hit of CGO. **This is the easiest way to test and debug on during development.**
+I have made an effort to structure packages so that CGO is never imported directly or indirectly within packages that aren't directly related to the Speech-To-Text and Text-To-Speech models. This means that most tests can be run though Visual Studio Code without the complexity and performance hit of CGO. **This is the easiest way to test and debug during development.**
 
 ## Project Layout and Key Files
 
@@ -151,6 +168,7 @@ This project follows [Go standard project layout](https://github.com/golang-stan
   - `application/app.go`: This is the glue that holds the rest of the system together. Sets up all the pieces of the application, wires them together and starts a bunch of concurrent routines.
   - `conf/configuration.go`: Application configuration values and miscellaneous globals.
 - `pkg`: Library packages
+  - `bearings`: Models and functions related to handling true and magnetic compass bearings.
   - `brevity`: Models and types related to the structure, syntax and semantics of air combat communication. Defines the messages passed between components during a GCI workflow.
   - `coalitions`: Types that define the BLUE and RED coalitions in DCS. Split out to untangle an import cycle.
   - `composer`: Turns brevity messages from internal data structures to English language text.

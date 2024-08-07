@@ -67,3 +67,6 @@ scripts/
 # ACMI files
 *.txt.acmi
 *.acmi.zip
+
+# Defaults for VSCode
+.vscode/settings.json
