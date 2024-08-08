@@ -97,7 +97,6 @@ func (c *audioClient) Run(ctx context.Context, wg *sync.WaitGroup) error {
 			log.Error().Err(err).Msg("error closing SRS client")
 		}
 	}()
-	defer c.close()
 
 	// We need to send pings to the server to keep our connection alive. The server won't send us any audio until it receives a ping from us.
 	wg.Add(1)
@@ -168,7 +167,7 @@ func (c *audioClient) Transmit(sample Audio) {
 	c.txChan <- sample
 }
 
-// close closes the UDP connection to the SRS server. This might be nonsensical because UDP is connectionless. \_(ツ)_/¯
+// close closes the UDP connection to the SRS server.
 func (c *audioClient) close() error {
 	if err := c.connection.Close(); err != nil {
 		return fmt.Errorf("error closing UDP connection to SRS: %w", err)

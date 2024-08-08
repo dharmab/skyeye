@@ -145,7 +145,7 @@ func ah64Variants() []Aircraft {
 		map[string]string{
 			"A":        "A",
 			"D":        "D",
-			"D BLK.II": "D",
+			"D_BLK_II": "D",
 		},
 	)
 }
@@ -607,7 +607,7 @@ func tornadoVariants() []Aircraft {
 
 var aircraftData = []Aircraft{
 	{
-		ACMIShortName: "A-4E",
+		ACMIShortName: "A-4E-C",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
 		},

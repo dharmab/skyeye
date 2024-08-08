@@ -29,67 +29,86 @@ import (
 // ACMI is an interface for streaming simulation data from a Tacview ACMI data source.
 type ACMI interface {
 	sim.Sim
-	// Start should be called before Stream() to initialize the ACMI stream.
-	Start(context.Context) error
+	// Run should be called to stream ACMI data. It may be called multiple times,
+	// but should not be called concurrently. It may return an error that wraps io.EOF
+	// to indicate the end of the ACMI data stream, which may occur when the sim has restarted.
+	// If that occurs, recovery is usually possible by restarting the stream.
+	Run(context.Context) error
 }
 
 type streamer struct {
-	acmi           *bufio.Reader
+	// acmi reads ACMI data lines.
+	acmi *bufio.Reader
+	// referencePoint is a center point that must be added to the coordinates of all objects to get the true coordinates.
 	referencePoint orb.Point
-	referenceTime  time.Time
-	cursorTime     time.Time
-	objects        map[int]*types.Object
-	objectsLock    sync.RWMutex
-	fades          chan *types.Object
-	bullseyesIdx   sync.Map
+	// referenceTime is the base time for the current mission. It must be added to the frame offset time of each event to get the mission time.
+	referenceTime time.Time
+	// cursorTime is the mission time of the frame currently being processed.
+	cursorTime time.Time
+	// objects maps object IDs to data.
+	objects map[int]*types.Object
+	// objectsLock protects the objects map.
+	objectsLock sync.RWMutex
+	// removals is an internal channel for passing messages when objects are removed.
+	removals chan *types.Object
+	// bullseyesIdx indexes bullseye object IDs by coalition.
+	bullseyesIdx sync.Map
+	// updateInterval is the interval at which the streamer will publish object updates.s
 	updateInterval time.Duration
-	inMultiline    bool
-	catchUpCounter int
+	// inMultiline is true when the streamer is currently processing a line that contains newline characters.
+	inMultiline bool
+	// eofCounter is incremented each time an EOF is received.
+	eofCounter int
 }
 
+// New creates a new ACMI streamer. The ACMI data is read from the provided reader. The updateInterval
+// is the interval at which the streamer will publish to the updates channel. The endDelay is the
+// duration to wait after the last ACMI data is read before considering the stream to have ended.
 func New(acmi *bufio.Reader, updateInterval time.Duration) ACMI {
 	return &streamer{
 		acmi:           acmi,
-		referencePoint: orb.Point{0, 0},
-		referenceTime:  time.Now(),
-		cursorTime:     time.Now(),
 		objects:        make(map[int]*types.Object),
-		fades:          make(chan *types.Object),
+		removals:       make(chan *types.Object),
 		updateInterval: updateInterval,
-		objectsLock:    sync.RWMutex{},
-		bullseyesIdx:   sync.Map{},
 	}
 }
 
-func (s *streamer) Start(ctx context.Context) error {
+// Run implements [ACMI.Run]. It reads lines from the ACMI data source and handles them one at a time.
+// If no lines are read for a grace period, the stream is considered to have ended and Run returns.
+func (s *streamer) Run(ctx context.Context) error {
 	log.Info().Msg("starting ACMI protocol handler")
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		default:
+			if s.eofCounter > 30 {
+				log.Warn().Msg("Received EOF 30 times, suspected server restart, stopping ACMI stream")
+				return io.EOF
+			}
+
 			line, err := s.acmi.ReadString('\n')
 			if err != nil {
 				if errors.Is(err, io.EOF) {
-					log.Debug().Int("count", s.catchUpCounter).Msg("caught up to ACMI stream")
-					s.catchUpCounter++
-					time.Sleep(1 * time.Second)
-					if s.catchUpCounter > 120 {
-						log.Warn().Int("count", s.catchUpCounter).Msg("!!! SUSPECTED END OF STREAM - POSSIBLE SERVER RESTART !!!")
-					}
+					s.eofCounter++
 				} else {
 					return fmt.Errorf("error reading ACMI stream: %w", err)
 				}
-			} else {
-				err = s.handleLine(line)
-				if err != nil {
-					log.Error().Err(err).Str("line", line).Msg("error handling ACMI line")
-				}
+			}
+
+			err = s.handleLine(line)
+			if err != nil {
+				log.Error().Err(err).Str("line", line).Msg("error handling ACMI line")
 			}
 		}
 	}
 }
 
+// handleLine parses a line of ACMI data.
+//   - headers and comments are ignored.
+//   - global object updates update the reference time and point.
+//   - object updates are stored in the object map.
+//   - object removals remove the object from the internal object map and publish to the removals channel.
 func (s *streamer) handleLine(line string) error {
 	if strings.HasSuffix(line, "\\\n") {
 		s.inMultiline = true
@@ -103,6 +122,10 @@ func (s *streamer) handleLine(line string) error {
 	}
 
 	line = strings.TrimSpace(line)
+	if line == "" {
+		log.Trace().Msg("line is empty")
+		return nil
+	}
 	logger := log.With().Str("line", line).Logger()
 
 	// Comments
@@ -183,7 +206,7 @@ func (s *streamer) handleLine(line string) error {
 	if update.IsRemoval {
 		object, ok := s.objects[update.ID]
 		if ok {
-			s.fades <- object
+			s.removals <- object
 			delete(s.objects, update.ID)
 		}
 		return nil
@@ -198,6 +221,7 @@ func (s *streamer) handleLine(line string) error {
 	return nil
 }
 
+// Stream implements [ACMI.Stream].
 func (s *streamer) Stream(ctx context.Context, updates chan<- sim.Updated, fades chan<- sim.Faded) {
 	ticker := time.NewTicker(s.updateInterval)
 	defer ticker.Stop()
@@ -207,7 +231,7 @@ func (s *streamer) Stream(ctx context.Context, updates chan<- sim.Updated, fades
 		case <-ctx.Done():
 			log.Info().Msg("stopping ACMI stream due to context cancellation")
 			return
-		case object := <-s.fades:
+		case object := <-s.removals:
 			fades <- sim.Faded{
 				Timestamp: time.Now(),
 				UnitID:    uint32(object.ID),
@@ -218,6 +242,7 @@ func (s *streamer) Stream(ctx context.Context, updates chan<- sim.Updated, fades
 	}
 }
 
+// processUpdates publishes updates for all objects.
 func (s *streamer) processUpdates(updates chan<- sim.Updated) {
 	s.objectsLock.Lock()
 	defer s.objectsLock.Unlock()
@@ -241,6 +266,7 @@ func (s *streamer) processUpdates(updates chan<- sim.Updated) {
 	}
 }
 
+// updateAircraft publishes an update for an aircraft object. It wraps buildUpdate with logging and error handling.
 func (s *streamer) updateAircraft(updates chan<- sim.Updated, object *types.Object) error {
 	logger := log.With().Int("id", object.ID).Logger()
 
@@ -255,6 +281,7 @@ func (s *streamer) updateAircraft(updates chan<- sim.Updated, object *types.Obje
 	return nil
 }
 
+// updateBullseye indexes the given bullseye object in the bullseyes index.
 func (s *streamer) updateBullseye(object *types.Object) {
 	logger := log.With().Int("id", object.ID).Logger()
 	prop, ok := object.GetProperty(properties.Coalition)
@@ -266,6 +293,7 @@ func (s *streamer) updateBullseye(object *types.Object) {
 	s.bullseyesIdx.Store(coalition, object.ID)
 }
 
+// Bullseye implements [ACMI.Bullseye].
 func (s *streamer) Bullseye(coalition coalitions.Coalition) (p orb.Point) {
 	val, ok := s.bullseyesIdx.Load(coalition)
 	if !ok {
@@ -286,10 +314,12 @@ func (s *streamer) Bullseye(coalition coalitions.Coalition) (p orb.Point) {
 
 }
 
+// Time implements [ACMI.Time].
 func (s *streamer) Time() time.Time {
 	return s.cursorTime
 }
 
+// buildUpdate creates an aircraft update from an object.
 func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 	types, err := object.GetTypes()
 	if err != nil {
