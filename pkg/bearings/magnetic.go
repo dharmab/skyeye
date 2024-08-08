@@ -6,17 +6,17 @@ import (
 	"github.com/martinlindhe/unit"
 )
 
-// Magnetic is a magnetic bearing.
+// Magnetic is a magnetic bearing, pointing at the magnetic north pole.
 type Magnetic struct {
 	θ unit.Angle
 }
+
+var _ Bearing = &Magnetic{}
 
 // NewMagneticBearing creates a new magnetic bearing from the given value.
 func NewMagneticBearing(value unit.Angle) *Magnetic {
 	return &Magnetic{θ: normalize(value)}
 }
-
-var _ Bearing = &Magnetic{}
 
 // Value returns the magnetic bearing value.
 func (b *Magnetic) Value() unit.Angle {
@@ -33,7 +33,7 @@ func (b *Magnetic) Degrees() float64 {
 	return b.Value().Degrees()
 }
 
-// RoundedDegrees returns the magnetic bearing rounded to the nearest degree.
+// RoundedDegrees returns the magnetic bearing in degrees, rounded to the nearest degree.
 func (b *Magnetic) RoundedDegrees() float64 {
 	return math.Round(b.Degrees())
 }
@@ -46,6 +46,11 @@ func (b *Magnetic) True(declination unit.Angle) Bearing {
 // Magnetic returns this magnetic bearing.
 func (b *Magnetic) Magnetic(declination unit.Angle) Bearing {
 	return b
+}
+
+// Reciprocal returns a magnetic reciprocal.
+func (b *Magnetic) Reciprocal() Bearing {
+	return NewMagneticBearing(b.Value() + 180*unit.Degree)
 }
 
 // IsTrue returns false for a magnetic bearing.

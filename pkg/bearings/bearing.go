@@ -19,6 +19,8 @@ type Bearing interface {
 	True(declination unit.Angle) Bearing
 	// Magnetic bearing conversion computed with the given declination.
 	Magnetic(declination unit.Angle) Bearing
+	// Reciprocal bearing.
+	Reciprocal() Bearing
 	// IsTrue returns true if the bearing is a true bearing.
 	IsTrue() bool
 	// IsMagnetic returns true if the bearing is a magnetic bearing.
