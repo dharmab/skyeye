@@ -28,23 +28,29 @@ func AspectFromAngle(bearing bearings.Bearing, track bearings.Bearing) Aspect {
 		log.Warn().Any("bearing", bearing).Any("track", track).Msg("bearing and track provided to AspectFromAngle should be magnetic")
 	}
 
-	var targetAspect unit.Angle
-	if track.Value() > bearing.Value() {
-		targetAspect = track.Value() - bearing.Magnetic(0).Value()
+	var θ float64
+	if bearing.Reciprocal().Value() > track.Value() {
+		θ = bearing.Reciprocal().Degrees() - track.Degrees()
 	} else {
-		targetAspect = bearing.Value() - track.Value()
+		θ = track.Reciprocal().Degrees() - bearing.Degrees()
 	}
+	θ = bearings.NewMagneticBearing(unit.Angle(θ) * unit.Degree).Degrees()
 
-	θ := targetAspect.Degrees()
 	switch {
-	case θ <= 30:
+	case 0 <= θ && θ <= 35:
 		return Hot
-	case θ <= 70:
+	case 35 < θ && θ <= 75:
 		return Flank
-	case θ <= 110:
+	case 75 < θ && θ <= 115:
 		return Beam
-	case θ <= 180:
+	case 115 < θ && θ <= 245:
 		return Drag
+	case 245 < θ && θ <= 285:
+		return Beam
+	case 285 < θ && θ <= 325:
+		return Flank
+	case 325 < θ && θ <= 360:
+		return Hot
 	default:
 		return UnknownAspect
 	}
