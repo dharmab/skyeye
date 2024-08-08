@@ -104,12 +104,13 @@ func (o *Object) GetCoordinates(ref orb.Point) (*Coordinates, error) {
 
 	c.Location = orb.Point{longitude, latitude}
 
-	altitude, err := strconv.ParseFloat(fields[2], 64)
-	if err != nil {
-		logger.Trace().Err(err).Msg("error parsing altitude")
-		return nil, nil
+	if fields[2] != "" {
+		if altitude, err := strconv.ParseFloat(fields[2], 64); err != nil {
+			logger.Trace().Err(err).Msg("error parsing altitude")
+		} else {
+			c.Altitude = unit.Length(altitude) * unit.Meter
+		}
 	}
-	c.Altitude = unit.Length(altitude) * unit.Meter
 
 	var x, y, roll, pitch, yaw, heading string
 	switch len(fields) {

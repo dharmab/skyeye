@@ -171,17 +171,9 @@ func (a *app) Run(ctx context.Context, wg *sync.WaitGroup) error {
 				return
 			case <-ticker.C:
 				a.radar.SetMissionTime(a.tacviewClient.Time())
-				log.Trace().
-					Time("mTime", a.tacviewClient.Time()).
-					Msg("updated mission time")
 				for _, coalition := range []coalitions.Coalition{coalitions.Red, coalitions.Blue} {
 					bullseye := a.tacviewClient.Bullseye(coalition)
 					a.radar.SetBullseye(bullseye, coalition)
-					log.Trace().
-						Int("coalitionID", int(coalition)).
-						Float64("lon", bullseye.Lon()).
-						Float64("lat", bullseye.Lat()).
-						Msg("updated bullseye")
 				}
 			}
 		}

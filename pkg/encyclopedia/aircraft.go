@@ -5,7 +5,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// Data source: https://github.com/Quaggles/dcs-lua-datamine/tree/master/_G/db/Units/Planes/Plane
+// Data sources:
+// https://github.com/Quaggles/dcs-lua-datamine/tree/master/_G/db/Units/Planes/Plane
+// https://github.com/Quaggles/dcs-lua-datamine/tree/master/_G/db/Units/Helicopters/Helicopter
 
 type AircraftTag int
 
@@ -126,6 +128,24 @@ func a10Variants() []Aircraft {
 			"A":   "A",
 			"C":   "C",
 			"C_2": "C",
+		},
+	)
+}
+
+var ah64Data = Aircraft{
+	tags:                map[AircraftTag]bool{RotaryWing: true},
+	PlatformDesignation: "AH-64",
+	OfficialName:        "Apache",
+	threatFactor:        Helicopter,
+}
+
+func ah64Variants() []Aircraft {
+	return variants(
+		ah64Data,
+		map[string]string{
+			"A":        "A",
+			"D":        "D",
+			"D BLK.II": "D",
 		},
 	)
 }
@@ -284,6 +304,41 @@ func fa18Variants() []Aircraft {
 	)
 }
 
+var ka50Data = Aircraft{
+	tags:                map[AircraftTag]bool{RotaryWing: true},
+	PlatformDesignation: "Ka-50",
+	OfficialName:        "Black Shark",
+	NATOReportingName:   "Hokum",
+	threatFactor:        Helicopter,
+}
+
+func ka50Variants() []Aircraft {
+	return variants(
+		ka50Data,
+		map[string]string{
+			"":   "",
+			"_3": "",
+		},
+	)
+}
+
+var mi24Data = Aircraft{
+	tags:                map[AircraftTag]bool{RotaryWing: true},
+	PlatformDesignation: "Mi-24",
+	NATOReportingName:   "Hind",
+	threatFactor:        Helicopter,
+}
+
+func mi24Variants() []Aircraft {
+	return variants(
+		mi24Data,
+		map[string]string{
+			"P": "P",
+			"V": "V",
+		},
+	)
+}
+
 var mirageF1Data = Aircraft{
 	ACMIShortName: "Mirage-F1",
 	tags: map[AircraftTag]bool{
@@ -323,6 +378,34 @@ func mirageF1Variants() []Aircraft {
 			"M-EE":  "M-EE",
 		},
 	)
+}
+
+var oh58Data = Aircraft{
+	tags:                map[AircraftTag]bool{RotaryWing: true},
+	PlatformDesignation: "OH-58",
+	OfficialName:        "Kiowa",
+	threatFactor:        Helicopter,
+}
+
+var sa342Data = Aircraft{
+	tags:                map[AircraftTag]bool{RotaryWing: true},
+	PlatformDesignation: "SA 342",
+	OfficialName:        "Gazelle",
+	threatFactor:        Helicopter,
+}
+
+func sa342Variants() []Aircraft {
+	vars := []Aircraft{}
+	for _, variant := range []string{"L", "M", "Minigun", "Mistral"} {
+		vars = append(vars, Aircraft{
+			ACMIShortName:       "SA342" + variant,
+			tags:                sa342Data.tags,
+			PlatformDesignation: sa342Data.PlatformDesignation,
+			OfficialName:        sa342Data.OfficialName,
+			threatFactor:        sa342Data.threatFactor,
+		})
+	}
+	return vars
 }
 
 var ftData = Aircraft{
@@ -550,6 +633,16 @@ var aircraftData = []Aircraft{
 		NATOReportingName:   "Mainstay",
 	},
 	{
+		ACMIShortName: "AH-1W",
+		tags: map[AircraftTag]bool{
+			RotaryWing: true,
+		},
+		PlatformDesignation: "AH-1",
+		TypeDesignation:     "AH-1W",
+		OfficialName:        "SuperCobra",
+		threatFactor:        Helicopter,
+	},
+	{
 		ACMIShortName: "AJS 37",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
@@ -627,6 +720,24 @@ var aircraftData = []Aircraft{
 		Nickname:            "Herc",
 	},
 	{
+		ACMIShortName: "CH-47D",
+		tags: map[AircraftTag]bool{
+			RotaryWing: true,
+		},
+		PlatformDesignation: "CH-47",
+		TypeDesignation:     "CH-47D",
+		OfficialName:        "Chinook",
+	},
+	{
+		ACMIShortName: "CH-53E",
+		tags: map[AircraftTag]bool{
+			RotaryWing: true,
+		},
+		PlatformDesignation: "CH-53",
+		TypeDesignation:     "CH-53E",
+		OfficialName:        "Super Stallion",
+	},
+	{
 		ACMIShortName:       "E-2C",
 		tags:                map[AircraftTag]bool{FixedWing: true},
 		PlatformDesignation: "E-2",
@@ -686,6 +797,13 @@ var aircraftData = []Aircraft{
 		threatFactor:        FighterWithAR,
 	},
 	{
+		ACMIShortName:       "KA-27",
+		tags:                map[AircraftTag]bool{RotaryWing: true},
+		PlatformDesignation: "Ka-27",
+		TypeDesignation:     "Ka-27",
+		NATOReportingName:   "Helix",
+	},
+	{
 		ACMIShortName:       "KC130",
 		tags:                map[AircraftTag]bool{FixedWing: true},
 		PlatformDesignation: "KC-130",
@@ -711,21 +829,26 @@ var aircraftData = []Aircraft{
 		threatFactor:        FighterWithSAR,
 	},
 	{
-		ACMIShortName: "Mi-24P",
-		tags: map[AircraftTag]bool{
-			RotaryWing: true,
-		},
-		PlatformDesignation: "Mi-24",
-		TypeDesignation:     "Mi-24P",
-		NATOReportingName:   "Hind",
-		threatFactor:        Helicopter,
+		ACMIShortName:       "Mi-8MT",
+		tags:                map[AircraftTag]bool{RotaryWing: true},
+		PlatformDesignation: "Mi-8",
+		TypeDesignation:     "Mi-8MT",
+		NATOReportingName:   "Hip",
 	},
 	{
 		ACMIShortName:       "Mi-26",
 		tags:                map[AircraftTag]bool{RotaryWing: true},
 		PlatformDesignation: "Mi-26",
 		TypeDesignation:     "Mi-26",
-		NATOReportingName:   "Hip",
+		NATOReportingName:   "Halo",
+	},
+	{
+		ACMIShortName:       "Mi-28N",
+		tags:                map[AircraftTag]bool{RotaryWing: true},
+		PlatformDesignation: "Mi-28",
+		TypeDesignation:     "Mi-28N",
+		OfficialName:        "Havoc",
+		threatFactor:        Helicopter,
 	},
 	{
 		ACMIShortName: "MiG-19P",
@@ -802,6 +925,36 @@ var aircraftData = []Aircraft{
 		OfficialName:        "Reaper",
 	},
 	{
+		ACMIShortName:       "OH-58D",
+		tags:                oh58Data.tags,
+		PlatformDesignation: oh58Data.PlatformDesignation,
+		TypeDesignation:     "OH-58D",
+		OfficialName:        oh58Data.OfficialName,
+		threatFactor:        oh58Data.threatFactor,
+	},
+	{
+		ACMIShortName:       "OH58D",
+		tags:                oh58Data.tags,
+		PlatformDesignation: oh58Data.PlatformDesignation,
+		TypeDesignation:     "OH-58D",
+		OfficialName:        oh58Data.OfficialName,
+		threatFactor:        oh58Data.threatFactor,
+	},
+	{
+		ACMIShortName:       "SH-3W",
+		tags:                map[AircraftTag]bool{RotaryWing: true},
+		PlatformDesignation: "SH-3",
+		TypeDesignation:     "SH-3W",
+		OfficialName:        "Sea King",
+	},
+	{
+		ACMIShortName:       "SH-60B",
+		tags:                map[AircraftTag]bool{RotaryWing: true},
+		PlatformDesignation: "SH-60",
+		TypeDesignation:     "SH-60B",
+		OfficialName:        "Seahawk",
+	},
+	{
 		ACMIShortName: "Su-17M4",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
@@ -874,6 +1027,13 @@ var aircraftData = []Aircraft{
 		OfficialName:        "Iroquois",
 		Nickname:            "Huey",
 	},
+	{
+		ACMIShortName:       "UH-60A",
+		tags:                map[AircraftTag]bool{RotaryWing: true},
+		PlatformDesignation: "UH-60",
+		TypeDesignation:     "UH-60A",
+		OfficialName:        "Black Hawk",
+	},
 }
 
 // aircraftDataLUT maps the name exported in ACMI data to aircraft data
@@ -884,6 +1044,7 @@ func init() {
 	for _, vars := range [][]Aircraft{
 		aircraftData,
 		a10Variants(),
+		ah64Variants(),
 		c101Variants(),
 		f86Variants(),
 		f4Variants(),
@@ -892,7 +1053,10 @@ func init() {
 		f15Variants(),
 		f16Variants(),
 		fa18Variants(),
+		ka50Variants(),
+		mi24Variants(),
 		mirageF1Variants(),
+		sa342Variants(),
 		ftVariants(),
 		fencerVariants(),
 		foxbatVariants(),

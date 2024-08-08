@@ -41,13 +41,12 @@ func (c *audioClient) receiveUDP(ctx context.Context, pingCh chan<- []byte, voic
 		case n < types.GUIDLength:
 			log.Debug().Int("bytes", n).Msg("UDP packet smaller than expected")
 		case n == types.GUIDLength:
-			log.Trace().Int("bytes", n).Msg("routing UDP ping packet")
+			// Ping packet
 			pingCh <- udpPacket
 		case n > types.GUIDLength:
+			// Voice packet
 			deadline := time.Now().Add(maxRxGap)
-			log.Trace().Time("deadline", deadline).Msg("extending transmission receive deadline")
 			c.lastRx.deadline = deadline
-			log.Trace().Int("bytes", n).Msg("routing UDP voice packet")
 			voiceCh <- udpPacket
 		}
 	}
@@ -82,7 +81,6 @@ func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out ch
 	for {
 		select {
 		case b := <-in:
-			log.Trace().Msg("decoding voice packet")
 			vp, err := decodeVoicePacket(b)
 			if err != nil {
 				log.Debug().Err(err).Msg("failed to decode voice packet")
@@ -93,7 +91,6 @@ func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out ch
 				continue
 			}
 
-			log.Trace().Str("originGUID", string(vp.OriginGUID)).Uint64("packetID", vp.PacketID).Any("frequencies", vp.Frequencies).Msg("checking voice packet")
 			// isNewPacket is true if the packet is the first packet of a new transmission. This is the case if c.lastRx's fields are zero values.
 			isNewPacket := c.lastRx.origin == "" && c.lastRx.packetNumber == 0
 			// isSameOrigin is true if the packet's origin GUID matches the last received packet's origin GUID.
@@ -117,33 +114,25 @@ func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out ch
 			}
 
 			// isMatchingPacket is true if the packet is either:
-			// - the first packet of a new transmission
-			// - a newer packet from the same origin and with matching radio frequencies as the last received packet
+			//   - the first packet of a new transmission
+			//   - a newer packet from the same origin and with matching radio frequencies as the last received packet
 			isMatchingPacket := isSameFrequency && (isNewPacket || (isNewerPacket && isSameOrigin))
-			log.Trace().
-				Bool("isMatchingPacket", isMatchingPacket).
-				Bool("isNewPacket", isNewPacket).
-				Bool("isNewerPacket", isNewerPacket).
-				Bool("isSameOrigin", isSameOrigin).
-				Bool("hasMatchingRadio", isSameFrequency).
-				Msg("checked packet")
 
 			// If the packet fits, buffer it and update the lastRx state.
 			if isMatchingPacket {
-				log.Trace().Str("originGUID", string(vp.OriginGUID)).Uint64("packetID", vp.PacketID).Msg("appending packet to voice buffer")
 				buf = append(buf, *vp)
 				c.updateLastRX(vp)
 			}
 		case <-t.C:
-			// Check if there is anything in the buffer and that we've consumed all queued packets. Then check if we've passed the receive deadline.
+			// Check if there is enough in the buffer and that we've consumed all queued packets. Then check if we've passed the receive deadline.
 			// If so, we have a tranmission ready to publish for audio decoding.
-			if len(buf) > 0 && len(in) == 0 && time.Now().After(c.lastRx.deadline) {
+			// 25 packets * 40ms = 1s which is the minimum whisper can transcribe anyway.
+			if len(buf) > 25 && len(in) == 0 && time.Now().After(c.lastRx.deadline) {
 				log.Trace().Int("bufferLength", len(buf)).Uint64("lastPacketID", c.lastRx.packetNumber).Str("lastOrigin", string(c.lastRx.origin)).Msg("passed receive deadline with packets in buffer")
 				audio := make([]voice.VoicePacket, len(buf))
 				copy(audio, buf)
-				log.Trace().Int("audioLength", len(audio)).Msg("publishing audio bytes to audio channel")
 				out <- audio
-				log.Trace().Msg("resetting receiver state")
+				// Reset receiver state
 				buf = make([]voice.VoicePacket, 0)
 				c.resetLastRx()
 			}

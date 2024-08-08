@@ -38,17 +38,14 @@ func NewPiperSpeaker(v voices.Voice, playbackSpeed float32) (Speaker, error) {
 
 // Say implements Speaker.Say
 func (s *piperSynth) Say(text string) ([]float32, error) {
-	log.Debug().Str("text", text).Msg("synthesizing text")
 	synthesized, err := s.tts.Synthesize(text, piper.WithSpeed(s.playbackSpeed))
 	if err != nil {
 		return nil, fmt.Errorf("failed to synthesize text: %w", err)
 	}
-	log.Trace().Msg("downsampling synthesized audio from 24KHz to 16KHz")
 	downsampled, err := downsample(synthesized, 24000, 16000, 1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to downsample synthesized audio: %w", err)
 	}
-	log.Trace().Msg("converting downsampled S16LE audio to F32LE")
 	f32le := pcm.S16LEBytesToF32LE(downsampled)
 	return f32le, nil
 }
