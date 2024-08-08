@@ -3,7 +3,9 @@ package client
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"net"
 	"sync"
 	"time"
@@ -16,9 +18,9 @@ import (
 )
 
 type telemetryClient struct {
-	connection *net.TCPConn
-	hostname   string
-	password   string
+	address  string
+	hostname string
+	password string
 	*tacviewClient
 }
 
@@ -34,39 +36,69 @@ func NewTelemetryClient(
 	updateInterval time.Duration,
 ) (Client, error) {
 	log.Info().Str("protocol", "tcp").Str("address", address).Msg("connecting to telemetry service")
-	addr, err := net.ResolveTCPAddr("tcp", address)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve telemetry service address %v: %w", address, err)
-	}
-	connection, err := net.DialTCP("tcp", nil, addr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to telemetry service %v: %w", address, err)
-	}
+
 	tacviewClient := newTacviewClient(updates, fades, updateInterval)
 	return &telemetryClient{
-		connection:    connection,
+		address:       address,
 		hostname:      clientHostname,
 		password:      password,
 		tacviewClient: tacviewClient,
 	}, nil
 }
 
+// Run implements [Client.Run].
 func (c *telemetryClient) Run(ctx context.Context, wg *sync.WaitGroup) error {
-	reader := bufio.NewReader(c.connection)
-
-	if err := c.handshake(reader, c.hostname, c.password); err != nil {
-		return fmt.Errorf("handshake error: %w", err)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			if err := c.run(ctx, wg); err != nil {
+				log.Error().Err(err).Msg("telemetry error, attempting to reconnect")
+				time.Sleep(10 * time.Second)
+			} else {
+				return nil
+			}
+		}
 	}
-
-	source := acmi.New(reader, c.updateInterval)
-	return c.run(ctx, wg, source)
 }
 
+// Time implements [Client.Time].
 func (c *telemetryClient) Time() time.Time {
 	return c.missionTime
 }
 
-func (c *telemetryClient) handshake(reader *bufio.Reader, hostname, password string) error {
+func (c *telemetryClient) run(ctx context.Context, wg *sync.WaitGroup) error {
+	addr, err := net.ResolveTCPAddr("tcp", c.address)
+	if err != nil {
+		return fmt.Errorf("failed to resolve telemetry service address %v: %w", c.address, err)
+	}
+	connection, err := net.DialTCP("tcp", nil, addr)
+	if err != nil {
+		return fmt.Errorf("failed to connect to telemetry service %v: %w", c.address, err)
+	}
+	defer connection.Close()
+
+	reader := bufio.NewReader(connection)
+
+	if err := c.handshake(reader, connection, c.hostname, c.password); err != nil {
+		err := fmt.Errorf("handshake error: %w", err)
+		log.Error().Err(err).Msg("error during handshake, attempting to reconnect")
+	}
+
+	source := acmi.New(reader, c.updateInterval)
+
+	if err := c.stream(ctx, wg, source); err != nil {
+		if errors.Is(err, io.EOF) {
+			return err
+		} else {
+			return fmt.Errorf("error running telemetry: %w", err)
+		}
+	}
+	return nil
+}
+
+func (c *telemetryClient) handshake(reader *bufio.Reader, connection *net.TCPConn, hostname, password string) error {
 	hostHandshakePacket, err := reader.ReadString('\000')
 	if err != nil {
 		return fmt.Errorf("error reading handshake: %w", err)
@@ -80,16 +112,14 @@ func (c *telemetryClient) handshake(reader *bufio.Reader, hostname, password str
 	log.Info().Str("hostname", hostHandshake.Hostname).Msg("received host handshake")
 
 	clientHandshake := types.NewClientHandshake(hostname, password)
-	_, err = c.connection.Write([]byte(clientHandshake.Encode()))
+	_, err = connection.Write([]byte(clientHandshake.Encode()))
 	if err != nil {
 		return fmt.Errorf("error sending client handshake: %w", err)
 	}
 	return nil
 }
 
+// Close implements [Client.Close].
 func (c *telemetryClient) Close() error {
-	if err := c.connection.Close(); err != nil {
-		return fmt.Errorf("error closing connection to telemetry service: %w", err)
-	}
 	return nil
 }

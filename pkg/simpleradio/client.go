@@ -101,6 +101,7 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	for {
 		select {
 		case <-ctx.Done():
+			log.Info().Msg("stopping SRS client due to context cancelation")
 			return fmt.Errorf("stopping client due to context cancelation: %w", ctx.Err())
 		case err := <-errorChan:
 			return fmt.Errorf("client error: %w", err)
