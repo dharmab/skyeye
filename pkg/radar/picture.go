@@ -29,22 +29,22 @@ func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, f
 	for itr.next() {
 		trackfile := itr.value()
 		logger := log.With().Int("unitID", int(trackfile.Contact.UnitID)).Logger()
+
 		if _, ok := visitedContacts[trackfile.Contact.UnitID]; ok {
-			logger.Trace().Msg("skipping visited contact")
 			continue
 		}
 		visitedContacts[trackfile.Contact.UnitID] = true
+
 		if trackfile.Contact.Coalition != coalition {
-			logger.Trace().Msg("skipping contact from other coalition")
 			continue
 		}
+
 		if !isValidTrack(trackfile) {
-			logger.Trace().Msg("skipping invalid track")
 			continue
 		}
+
 		distance := unit.Length(geo.Distance(origin, trackfile.LastKnown().Point)) * unit.Meter
 		if distance > radius {
-			logger.Debug().Float64("distanceNM", distance.NauticalMiles()).Float64("radiusNM", radius.NauticalMiles()).Msg("skipping contact outside radius")
 			continue
 		}
 
@@ -53,11 +53,9 @@ func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, f
 			logger.Error().Msg("failed to find group for aircraft - HOW DID YOU GET HERE")
 			continue
 		}
-		logger = logger.With().Str("group", grp.String()).Logger()
 		for _, contact := range grp.contacts {
 			visitedContacts[contact.Contact.UnitID] = true
 		}
-		logger.Debug().Msg("accounted group")
 		groups = append(groups, grp)
 	}
 

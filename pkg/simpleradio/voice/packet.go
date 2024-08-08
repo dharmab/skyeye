@@ -7,7 +7,6 @@ import (
 	"math"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
-	"github.com/rs/zerolog/log"
 )
 
 // VoicePacket is a network packet containing:
@@ -194,7 +193,6 @@ func (vp *VoicePacket) String() string {
 func NewVoicePacketFrom(b []byte) VoicePacket {
 	// The packet length is the first 2 bytes of the packet.
 	packetLength := binary.LittleEndian.Uint16(b[0:2])
-	log.Trace().Uint16("packetLength", packetLength).Msg("decoding voice packet length header")
 
 	// The fixed segment is at the end of the packet, and each field has a well-known length.
 	// Therefore, we can easily decode the fixed segment by working backwards from the end of the packet.
@@ -217,7 +215,6 @@ func NewVoicePacketFrom(b []byte) VoicePacket {
 		RelayGUID:  b[relayIDPtr : relayIDPtr+types.GUIDLength],
 		OriginGUID: b[originIDPtr : originIDPtr+types.GUIDLength],
 	}
-	log.Trace().Any("struct", packet).Msg("decoded voice packet headers and fixed segment")
 
 	/* Audio Segment */
 	// The audio segment is the next segment after the headers. It always starts at byte 6 and is AudioSegmentLength bytes long.
@@ -225,7 +222,6 @@ func NewVoicePacketFrom(b []byte) VoicePacket {
 	audioSegment := b[audioSegmentPtr : audioSegmentPtr+int(packet.AudioSegmentLength)]
 	packet.AudioBytes = make([]byte, len(audioSegment))
 	copy(packet.AudioBytes, audioSegment)
-	log.Trace().Int("length", len(packet.AudioBytes)).Msg("decoded voice packet audio segment")
 
 	/* Frequencies Segment */
 	// The frequencies segment is the next segment after the audio segment. It always starts at byte 6+AudioSegmentLength and is FrequenciesSegmentLength bytes long.
@@ -244,7 +240,6 @@ func NewVoicePacketFrom(b []byte) VoicePacket {
 		}
 		packet.Frequencies = append(packet.Frequencies, frequency)
 	}
-	log.Trace().Any("frequencies", packet.Frequencies).Msg("decoded voice packet frequencies segment")
 
 	// That wasn't so bad, was it?
 

@@ -136,9 +136,7 @@ func (c *dataClient) Run(ctx context.Context, wg *sync.WaitGroup, readyCh chan<-
 	for {
 		select {
 		case m := <-messageChan:
-			log.Trace().Msg("received message")
 			c.lastReceived = time.Now()
-			log.Trace().Time("lastReceived", c.lastReceived).Msg("updated last received time")
 			c.handleMessage(m)
 		case <-ctx.Done():
 			log.Info().Msg("stopping data client due to context cancellation")
@@ -155,7 +153,6 @@ func (c *dataClient) Run(ctx context.Context, wg *sync.WaitGroup, readyCh chan<-
 
 // handleMessage routes a given message to the appropriate handler.
 func (c *dataClient) handleMessage(message types.Message) {
-	log.Trace().Type("type", message).Msg("handling message")
 	switch message.Type {
 	case types.MessagePing:
 		logMessageAndIgnore(message)
@@ -200,33 +197,23 @@ func (c *dataClient) syncClients(others []types.ClientInfo) {
 
 // syncClient checks if the given client matches this client's coalition and radios, and if so, stores it in the otherClients map. Non-matching clients are removed from the map if previously stored.
 func (c *dataClient) syncClient(other types.ClientInfo) {
-	clientLogger := log.With().Str("guid", string(other.GUID)).Str("name", other.Name).Any("coalitionID", other.Coalition).Any("radios", other.RadioInfo).Logger()
-
-	clientLogger.Trace().Msg("syncronizing client")
-
 	if other.GUID == c.clientInfo.GUID {
 		// why, of course I know him. he's me!
-		clientLogger.Trace().Msg("skipped client due to same GUID")
 		return
 	}
 
 	isSameFrequency := c.clientInfo.RadioInfo.IsOnFrequency(other.RadioInfo)
 	// isSameCoalition is true if the other client is in the same coalition as this client, or if the other client is a spectator.
 	isSameCoalition := (c.clientInfo.Coalition == other.Coalition) || types.IsSpectator(other.Coalition)
-	clientLogger.Trace().Bool("coalitionMatches", isSameCoalition).Bool("frequencyMatches", isSameFrequency).Msg("checking client")
 
 	// if the other client has a matching radio and is not in an opposing coalition, store it in otherClients. Otherwise, banish it to the shadow realm.
 	if isSameCoalition && isSameFrequency {
-		clientLogger.Trace().Msg("storing client")
 		c.otherClients[other.GUID] = other.Name
 	} else {
 		_, ok := c.otherClients[other.GUID]
 		if ok {
-			clientLogger.Debug().Msg("deleting client without matching radio")
 			delete(c.otherClients, other.GUID)
 			// TODO memory leak here due to continually adding and removing clients from the map. https://100go.co/28-maps-memory-leaks/
-		} else {
-			clientLogger.Trace().Msg("skipped client without matching radio")
 		}
 	}
 }
@@ -242,7 +229,6 @@ func (c *dataClient) Send(message types.Message) error {
 		return fmt.Errorf("failed to marshal message to JSON: %w", err)
 	}
 	b = append(b, byte('\n'))
-	log.Trace().Type("type", message).Msg("sending message")
 	_, err = c.connection.Write(b)
 	if err != nil {
 		return fmt.Errorf("failed to write message: %w", err)

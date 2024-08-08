@@ -114,7 +114,6 @@ func (t *Trackfile) LastKnown() Frame {
 }
 
 func (t *Trackfile) bestAvailableDeclination() unit.Angle {
-	log.Debug().Time("tfTime", t.LastKnown().Time).Msg("getting declination for trackfile")
 	declincation, err := bearings.Declination(t.LastKnown().Point, t.LastKnown().Time)
 	if err != nil {
 		return 0
