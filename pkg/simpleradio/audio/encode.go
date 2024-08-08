@@ -26,23 +26,17 @@ func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.V
 			txPackets := make([]voice.VoicePacket, 0)
 			for i := 0; i < len(audio); i += int(frameSize) {
 				logger := log.With().Int("index", i).Logger()
-				logger.Trace().Msg("encoding audio frame")
 				var frameAudio []float32
+				// pad frame to frame size
 				if i+int(frameSize) < len(audio) {
-					logger.Trace().Msg("encoding full frame")
 					frameAudio = audio[i : i+int(frameSize)]
 				} else {
-					logger.Trace().Msg("encoding partial frame")
 					frameAudio = audio[i:]
 				}
-				logger.Trace().Int("frameSize", len(frameAudio)).Msg("encoding audio frame")
 				// Align audio to Opus frame size
 				if len(frameAudio) < int(frameSize) {
-					previousSize := len(frameAudio)
-					logger.Trace().Int("size", previousSize).Msg("data is smaller than frame size")
 					padding := make([]float32, int(frameSize)-len(frameAudio))
 					frameAudio = append(frameAudio, padding...)
-					logger.Trace().Int("previousSize", previousSize).Int("size", len(frameAudio)).Msg("padded audio to match frame size")
 				}
 				audioBytes, err := c.encode(encoder, frameAudio)
 				if err != nil {
@@ -65,7 +59,6 @@ func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.V
 					[]byte(c.guid),
 					[]byte(c.guid),
 				)
-				logger.Trace().Any("packet", vp).Msg("encoded voice packet")
 				c.packetNumber++
 				// TODO transmission struct with attached text and trace id
 				txPackets = append(txPackets, vp)

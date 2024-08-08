@@ -215,16 +215,13 @@ func (p *parser) Parse(tx string) any {
 }
 
 // ParsePilotCallsign attempts to parse a callsign in one of the following formats:
-//
-// - A single word, followed by a number consisting of any digits
-//
-// - A number consisting of up to 3 digits
+//   - A single word, followed by a number consisting of any digits
+//   - A number consisting of up to 3 digits
 //
 // Garbage in between the digits is ignored. The result is normalized so that each digit is lowercase and space-delimited.
 func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	tx = normalize(tx)
 	tx = spaceDigits(tx)
-	log.Trace().Str("tx", tx).Msg("normalized text")
 
 	var builder strings.Builder
 	numDigits := 0
@@ -245,7 +242,6 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 		return "", false
 	}
 
-	log.Trace().Str("callsign", callsign).Str("text", tx).Msg("parsed callsign")
 	return callsign, true
 
 }

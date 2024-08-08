@@ -196,7 +196,6 @@ func (s *scope) handleUpdate(update sim.Updated) {
 	trackfile, ok := s.contacts.getByUnitID(update.Labels.UnitID)
 	if ok {
 		trackfile.Update(update.Frame)
-		logger.Trace().Msg("updated existing trackfile")
 	} else {
 		trackfile = trackfiles.NewTrackfile(update.Labels)
 		s.contacts.set(trackfile)
@@ -231,30 +230,23 @@ func (s *scope) handleGarbageCollection() {
 // Altitude is above 10 meters above sea level
 func isValidTrack(trackfile *trackfiles.Trackfile) bool {
 	point := trackfile.LastKnown().Point
+
 	isValidLongitude := point.Lon() != 0
 	isValidLatitude := point.Lat() != 0
 	isValidPosition := isValidLongitude && isValidLatitude
+
 	isAboveSpeedFilter := trackfile.Speed() > 50*unit.Knot
+
 	isAboveAltitudeFilter := trackfile.LastKnown().Altitude > 10*unit.Meter
+
 	isValid := isValidPosition && isAboveSpeedFilter && isAboveAltitudeFilter
-	log.Trace().
-		Str("aircraft", trackfile.Contact.ACMIName).
-		Int("unitID", int(trackfile.Contact.UnitID)).
-		Str("callsign", trackfile.Contact.Name).
-		Bool("isValid", isValid).
-		Bool("isValidLongitude", isValidLongitude).
-		Bool("isValidLatitude", isValidLatitude).
-		Bool("isValidPosition", isValidPosition).
-		Bool("isAboveSpeedFilter", isAboveSpeedFilter).
-		Bool("isAboveAltitudeFilter", isAboveAltitudeFilter).
-		Msg("checking track validity")
 	return isValid
 }
 
 // isMatch checks:
-// - if the trackfile is of the given coalition
-// - if the trackfile is of the given contact category (or if the aircraft is not in the encyclopedia)
-// - if the trackfile is valid
+//   - if the trackfile is of the given coalition
+//   - if the trackfile is of the given contact category (or if the aircraft is not in the encyclopedia)
+//   - if the trackfile is valid
 func (s *scope) isMatch(trackfile *trackfiles.Trackfile, coalition coalitions.Coalition, filter brevity.ContactCategory) bool {
 	if trackfile.Contact.Coalition != coalition {
 		return false

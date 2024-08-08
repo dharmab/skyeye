@@ -29,19 +29,13 @@ func (s *scope) FindNearestTrackfile(
 	itr := s.contacts.itr()
 	for itr.next() {
 		trackfile := itr.value()
+		isMatch := s.isMatch(trackfile, coalition, filter)
 		altitude := trackfile.LastKnown().Altitude
-		if s.isMatch(trackfile, coalition, filter) && minAltitude <= altitude && altitude <= maxAltitude {
+		isWithinAltitude := minAltitude <= altitude && altitude <= maxAltitude
+		if isMatch && isWithinAltitude {
 			distance := unit.Length(math.Abs(geo.Distance(origin, trackfile.LastKnown().Point)))
 			isNearer := distance < nearestDistance
 			if isNearer {
-				log.Debug().
-					Any("origin", origin).
-					Int("distance", int(distance.NauticalMiles())).
-					Str("aircraft", trackfile.Contact.ACMIName).
-					Float64("altitude", altitude.Feet()).
-					Int("unitID", int(trackfile.Contact.UnitID)).
-					Str("name", trackfile.Contact.Name).
-					Msg("new candidate for nearest trackfile")
 				nearestTrackfile = trackfile
 				nearestDistance = distance
 			}

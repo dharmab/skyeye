@@ -46,11 +46,9 @@ func (c *audioClient) tx(packets []voice.VoicePacket) {
 				Add(-frameLength / 2),
 		)
 		time.Sleep(delay)
-		n, err := c.connection.Write(b)
+		_, err := c.connection.Write(b)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to transmit voice packet")
-		} else {
-			log.Trace().Uint64("packetID", vp.PacketID).Int("length", n).Msg("transmitted voice packet")
 		}
 	}
 }

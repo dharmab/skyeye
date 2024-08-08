@@ -7,10 +7,8 @@ import (
 // Group describes any number of air contacts within 3 nautical miles in azimuth and range of each other.
 // Groups are distinguished by either a unique name or a location. This implementation only uses location.
 // Location may be either BRAA or Bullseye, altitude and track. Bullseye is preferred except for:
-//
-// - BOGEY DOPE and SNAPLOCK responses
-//
-// - THREAT calls that pertain to a single aircraft
+//   - BOGEY DOPE and SNAPLOCK responses
+//   - THREAT calls that pertain to a single aircraft
 //
 // Reference: ATP 3-52.4 Chapter IV section 2
 type Group interface {

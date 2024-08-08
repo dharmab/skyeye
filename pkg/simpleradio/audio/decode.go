@@ -28,7 +28,6 @@ func (c *audioClient) decodeVoice(ctx context.Context, voicePacketsCh <-chan []v
 	for {
 		select {
 		case voicePackets := <-voicePacketsCh:
-			log.Trace().Int("count", len(voicePackets)).Msg("decoding voice packets")
 			decoder, err := opus.NewDecoder(sampleRate, channels)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to create Opus decoder")
@@ -36,12 +35,10 @@ func (c *audioClient) decodeVoice(ctx context.Context, voicePacketsCh <-chan []v
 			}
 			txPCM := make([]float32, 0)
 			for _, vp := range voicePackets {
-				log.Trace().Uint64("packetID", vp.PacketID).Int("len", len(vp.AudioBytes)).Msg("decoding voice packet")
 				pcm, err := c.decode(decoder, vp.AudioBytes)
 				if err != nil {
 					log.Error().Err(err).Msg("failed to decode audio")
 				} else {
-					log.Trace().Int("len", len(pcm)).Msg("decoded voice packet")
 					txPCM = append(txPCM, pcm...)
 				}
 			}
@@ -49,7 +46,6 @@ func (c *audioClient) decodeVoice(ctx context.Context, voicePacketsCh <-chan []v
 			log.Trace().Int("len", len(txPCM)).Msg("decoded transmission PCM")
 
 			if len(txPCM) > 0 {
-				log.Trace().Msg("publishing audio to receiver channel")
 				c.rxchan <- txPCM
 			} else {
 				log.Debug().Msg("decoded transmission PCM is empty")
