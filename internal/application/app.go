@@ -248,7 +248,6 @@ func (a *app) Run(ctx context.Context, wg *sync.WaitGroup) error {
 		a.transmit(ctx, txAudioChan)
 	}()
 
-	wg.Wait()
 	return nil
 }
 

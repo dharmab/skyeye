@@ -255,6 +255,8 @@ func Supervise(cmd *cobra.Command, args []string) {
 	// Set up an application-scoped context and a cancel function to shut down the application.
 	ctx, cancel := context.WithCancel(context.Background())
 
+	var wg sync.WaitGroup
+
 	// Set up logging
 	setupLogging()
 
@@ -265,7 +267,12 @@ func Supervise(cmd *cobra.Command, args []string) {
 		s := <-interuptChan
 		log.Info().Any("signal", s).Msg("received shutdown signal")
 		cancel()
-		time.Sleep(1 * time.Second)
+		go func() {
+			time.Sleep(10 * time.Second)
+			log.Warn().Msg("shutdown took too long, forcing exit")
+			os.Exit(1)
+		}()
+		wg.Wait()
 		os.Exit(0)
 	}()
 
@@ -309,7 +316,6 @@ func Supervise(cmd *cobra.Command, args []string) {
 	}
 
 	log.Info().Msg("starting application")
-	var wg sync.WaitGroup
 	err := runApplication(ctx, &wg, config)
 	exitOnErr(err)
 }

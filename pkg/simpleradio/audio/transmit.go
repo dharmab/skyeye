@@ -19,7 +19,7 @@ func (c *audioClient) transmit(ctx context.Context, packetCh <-chan []voice.Voic
 			pause := time.Duration(500+rand.Intn(500)) * time.Millisecond
 			time.Sleep(pause)
 		case <-ctx.Done():
-			log.Info().Msg("stopping voice transmitter due to context cancellation")
+			log.Info().Msg("stopping SRS audio transmitter due to context cancellation")
 			return
 		}
 	}

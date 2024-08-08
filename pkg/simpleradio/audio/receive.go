@@ -19,7 +19,7 @@ func (c *audioClient) receiveUDP(ctx context.Context, pingCh chan<- []byte, voic
 	for {
 		if ctx.Err() != nil {
 			if ctx.Err() == context.Canceled {
-				log.Info().Msg("stopping packet receiver due to context cancellation")
+				log.Info().Msg("stopping SRS packet receiver due to context cancellation")
 			} else {
 				log.Error().Err(ctx.Err()).Msg("stopping packet receiver due to context error")
 			}
@@ -66,7 +66,7 @@ func (c *audioClient) receivePings(ctx context.Context, in <-chan []byte) {
 				log.Trace().Str("GUID", string(b[0:types.GUIDLength])).Msg("received UDP ping")
 			}
 		case <-ctx.Done():
-			log.Info().Msg("stopping ping receiver due to context cancellation")
+			log.Info().Msg("stopping SRS ping receiver due to context cancellation")
 			return
 		}
 	}
@@ -137,7 +137,7 @@ func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out ch
 				c.resetLastRx()
 			}
 		case <-ctx.Done():
-			log.Info().Msg("stopping voice receiver due to context cancellation")
+			log.Info().Msg("stopping SRS audio receiver due to context cancellation")
 			return
 		}
 	}

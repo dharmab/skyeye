@@ -6,7 +6,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
@@ -103,12 +102,10 @@ func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 }
 
 // LastKnown returns the most recent frame in the trackfile.
-// If the trackfile is empty, a stub frame with a timestamp an hour in the past is returned.
+// If the trackfile is empty, a stub frame with a zero-value time is returned.
 func (t *Trackfile) LastKnown() Frame {
 	if t.Track.Len() == 0 {
-		return Frame{
-			Time: conf.InitialTime,
-		}
+		return Frame{}
 	}
 	return t.Track.Front()
 }

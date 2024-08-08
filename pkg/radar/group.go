@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
@@ -243,7 +242,7 @@ func (g *group) point() orb.Point {
 
 // missionTime returns the mission-time timestamp of the most recent trackfile in the group
 func (g *group) missionTime() time.Time {
-	latest := conf.InitialTime
+	var latest time.Time
 	for _, trackfile := range g.contacts {
 		if trackfile.LastKnown().Time.After(latest) {
 			latest = trackfile.LastKnown().Time

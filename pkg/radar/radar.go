@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
@@ -129,7 +128,6 @@ func New(coalition coalitions.Coalition, updates <-chan sim.Updated, fades <-cha
 	return &scope{
 		updates:               updates,
 		fades:                 fades,
-		missionTime:           conf.InitialTime,
 		contacts:              newContactDatabase(),
 		fadedCallback:         func(brevity.Group, coalitions.Coalition) {},
 		mandatoryThreatRadius: mandatoryThreatRadius,
@@ -218,7 +216,7 @@ func (s *scope) handleGarbageCollection() {
 			Logger()
 
 		lastSeen := trackfile.LastKnown().Time
-		if lastSeen.Before(s.missionTime.Add(-5 * time.Minute)) {
+		if lastSeen.Before(s.missionTime.Add(-1 * time.Minute)) {
 			s.contacts.delete(trackfile.Contact.UnitID)
 			logger.Info().
 				Dur("age", s.missionTime.Sub(lastSeen)).

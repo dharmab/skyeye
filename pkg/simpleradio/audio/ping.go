@@ -30,7 +30,7 @@ func (c *audioClient) sendPings(ctx context.Context, wg *sync.WaitGroup) {
 		case <-ticker.C:
 			c.SendPing()
 		case <-ctx.Done():
-			log.Info().Msg("stopping pings due to context cancelation")
+			log.Info().Msg("stopping SRS pings due to context cancelation")
 			return
 		}
 	}

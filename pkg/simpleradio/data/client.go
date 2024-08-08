@@ -98,7 +98,7 @@ func (c *dataClient) Run(ctx context.Context, wg *sync.WaitGroup, readyCh chan<-
 		reader := bufio.NewReader(c.connection)
 		for {
 			if ctx.Err() != nil {
-				log.Info().Msg("stopping data client due to context cancellation")
+				log.Info().Msg("stopping SRS data client due to context cancellation")
 				return
 			}
 			line, err := reader.ReadBytes(byte('\n'))
@@ -140,7 +140,7 @@ func (c *dataClient) Run(ctx context.Context, wg *sync.WaitGroup, readyCh chan<-
 			c.lastReceived = time.Now()
 			c.handleMessage(m)
 		case <-ctx.Done():
-			log.Info().Msg("stopping data client due to context cancellation")
+			log.Info().Msg("stopping SRS data client due to context cancellation")
 			select {
 			case <-messageChan:
 			case <-errorChan:
