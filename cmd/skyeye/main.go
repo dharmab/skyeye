@@ -43,7 +43,7 @@ var (
 	telemetryUpdateInterval      time.Duration
 	whisperModelPath             string
 	voiceName                    string
-	playbackSpeed                float32
+	playbackSpeed                string
 	enableAutomaticPicture       bool
 	automaticPictureInterval     time.Duration
 )
@@ -82,7 +82,8 @@ func init() {
 	_ = skyeye.MarkFlagRequired("whisper-model")
 	voiceFlag := NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine)")
-	skyeye.Flags().Float32Var(&playbackSpeed, "voice-playback-speed", 1.0, "Voice playback speed of GCI")
+	playbackSpeedFlag := NewEnum(&playbackSpeed, "very-slow", "slow", "standard", "fast", "very-fast")
+	skyeye.Flags().Var(playbackSpeedFlag, "voice-playback-speed", "Voice playback speed of GCI")
 
 	// Controller behavior
 	skyeye.Flags().BoolVar(&enableAutomaticPicture, "auto-picture", false, "Enable automatic PICTURE broadcasts")
@@ -147,6 +148,23 @@ func loadCoalition() (coalition coalitions.Coalition) {
 	}
 	log.Info().Int("id", int(coalition)).Msg("GCI coalition set")
 	return
+}
+
+func loadPlaybackSpeed() float32 {
+	speedMap := map[string]float32{
+		"very-slow": 1.4,
+		"slow":      1.2,
+		"standard":  1.0,
+		"fast":      0.8,
+		"very-fast": 0.6,
+	}
+	if speed, ok := speedMap[playbackSpeed]; ok {
+		log.Info().Float32("speed", speed).Msg("Playback speed set")
+		return speed
+	} else {
+		log.Info().Float32("speed", speed).Msg("Unknown playback speed, revert to default (standard)")
+		return 1.0
+	}
 }
 
 func loadWhisperModel() *whisper.Model {
@@ -239,6 +257,7 @@ func Supervise(cmd *cobra.Command, args []string) {
 	voice := loadVoice(rando)
 	callsign := loadCallsign(rando)
 	frequency := loadFrequency()
+	playbackSpeed := loadPlaybackSpeed()
 
 	config := conf.Configuration{
 		ACMIFile:                     acmiFile,
