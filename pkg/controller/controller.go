@@ -8,6 +8,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/radar"
+	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
@@ -50,15 +51,21 @@ type controller struct {
 	frequency                unit.Frequency
 	pictureBroadcastInterval time.Duration
 	pictureBroadcastDeadline time.Time
+	threatCooldowns          *cooldownTracker
+	warmupTime               time.Time
+	srsClient                simpleradio.Client
 }
 
-func New(rdr radar.Radar, coalition coalitions.Coalition, frequency unit.Frequency, pictureBroadcastInterval time.Duration) Controller {
+func New(rdr radar.Radar, srsClient simpleradio.Client, coalition coalitions.Coalition, frequency unit.Frequency, pictureBroadcastInterval time.Duration) Controller {
 	return &controller{
 		scope:                    rdr,
 		coalition:                coalition,
 		frequency:                frequency,
 		pictureBroadcastInterval: pictureBroadcastInterval,
 		pictureBroadcastDeadline: time.Now().Add(pictureBroadcastInterval),
+		threatCooldowns:          newCooldownTracker(),
+		warmupTime:               time.Now().Add(2 * time.Minute),
+		srsClient:                srsClient,
 	}
 }
 
@@ -68,6 +75,9 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 
 	log.Info().Msg("attaching FADED callback")
 	c.scope.SetFadedCallback(func(group brevity.Group, coalition coalitions.Coalition) {
+		for _, id := range group.UnitIDs() {
+			c.threatCooldowns.remove(uint32(id))
+		}
 		if coalition == c.hostileCoalition() {
 			group.SetDeclaration(brevity.Hostile)
 			log.Info().Str("group", group.String()).Msg("broadcasting FADED call")
@@ -91,8 +101,8 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 				logger := log.With().Logger()
 				logger.Info().Msg("broadcasting PICTURE call")
 				c.broadcastPicture(&logger)
-
 			}
+			c.broadcastThreats()
 		}
 	}
 }

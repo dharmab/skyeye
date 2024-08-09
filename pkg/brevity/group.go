@@ -45,4 +45,5 @@ type Group interface {
 	VeryFast() bool
 	// String returns a human-readable description of the group.
 	String() string
+	UnitIDs() []uint32
 }

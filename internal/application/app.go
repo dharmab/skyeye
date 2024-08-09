@@ -119,7 +119,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 
 	rdr := radar.New(config.Coalition, updates, fades)
 	log.Info().Msg("constructing GCI controller")
-	controller := controller.New(rdr, config.Coalition, config.SRSFrequency, config.PictureBroadcastInterval)
+	controller := controller.New(rdr, srsClient, config.Coalition, config.SRSFrequency, config.PictureBroadcastInterval)
 
 	log.Info().Msg("constructing text composer")
 	composer := composer.New(config.Callsign)
