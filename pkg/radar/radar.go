@@ -108,6 +108,8 @@ type Radar interface {
 	) brevity.Group
 	// SetFadedCallback sets the callback function to be called when a trackfile fades.
 	SetFadedCallback(FadedCallback)
+
+	Threats(coalitions.Coalition) map[uint32][]brevity.Group
 }
 
 var _ Radar = &scope{}

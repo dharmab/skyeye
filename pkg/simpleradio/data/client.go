@@ -25,6 +25,7 @@ type DataClient interface {
 	Run(context.Context, *sync.WaitGroup, chan<- any) error
 	// Send sends a message to the SRS server.
 	Send(types.Message) error
+	IsOnFrequency(unitID uint32) bool
 }
 
 type dataClient struct {
@@ -34,8 +35,8 @@ type dataClient struct {
 	clientInfo types.ClientInfo
 	// externalAWACSModePassword is the password for authenticating as an external AWACS in the SRS server.
 	externalAWACSModePassword string
-	// otherClients is a map of GUIDs to client names, which the bot will use to filter out other clients that are not in the same coalition and frequency.
-	otherClients map[types.GUID]string
+	// otherClients is a map of GUIDs to client info, which the bot will use to filter out other clients that are not in the same coalition and frequency.
+	otherClients map[types.GUID]types.ClientInfo
 	// lastReceived is the most recent time data was received. If this exceeds a data timeout, we have likely been disconnected from the server.
 	lastReceived time.Time
 }
@@ -69,7 +70,7 @@ func NewClient(guid types.GUID, config types.ClientConfiguration) (DataClient, e
 			Position: &types.Position{},
 		},
 		externalAWACSModePassword: config.ExternalAWACSModePassword,
-		otherClients:              map[types.GUID]string{},
+		otherClients:              map[types.GUID]types.ClientInfo{},
 	}
 	return client, nil
 }
@@ -208,7 +209,7 @@ func (c *dataClient) syncClient(other types.ClientInfo) {
 
 	// if the other client has a matching radio and is not in an opposing coalition, store it in otherClients. Otherwise, banish it to the shadow realm.
 	if isSameCoalition && isSameFrequency {
-		c.otherClients[other.GUID] = other.Name
+		c.otherClients[other.GUID] = other
 	} else {
 		_, ok := c.otherClients[other.GUID]
 		if ok {
@@ -284,4 +285,14 @@ func (c *dataClient) close() error {
 		return fmt.Errorf("error closing TCP connection to SRS: %w", err)
 	}
 	return nil
+}
+
+// IsOnFrequency returns true if the given unit ID is on the same frequency as this client.
+func (c *dataClient) IsOnFrequency(unitID uint32) bool {
+	for _, other := range c.otherClients {
+		if other.RadioInfo.UnitID == uint64(unitID) {
+			return c.clientInfo.RadioInfo.IsOnFrequency(other.RadioInfo)
+		}
+	}
+	return false
 }
