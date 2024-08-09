@@ -43,6 +43,7 @@ var (
 	telemetryUpdateInterval      time.Duration
 	whisperModelPath             string
 	voiceName                    string
+	playbackSpeed                string
 	enableAutomaticPicture       bool
 	automaticPictureInterval     time.Duration
 )
@@ -81,6 +82,8 @@ func init() {
 	_ = skyeye.MarkFlagRequired("whisper-model")
 	voiceFlag := NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine)")
+	playbackSpeedFlag := NewEnum(&playbackSpeed, "string", "standard", "veryslow", "slow", "fast", "veryfast")
+	skyeye.Flags().Var(playbackSpeedFlag, "voice-playback-speed", "Voice playback speed of GCI")
 
 	// Controller behavior
 	skyeye.Flags().BoolVar(&enableAutomaticPicture, "auto-picture", false, "Enable automatic PICTURE broadcasts")
@@ -145,6 +148,23 @@ func loadCoalition() (coalition coalitions.Coalition) {
 	}
 	log.Info().Int("id", int(coalition)).Msg("GCI coalition set")
 	return
+}
+
+func loadPlaybackSpeed() float32 {
+	speedMap := map[string]float32{
+		"veryslow": 1.3,
+		"slow":     1.15,
+		"standard": 1.0,
+		"fast":     0.85,
+		"veryfast": 0.7,
+	}
+	if speed, ok := speedMap[playbackSpeed]; ok {
+		log.Info().Float32("speed", speed).Msg("setting playback speed")
+		return speed
+	} else {
+		log.Info().Float32("speed", speed).Msg("Unknown playback speed, revert to default (standard)")
+		return 1.0
+	}
 }
 
 func loadWhisperModel() *whisper.Model {
@@ -237,6 +257,7 @@ func Supervise(cmd *cobra.Command, args []string) {
 	voice := loadVoice(rando)
 	callsign := loadCallsign(rando)
 	frequency := loadFrequency()
+	playbackSpeed := loadPlaybackSpeed()
 
 	config := conf.Configuration{
 		ACMIFile:                     acmiFile,
@@ -254,6 +275,7 @@ func Supervise(cmd *cobra.Command, args []string) {
 		RadarSweepInterval:           telemetryUpdateInterval,
 		WhisperModel:                 whisperModel,
 		Voice:                        voice,
+		PlaybackSpeed:                playbackSpeed,
 	}
 
 	if enableAutomaticPicture {
