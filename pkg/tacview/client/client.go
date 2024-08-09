@@ -3,10 +3,11 @@ package client
 
 import (
 	"context"
+	"errors"
+	"io"
 	"sync"
 	"time"
 
-	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/tacview/acmi"
@@ -36,18 +37,29 @@ func newTacviewClient(updates chan<- sim.Updated, fades chan<- sim.Faded, update
 		fades:          fades,
 		updateInterval: updateInterval,
 		bullseyes:      map[coalitions.Coalition]orb.Point{},
-		missionTime:    conf.InitialTime,
 	}
 }
 
-func (c *tacviewClient) run(ctx context.Context, wg *sync.WaitGroup, source acmi.ACMI) error {
-	c.missionTime = conf.InitialTime
+func (c *tacviewClient) stream(ctx context.Context, wg *sync.WaitGroup, source acmi.ACMI) error {
 	wg.Add(3)
 	go func() {
 		defer wg.Done()
-		err := source.Start(ctx)
-		if err != nil {
-			log.Error().Err(err).Msg("error starting ACMI client")
+		for {
+			select {
+			case <-ctx.Done():
+				log.Info().Msg("stopping tacview client due to context cancellation")
+				return
+			default:
+				err := source.Run(ctx)
+				if err != nil {
+					if errors.Is(err, io.EOF) {
+						log.Info().Msg("ACMI source closed")
+					} else {
+						log.Error().Err(err).Msg("error starting ACMI client")
+						return
+					}
+				}
+			}
 		}
 	}()
 	go func() {

@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
@@ -126,10 +125,8 @@ func New(coalition coalitions.Coalition, updates <-chan sim.Updated, fades <-cha
 	return &scope{
 		updates:       updates,
 		fades:         fades,
-		missionTime:   conf.InitialTime,
 		contacts:      newContactDatabase(),
 		fadedCallback: func(brevity.Group, coalitions.Coalition) {},
-		bullseyes:     sync.Map{},
 	}
 }
 

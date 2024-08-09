@@ -24,7 +24,13 @@ type fileClient struct {
 
 var _ Client = &fileClient{}
 
-func NewFileClient(path string, coalition coalitions.Coalition, updates chan<- sim.Updated, fades chan<- sim.Faded, updateInterval time.Duration) (Client, error) {
+func NewFileClient(
+	path string,
+	coalition coalitions.Coalition,
+	updates chan<- sim.Updated,
+	fades chan<- sim.Faded,
+	updateInterval time.Duration,
+) (Client, error) {
 	f, err := openFile(path)
 	if err != nil {
 		return nil, err
@@ -72,7 +78,7 @@ func openFile(path string) (io.ReadCloser, error) {
 func (c *fileClient) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	reader := bufio.NewReader(c.file)
 	acmi := acmi.New(reader, c.updateInterval)
-	return c.tacviewClient.run(ctx, wg, acmi)
+	return c.tacviewClient.stream(ctx, wg, acmi)
 }
 
 func (c *fileClient) Time() time.Time {
