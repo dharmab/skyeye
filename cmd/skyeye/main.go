@@ -82,7 +82,7 @@ func init() {
 	_ = skyeye.MarkFlagRequired("whisper-model")
 	voiceFlag := NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine)")
-	playbackSpeedFlag := NewEnum(&playbackSpeed, "string", "veryslow", "slow", "standard", "fast", "veryfast")
+	playbackSpeedFlag := NewEnum(&playbackSpeed, "string", "standard", "veryslow", "slow", "fast", "veryfast")
 	skyeye.Flags().Var(playbackSpeedFlag, "voice-playback-speed", "Voice playback speed of GCI")
 
 	// Controller behavior
