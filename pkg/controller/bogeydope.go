@@ -28,7 +28,7 @@ func (c *controller) HandleBogeyDope(request *brevity.BogeyDopeRequest) {
 		lowestAltitude,
 		highestAltitude,
 		radius,
-		c.hostileCoalition(),
+		c.coalition.Opposite(),
 		request.Filter,
 	)
 

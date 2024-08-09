@@ -4,10 +4,44 @@ import (
 	"math"
 	"slices"
 
+	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb/geo"
 )
+
+func (s *scope) enumerateGroups(coalition coalitions.Coalition) []*group {
+	visited := make(map[uint32]bool)
+	groups := make([]*group, 0)
+	itr := s.contacts.itr()
+	for itr.next() {
+		trackfile := itr.value()
+
+		if _, ok := visited[trackfile.Contact.UnitID]; ok {
+			continue
+		}
+		visited[trackfile.Contact.UnitID] = true
+
+		if trackfile.Contact.Coalition != coalition {
+			continue
+		}
+
+		if !isValidTrack(trackfile) {
+			continue
+		}
+
+		grp := s.findGroupForAircraft(trackfile)
+		if grp == nil {
+			continue
+		}
+		for _, contact := range grp.contacts {
+			visited[contact.Contact.UnitID] = true
+		}
+		groups = append(groups, grp)
+	}
+
+	return groups
+}
 
 // findGroupForAircraft creates a new group for the given trackfile and adds all nearby aircraft which can be considered part of the group.
 func (s *scope) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {

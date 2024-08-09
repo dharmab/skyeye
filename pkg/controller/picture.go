@@ -18,8 +18,7 @@ func (c *controller) HandlePicture(request *brevity.PictureRequest) {
 }
 
 func (c *controller) broadcastPicture(logger *zerolog.Logger) {
-	logger.Debug().Msg("building picture")
-	count, groups := c.scope.GetPicture(conf.DefaultPictureRadius, c.hostileCoalition(), brevity.FixedWing)
+	count, groups := c.scope.GetPicture(conf.DefaultPictureRadius, c.coalition.Opposite(), brevity.FixedWing)
 	for _, group := range groups {
 		group.SetDeclaration(brevity.Hostile)
 	}

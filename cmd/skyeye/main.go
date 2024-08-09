@@ -46,6 +46,10 @@ var (
 	playbackSpeed                string
 	enableAutomaticPicture       bool
 	automaticPictureInterval     time.Duration
+	enableThreatMonitoring       bool
+	threatMonitoringInterval     time.Duration
+	threatMonitoringRequiresSRS  bool
+	mandatoryThreatRadiusNM      float64
 )
 
 func init() {
@@ -86,8 +90,12 @@ func init() {
 	skyeye.Flags().Var(playbackSpeedFlag, "voice-playback-speed", "Voice playback speed of GCI")
 
 	// Controller behavior
-	skyeye.Flags().BoolVar(&enableAutomaticPicture, "auto-picture", false, "Enable automatic PICTURE broadcasts")
+	skyeye.Flags().BoolVar(&enableAutomaticPicture, "auto-picture", true, "Enable automatic PICTURE broadcasts")
 	skyeye.Flags().DurationVar(&automaticPictureInterval, "auto-picture-interval", 2*time.Minute, "How often to broadcast PICTURE")
+	skyeye.Flags().BoolVar(&enableThreatMonitoring, "threat-monitoring", true, "Enable THREAT monitoring")
+	skyeye.Flags().DurationVar(&threatMonitoringInterval, "threat-monitoring-interval", 3*time.Minute, "How often to broadcast THREAT")
+	skyeye.Flags().Float64Var(&mandatoryThreatRadiusNM, "mandatory-threat-radius", 35, "Briefed radius for mandatory THREAT calls, in nautical miles")
+	skyeye.Flags().BoolVar(&threatMonitoringRequiresSRS, "threat-monitoring-requires-srs", true, "Require aircraft to be on SRS to receive THREAT calls. Only useful to disable when debugging.")
 }
 
 // Top-level CLI command
@@ -276,6 +284,10 @@ func Supervise(cmd *cobra.Command, args []string) {
 		WhisperModel:                 whisperModel,
 		Voice:                        voice,
 		PlaybackSpeed:                playbackSpeed,
+		EnableThreatMonitoring:       enableThreatMonitoring,
+		ThreatMonitoringInterval:     threatMonitoringInterval,
+		ThreatMonitoringRequiresSRS:  threatMonitoringRequiresSRS,
+		MandatoryThreatRadius:        unit.Length(mandatoryThreatRadiusNM) * unit.NauticalMile,
 	}
 
 	if enableAutomaticPicture {

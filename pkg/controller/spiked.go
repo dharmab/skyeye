@@ -33,7 +33,7 @@ func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
 		distance,
 		request.Bearing,
 		arc,
-		c.hostileCoalition(),
+		c.coalition.Opposite(),
 		brevity.FixedWing,
 	)
 

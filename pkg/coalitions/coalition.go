@@ -17,3 +17,14 @@ const (
 func All() []Coalition {
 	return []Coalition{Red, Blue, Neutrals}
 }
+
+func (c Coalition) Opposite() Coalition {
+	switch c {
+	case Red:
+		return Blue
+	case Blue:
+		return Red
+	default:
+		return Neutrals
+	}
+}

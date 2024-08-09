@@ -127,16 +127,17 @@ I have some personal, selfish reasons for writing a new bot:
 1. I want to innovate and deliver new features that would be breaking changes to the OverlordBot community.
 1. Given my lack of .NET development skills, it is faster for me to write new software using technologies to which I am "native" rather than contribute to OverlordBot.
 
-### Why aren't you implementing TRIPWIRE?
+### Why didn't you implement TRIPWIRE?
 
 TRIPWIRE encourages players to think about themselves in a small bubble. It also clutters the channel with information in a format only useful to a specific player. It encourages players to act as lone wolves rather than as members of a team.
 
-Instead, I am implementing THREAT brevity. THREAT provides similar benefit to a player as a TRIPWIRE- it warns you when a hostile aircraft is a danger to you. The advantages:
+Instead, I have implemented THREAT monitoring. THREAT monitoring warns you when a hostile aircraft is a danger to your coalition. The advantages:
 
-- THREAT calls do not require you to individually register with the bot. The bot can see the radar, and it can see which players are currently on the frequency. Therefore, it can automatically make THREAT calls to players on frequency.
-- Locations in THREAT calls can be given in either BRAA or BULLSEYE format, depending on whether the call is relevant to a single aircraft or multiple aircraft.
-- A TRIPWIRE call is only given once, at a single threat range. THREAT calls can be given at multiple threat ranges, which may be configurable based on mission requirements. For example, ATP 3-52.4 recommends 35nmi and 5nmi by default, regardless of aspect.
-- By building trackfiles, the bot can determine the aspect of aircraft and provide calls independent of range. For example, if the bot sees a retreating hostile aircraft change course and turn nose-on to a friendly aircraft 45nmi away, the bot can make a THREAT call immediately for the aircraft under threat.
+- THREAT calls do not require you to individually register with the bot. The bot automatically monitors all friendly aircraft which tune to the SRS frequency.
+- Locations in THREAT calls are given in either BRAA or BULLSEYE format, depending on whether the call is relevant to a single aircraft or multiple aircraft TRIPWIRE calls only provide BRAA format.
+- THREAT monitoring provides continual updates on the threat as long as threat criteria are met, all the way til the merge. A TRIPWIRE call is only given once, at a single requested threat range. 
+- THREAT monitoring considers the bandit group's distance, platform (aircraft & weapons) and aspect (Hot, Flank, Beam, Drag). THREAT calls are broadcast earlier in the BVR timeline for bandits that present a higher relative threat. TRIPWIRE calls only consider threat range, and are broadcast at the same range regardless of other factors. 
+- THREAT monitoring deduplicates calls to multiple friendly aircraft about the same bandit group.
 
 ### Can I train the speech recognition on my voice/accent?
 

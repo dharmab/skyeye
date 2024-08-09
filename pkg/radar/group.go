@@ -254,3 +254,11 @@ func (g *group) threatRadius() unit.Length {
 	}
 	return highest
 }
+
+func (g *group) UnitIDs() []uint32 {
+	unitIDs := make([]uint32, 0, len(g.contacts))
+	for _, trackfile := range g.contacts {
+		unitIDs = append(unitIDs, trackfile.Contact.UnitID)
+	}
+	return unitIDs
+}

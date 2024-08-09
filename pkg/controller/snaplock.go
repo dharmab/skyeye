@@ -54,7 +54,7 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 		minAltitude,
 		maxAltitude,
 		radius,
-		c.hostileCoalition(),
+		c.coalition.Opposite(),
 		brevity.Aircraft,
 	)
 

@@ -13,6 +13,7 @@ import (
 
 // GetPicture implements [Radar.GetPicture]
 func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) (int, []brevity.Group) {
+	// Find groups near the center point
 	origin := s.center
 	if origin.Lon() == 0 && origin.Lat() == 0 {
 		log.Warn().Msg("center point is not set yet, using bullseye")
@@ -22,41 +23,14 @@ func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, f
 		}
 	}
 
-	visitedContacts := make(map[uint32]bool)
-	groups := make([]*group, 0)
-	itr := s.contacts.itr()
-	for itr.next() {
-		trackfile := itr.value()
-		logger := log.With().Int("unitID", int(trackfile.Contact.UnitID)).Logger()
-
-		if _, ok := visitedContacts[trackfile.Contact.UnitID]; ok {
-			continue
-		}
-		visitedContacts[trackfile.Contact.UnitID] = true
-
-		if trackfile.Contact.Coalition != coalition {
-			continue
-		}
-
-		if !isValidTrack(trackfile) {
-			continue
-		}
-
-		distance := unit.Length(geo.Distance(origin, trackfile.LastKnown().Point)) * unit.Meter
-		if distance > radius {
-			continue
-		}
-
-		grp := s.findGroupForAircraft(trackfile)
-		if grp == nil {
-			logger.Error().Msg("failed to find group for aircraft - HOW DID YOU GET HERE")
-			continue
-		}
-		for _, contact := range grp.contacts {
-			visitedContacts[contact.Contact.UnitID] = true
-		}
-		groups = append(groups, grp)
-	}
+	groups := s.findNearbyGroups(
+		origin,
+		0,
+		math.MaxFloat64,
+		radius,
+		coalition,
+		filter,
+	)
 
 	// Sort groups from highest to lowest threat
 	slices.SortFunc(groups, s.compareThreat)
