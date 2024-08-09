@@ -82,7 +82,7 @@ func init() {
 	_ = skyeye.MarkFlagRequired("whisper-model")
 	voiceFlag := NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine)")
-	playbackSpeedFlag := NewEnum(&playbackSpeed, "very-slow", "slow", "standard", "fast", "very-fast")
+	playbackSpeedFlag := NewEnum(&playbackSpeed, "string", "veryslow", "slow", "standard", "fast", "veryfast")
 	skyeye.Flags().Var(playbackSpeedFlag, "voice-playback-speed", "Voice playback speed of GCI")
 
 	// Controller behavior
@@ -152,14 +152,14 @@ func loadCoalition() (coalition coalitions.Coalition) {
 
 func loadPlaybackSpeed() float32 {
 	speedMap := map[string]float32{
-		"very-slow": 1.4,
-		"slow":      1.2,
-		"standard":  1.0,
-		"fast":      0.8,
-		"very-fast": 0.6,
+		"veryslow": 1.3,
+		"slow":     1.15,
+		"standard": 1.0,
+		"fast":     0.85,
+		"veryfast": 0.7,
 	}
 	if speed, ok := speedMap[playbackSpeed]; ok {
-		log.Info().Float32("speed", speed).Msg("Playback speed set")
+		log.Info().Float32("speed", speed).Msg("setting playback speed")
 		return speed
 	} else {
 		log.Info().Float32("speed", speed).Msg("Unknown playback speed, revert to default (standard)")
