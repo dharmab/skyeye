@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -13,6 +14,30 @@ const TestCallsign = "Skyeye"
 type parserTestCase struct {
 	text     string
 	expected any
+}
+
+func TestParsePilotCallsign(t *testing.T) {
+	testCases := []struct {
+		name     string
+		expected string
+	}{
+		{"jeff", "jeff"},
+		{"Jeff", "jeff"},
+		{"Wardog 1 4", "wardog 1 4"},
+		{"Wardog 14", "wardog 1 4"},
+		{"Wardog 1-4", "wardog 1 4"},
+		{"Mobius 1", "mobius 1"},
+		{"Red 243", "red 2 4 3"},
+		{"Red 054", "red 0 5 4"},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			actual, ok := ParsePilotCallsign(test.name)
+			require.True(t, ok)
+			assert.Equal(t, test.expected, actual)
+		})
+	}
 }
 
 func runParserTestCases(

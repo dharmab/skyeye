@@ -46,6 +46,15 @@ type Configuration struct {
 	PlaybackSpeed float32
 	// PictureBroadcastInterval is the interval at which the controller will automatically broadcast a PICTURE.
 	PictureBroadcastInterval time.Duration
+	// EnableThreatMonitoring controls whether the controller will broadcast THREAT calls.
+	EnableThreatMonitoring bool
+	// ThreatMonitoringInterval is the cooldown period between THREAT calls.
+	ThreatMonitoringInterval time.Duration
+	// MandatoryThreatRadius is the brief range at which a THREAT call is mandatory.
+	MandatoryThreatRadius unit.Length
+	// ThreatMonitoringRequiresSRS controls whether threat calls are issued to aircraft that are not on the SRS frequency. This is mostly
+	// for debugging.
+	ThreatMonitoringRequiresSRS bool
 }
 
 var DefaultCallsigns = []string{"Sky Eye", "Thunderhead", "Eagle Eye", "Ghost Eye", "Sky Keeper", "Bandog", "Long Caster", "Galaxy"}

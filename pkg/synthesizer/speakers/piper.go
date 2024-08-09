@@ -10,7 +10,6 @@ import (
 	"github.com/dharmab/skyeye/pkg/pcm"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/nabbl/piper"
-	"github.com/rs/zerolog/log"
 	"github.com/zaf/resample"
 )
 
@@ -58,10 +57,9 @@ func downsample(in []byte, orignalRate float64, newRate float64, channels int) (
 	}
 	defer resampler.Close()
 
-	n, err := resampler.Write(in)
+	_, err = resampler.Write(in)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resample synthesized audio: %w", err)
 	}
-	log.Debug().Int("originalRate", int(orignalRate)).Int("newRate", int(newRate)).Int("length", n).Msg("resampled synthesized audio")
 	return buf.Bytes(), nil
 }

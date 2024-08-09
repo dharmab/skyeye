@@ -6,8 +6,8 @@ import "github.com/martinlindhe/unit"
 // THREAT is more complicated in the real world, so this bot offers a simplified version.
 // Reference: ATP 3-52.4 Chapter V section 18
 type ThreatCall struct {
-	// Callsign of the friendly aircraft under threat.
-	Callsign string
+	// Callsigns of the friendly aircraft under threat.
+	Callsigns []string
 	// Group that is threatening the friendly aircraft.
 	Group Group
 }

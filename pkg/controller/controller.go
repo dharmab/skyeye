@@ -8,6 +8,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/radar"
+	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
@@ -44,21 +45,42 @@ type Controller interface {
 }
 
 type controller struct {
-	out                      chan<- any
-	scope                    radar.Radar
-	coalition                coalitions.Coalition
-	frequency                unit.Frequency
-	pictureBroadcastInterval time.Duration
-	pictureBroadcastDeadline time.Time
+	out                         chan<- any
+	scope                       radar.Radar
+	coalition                   coalitions.Coalition
+	frequency                   unit.Frequency
+	pictureBroadcastInterval    time.Duration
+	pictureBroadcastDeadline    time.Time
+	threatCooldowns             *cooldownTracker
+	warmupTime                  time.Time
+	srsClient                   simpleradio.Client
+	enableThreatMonitoring      bool
+	threatMonitoringRequiresSRS bool
+	threatMonitoringCooldown    time.Duration
 }
 
-func New(rdr radar.Radar, coalition coalitions.Coalition, frequency unit.Frequency, pictureBroadcastInterval time.Duration) Controller {
+func New(
+	rdr radar.Radar,
+	srsClient simpleradio.Client,
+	coalition coalitions.Coalition,
+	frequency unit.Frequency,
+	pictureBroadcastInterval time.Duration,
+	enableThreatMonitoring bool,
+	threatMonitoringCooldown time.Duration,
+	threatMonitoringRequiresSRS bool,
+) Controller {
 	return &controller{
-		scope:                    rdr,
-		coalition:                coalition,
-		frequency:                frequency,
-		pictureBroadcastInterval: pictureBroadcastInterval,
-		pictureBroadcastDeadline: time.Now().Add(pictureBroadcastInterval),
+		scope:                       rdr,
+		coalition:                   coalition,
+		frequency:                   frequency,
+		pictureBroadcastInterval:    pictureBroadcastInterval,
+		pictureBroadcastDeadline:    time.Now().Add(pictureBroadcastInterval),
+		threatCooldowns:             newCooldownTracker(threatMonitoringCooldown),
+		warmupTime:                  time.Now().Add(15 * time.Second),
+		srsClient:                   srsClient,
+		enableThreatMonitoring:      enableThreatMonitoring,
+		threatMonitoringCooldown:    threatMonitoringCooldown,
+		threatMonitoringRequiresSRS: threatMonitoringRequiresSRS,
 	}
 }
 
@@ -68,7 +90,10 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 
 	log.Info().Msg("attaching FADED callback")
 	c.scope.SetFadedCallback(func(group brevity.Group, coalition coalitions.Coalition) {
-		if coalition == c.hostileCoalition() {
+		for _, id := range group.UnitIDs() {
+			c.threatCooldowns.remove(uint32(id))
+		}
+		if coalition == c.coalition.Opposite() {
 			group.SetDeclaration(brevity.Hostile)
 			log.Info().Str("group", group.String()).Msg("broadcasting FADED call")
 			c.out <- brevity.FadedCall{Group: group}
@@ -91,8 +116,8 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 				logger := log.With().Logger()
 				logger.Info().Msg("broadcasting PICTURE call")
 				c.broadcastPicture(&logger)
-
 			}
+			c.broadcastThreats()
 		}
 	}
 }
@@ -105,12 +130,4 @@ func (c *controller) SetTime(t time.Time) {
 // SetBullseye implements [Controller.SetBullseye].
 func (c *controller) SetBullseye(bullseye orb.Point) {
 	c.scope.SetBullseye(bullseye, c.coalition)
-}
-
-// hostileCoalition returns the coalition that is hostile to the controller's coalition.
-func (c *controller) hostileCoalition() coalitions.Coalition {
-	if c.coalition == coalitions.Blue {
-		return coalitions.Red
-	}
-	return coalitions.Red
 }

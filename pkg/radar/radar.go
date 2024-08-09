@@ -108,28 +108,31 @@ type Radar interface {
 	) brevity.Group
 	// SetFadedCallback sets the callback function to be called when a trackfile fades.
 	SetFadedCallback(FadedCallback)
+
+	Threats(coalitions.Coalition) map[brevity.Group][]uint32
 }
 
 var _ Radar = &scope{}
 
 type scope struct {
-	updates       <-chan sim.Updated
-	fades         <-chan sim.Faded
-	missionTime   time.Time
-	bullseyes     sync.Map
-	contacts      contactDatabase
-	fadedCallback FadedCallback
-	center        orb.Point
+	updates               <-chan sim.Updated
+	fades                 <-chan sim.Faded
+	missionTime           time.Time
+	bullseyes             sync.Map
+	contacts              contactDatabase
+	fadedCallback         FadedCallback
+	center                orb.Point
+	mandatoryThreatRadius unit.Length
 }
 
-func New(coalition coalitions.Coalition, updates <-chan sim.Updated, fades <-chan sim.Faded) Radar {
+func New(coalition coalitions.Coalition, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length) Radar {
 	return &scope{
-		updates:       updates,
-		fades:         fades,
-		missionTime:   conf.InitialTime,
-		contacts:      newContactDatabase(),
-		fadedCallback: func(brevity.Group, coalitions.Coalition) {},
-		bullseyes:     sync.Map{},
+		updates:               updates,
+		fades:                 fades,
+		missionTime:           conf.InitialTime,
+		contacts:              newContactDatabase(),
+		fadedCallback:         func(brevity.Group, coalitions.Coalition) {},
+		mandatoryThreatRadius: mandatoryThreatRadius,
 	}
 }
 

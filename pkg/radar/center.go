@@ -46,14 +46,11 @@ func (s *scope) updateCenterPoint() {
 	} else {
 		newCenter = geo.Midpoint(blue, red)
 	}
-	precision := 50 * unit.NauticalMile
 	distance := unit.Length(geo.Distance(s.center, newCenter)) * unit.Meter
-	if distance > precision {
-		bearing := bearings.NewTrueBearing(unit.Angle(geo.Bearing(s.center, newCenter)) * unit.Degree)
-		s.center = newCenter
-		log.Info().
-			Float64("lon", s.center.Lon()).
-			Float64("lat", s.center.Lat()).
-			Msgf("center point shifted %.1f NM along bearing %.0f", distance.NauticalMiles(), bearing.RoundedDegrees())
-	}
+	bearing := bearings.NewTrueBearing(unit.Angle(geo.Bearing(s.center, newCenter)) * unit.Degree)
+	s.center = newCenter
+	log.Trace().
+		Float64("lon", s.center.Lon()).
+		Float64("lat", s.center.Lat()).
+		Msgf("center point shifted %.1f NM along bearing %.0f", distance.NauticalMiles(), bearing.RoundedDegrees())
 }

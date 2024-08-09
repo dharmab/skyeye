@@ -681,7 +681,7 @@ var aircraftData = []Aircraft{
 		OfficialName:        "SuperCobra",
 	},
 	{
-		ACMIShortName: "AJS 37",
+		ACMIShortName: "AJS37",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
 			Attack:    true,
