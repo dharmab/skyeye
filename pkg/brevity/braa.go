@@ -24,22 +24,24 @@ type BRA interface {
 	Range() unit.Length
 	// Altitude of the contact above sea level, rounded to the nearest thousands of feet.
 	Altitude() unit.Length
+	// Altitude STACKS of the contact above sea level, rounded to the nearest thousands of feet.
+	Stacks() []Stack
 }
 
 type bra struct {
-	bearing  bearings.Bearing
-	_range   unit.Length
-	altitude unit.Length
+	bearing bearings.Bearing
+	_range  unit.Length
+	stacks  []Stack
 }
 
-func NewBRA(b bearings.Bearing, r unit.Length, a unit.Length) BRA {
+func NewBRA(b bearings.Bearing, r unit.Length, a ...unit.Length) BRA {
 	if !b.IsMagnetic() {
 		log.Warn().Any("bearing", b).Msg("bearing provided to NewBRA should be magnetic")
 	}
 	return &bra{
-		bearing:  b,
-		_range:   r,
-		altitude: a,
+		bearing: b,
+		_range:  r,
+		stacks:  Stacks(a...),
 	}
 }
 
@@ -55,7 +57,15 @@ func (b *bra) Range() unit.Length {
 
 // Altitude implements [BRA.Altitude].
 func (b *bra) Altitude() unit.Length {
-	return unit.Length(math.Round(b.altitude.Feet()/1000)*1000) * unit.Foot
+	if len(b.stacks) == 0 {
+		return 0
+	}
+	return unit.Length(math.Round(b.stacks[0].Altitude.Feet()/1000)) * 1000 * unit.Foot
+}
+
+// Stacks implements [BRA.Stacks].
+func (b *bra) Stacks() []Stack {
+	return b.stacks
 }
 
 type braa struct {
@@ -63,12 +73,12 @@ type braa struct {
 	aspect Aspect
 }
 
-func NewBRAA(b bearings.Bearing, r unit.Length, a unit.Length, aspect Aspect) BRAA {
+func NewBRAA(b bearings.Bearing, r unit.Length, a []unit.Length, aspect Aspect) BRAA {
 	if !b.IsMagnetic() {
 		log.Warn().Any("bearing", b).Msg("bearing provided to NewBRAA should be magnetic")
 	}
 	return &braa{
-		bra:    NewBRA(b, r, a),
+		bra:    NewBRA(b, r, a...),
 		aspect: aspect,
 	}
 }
@@ -86,6 +96,11 @@ func (b *braa) Range() unit.Length {
 // Altitude implements [BRA.Altitude].
 func (b *braa) Altitude() unit.Length {
 	return b.bra.Altitude()
+}
+
+// Stacks implements [BRA.Stacks].
+func (b *braa) Stacks() []Stack {
+	return b.bra.Stacks()
 }
 
 // Aspect implements [BRAA.Aspect].

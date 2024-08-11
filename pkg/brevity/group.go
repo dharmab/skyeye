@@ -20,8 +20,11 @@ type Group interface {
 	Contacts() int
 	// Bullseye is the location of the group. This may be nil for BOGEY DOPE, SNAPLOCK, and THREAT calls.
 	Bullseye() *Bullseye
-	// Altitude is the group's altitude above sea level. This may be nil for BOGEY DOPE, SNAPLOCK, and THREAT calls.
+	// Altitude is the group's highest altitude. This may be zero for BOGEY DOPE, SNAPLOCK, and THREAT calls.
 	Altitude() unit.Length
+	// Stacks are the group's altitude STACKS, ordered from highest to lowest in intervals of at least 10,000 feet.
+	// This may be empty for BOGEY DOPE, SNAPLOCK, and THREAT calls.
+	Stacks() []Stack
 	// Track is the group's track direction. This may be UnknownDirection for BOGEY DOPE, SNAPLOCK, and THREAT calls.
 	Track() Track
 	// Aspect is the group's aspect angle relative to another aircraft. This may be nil for BOGEY DOPE, SNAPLOCK, and some THREAT calls.
@@ -34,7 +37,7 @@ type Group interface {
 	SetDeclaration(Declaration)
 	// Heavy is true if the group contacts 3 or more contacts.
 	Heavy() bool
-	// Platforms is the NATO reporting names of the group's aircraft platforms (for Soviet/Russian/Chinese aircraft) or
+	// Platforms are the NATO reporting names of the group's aircraft platforms (for Soviet/Russian/Chinese aircraft) or
 	// alternative names for other aircraft. Skyeye supports mixed-platform groups, so this returns multiple values.
 	Platforms() []string
 	// High is true if the aircraft altitude is above 40,000 feet.
@@ -45,5 +48,6 @@ type Group interface {
 	VeryFast() bool
 	// String returns a human-readable description of the group.
 	String() string
+	// UnitIDs returns the unit IDs of all contacts in the group.
 	UnitIDs() []uint32
 }

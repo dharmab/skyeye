@@ -50,9 +50,10 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 	}
 
 	// Group location, altitude, and track direction or specific aspect
+	stacks := group.Stacks()
 	if bullseye := group.Bullseye(); bullseye != nil {
 		bullseye := c.ComposeBullseye(*bullseye)
-		altitude := c.ComposeAltitude(group.Altitude(), group.Declaration())
+		altitude := c.ComposeAltitudeStacks(stacks, group.Declaration())
 		speech.WriteString(fmt.Sprintf("%s %s, %s", label, bullseye.Speech, altitude))
 		subtitle.WriteString(fmt.Sprintf("%s %s, %s", label, bullseye.Subtitle, altitude))
 		if group.Track() != brevity.UnknownDirection {
@@ -81,6 +82,12 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 	contacts := c.ComposeContacts(group.Contacts())
 	subtitle.WriteString(contacts.Subtitle)
 	speech.WriteString(contacts.Speech)
+
+	if !group.High() {
+		if len(stacks) > 1 {
+			writeBoth(fmt.Sprintf(", %s", c.ComposeAltitudeFillIns(stacks)))
+		}
+	}
 
 	// Platform
 	if len(group.Platforms()) > 0 {
@@ -120,6 +127,34 @@ func (c *composer) ComposeContacts(n int) NaturalLanguageResponse {
 		Subtitle: s,
 		Speech:   s,
 	}
+}
+
+func (c *composer) ComposeAltitudeStacks(stacks []brevity.Stack, declaration brevity.Declaration) string {
+	if len(stacks) == 0 {
+		return "altitude unknown"
+	}
+
+	if len(stacks) == 1 {
+		return c.ComposeAltitude(stacks[0].Altitude, declaration)
+	}
+
+	s := fmt.Sprintf("stack %s", c.ComposeAltitude(stacks[0].Altitude, declaration))
+	for i := 1; i < len(stacks)-1; i++ {
+		s += fmt.Sprintf(", %s", c.ComposeAltitude(stacks[i].Altitude, declaration))
+	}
+	s += fmt.Sprintf(", and %s", c.ComposeAltitude(stacks[len(stacks)-1].Altitude, declaration))
+	return s
+}
+
+func (c *composer) ComposeAltitudeFillIns(stacks []brevity.Stack) string {
+	if len(stacks) == 2 {
+		return fmt.Sprintf("%d high, %d low", stacks[0].Count, stacks[1].Count)
+	}
+
+	if len(stacks) == 3 {
+		return fmt.Sprintf("%d high, %d medium, %d low", stacks[0].Count, stacks[1].Count, stacks[2].Count)
+	}
+	return ""
 }
 
 func (c *composer) ComposeAltitude(altitude unit.Length, declaration brevity.Declaration) string {

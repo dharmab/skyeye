@@ -2,7 +2,6 @@ package radar
 
 import (
 	"fmt"
-	"math"
 	"strings"
 	"time"
 
@@ -74,15 +73,29 @@ func (g *group) Bullseye() *brevity.Bullseye {
 	return brevity.NewBullseye(bearing.Magnetic(declination), distance)
 }
 
-// Altitude implements [brevity.Group.Altitude] by averaging the altitudes of all contacts in the group
-func (g *group) Altitude() unit.Length {
-	var sum unit.Length
+func (g *group) Stacks() []brevity.Stack {
+	altitudes := []unit.Length{}
 	for _, trackfile := range g.contacts {
-		sum += trackfile.Track.Front().Altitude
+		altitudes = append(altitudes, trackfile.LastKnown().Altitude)
 	}
-	mean := sum / unit.Length(len(g.contacts))
-	rounded := unit.Length((math.Round(mean.Feet()/1000) * 1000)) * unit.Foot
-	return rounded
+	return brevity.Stacks(altitudes...)
+}
+
+func (g *group) Altitude() unit.Length {
+	stacks := g.Stacks()
+	if len(stacks) == 0 {
+		return 0
+	}
+	return stacks[0].Altitude
+}
+
+func (g *group) altitudes() []unit.Length {
+	stacks := g.Stacks()
+	altitudes := make([]unit.Length, 0, len(stacks))
+	for _, stack := range stacks {
+		altitudes = append(altitudes, stack.Altitude)
+	}
+	return altitudes
 }
 
 // Track implements [brevity.Group.Track]
