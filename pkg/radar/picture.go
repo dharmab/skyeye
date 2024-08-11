@@ -7,7 +7,6 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/martinlindhe/unit"
-	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
 )
@@ -78,15 +77,6 @@ func (s *scope) compareThreat(a, b *group) int {
 	aIsHigherThreat := -1
 	bIsHigherThreat := 1
 
-	// Priotize armed aircraft over unarmed aircraft
-	aIsArmed := a.threatFactor() > 0
-	bIsArmed := b.threatFactor() > 0
-	if aIsArmed && !bIsArmed {
-		return aIsHigherThreat
-	} else if !aIsArmed && bIsArmed {
-		return bIsHigherThreat
-	}
-
 	// Prioritize fixed-wing aircraft over rotary-wing aircraft
 	aIsHelo := a.category() == brevity.RotaryWing
 	bIsHelo := b.category() == brevity.RotaryWing
@@ -96,37 +86,61 @@ func (s *scope) compareThreat(a, b *group) int {
 		return bIsHigherThreat
 	}
 
-	// Remaining factors - distance, altitude, general threat factor, and number of contacts - are used as soft factors
-	// ACC says there's an order of priority, but testing revealed that strict ordering resulted in closer Frogfoots being
-	// ordered before somewhat further Flankers.
-	//
-	// This formula isn't scientific, I just tried some parameters until I got something that seemed to work okay.
-	// TODO come back and do a proper formula.
-	weight := func(g *group) float64 {
-		return g.distanceWeight(s.center) * g.threatFactor() * g.altitudeWeight() * float64(g.Contacts())
-	}
-	if weight(a) > weight(b) {
+	// Prioritize aircraft within threat radius over aircraft outside threat radius
+	distanceA := unit.Length(geo.Distance(s.center, a.point())) * unit.Meter
+	distanceB := unit.Length(geo.Distance(s.center, b.point())) * unit.Meter
+	aIsThreat := distanceA < a.threatRadius()
+	bIsThreat := distanceB < b.threatRadius()
+	if aIsThreat && !bIsThreat {
 		return aIsHigherThreat
-	} else {
+	} else if !aIsThreat && bIsThreat {
 		return bIsHigherThreat
 	}
 
+	// Prioritize fighters within threat radius
+	if aIsThreat && bIsThreat {
+		aIsFighter := a.isFighter()
+		bIsFighter := b.isFighter()
+		if aIsFighter && !bIsFighter {
+			return aIsHigherThreat
+		} else if !aIsFighter && bIsFighter {
+			return bIsHigherThreat
+		}
+	}
+
+	// Compare distance relative to threat radius
+	weightedDistanceA := weightedDistance(distanceA, a.threatRadius())
+	weightedDistanceB := weightedDistance(distanceB, b.threatRadius())
+	if math.Abs(weightedDistanceA.NauticalMiles()-weightedDistanceB.NauticalMiles()) > 3 {
+		if weightedDistanceA < weightedDistanceB {
+			return aIsHigherThreat
+		} else {
+			return bIsHigherThreat
+		}
+	}
+
+	// Compare absolute distance
+	if math.Abs(distanceA.NauticalMiles()-distanceB.NauticalMiles()) > 3 {
+		if distanceA < distanceB {
+			return aIsHigherThreat
+		} else if distanceA > distanceB {
+			return bIsHigherThreat
+		}
+	}
+
+	// Compare altitude
+	if a.Altitude() > b.Altitude() {
+		return aIsHigherThreat
+	} else if a.Altitude() < b.Altitude() {
+		return bIsHigherThreat
+	}
+
+	return 0
 }
 
-func (g *group) distanceWeight(origin orb.Point) float64 {
-	distance := unit.Length(geo.Distance(origin, g.point())) * unit.Meter
-	cutoff := 100 * unit.NauticalMile
-	if distance > cutoff {
-		distance = cutoff - 1*unit.Meter
+func weightedDistance(distance unit.Length, threatRadius unit.Length) unit.Length {
+	if distance > threatRadius {
+		distance = threatRadius
 	}
-	return math.Pow((cutoff-distance).NauticalMiles()/10, 2)
-}
-
-func (grp *group) altitudeWeight() float64 {
-	altitude := grp.Altitude()
-	cutoff := 40000 * unit.Foot
-	if altitude > cutoff {
-		altitude = cutoff
-	}
-	return math.Pow((altitude.Feet()/10000)+1, 1.4)
+	return (distance / threatRadius) * distance
 }

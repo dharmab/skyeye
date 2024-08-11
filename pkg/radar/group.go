@@ -207,6 +207,18 @@ func (g *group) category() brevity.ContactCategory {
 	return aircraft.Category()
 }
 
+func (g *group) isFighter() bool {
+	isFighter := false
+	for _, trackfile := range g.contacts {
+		data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName)
+		if ok && data.HasTag(encyclopedia.Fighter) {
+			isFighter = true
+			break
+		}
+	}
+	return isFighter
+}
+
 // point returns the center point of the group
 func (g *group) point() orb.Point {
 	center := g.contacts[0].LastKnown().Point
@@ -227,17 +239,17 @@ func (g *group) missionTime() time.Time {
 	return latest
 }
 
-// threatFactor returns the highest threat factor of all contacts in the group
-func (g *group) threatFactor() float64 {
-	highest := 0.0
+// threatRadius returns the highest threat radius of all contacts in the group
+func (g *group) threatRadius() unit.Length {
+	highest := unit.Length(0)
 	for _, trackfile := range g.contacts {
 		data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName)
 		if !ok {
-			highest = encyclopedia.DefaultThreat
+			highest = encyclopedia.DefaultThreatRadius
 		}
-		factor := data.ThreatFactor()
-		if factor > highest {
-			highest = factor
+		radius := data.ThreatRadius()
+		if radius > highest {
+			highest = radius
 		}
 	}
 	return highest
