@@ -283,10 +283,10 @@ Requesting a PICTURE will reset the interval on any automatic broadcast.
 
 ### THREAT
 
-The GCI controller monitors for threats which are near or approaching friendly aircraft. Any hostile aircraft within 35NM of a friendly aircraft is always considered a threat. At further ranges, the bandit's aircraft capabilities, course and aspect are also considered. Threat calls are broadcast every few minutes for as long as the threat criteria are met.
+The GCI controller monitors for threats which are near or approaching friendly aircraft. Any hostile aircraft within a pre-briefed range (default 25NM) is always considered a threat. At further ranges, the bandit's aircraft capabilities are also considered. Threat calls are broadcast every few minutes for as long as the threat criteria are met.
 
 Threat locations are given in BRAA format if they are relevant to a single friendly aircraft, or Bullseye calls if they are relevant to multiple friendly aircraft.
-1
+
 Your own aircraft must be on the SRS frequency to receive THREAT monitoring.
 
 ### FADED

@@ -43,7 +43,9 @@ type Aircraft struct {
 	threatRadius unit.Length
 }
 
-var DefaultThreatRadius = 35 * unit.NauticalMile
+var SAR1IRThreat = 15 * unit.NauticalMile
+var SAR2AR1Threat = 25 * unit.NauticalMile
+var ExtendedThreat = 35 * unit.NauticalMile
 
 func (a Aircraft) Category() brevity.ContactCategory {
 	if _, ok := a.tags[FixedWing]; ok {
@@ -84,12 +86,9 @@ func (a Aircraft) ThreatRadius() unit.Length {
 		return 3 * unit.NauticalMile
 	}
 	if a.HasTag(Attack) {
-		return 20 * unit.NauticalMile
+		return SAR1IRThreat
 	}
-	if a.HasTag(Fighter) {
-		return 50 * unit.NauticalMile
-	}
-	return 35 * unit.NauticalMile
+	return SAR2AR1Threat
 }
 
 func variants(data Aircraft, naming map[string]string) []Aircraft {
@@ -161,6 +160,7 @@ var c101Data = Aircraft{
 	},
 	PlatformDesignation: "C-101",
 	OfficialName:        "Aviojet",
+	threatRadius:        SAR1IRThreat,
 }
 
 func c101Variants() []Aircraft {
@@ -180,7 +180,7 @@ var f86Data = Aircraft{
 	},
 	PlatformDesignation: "F-86",
 	OfficialName:        "Sabre",
-	threatRadius:        15 * unit.NauticalMile,
+	threatRadius:        SAR1IRThreat,
 }
 
 func f86Variants() []Aircraft {
@@ -239,7 +239,7 @@ var f14Data = Aircraft{
 	},
 	PlatformDesignation: "F-14",
 	OfficialName:        "Tomcat",
-	threatRadius:        55 * unit.NauticalMile,
+	threatRadius:        ExtendedThreat,
 }
 
 func f14Variants() []Aircraft {
@@ -261,7 +261,7 @@ var f15Data = Aircraft{
 	},
 	// Use "Eagle" for Strike Eagle because radar cannot distinguish between the two
 	OfficialName: "Eagle",
-	threatRadius: 65 * unit.NauticalMile,
+	threatRadius: ExtendedThreat,
 }
 
 func f15Variants() []Aircraft {
@@ -282,6 +282,7 @@ var f16Data = Aircraft{
 	PlatformDesignation: "F-16",
 	OfficialName:        "Falcon",
 	Nickname:            "Viper",
+	threatRadius:        ExtendedThreat,
 }
 
 func f16Variants() []Aircraft {
@@ -304,6 +305,7 @@ var fa18Data = Aircraft{
 	},
 	PlatformDesignation: "FA-18",
 	OfficialName:        "Hornet",
+	threatRadius:        ExtendedThreat,
 }
 
 func fa18Variants() []Aircraft {
@@ -435,6 +437,7 @@ var ftData = Aircraft{
 	},
 	PlatformDesignation: "MiG-15",
 	NATOReportingName:   mig15NATOReportingName,
+	threatRadius:        SAR1IRThreat,
 }
 
 func ftVariants() []Aircraft {
@@ -454,6 +457,7 @@ var fencerData = Aircraft{
 	},
 	PlatformDesignation: "Su-24",
 	NATOReportingName:   "Fencer",
+	threatRadius:        SAR1IRThreat,
 }
 
 func fencerVariants() []Aircraft {
@@ -473,7 +477,7 @@ var foxbatData = Aircraft{
 	},
 	PlatformDesignation: "MiG-25",
 	NATOReportingName:   "Foxbat",
-	threatRadius:        80 * unit.NauticalMile,
+	threatRadius:        SAR1IRThreat,
 }
 
 func foxbatVariants() []Aircraft {
@@ -513,6 +517,7 @@ var frogfootData = Aircraft{
 	},
 	PlatformDesignation: "Su-25",
 	NATOReportingName:   "Frogfoot",
+	threatRadius:        SAR2AR1Threat,
 }
 
 func frogfootVariants() []Aircraft {
@@ -533,7 +538,7 @@ var flankerData = Aircraft{
 	},
 	PlatformDesignation: "Su-27",
 	NATOReportingName:   "Flanker",
-	threatRadius:        80 * unit.NauticalMile,
+	threatRadius:        SAR2AR1Threat,
 }
 
 var kc135Data = Aircraft{
@@ -569,6 +574,7 @@ var l39Data = Aircraft{
 	},
 	PlatformDesignation: "L-39",
 	OfficialName:        "Albatros",
+	threatRadius:        SAR1IRThreat,
 }
 
 func l39Variants() []Aircraft {
@@ -587,7 +593,7 @@ var mb339Data = Aircraft{
 		Fighter:   true,
 	},
 	PlatformDesignation: "MB-339",
-	threatRadius:        15 * unit.NauticalMile,
+	threatRadius:        SAR1IRThreat,
 }
 
 func mb339Variants() []Aircraft {
@@ -626,6 +632,7 @@ var tornadoData = Aircraft{
 	},
 	PlatformDesignation: "Tornado",
 	OfficialName:        "Tornado",
+	threatRadius:        SAR1IRThreat,
 }
 
 func tornadoVariants() []Aircraft {
@@ -649,6 +656,7 @@ var aircraftData = []Aircraft{
 		TypeDesignation:     "A-4E",
 		OfficialName:        "Skyhawk",
 		Nickname:            "Scooter",
+		threatRadius:        SAR1IRThreat,
 	},
 	{
 		ACMIShortName: "A-20G",
@@ -688,6 +696,7 @@ var aircraftData = []Aircraft{
 		},
 		PlatformDesignation: "AJS37",
 		OfficialName:        "Viggen",
+		threatRadius:        SAR1IRThreat,
 	},
 	{
 		ACMIShortName: "AV8BNA",
@@ -698,6 +707,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "AV-8",
 		TypeDesignation:     "AV-8B",
 		OfficialName:        "Harrier",
+		threatRadius:        SAR1IRThreat,
 	},
 	{
 		ACMIShortName: "An-26B",
@@ -879,6 +889,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "JF-17",
 		TypeDesignation:     "JF-17",
 		OfficialName:        "Thunder",
+		threatRadius:        ExtendedThreat,
 	},
 	{
 		ACMIShortName: "KA-27",
@@ -920,6 +931,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "Mirage 2000",
 		TypeDesignation:     "Mirage 2000C",
 		OfficialName:        "Mirage 2000",
+		threatRadius:        SAR2AR1Threat,
 	},
 	{
 		ACMIShortName: "Mi-8MT",
@@ -960,7 +972,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "MiG-19",
 		TypeDesignation:     "MiG-19P",
 		NATOReportingName:   "Farmer",
-		threatRadius:        20 * unit.NauticalMile,
+		threatRadius:        SAR1IRThreat,
 	},
 	{
 		ACMIShortName: "MiG-21Bis",
@@ -971,6 +983,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "MiG-21",
 		TypeDesignation:     "MiG-21bis",
 		NATOReportingName:   "Fishbed",
+		threatRadius:        SAR1IRThreat,
 	},
 	{
 		ACMIShortName: "MiG-23MLD",
@@ -981,6 +994,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "MiG-23",
 		TypeDesignation:     "MiG-23MLD",
 		NATOReportingName:   "Flogger",
+		threatRadius:        SAR1IRThreat,
 	},
 	{
 		ACMIShortName: "MiG-27K",
@@ -991,6 +1005,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "MiG-27",
 		TypeDesignation:     "MiG-27K",
 		NATOReportingName:   "Flogger",
+		threatRadius:        SAR1IRThreat,
 	},
 	{
 		ACMIShortName: "MiG-31",
@@ -1001,7 +1016,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "MiG-31",
 		TypeDesignation:     "MiG-31",
 		NATOReportingName:   "Foxhound",
-		threatRadius:        80 * unit.NauticalMile,
+		threatRadius:        SAR2AR1Threat,
 	},
 	{
 		ACMIShortName: "M2000-5",
@@ -1012,6 +1027,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "Mirage 2000",
 		TypeDesignation:     "Mirage 2000-5",
 		OfficialName:        "Mirage 2000",
+		threatRadius:        SAR2AR1Threat,
 	},
 	{
 		ACMIShortName: "MQ-1",
@@ -1076,7 +1092,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "Su-17",
 		TypeDesignation:     "Su-17M4",
 		NATOReportingName:   "Fitter",
-		threatRadius:        20 * unit.NauticalMile,
+		threatRadius:        SAR1IRThreat,
 	},
 	{
 		ACMIShortName:       "Su-27",
