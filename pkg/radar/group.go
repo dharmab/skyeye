@@ -243,11 +243,10 @@ func (g *group) missionTime() time.Time {
 func (g *group) threatRadius() unit.Length {
 	highest := unit.Length(0)
 	for _, trackfile := range g.contacts {
-		data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName)
-		if !ok {
-			highest = encyclopedia.DefaultThreatRadius
+		radius := encyclopedia.SAR2AR1Threat
+		if data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName); ok {
+			radius = data.ThreatRadius()
 		}
-		radius := data.ThreatRadius()
 		if radius > highest {
 			highest = radius
 		}
