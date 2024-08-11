@@ -1,7 +1,9 @@
+// package encyclopedia is a database of aircraft data
 package encyclopedia
 
 import (
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
 
@@ -12,9 +14,11 @@ import (
 type AircraftTag int
 
 const (
-	AnyAircraft AircraftTag = iota
-	FixedWing
+	FixedWing AircraftTag = iota
 	RotaryWing
+	Unarmed
+	Fighter
+	Attack
 )
 
 type Aircraft struct {
@@ -35,11 +39,11 @@ type Aircraft struct {
 	OfficialName string
 	// Nickname is a common nickname for the aircraft. Not all aircraft have a nickname.
 	// e.g. Warthog, Viper, Mudhen
-	Nickname string
-	// threatFactor is a weight roughly indicating how dangerous the aircraft is.
-	// 0 is unarmed. Threat factor increases with both airframe and weapon capabilities.
-	threatFactor float64
+	Nickname     string
+	threatRadius unit.Length
 }
+
+var DefaultThreatRadius = 35 * unit.NauticalMile
 
 func (a Aircraft) Category() brevity.ContactCategory {
 	if _, ok := a.tags[FixedWing]; ok {
@@ -72,22 +76,21 @@ func (a Aircraft) HasAnyTag(tags ...AircraftTag) bool {
 	return false
 }
 
-func (a Aircraft) ThreatFactor() float64 {
-	return a.threatFactor
+func (a Aircraft) ThreatRadius() unit.Length {
+	if a.threatRadius != 0 || a.HasTag(Unarmed) {
+		return a.threatRadius
+	}
+	if a.HasTag(RotaryWing) {
+		return 3 * unit.NauticalMile
+	}
+	if a.HasTag(Attack) {
+		return 20 * unit.NauticalMile
+	}
+	if a.HasTag(Fighter) {
+		return 50 * unit.NauticalMile
+	}
+	return 35 * unit.NauticalMile
 }
-
-const (
-	Unarmed               float64 = 0
-	Helicopter            float64 = 0.01
-	AttackerWithGuns      float64 = 0.02
-	AttackerWithIR        float64 = 0.05
-	FighterWithGuns       float64 = 0.10
-	FighterWithIR         float64 = 0.50
-	DefaultThreat         float64 = 0.50
-	FighterWithSAR        float64 = 0.75
-	FighterWithAR         float64 = 0.90
-	AirSuperiorityFighter float64 = 1.00
-)
 
 func variants(data Aircraft, naming map[string]string) []Aircraft {
 	variants := []Aircraft{}
@@ -99,7 +102,6 @@ func variants(data Aircraft, naming map[string]string) []Aircraft {
 			NATOReportingName:   data.NATOReportingName,
 			OfficialName:        data.OfficialName,
 			Nickname:            data.Nickname,
-			threatFactor:        data.threatFactor,
 		}
 		if data.ACMIShortName != "" {
 			aircraft.ACMIShortName = data.ACMIShortName + nameSuffix
@@ -114,11 +116,11 @@ func variants(data Aircraft, naming map[string]string) []Aircraft {
 var a10Data = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
+		Attack:    true,
 	},
 	PlatformDesignation: "A-10",
 	OfficialName:        "Thunderbolt",
 	Nickname:            "Warthog",
-	threatFactor:        AttackerWithIR,
 }
 
 func a10Variants() []Aircraft {
@@ -133,10 +135,12 @@ func a10Variants() []Aircraft {
 }
 
 var ah64Data = Aircraft{
-	tags:                map[AircraftTag]bool{RotaryWing: true},
+	tags: map[AircraftTag]bool{
+		RotaryWing: true,
+		Attack:     true,
+	},
 	PlatformDesignation: "AH-64",
 	OfficialName:        "Apache",
-	threatFactor:        Helicopter,
 }
 
 func ah64Variants() []Aircraft {
@@ -151,10 +155,12 @@ func ah64Variants() []Aircraft {
 }
 
 var c101Data = Aircraft{
-	tags:                map[AircraftTag]bool{FixedWing: true},
+	tags: map[AircraftTag]bool{
+		FixedWing: true,
+		Fighter:   true,
+	},
 	PlatformDesignation: "C-101",
 	OfficialName:        "Aviojet",
-	threatFactor:        FighterWithIR,
 }
 
 func c101Variants() []Aircraft {
@@ -168,10 +174,13 @@ func c101Variants() []Aircraft {
 }
 
 var f86Data = Aircraft{
-	tags:                map[AircraftTag]bool{FixedWing: true},
+	tags: map[AircraftTag]bool{
+		FixedWing: true,
+		Fighter:   true,
+	},
 	PlatformDesignation: "F-86",
 	OfficialName:        "Sabre",
-	threatFactor:        FighterWithGuns,
+	threatRadius:        15 * unit.NauticalMile,
 }
 
 func f86Variants() []Aircraft {
@@ -185,10 +194,12 @@ func f86Variants() []Aircraft {
 }
 
 var f4Data = Aircraft{
-	tags:                map[AircraftTag]bool{FixedWing: true},
+	tags: map[AircraftTag]bool{
+		FixedWing: true,
+		Fighter:   true,
+	},
 	PlatformDesignation: "F-4",
 	OfficialName:        "Phantom",
-	threatFactor:        FighterWithSAR,
 }
 
 func f4Variants() []Aircraft {
@@ -204,10 +215,10 @@ func f4Variants() []Aircraft {
 var f5Data = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
+		Fighter:   true,
 	},
 	PlatformDesignation: "F-5",
 	OfficialName:        "Tiger",
-	threatFactor:        FighterWithGuns,
 }
 
 func f5Variants() []Aircraft {
@@ -224,10 +235,11 @@ func f5Variants() []Aircraft {
 var f14Data = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
+		Fighter:   true,
 	},
 	PlatformDesignation: "F-14",
 	OfficialName:        "Tomcat",
-	threatFactor:        AirSuperiorityFighter,
+	threatRadius:        55 * unit.NauticalMile,
 }
 
 func f14Variants() []Aircraft {
@@ -245,10 +257,11 @@ var f15Data = Aircraft{
 	PlatformDesignation: "F-15",
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
+		Fighter:   true,
 	},
 	// Use "Eagle" for Strike Eagle because radar cannot distinguish between the two
 	OfficialName: "Eagle",
-	threatFactor: AirSuperiorityFighter,
+	threatRadius: 65 * unit.NauticalMile,
 }
 
 func f15Variants() []Aircraft {
@@ -264,11 +277,11 @@ func f15Variants() []Aircraft {
 var f16Data = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
+		Fighter:   true,
 	},
 	PlatformDesignation: "F-16",
 	OfficialName:        "Falcon",
 	Nickname:            "Viper",
-	threatFactor:        FighterWithAR,
 }
 
 func f16Variants() []Aircraft {
@@ -287,10 +300,10 @@ func f16Variants() []Aircraft {
 var fa18Data = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
+		Fighter:   true,
 	},
 	PlatformDesignation: "FA-18",
 	OfficialName:        "Hornet",
-	threatFactor:        FighterWithAR,
 }
 
 func fa18Variants() []Aircraft {
@@ -305,11 +318,13 @@ func fa18Variants() []Aircraft {
 }
 
 var ka50Data = Aircraft{
-	tags:                map[AircraftTag]bool{RotaryWing: true},
+	tags: map[AircraftTag]bool{
+		RotaryWing: true,
+		Attack:     true,
+	},
 	PlatformDesignation: "Ka-50",
 	OfficialName:        "Black Shark",
 	NATOReportingName:   "Hokum",
-	threatFactor:        Helicopter,
 }
 
 func ka50Variants() []Aircraft {
@@ -323,10 +338,13 @@ func ka50Variants() []Aircraft {
 }
 
 var mi24Data = Aircraft{
-	tags:                map[AircraftTag]bool{RotaryWing: true},
+	tags: map[AircraftTag]bool{
+		RotaryWing: true,
+		Attack:     true,
+		Unarmed:    true,
+	},
 	PlatformDesignation: "Mi-24",
 	NATOReportingName:   "Hind",
-	threatFactor:        Helicopter,
 }
 
 func mi24Variants() []Aircraft {
@@ -343,10 +361,10 @@ var mirageF1Data = Aircraft{
 	ACMIShortName: "Mirage-F1",
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
+		Fighter:   true,
 	},
 	PlatformDesignation: "Mirage F1",
 	OfficialName:        "Mirage F1",
-	threatFactor:        FighterWithSAR,
 }
 
 func mirageF1Variants() []Aircraft {
@@ -381,17 +399,21 @@ func mirageF1Variants() []Aircraft {
 }
 
 var oh58Data = Aircraft{
-	tags:                map[AircraftTag]bool{RotaryWing: true},
+	tags: map[AircraftTag]bool{
+		RotaryWing: true,
+		Unarmed:    true,
+	},
 	PlatformDesignation: "OH-58",
 	OfficialName:        "Kiowa",
-	threatFactor:        Helicopter,
 }
 
 var sa342Data = Aircraft{
-	tags:                map[AircraftTag]bool{RotaryWing: true},
+	tags: map[AircraftTag]bool{
+		RotaryWing: true,
+		Unarmed:    true,
+	},
 	PlatformDesignation: "SA 342",
 	OfficialName:        "Gazelle",
-	threatFactor:        Helicopter,
 }
 
 func sa342Variants() []Aircraft {
@@ -402,7 +424,6 @@ func sa342Variants() []Aircraft {
 			tags:                sa342Data.tags,
 			PlatformDesignation: sa342Data.PlatformDesignation,
 			OfficialName:        sa342Data.OfficialName,
-			threatFactor:        sa342Data.threatFactor,
 		})
 	}
 	return vars
@@ -414,7 +435,6 @@ var ftData = Aircraft{
 	},
 	PlatformDesignation: "MiG-15",
 	NATOReportingName:   mig15NATOReportingName,
-	threatFactor:        FighterWithSAR,
 }
 
 func ftVariants() []Aircraft {
@@ -430,10 +450,10 @@ func ftVariants() []Aircraft {
 var fencerData = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
+		Fighter:   true,
 	},
 	PlatformDesignation: "Su-24",
 	NATOReportingName:   "Fencer",
-	threatFactor:        FighterWithSAR,
 }
 
 func fencerVariants() []Aircraft {
@@ -449,10 +469,11 @@ func fencerVariants() []Aircraft {
 var foxbatData = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
+		Fighter:   true,
 	},
 	PlatformDesignation: "MiG-25",
 	NATOReportingName:   "Foxbat",
-	threatFactor:        FighterWithSAR,
+	threatRadius:        80 * unit.NauticalMile,
 }
 
 func foxbatVariants() []Aircraft {
@@ -468,10 +489,10 @@ func foxbatVariants() []Aircraft {
 var fulcrumData = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
+		Fighter:   true,
 	},
 	PlatformDesignation: "MiG-29",
 	NATOReportingName:   "Fulcrum",
-	threatFactor:        FighterWithAR,
 }
 
 func fulcrumVariants() []Aircraft {
@@ -488,10 +509,10 @@ func fulcrumVariants() []Aircraft {
 var frogfootData = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
+		Attack:    true,
 	},
 	PlatformDesignation: "Su-25",
 	NATOReportingName:   "Frogfoot",
-	threatFactor:        AttackerWithIR,
 }
 
 func frogfootVariants() []Aircraft {
@@ -508,15 +529,17 @@ func frogfootVariants() []Aircraft {
 var flankerData = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
+		Fighter:   true,
 	},
 	PlatformDesignation: "Su-27",
 	NATOReportingName:   "Flanker",
-	threatFactor:        AirSuperiorityFighter,
+	threatRadius:        80 * unit.NauticalMile,
 }
 
 var kc135Data = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
+		Unarmed:   true,
 	},
 	PlatformDesignation: "KC-135",
 	OfficialName:        "Stratotanker",
@@ -540,10 +563,12 @@ func kc135Variants() []Aircraft {
 }
 
 var l39Data = Aircraft{
-	tags:                map[AircraftTag]bool{FixedWing: true},
+	tags: map[AircraftTag]bool{
+		FixedWing: true,
+		Fighter:   true,
+	},
 	PlatformDesignation: "L-39",
 	OfficialName:        "Albatros",
-	threatFactor:        FighterWithIR,
 }
 
 func l39Variants() []Aircraft {
@@ -557,9 +582,12 @@ func l39Variants() []Aircraft {
 }
 
 var mb339Data = Aircraft{
-	tags:                map[AircraftTag]bool{FixedWing: true},
+	tags: map[AircraftTag]bool{
+		FixedWing: true,
+		Fighter:   true,
+	},
 	PlatformDesignation: "MB-339",
-	threatFactor:        FighterWithGuns,
+	threatRadius:        15 * unit.NauticalMile,
 }
 
 func mb339Variants() []Aircraft {
@@ -573,7 +601,10 @@ func mb339Variants() []Aircraft {
 }
 
 var s3Data = Aircraft{
-	tags:                map[AircraftTag]bool{FixedWing: true},
+	tags: map[AircraftTag]bool{
+		FixedWing: true,
+		Unarmed:   true,
+	},
 	PlatformDesignation: "S-3",
 	OfficialName:        "Viking",
 }
@@ -589,10 +620,12 @@ func s3Variants() []Aircraft {
 }
 
 var tornadoData = Aircraft{
-	tags:                map[AircraftTag]bool{FixedWing: true},
+	tags: map[AircraftTag]bool{
+		FixedWing: true,
+		Fighter:   true,
+	},
 	PlatformDesignation: "Tornado",
 	OfficialName:        "Tornado",
-	threatFactor:        FighterWithSAR,
 }
 
 func tornadoVariants() []Aircraft {
@@ -610,24 +643,29 @@ var aircraftData = []Aircraft{
 		ACMIShortName: "A-4E-C",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
+			Attack:    true,
 		},
 		PlatformDesignation: "A-4",
 		TypeDesignation:     "A-4E",
 		OfficialName:        "Skyhawk",
 		Nickname:            "Scooter",
-		threatFactor:        AttackerWithIR,
 	},
 	{
-		ACMIShortName:       "A-20G",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "A-20G",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "A-20",
 		TypeDesignation:     "A-20G",
 		OfficialName:        "Havoc",
-		threatFactor:        AttackerWithGuns,
 	},
 	{
-		ACMIShortName:       "A-50",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "A-50",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "A-50",
 		TypeDesignation:     "A-50",
 		NATOReportingName:   "Mainstay",
@@ -636,84 +674,108 @@ var aircraftData = []Aircraft{
 		ACMIShortName: "AH-1W",
 		tags: map[AircraftTag]bool{
 			RotaryWing: true,
+			Attack:     true,
 		},
 		PlatformDesignation: "AH-1",
 		TypeDesignation:     "AH-1W",
 		OfficialName:        "SuperCobra",
-		threatFactor:        Helicopter,
 	},
 	{
 		ACMIShortName: "AJS 37",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
+			Attack:    true,
 		},
 		PlatformDesignation: "AJS37",
 		OfficialName:        "Viggen",
-		threatFactor:        AttackerWithIR,
 	},
 	{
 		ACMIShortName: "AV8BNA",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
+			Attack:    true,
 		},
 		PlatformDesignation: "AV-8",
 		TypeDesignation:     "AV-8B",
 		OfficialName:        "Harrier",
-		threatFactor:        FighterWithIR,
 	},
 	{
-		ACMIShortName:       "An-26B",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "An-26B",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "An-26",
 		TypeDesignation:     "An-26B",
 		NATOReportingName:   "Curl",
 	},
 	{
-		ACMIShortName:       "An-30M",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "An-30M",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "An-30",
 		TypeDesignation:     "An-30M",
 		NATOReportingName:   "Clank",
 	},
 	{
-		ACMIShortName:       "B-17G",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "B-17G",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "B-17",
 		TypeDesignation:     "B-17G",
 		OfficialName:        "Flying Fortress",
 	},
 	{
-		ACMIShortName:       "B-52H",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "B-52H",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "B-52",
 		TypeDesignation:     "B-52H",
 		OfficialName:        "Stratofortress",
 		Nickname:            "Buff",
 	},
 	{
-		ACMIShortName:       "B-1B",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "B-1B",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "B-1",
 		TypeDesignation:     "B-1B",
 		OfficialName:        "Lancer",
 		Nickname:            "Bone",
 	},
 	{
-		ACMIShortName:       "C-17A",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "C-17A",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "C-17",
 		TypeDesignation:     "C-17A",
 		OfficialName:        "Globemaster",
 	},
 	{
-		ACMIShortName:       "C-47",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "C-47",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "C-47",
 		OfficialName:        "Skytrain",
 	},
 	{
-		ACMIShortName:       "C-130",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "C-130",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "C-130",
 		TypeDesignation:     "C-130",
 		OfficialName:        "Hercules",
@@ -723,6 +785,7 @@ var aircraftData = []Aircraft{
 		ACMIShortName: "CH-47D",
 		tags: map[AircraftTag]bool{
 			RotaryWing: true,
+			Unarmed:    true,
 		},
 		PlatformDesignation: "CH-47",
 		TypeDesignation:     "CH-47D",
@@ -732,50 +795,69 @@ var aircraftData = []Aircraft{
 		ACMIShortName: "CH-53E",
 		tags: map[AircraftTag]bool{
 			RotaryWing: true,
+			Unarmed:    true,
 		},
 		PlatformDesignation: "CH-53",
 		TypeDesignation:     "CH-53E",
 		OfficialName:        "Super Stallion",
 	},
 	{
-		ACMIShortName:       "E-2C",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "E-2C",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "E-2",
 		TypeDesignation:     "E-2C",
 		OfficialName:        "Hawkeye",
 	},
 	{
-		ACMIShortName:       "E-3A",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "E-3A",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "E-3",
 		TypeDesignation:     "E-3A",
 		OfficialName:        "Sentry",
 	},
 	{
-		ACMIShortName:       "F-117A",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "F-117A",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "F-117",
 		TypeDesignation:     "F-117A",
 		OfficialName:        "Nighthawk",
 		Nickname:            "Goblin",
 	},
 	{
-		ACMIShortName:       "H-6J",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "H-6J",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "Tu-16",
 		TypeDesignation:     "H-6J",
 		NATOReportingName:   "Badger",
 	},
 	{
-		ACMIShortName:       "IL-76MD",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "IL-76MD",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "Il-76",
 		TypeDesignation:     "Il-76MD",
 		NATOReportingName:   "Candid",
 	},
 	{
-		ACMIShortName:       "IL-78M",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "IL-78M",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "Il-78",
 		TypeDesignation:     "Il-78M",
 		NATOReportingName:   "Midas",
@@ -786,34 +868,45 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: flankerData.PlatformDesignation,
 		TypeDesignation:     "J-11A",
 		NATOReportingName:   flankerData.NATOReportingName,
-		threatFactor:        flankerData.threatFactor,
+		threatRadius:        flankerData.threatRadius,
 	},
 	{
-		ACMIShortName:       "JF-17",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "JF-17",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Fighter:   true,
+		},
 		PlatformDesignation: "JF-17",
 		TypeDesignation:     "JF-17",
 		OfficialName:        "Thunder",
-		threatFactor:        FighterWithAR,
 	},
 	{
-		ACMIShortName:       "KA-27",
-		tags:                map[AircraftTag]bool{RotaryWing: true},
+		ACMIShortName: "KA-27",
+		tags: map[AircraftTag]bool{
+			RotaryWing: true,
+			Unarmed:    true,
+		},
 		PlatformDesignation: "Ka-27",
 		TypeDesignation:     "Ka-27",
 		NATOReportingName:   "Helix",
 	},
 	{
-		ACMIShortName:       "KC130",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "KC130",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "KC-130",
 		TypeDesignation:     "KC-130",
 		OfficialName:        "Hercules",
 		Nickname:            "Herc",
 	},
 	{
-		ACMIShortName:       "KJ-2000",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "KJ-2000",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "KJ-2000",
 		TypeDesignation:     "KJ-2000",
 		OfficialName:        "Mainring",
@@ -822,104 +915,120 @@ var aircraftData = []Aircraft{
 		ACMIShortName: "M-2000C",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
+			Fighter:   true,
 		},
 		PlatformDesignation: "Mirage 2000",
 		TypeDesignation:     "Mirage 2000C",
 		OfficialName:        "Mirage 2000",
-		threatFactor:        FighterWithSAR,
 	},
 	{
-		ACMIShortName:       "Mi-8MT",
-		tags:                map[AircraftTag]bool{RotaryWing: true},
+		ACMIShortName: "Mi-8MT",
+		tags: map[AircraftTag]bool{
+			RotaryWing: true,
+			Unarmed:    true,
+		},
 		PlatformDesignation: "Mi-8",
 		TypeDesignation:     "Mi-8MT",
 		NATOReportingName:   "Hip",
 	},
 	{
-		ACMIShortName:       "Mi-26",
-		tags:                map[AircraftTag]bool{RotaryWing: true},
+		ACMIShortName: "Mi-26",
+		tags: map[AircraftTag]bool{
+			RotaryWing: true,
+			Unarmed:    true,
+		},
 		PlatformDesignation: "Mi-26",
 		TypeDesignation:     "Mi-26",
 		NATOReportingName:   "Halo",
 	},
 	{
-		ACMIShortName:       "Mi-28N",
-		tags:                map[AircraftTag]bool{RotaryWing: true},
+		ACMIShortName: "Mi-28N",
+		tags: map[AircraftTag]bool{
+			RotaryWing: true,
+			Attack:     true,
+		},
 		PlatformDesignation: "Mi-28",
 		TypeDesignation:     "Mi-28N",
 		OfficialName:        "Havoc",
-		threatFactor:        Helicopter,
 	},
 	{
 		ACMIShortName: "MiG-19P",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
+			Fighter:   true,
 		},
 		PlatformDesignation: "MiG-19",
 		TypeDesignation:     "MiG-19P",
 		NATOReportingName:   "Farmer",
-		threatFactor:        FighterWithGuns,
+		threatRadius:        20 * unit.NauticalMile,
 	},
 	{
 		ACMIShortName: "MiG-21Bis",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
+			Fighter:   true,
 		},
 		PlatformDesignation: "MiG-21",
 		TypeDesignation:     "MiG-21bis",
 		NATOReportingName:   "Fishbed",
-		threatFactor:        FighterWithSAR,
 	},
 	{
 		ACMIShortName: "MiG-23MLD",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
+			Fighter:   true,
 		},
 		PlatformDesignation: "MiG-23",
 		TypeDesignation:     "MiG-23MLD",
 		NATOReportingName:   "Flogger",
-		threatFactor:        FighterWithSAR,
 	},
 	{
 		ACMIShortName: "MiG-27K",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
+			Fighter:   true,
 		},
 		PlatformDesignation: "MiG-27",
 		TypeDesignation:     "MiG-27K",
 		NATOReportingName:   "Flogger",
-		threatFactor:        FighterWithSAR,
 	},
 	{
 		ACMIShortName: "MiG-31",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
+			Fighter:   true,
 		},
 		PlatformDesignation: "MiG-31",
 		TypeDesignation:     "MiG-31",
 		NATOReportingName:   "Foxhound",
-		threatFactor:        FighterWithSAR,
+		threatRadius:        80 * unit.NauticalMile,
 	},
 	{
 		ACMIShortName: "M2000-5",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
+			Fighter:   true,
 		},
 		PlatformDesignation: "Mirage 2000",
 		TypeDesignation:     "Mirage 2000-5",
 		OfficialName:        "Mirage 2000",
-		threatFactor:        FighterWithSAR,
 	},
 	{
-		ACMIShortName:       "MQ-1",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "MQ-1",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "MQ-1",
 		TypeDesignation:     "MQ-1A",
 		OfficialName:        "Predator",
 	},
 	{
-		ACMIShortName:       "MQ-9",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "MQ-9",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "MQ-9",
 		TypeDesignation:     "MQ-9",
 		OfficialName:        "Reaper",
@@ -930,7 +1039,6 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: oh58Data.PlatformDesignation,
 		TypeDesignation:     "OH-58D",
 		OfficialName:        oh58Data.OfficialName,
-		threatFactor:        oh58Data.threatFactor,
 	},
 	{
 		ACMIShortName:       "OH58D",
@@ -938,18 +1046,23 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: oh58Data.PlatformDesignation,
 		TypeDesignation:     "OH-58D",
 		OfficialName:        oh58Data.OfficialName,
-		threatFactor:        oh58Data.threatFactor,
 	},
 	{
-		ACMIShortName:       "SH-3W",
-		tags:                map[AircraftTag]bool{RotaryWing: true},
+		ACMIShortName: "SH-3W",
+		tags: map[AircraftTag]bool{
+			RotaryWing: true,
+			Unarmed:    true,
+		},
 		PlatformDesignation: "SH-3",
 		TypeDesignation:     "SH-3W",
 		OfficialName:        "Sea King",
 	},
 	{
-		ACMIShortName:       "SH-60B",
-		tags:                map[AircraftTag]bool{RotaryWing: true},
+		ACMIShortName: "SH-60B",
+		tags: map[AircraftTag]bool{
+			RotaryWing: true,
+			Unarmed:    true,
+		},
 		PlatformDesignation: "SH-60",
 		TypeDesignation:     "SH-60B",
 		OfficialName:        "Seahawk",
@@ -958,11 +1071,12 @@ var aircraftData = []Aircraft{
 		ACMIShortName: "Su-17M4",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
+			Fighter:   true,
 		},
 		PlatformDesignation: "Su-17",
 		TypeDesignation:     "Su-17M4",
 		NATOReportingName:   "Fitter",
-		threatFactor:        FighterWithSAR,
+		threatRadius:        20 * unit.NauticalMile,
 	},
 	{
 		ACMIShortName:       "Su-27",
@@ -970,7 +1084,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: flankerData.PlatformDesignation,
 		TypeDesignation:     "Su-27",
 		NATOReportingName:   flankerData.NATOReportingName,
-		threatFactor:        flankerData.threatFactor,
+		threatRadius:        flankerData.threatRadius,
 	},
 	{
 		ACMIShortName:       "Su-30",
@@ -978,7 +1092,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: flankerData.PlatformDesignation,
 		TypeDesignation:     "Su-30",
 		NATOReportingName:   flankerData.NATOReportingName,
-		threatFactor:        flankerData.threatFactor,
+		threatRadius:        flankerData.threatRadius,
 	},
 	{
 		ACMIShortName:       "Su-33",
@@ -986,50 +1100,66 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: flankerData.PlatformDesignation,
 		TypeDesignation:     "Su-33",
 		NATOReportingName:   flankerData.NATOReportingName,
-		threatFactor:        flankerData.threatFactor,
+		threatRadius:        flankerData.threatRadius,
 	},
 	{
 		ACMIShortName: "Su-34",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
+			Fighter:   true,
 		},
 		PlatformDesignation: "Su-34",
 		TypeDesignation:     "Su-34",
 		OfficialName:        "Fullback",
-		threatFactor:        flankerData.threatFactor,
+		threatRadius:        flankerData.threatRadius,
 	},
 	{
-		ACMIShortName:       "Tu-22M3",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "Tu-22M3",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "Tu-22",
 		TypeDesignation:     "Tu-22M",
 		OfficialName:        "Backfire",
 	},
 	{
-		ACMIShortName:       "Tu-95MS",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "Tu-95MS",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "Tu-95",
 		TypeDesignation:     "Tu-95MS",
 		OfficialName:        "Bear",
 	},
 	{
-		ACMIShortName:       "Tu-142",
-		tags:                map[AircraftTag]bool{FixedWing: true},
+		ACMIShortName: "Tu-142",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
 		PlatformDesignation: "Tu-142",
 		TypeDesignation:     "Tu-142",
 		OfficialName:        "Bear",
 	},
 	{
-		ACMIShortName:       "UH-1H",
-		tags:                map[AircraftTag]bool{RotaryWing: true},
+		ACMIShortName: "UH-1H",
+		tags: map[AircraftTag]bool{
+			RotaryWing: true,
+			Unarmed:    true,
+		},
 		PlatformDesignation: "UH-1",
 		TypeDesignation:     "UH-1H",
 		OfficialName:        "Iroquois",
 		Nickname:            "Huey",
 	},
 	{
-		ACMIShortName:       "UH-60A",
-		tags:                map[AircraftTag]bool{RotaryWing: true},
+		ACMIShortName: "UH-60A",
+		tags: map[AircraftTag]bool{
+			RotaryWing: true,
+			Unarmed:    true,
+		},
 		PlatformDesignation: "UH-60",
 		TypeDesignation:     "UH-60A",
 		OfficialName:        "Black Hawk",
