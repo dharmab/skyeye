@@ -51,7 +51,7 @@ func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 			).Magnetic(s.Declination(trackfile.LastKnown().Point))
 			_range := unit.Length(geo.Distance(trackfile.LastKnown().Point, grp.point()))
 			aspect := brevity.AspectFromAngle(bearing, grp.course())
-			grp.braa = brevity.NewBRAA(bearing, _range, grp.Altitude(), aspect)
+			grp.braa = brevity.NewBRAA(bearing, _range, grp.altitudes(), aspect)
 			grp.bullseye = nil
 		}
 	}

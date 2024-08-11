@@ -48,9 +48,8 @@ func (s *scope) FindNearbyGroupsWithBRAA(origin, interest orb.Point, minAltitude
 			) * unit.Degree,
 		).Magnetic(s.Declination(origin))
 		_range := unit.Length(math.Abs(geo.Distance(origin, grp.point())))
-		altitude := grp.Altitude()
 		aspect := brevity.AspectFromAngle(bearing, grp.course())
-		grp.braa = brevity.NewBRAA(bearing, _range, altitude, aspect)
+		grp.braa = brevity.NewBRAA(bearing, _range, grp.altitudes(), aspect)
 		grp.bullseye = nil
 
 		result = append(result, grp)

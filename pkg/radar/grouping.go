@@ -1,10 +1,10 @@
 package radar
 
 import (
-	"math"
 	"slices"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb/geo"
@@ -57,14 +57,24 @@ func (s *scope) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {
 
 // addNearbyAircraftToGroup recursively adds all nearby aircraft which:
 //   - are of the same coalition
-//   - are within 3 nautical miles in 2D distance of each other
-//   - are within 3000 feet in altitude of each other
+//   - are within 5 nautical miles in 2D distance of each other
+//   - have similar tags
 //
-// These are increased from the ATP numbers beacause the DCS AI isn't amazing at holding formation.
+// The spread is increased from the ATP numbers beacause the DCS AI isn't amazing at holding formation.
 // We allow mixed platform groups because these are fairly common in DCS.
 func (s *scope) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *group) {
+	var tag encyclopedia.AircraftTag
+	thisData, ok := encyclopedia.GetAircraftData(this.Contact.ACMIName)
+	if ok {
+		if thisData.HasTag(encyclopedia.Fighter) {
+			tag = encyclopedia.Fighter
+		} else if thisData.HasTag(encyclopedia.Attack) {
+			tag = encyclopedia.Attack
+		} else if thisData.HasTag(encyclopedia.Unarmed) {
+			tag = encyclopedia.Unarmed
+		}
+	}
 	spreadInterval := 5 * unit.NauticalMile
-	stackInterval := 3000 * unit.Foot
 	itr := s.contacts.itr()
 	for itr.next() {
 		other := itr.value()
@@ -78,16 +88,30 @@ func (s *scope) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *grou
 			continue
 		}
 
+		// Check coalition, categoty, and filters
 		if !s.isMatch(other, this.Contact.Coalition, group.category()) {
 			continue
 		}
 
-		isWithinSpread := geo.Distance(other.LastKnown().Point, this.LastKnown().Point) < spreadInterval.Meters()
-		isWithinStack := math.Abs(other.LastKnown().Altitude.Feet()-this.LastKnown().Altitude.Feet()) < stackInterval.Feet()
-
-		if isWithinSpread && isWithinStack {
-			group.contacts = append(group.contacts, other)
-			s.addNearbyAircraftToGroup(other, group)
+		// Check tag similarity
+		subCategories := []encyclopedia.AircraftTag{encyclopedia.Fighter, encyclopedia.Attack, encyclopedia.Unarmed}
+		if slices.Contains(subCategories, tag) {
+			data, ok := encyclopedia.GetAircraftData(other.Contact.ACMIName)
+			if !ok {
+				continue
+			}
+			if !data.HasTag(tag) {
+				continue
+			}
 		}
+
+		// Check spread distance
+		isWithinSpread := geo.Distance(other.LastKnown().Point, this.LastKnown().Point) < spreadInterval.Meters()
+		if !isWithinSpread {
+			continue
+		}
+
+		group.contacts = append(group.contacts, other)
+		s.addNearbyAircraftToGroup(other, group)
 	}
 }

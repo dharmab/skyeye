@@ -80,12 +80,11 @@ func (s *scope) FindNearestGroupWithBRAA(
 		) * unit.Degree,
 	).Magnetic(declination)
 	_range := unit.Length(geo.Distance(origin, grp.point())) * unit.Meter
-	altitude := trackfile.LastKnown().Altitude
 	aspect := brevity.AspectFromAngle(bearing, trackfile.Course())
 	grp.braa = brevity.NewBRAA(
 		bearing,
 		_range,
-		altitude,
+		grp.altitudes(),
 		aspect,
 	)
 	grp.bullseye = nil
@@ -178,7 +177,7 @@ func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 	grp.braa = brevity.NewBRAA(
 		preciseBearing,
 		_range,
-		grp.Altitude(),
+		grp.altitudes(),
 		grp.Aspect(),
 	)
 	logger.Debug().Str("group", grp.String()).Msg("determined nearest group")
