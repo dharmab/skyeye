@@ -100,10 +100,19 @@ func init() {
 
 // Top-level CLI command
 var skyeye = &cobra.Command{
-	Use:     "skyeye",
-	Short:   "AI Powered GCI Bot for DCS World",
-	Long:    "Skyeye uses real-time telemetry data from TacView to provide Ground-Controlled Intercept service over SimpleRadio-Standalone.",
-	Example: "skyeye.exe --telemetry-address=your-tacview-server:42674 --telemetry-password=your-tacview-password --srs-server-address=your-srs-server:5002 --srs-eam-password=your-srs-eam-password --whisper-model=ggml-small.en.bin",
+	Use:   "skyeye",
+	Short: "AI Powered GCI Bot for DCS World",
+	Long:  "Skyeye uses real-time telemetry data from TacView to provide Ground-Controlled Intercept service over SimpleRadio-Standalone.",
+	Example: strings.Join(
+		[]string{
+			"  " + "Remote TacView and SRS server",
+			"skyeye --telemetry-address=your-tacview-server:42674 --telemetry-password=your-tacview-password --srs-server-address=your-srs-server:5002 --srs-eam-password=your-srs-eam-password --whisper-model=ggml-small.en.bin",
+			"",
+			"Local TacView and SRS server",
+			"skyeye --telemetry-password=your-tacview-password --srs-eam-password=your-srs-eam-password --whisper-model=ggml-small.en.bin",
+		},
+		"\n  ",
+	),
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if whisperModelPath == "" {
 			_ = cmd.Help()
