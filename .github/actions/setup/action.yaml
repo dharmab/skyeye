@@ -7,12 +7,6 @@ runs:
       uses: actions/setup-go@v5
       with:
         go-version-file: 'go.mod'
-    - name: Install C dependencies
-      uses: awalsh128/cache-apt-pkgs-action@v1.4.2
-      with:
-        packages: |
-          gcc-aarch64-linux-gnu
-          gcc-mingw-w64
-          libasound2-dev
-          libopus-dev
-          libsoxr-dev
+    - name: Install dependencies
+      shell: bash
+      run: make install-debian-dependencies

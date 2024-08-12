@@ -1,71 +1,102 @@
-SKYEYE_EXE = skyeye.exe
-SKYEYE_ELF = skyeye
-
-.PHONY: default
+# Detect OS
 ifeq ($(OS),Windows_NT)
-default: $(SKYEYE_EXE)
+OS_DISTRIBUTION := Windows
+else ifeq ($(shell uname -s),Darwin)
+OS_DISTRIBUTION := macOS
 else
-default: $(SKYEYE_ELF)
+OS_DISTRIBUTION := $(shell lsb_release -si)
 endif
 
-UNAME_M := $(shell uname -m)
+MSYS2_GOPATH = /ucrt64
+MSYS2_GOROOT = /ucrt64/lib/go
+MSYS2_GO = /ucrt64/bin/go
 
-ifeq ($(UNAME_M),arm64)
-GOARCH = arm64
+ifeq ($(OS_DISTRIBUTION),Windows)
+GO = $(MSYS2_GO)
 else
+GO = go
+endif
+
+ifeq ($(shell uname -m),arm64) 
+GOARCH = arm64
+else ifeq ($(shell uname -m),x86_64) 
 GOARCH = amd64
 endif
 
-.PHONY: install-msys2-dependencies
-install-msys2-dependencies:
-	pacman -Syu --needed git base-devel $(MINGW_PACKAGE_PREFIX)-toolchain $(MINGW_PACKAGE_PREFIX)-go $(MINGW_PACKAGE_PREFIX)-opus $(MINGW_PACKAGE_PREFIX)-libsoxr
-
-.PHONY: install-arch-linux-dependencies
-install-arch-linux-dependencies:
-	sudo pacman -Syu git base-devel alsa-lib go opus soxr
-
-.PHONY: install-debian-dependencies
-install-debian-dependencies:
-	sudo apt-get update
-	sudo apt-get install -y git libasound2-dev libopus-dev libsoxr-dev
-
-.PHONY: install-darwin-dependencies
-install-darwin-dependencies:
-	brew install git opus libsoxr
+SKYEYE_PATH = $(shell pwd)
+SKYEYE_SOURCES = $(shell find . -type f -name '*.go')
+SKYEYE_SOURCES += go.mod go.sum
+SKYEYE_EXE = skyeye.exe
+SKYEYE_ELF = skyeye
 
 WHISPER_CPP_PATH = third_party/whisper.cpp
 LIBWHISPER_PATH = $(WHISPER_CPP_PATH)/libwhisper.a
 WHISPER_H_PATH = $(WHISPER_CPP_PATH)/whisper.h
 WHISPER_CPP_VERSION = v1.6.2
 
-.PHONY: $(WHISPER_CPP_PATH)
-$(WHISPER_CPP_PATH):
-	git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false https://github.com/ggerganov/whisper.cpp.git "$(WHISPER_CPP_PATH)"
+BUILD_VARS = CGO_ENABLED=1 \
+  C_INCLUDE_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" \
+  LIBRARY_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" \
+  GOARCH=$(GOARCH)
+BUILD_FLAGS = -tags nolibopusfile
 
-$(LIBWHISPER_PATH) $(WHISPER_H_PATH) &: $(WHISPER_CPP_PATH)
-	make -C $(WHISPER_CPP_PATH)/bindings/go whisper
+# Static linking on Windows to avoid MSYS2 dependency at runtime
+ifeq ($(OS_DISTRIBUTION),Windows)
+CFLAGS = $(pkg-config opus soxr --cflags --static)
+LDFLAGS = $(pkg-config opus soxr --libs --static)
+BUILD_FLAGS	+= -ldflags='-linkmode external -extldflags "$(LDFLAGS) -static -fopenmp"'
+BUILD_VARS += CFLAGS=$(CFLAGS) LDFLAGS=$(LDFLAGS)
+endif
+
+.PHONY: default
+ifeq ($(OS_DISTRIBUTION),Windows)
+default: $(SKYEYE_EXE)
+else
+default: $(SKYEYE_ELF)
+endif
+
+.PHONY: install-msys2-dependencies
+install-msys2-dependencies:
+	pacman -Syu --needed \
+	  git \
+	  base-devel \
+	  $(MINGW_PACKAGE_PREFIX)-toolchain \
+	  $(MINGW_PACKAGE_PREFIX)-go \
+	  $(MINGW_PACKAGE_PREFIX)-opus \
+	  $(MINGW_PACKAGE_PREFIX)-libsoxr
+
+.PHONY: install-arch-linux-dependencies
+install-arch-linux-dependencies:
+	sudo pacman -Syu \
+	  git \
+	  base-devel \
+	  go \
+	  opus \
+	  soxr
+
+.PHONY: install-debian-dependencies
+install-debian-dependencies:
+	sudo apt-get update
+	sudo apt-get install -y \
+	  git \
+	  golang-go \
+	  libopus-dev \
+	  libopus0 \
+	  libsoxr-dev \
+	  libsoxr0
+
+.PHONY: install-macos-dependencies
+install-macos-dependencies:
+	brew install \
+	  git \
+	  opus \
+	  libsoxr
+
+$(LIBWHISPER_PATH) $(WHISPER_H_PATH):
+	if [[ ! -f $(LIBWHISPER_PATH) || ! -f $(WHISPER_H_PATH) ]]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false https://github.com/ggerganov/whisper.cpp.git "$(WHISPER_CPP_PATH)" && make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
 
 .PHONY: whisper
 whisper: $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
-
-SKYEYE_PATH = $(shell pwd)
-SKYEYE_SOURCES = $(shell find . -type f -name '*.go')
-SKYEYE_SOURCES += go.mod go.sum
-
-CFLAGS = $(pkg-config opus soxr --cflags --static)
-LDFLAGS = $(pkg-config opus soxr --libs --static)
-BUILD_VARS = CGO_ENABLED=1 C_INCLUDE_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" LIBRARY_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" GOARCH=$(GOARCH) CFLAGS=$(CFLAGS) LDFLAGS=$(LDFLAGS)
-BUILD_FLAGS = -tags nolibopusfile -ldflags='-linkmode external -extldflags "-static -fopenmp"'
-
-MSYS2_GOPATH = /mingw64
-MSYS2_GOROOT = /mingw64/lib/go
-MSYS2_GO = /mingw64/bin/go
-
-ifeq ($(OS),Windows_NT)
-GO = $(MSYS2_GO)
-else
-GO = go
-endif
 
 .PHONY: generate
 generate:

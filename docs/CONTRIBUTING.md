@@ -45,8 +45,6 @@ make install-debian-dependencies
 
 Run `make` to build `skyeye`.
 
-Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
-
 ### macOS (Experimental)
 
 Install [Homebrew](https://brew.sh/).
@@ -60,8 +58,6 @@ make install-darwin-dependencies
 ```
 
 Run `make` to build `skyeye`.
-
-Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
 
 _This was tested on a Macbook Pro M3 by a contributor. The maintainer does not currently have any Apple Sillicon hardware for regression testing. Your mileage may vary._
 
@@ -82,9 +78,9 @@ Recommended models:
 - `ggml-small.en.bin` - Good balance between accuracy and performance on high end hardware, even if you don't speak perfectly clearly.
 - `ggml-tiny.en.bin` - Significantly faster, but requires you to speak more clearly.
 
-Whichever model you choose, put the model next to `skyeye.exe`.
+Whichever model you choose, put the model next to the SkyEye binary.
 
-Run SkyEye by passing command line flags to `skyeye.exe`. You can run `./skyeye.exe --help` for an example and a list of available flags. If all goes well, you should see the SkyEye software start up and start logging to the console.
+Run SkyEye from the command line. You can run `./skyeye --help` for an example and a list of available flags. If all goes well, you should see the SkyEye software start up and start logging to the console.
 
 If you get an error, double check the following:
 
@@ -135,7 +131,7 @@ For convenience, add MSYS2 to Visual Studio Code's integrated terminal. Open you
         "-i"
     ],
     "env": {
-        "MSYSTEM": "MINGW64",
+        "MSYSTEM": "UCRT64",
         "CHERE_INVOKING": "1"
     }
 }
@@ -143,7 +139,7 @@ For convenience, add MSYS2 to Visual Studio Code's integrated terminal. Open you
 
 You can then run all the development commands through the "MSYS2" shell in the new terminal dropdown. Neat!
 
-I don't have this project set up to build/run/debug through VSC yet- but it's possible to do interactive debugging with [Delve](https://github.com/go-delve/delve) by running `skyeye.exe` through `dlv --headless --listen=:2345 exec skyeye.exe...` and then attaching VSC to a remote debugger on port 2345.
+I don't have this project set up to build/run/debug through VSC yet- but it's possible to do interactive debugging with [Delve](https://github.com/go-delve/delve) by running `skyeye` through `dlv --headless --listen=:2345 exec skyeye...` and then attaching VSC to a remote debugger on port 2345.
 
 ### Linux/macOS
 
