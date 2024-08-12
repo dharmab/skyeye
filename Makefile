@@ -52,8 +52,10 @@ SKYEYE_PATH = $(shell pwd)
 SKYEYE_SOURCES = $(shell find . -type f -name '*.go')
 SKYEYE_SOURCES += go.mod go.sum
 
-BUILD_VARS = CGO_ENABLED=1 C_INCLUDE_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" LIBRARY_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" GOARCH=$(GOARCH)
-BUILD_TAGS = -tags nolibopusfile
+CFLAGS = $(pkg-config opus soxr --cflags --static)
+LDFLAGS = $(pkg-config opus soxr --libs --static)
+BUILD_VARS = CGO_ENABLED=1 C_INCLUDE_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" LIBRARY_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" GOARCH=$(GOARCH) CFLAGS=$(CFLAGS) LDFLAGS=$(LDFLAGS)
+BUILD_FLAGS = -tags nolibopusfile -ldflags='-linkmode external -extldflags "-static -fopenmp"'
 
 MSYS2_GOPATH = /mingw64
 MSYS2_GOROOT = /mingw64/lib/go
@@ -67,13 +69,13 @@ endif
 
 .PHONY: generate
 generate:
-	$(BUILD_VARS) $(GO) generate $(BUILD_TAGS) ./...
+	$(BUILD_VARS) $(GO) generate $(BUILD_FLAGS) ./...
 
 $(SKYEYE_EXE): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
-	GOROOT="$(MSYS2_GOROOT)" GOPATH="$(MSYS2_GOPATH)" $(BUILD_VARS) $(GO) build $(BUILD_TAGS) ./cmd/skyeye/
+	GOROOT="$(MSYS2_GOROOT)" GOPATH="$(MSYS2_GOPATH)" $(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
 
 $(SKYEYE_ELF): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
-	$(BUILD_VARS) $(GO) build $(BUILD_TAGS) ./cmd/skyeye/
+	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
 
 .PHONY: test
 test: generate

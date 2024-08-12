@@ -114,6 +114,8 @@ var skyeye = &cobra.Command{
 }
 
 func main() {
+	cobra.MousetrapHelpText = "Thanks for trying SkyEye! SkyEye is a command-line application. Please read the documentation on GitHub for instructions on how to run it, or run the program from a terminal to see more help text. "
+	cobra.MousetrapDisplayDuration = 0
 	if err := skyeye.Execute(); err != nil {
 		log.Error().Err(err).Msg("application exited with error")
 		os.Exit(1)
