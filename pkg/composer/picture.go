@@ -2,6 +2,7 @@ package composer
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
@@ -20,6 +21,9 @@ func (c *composer) ComposePictureResponse(response brevity.PictureResponse) Natu
 	if response.Count > 1 {
 		groupCountFillIn = fmt.Sprintf("%d groups.", response.Count)
 	}
+
+	info.Speech = strings.TrimSpace(info.Speech)
+	info.Subtitle = strings.TrimSpace(info.Subtitle)
 
 	return NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf("%s, %s %s", c.callsign, groupCountFillIn, info.Subtitle),

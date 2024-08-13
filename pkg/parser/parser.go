@@ -56,16 +56,17 @@ var alternateRequestWords = map[string]string{
 	"okey":       bogeyDope,
 	"boogie":     bogeyDope,
 	"oogie":      bogeyDope,
+	"foggydope":  bogeyDope,
 	"snap lock":  snaplock,
 }
 
 func IsSimilar(a, b string) bool {
-	v, err := fuzz.StringsSimilarity(a, b, fuzz.Levenshtein)
+	v, err := fuzz.StringsSimilarity(strings.ToLower(a), strings.ToLower(b), fuzz.Levenshtein)
 	if err != nil {
 		log.Error().Err(err).Str("a", a).Str("b", b).Msg("failed to calculate similarity")
 		return false
 	}
-	return v > 0.6
+	return v > 0.49
 }
 
 func (p *parser) findGCICallsign(fields []string) (string, string, bool) {

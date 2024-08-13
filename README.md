@@ -56,7 +56,7 @@ Skyeye would not be possible without these people and projects, for whom I am de
 * @proway's [go-igrf](github.com/proway2/go-igrf) module implements the [Internation Geomagnetic Reference Field](https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html) used to correct for magnetic declination.
 * [Cobra](https://cobra.dev) is used for the CLI frontend, including configuration, help and examples.
 * [MSYS2](https://www.msys2.org/) provides a Windows build environment.
-* [Oto](https://github.com/ebitengine/oto) is helpful for debugging audio format conversion problems.
+* [Oto](https://github.com/ebitengine/oto) was helpful for debugging audio format conversion problems.
 * [zerolog](https://github.com/rs/zerolog) is helpful for general logging and printf debugging.
 * [testify](https://github.com/stretchr/testify) is used in unit tests.
 * Multiple DCS communities provide invaluable feedback and morale-booster energy:
@@ -66,7 +66,7 @@ Skyeye would not be possible without these people and projects, for whom I am de
   * [1VSC](https://1stvsc.com/wing/)
   * [CVW8](https://virtualcvw8.com/)
   * @Frosty-nee
-* The _Ace Combat_ series by PROJECT ACES/Bandai Namco and _Project Wingman_ by Sector D2 are _massive_ influences on my interest in GCI/AWACS, and aviation in general. This project would not exist without the imapct of _Ace Combat 04: Shattered Skies_.
+* The _Ace Combat_ series by PROJECT ACES/Bandai Namco and _Project Wingman_ by Sector D2 are _massive_ influences on my interest in GCI/AWACS, and aviation in general. This project would not exist without the impact of _Ace Combat 04: Shattered Skies_.
 * And of course, [_DCS World_](https://www.digitalcombatsimulator.com/en/) is produced by Eagle Dynamics.
 
 ## FAQ
@@ -75,43 +75,23 @@ Skyeye would not be possible without these people and projects, for whom I am de
 
 This project is close to a Limited Availability release by early fall 2024. A General Availability release is expected during winter 2024-2025.
 
-Current status:
-
-- ✅ SRS integration - bot can listen to and talk on an SRS channel
-- ✅ Speech recognition - bot can recognize what humans are saying on SRS and turn it into text
-- ✅ Brevity parsing - bot can decode tactical brevity
-- ✅ Brevity composition - bot can phrase radio calls using tactical brevity
-- ✅ Speech synthesis - bot can turn text into human-like speech and say it on SRS
-- ✅ CI/CD pipeline configured for linting, testing and building on Linux and Windows
-- ✅ Tacview - ACMI telemetry feed implemented
-- ✅ Controller: Radar trackfile simulation implemented
-- 🚧 Controller: GCI controller logic implementation in progress
-    - ✅ RADIO CHECK
-    - ✅ ALPHA CHECK
-    - ✅ PICTURE
-    - ✅ BOGEY DOPE
-    - ✅ SPIKED
-    - ✅ DECLARE
-    - ✅ SNAPLOCK
-    - ✅ FADED
-    - 🚧 THREAT
-- ✅ Controller: Magnetic variation correction - bot uses a geomagnetic model to correct for magnetic variation, including on the Kola Peninsula terrain
-- 🚧 Controller: Elevation maps not yet implemented 
-- 🚧 Accessibility: Keyboard input not yet implemented
-- 🚧 Accessibility: In-game subtitles not yet implemented
-- 🚧 Testing: Some unit test coverage is implemented, but expansion is needed
-- 🚧 Performance: Software runs in real time on a standalone dedicated system but performance optimization is needed to run alongside DCS on same machine
-- 🚧 Release: CI/CD pipeline does not publish builds to GitHub Releases
-- 🚧 Documentation: Documentation not written
-- 🚧 Observability: Better logging and tracing is needed
+You can check current progress [here](https://github.com/dharmab/skyeye/milestones)!
 
 ### What kind of hardware does it require?
 
-I'm not sure yet but it shouldn't be too bad. Currently the dev build takes about 2.5GB of RAM and recognizes commands near-instantly on an AMD 5900X. I have done essentially no performance optimization yet and I expect performance to improve by release. Some areas to improve:
+CPU: SkyEye is currently highly sensitive to CPU performance. On my system with an AMD 5900X, it takes 1-3 seconds to recognize a voice command, and starts responding 1 second after that. However, SkyEye is extremely sensitive to CPU latency. It does not run well when sharing a CPU with other intensive software.
 
-* I'm making unecessary copies of data all over the place - this is usually the default practice in Go unless you either need the receiving function to mutate the passed object, you need to do so for concurrency safety, or you can provably improve performance. I plan to revisit this when the bot is closer to release.
+* Avoid running SkyEye on the same physical machine as another intensive app like DCS or TacView client. Ideally, run it on a separate computer.
+* If you're running SkyEye on a cloud provider, ensure your virtual machine has dedicated CPU cores instead of shared CPU cores.
+* SkyEye is heavily multi-threaded and benefits from multi-core performance.
+
+Memory: SkyEye uses about 2.5-3.0GB of RAM when using the `ggml-small.en.bin` model.
+
+Disk: SkyEye requires around 1-2GB of disk space depending on the selected Whisper model.
+
+There is some room for improvement:
+
 * I'm using an off the shelf general purpose Whisper model in my development environment. There's some exciting research into faster [distilled models](https://github.com/huggingface/distil-whisper) and custom trained models that will be revisited in a few months. I also strongly suspect a combination of advances in AI and Moore's Law will significantly improve Speech-To-Text performance within the next year or so.
-* I need to investigate tuning Go performance parameters. In particular, the software runs poorly when you try to play DCS at the same time on the same machine, I suspect due to CPU contention.
 * I need to investigate hardware acceleration using [CUDA](https://developer.nvidia.com/cuda-toolkit), [OpenVINO](https://docs.openvino.ai) and [Core ML](https://developer.apple.com/machine-learning/core-ml/). This is challenging because I have limited hardware - if you're interested in this and have hardware please get in touch!
 
 ### Why not update OverlordBot?

@@ -110,7 +110,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	}
 
 	log.Info().Msg("constructing speech-to-text recognizer")
-	recognizer := recognizer.NewWhisperRecognizer(config.WhisperModel)
+	recognizer := recognizer.NewWhisperRecognizer(config.WhisperModel, config.Callsign)
 
 	log.Info().Msg("constructing text parser")
 	parser := parser.New(config.Callsign)
@@ -260,14 +260,15 @@ func (a *app) recognize(ctx context.Context, out chan<- string) {
 			log.Info().Msg("stopping speech recognition due to context cancellation")
 			return
 		case sample := <-a.srsClient.Receive():
-			log.Info().Int("byteLength", len(sample)).Msg("recognizing audio sample")
+			log.Info().Msg("recognizing audio sample")
+			start := time.Now()
 			text, err := a.recognizer.Recognize(sample)
 			if err != nil {
 				log.Error().Err(err).Msg("error recognizing audio sample")
 			} else if text == "" || text == "[BLANK AUDIO]\n" {
 				log.Info().Str("text", text).Msg("unable to recognize any words in audio sample")
 			} else {
-				log.Info().Str("text", text).Msg("recognized audio")
+				log.Info().Str("clockTime", time.Since(start).String()).Str("text", text).Msg("recognized audio")
 				out <- text
 			}
 		}
@@ -414,6 +415,7 @@ func (a *app) synthesize(ctx context.Context, in <-chan composer.NaturalLanguage
 			return
 		case response := <-in:
 			log.Info().Str("text", response.Speech).Msg("synthesizing speech")
+			start := time.Now()
 			audio, err := a.speaker.Say(response.Speech)
 			if err != nil {
 				log.Error().Err(err).Msg("error synthesizing speech")
@@ -421,7 +423,7 @@ func (a *app) synthesize(ctx context.Context, in <-chan composer.NaturalLanguage
 				if len(audio) == 0 {
 					log.Warn().Msg("synthesized audio is empty")
 				} else {
-					log.Info().Int("byteLength", len(audio)).Msg("synthesized audio")
+					log.Info().Str("clockTime", time.Since(start).String()).Msg("synthesized audio")
 					out <- audio
 				}
 			}
@@ -440,7 +442,7 @@ func (a *app) transmit(ctx context.Context, in <-chan []float32) {
 			if len(audio) == 0 {
 				log.Warn().Msg("audio to transmit is empty")
 			} else {
-				log.Info().Int("byteLength", len(audio)).Msg("transmitting audio")
+				log.Info().Msg("transmitting audio")
 			}
 			a.srsClient.Transmit(audio)
 		}

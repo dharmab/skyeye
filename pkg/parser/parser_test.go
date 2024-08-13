@@ -166,12 +166,13 @@ func TestIsSimilar(t *testing.T) {
 		expected bool
 	}{
 		{"SkyEye", "Sky Eye", true},
+		{"SkyEye", "sky i", true},
 		{"Bandar", "Bandog", true},
 		{"Sky Eye", "Ghost Eye", false},
 	}
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%s_%s", test.a, test.b), func(t *testing.T) {
-			require.Equal(t, test.expected, IsSimilar(test.a, test.b))
+			assert.Equal(t, test.expected, IsSimilar(test.a, test.b))
 		})
 	}
 }
