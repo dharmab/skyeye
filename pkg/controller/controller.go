@@ -40,6 +40,8 @@ type Controller interface {
 	HandleSnaplock(*brevity.SnaplockRequest)
 	// HandleSpiked handles a SPIKED by reporting any enemy groups in the direction of the radar spike.
 	HandleSpiked(*brevity.SpikedRequest)
+	// HandleTripwire handles a TRIPWIRE... by not implementing it LOL
+	HandleTripwire(*brevity.TripwireRequest)
 	// HandleUnableToUnderstand handles requests where the wake word was recognized but the request could not be understood, by asking players on the channel to repeat their message.
 	HandleUnableToUnderstand(*brevity.UnableToUnderstandRequest)
 }

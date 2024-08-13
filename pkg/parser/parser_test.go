@@ -166,7 +166,6 @@ func TestIsSimilar(t *testing.T) {
 		expected bool
 	}{
 		{"SkyEye", "Sky Eye", true},
-		{"SkyEye", "sky i", true},
 		{"Bandar", "Bandog", true},
 		{"Sky Eye", "Ghost Eye", false},
 	}

@@ -32,6 +32,8 @@ type Composer interface {
 	ComposeThreatCall(brevity.ThreatCall) NaturalLanguageResponse
 	// ComposeSayAgainResponse constructs natural language brevity for asking a caller to repeat their last transmission.
 	ComposeSayAgainResponse(brevity.SayAgainResponse) NaturalLanguageResponse
+	// ComposeTripwireResponse constructs natural language brevity for educating a caller about threat monitoring.
+	ComposeTripwireResponse(brevity.TripwireResponse) NaturalLanguageResponse
 }
 
 // NaturalLanguageResponse contains the composer's responses in text form.

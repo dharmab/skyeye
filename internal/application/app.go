@@ -334,6 +334,9 @@ func (a *app) control(ctx context.Context, wg *sync.WaitGroup, in <-chan any, ou
 			case *brevity.SpikedRequest:
 				logger.Debug().Msg("routing SPIKED request to controller")
 				a.controller.HandleSpiked(request)
+			case *brevity.TripwireRequest:
+				logger.Debug().Msg("routing TRIPWIRE request to controller")
+				a.controller.HandleTripwire(request)
 			case *brevity.UnableToUnderstandRequest:
 				logger.Debug().Msg("routing unable to understand request to controller")
 				a.controller.HandleUnableToUnderstand(request)
@@ -383,6 +386,9 @@ func (a *app) compose(ctx context.Context, in <-chan any, out chan<- composer.Na
 			case brevity.SpikedResponse:
 				logger.Debug().Msg("composing SPIKED call")
 				response = a.composer.ComposeSpikedResponse(c)
+			case brevity.TripwireResponse:
+				logger.Debug().Msg("composing TRIPWIRE call")
+				response = a.composer.ComposeTripwireResponse(c)
 			case brevity.SunriseCall:
 				logger.Debug().Msg("composing SUNRISE call")
 				response = a.composer.ComposeSunriseCall(c)
