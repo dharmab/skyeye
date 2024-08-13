@@ -40,9 +40,10 @@ const (
 	radioCheck string = "radio"
 	spiked     string = "spiked"
 	snaplock   string = "snaplock"
+	tripwire   string = "tripwire"
 )
 
-var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, snaplock}
+var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, snaplock, tripwire}
 
 var alternateRequestWords = map[string]string{
 	"radiocheck": radioCheck,
@@ -66,7 +67,7 @@ func IsSimilar(a, b string) bool {
 		log.Error().Err(err).Str("a", a).Str("b", b).Msg("failed to calculate similarity")
 		return false
 	}
-	return v > 0.49
+	return v > 0.6
 }
 
 func (p *parser) findGCICallsign(fields []string) (string, string, bool) {
@@ -187,6 +188,8 @@ func (p *parser) Parse(tx string) any {
 		return &brevity.RadioCheckRequest{Callsign: pilotCallsign}
 	case picture:
 		return &brevity.PictureRequest{Callsign: pilotCallsign}
+	case tripwire:
+		return &brevity.TripwireRequest{Callsign: pilotCallsign}
 	}
 
 	logger.Debug().Strs("args", requestArgs).Msg("parsing request arguments")
