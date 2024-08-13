@@ -1,3 +1,12 @@
+GO = go
+
+# Detect CPU architecture
+ifeq ($(shell uname -m),arm64) 
+GOARCH = arm64
+else ifeq ($(shell uname -m),x86_64) 
+GOARCH = amd64
+endif
+
 # Detect OS
 ifeq ($(OS),Windows_NT)
 OS_DISTRIBUTION := Windows
@@ -7,22 +16,15 @@ else
 OS_DISTRIBUTION := $(shell lsb_release -si)
 endif
 
+# Override Windows Go environment with MSYS2 UCRT64 Go environment
 MSYS2_GOPATH = /ucrt64
 MSYS2_GOROOT = /ucrt64/lib/go
 MSYS2_GO = /ucrt64/bin/go
-
 ifeq ($(OS_DISTRIBUTION),Windows)
 GO = $(MSYS2_GO)
-else
-GO = go
 endif
 
-ifeq ($(shell uname -m),arm64) 
-GOARCH = arm64
-else ifeq ($(shell uname -m),x86_64) 
-GOARCH = amd64
-endif
-
+# Source code paths
 SKYEYE_PATH = $(shell pwd)
 SKYEYE_SOURCES = $(shell find . -type f -name '*.go')
 SKYEYE_SOURCES += go.mod go.sum
@@ -34,19 +36,26 @@ LIBWHISPER_PATH = $(WHISPER_CPP_PATH)/libwhisper.a
 WHISPER_H_PATH = $(WHISPER_CPP_PATH)/whisper.h
 WHISPER_CPP_VERSION = v1.6.2
 
+# Compiler variables and flags
 BUILD_VARS = CGO_ENABLED=1 \
   C_INCLUDE_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" \
   LIBRARY_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" \
   GOARCH=$(GOARCH)
 BUILD_FLAGS = -tags nolibopusfile
 
-# Static linking on Windows to avoid MSYS2 dependency at runtime
+# Populate --version from Git tag
+LDFLAGS= -X "main.Version=$(shell git describe --tags || echo devel)"
+
 ifeq ($(OS_DISTRIBUTION),Windows)
+# Static linking on Windows to avoid MSYS2 dependency at runtime
 CFLAGS = $(pkg-config opus soxr --cflags --static)
-LDFLAGS = $(pkg-config opus soxr --libs --static)
-BUILD_FLAGS	+= -ldflags='-linkmode external -extldflags "$(LDFLAGS) -static -fopenmp"'
-BUILD_VARS += CFLAGS=$(CFLAGS) LDFLAGS=$(LDFLAGS)
+BUILD_VARS += CFLAGS=$(CFLAGS)
+EXTLDFLAGS = $(pkg-config opus soxr --libs --static)
+LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS) -static -fopenmp"
 endif
+
+BUILD_VARS += LDFLAGS='$(LDFLAGS)'
+BUILD_FLAGS += -ldflags '$(LDFLAGS)'
 
 .PHONY: default
 ifeq ($(OS_DISTRIBUTION),Windows)

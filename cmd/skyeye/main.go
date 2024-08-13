@@ -100,9 +100,10 @@ func init() {
 
 // Top-level CLI command
 var skyeye = &cobra.Command{
-	Use:   "skyeye",
-	Short: "AI Powered GCI Bot for DCS World",
-	Long:  "Skyeye uses real-time telemetry data from TacView to provide Ground-Controlled Intercept service over SimpleRadio-Standalone.",
+	Use:     "skyeye",
+	Version: Version,
+	Short:   "AI Powered GCI Bot for DCS World",
+	Long:    "Skyeye uses real-time telemetry data from TacView to provide Ground-Controlled Intercept service over SimpleRadio-Standalone.",
 	Example: strings.Join(
 		[]string{
 			"  " + "Remote TacView and SRS server",
