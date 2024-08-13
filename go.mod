@@ -6,7 +6,6 @@ require (
 	github.com/amitybell/piper-asset v0.0.0-20231030194325-d36a29e3b1fd
 	github.com/amitybell/piper-voice-alan v0.0.0-20231118093148-059963c24dbd
 	github.com/amitybell/piper-voice-jenny v0.0.0-20231118093224-dcf0d49e46b7
-	github.com/ebitengine/oto/v3 v3.1.0
 	github.com/gammazero/deque v0.2.1
 	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240727173504-6739eb83c3ca
 	github.com/hbollon/go-edlib v1.6.0
@@ -34,7 +33,6 @@ require (
 	github.com/bitfield/gotestdox v0.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dnephin/pflag v1.0.7 // indirect
-	github.com/ebitengine/purego v0.5.0 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect

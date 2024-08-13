@@ -40,7 +40,7 @@ func (c *composer) ComposeFadedCall(call brevity.FadedCall) NaturalLanguageRespo
 		writeBoth(fmt.Sprintf(", %s", platform))
 	}
 
-	subtitle.WriteString(".")
+	writeBoth(".")
 
 	return NaturalLanguageResponse{
 		Subtitle: subtitle.String(),
