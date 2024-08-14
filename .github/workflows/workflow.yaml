@@ -1,0 +1,128 @@
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Build whisper.cpp
+        uses: ./.github/actions/build-whisper
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+      - name: Format
+        run: go fmt ./... && git diff --exit-code
+      - name: Tidy
+        run: go mod tidy && git diff --exit-code
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Build whisper.cpp
+        uses: ./.github/actions/build-whisper
+      - name: Test
+        run: |
+          go run gotest.tools/gotestsum -- -tags nolibopusfile ./...
+  build-linux-amd64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Build whisper.cpp
+        uses: ./.github/actions/build-whisper
+      - name: Build
+        run: make skyeye
+      - name: Create dist
+        if: startsWith(github.ref, 'refs/tags/')gii
+        shell: bash
+        run: |
+          mkdir -p dist/linux-amd64/docs/
+          cp skyeye dist/linux-amd64/skyeye
+          chmod +x dist/linux-amd64/skyeye
+          cp README.md dist/linux-amd64/README.md
+          cp LICENSE dist/linux-amd64/LICENSE
+          cp docs/*.md dist/linux-amd64/docs/
+          tar -czf dist/linux-amd64.tar.gz -C dist linux-amd64
+      - name: Upload artifact
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: skyeye-linux-amd64.tar.gz
+          path: dist/linux-amd64.tar.gz
+          if-no-files-found: error
+          overwrite: true
+  build-windows-amd64:
+    runs-on: windows-latest
+    env:
+      GOROOT: /ucrt64/lib/go
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          install: |
+            base-devel
+            git
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-opus
+            mingw-w64-ucrt-x86_64-libsoxr
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-go
+            zip
+      - name: Build Skyeye
+        shell: msys2 {0}
+        run: make skyeye.exe
+      - name: Create dist
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: msys2 {0}
+        run: |
+          mkdir -p dist/windows-amd64/docs/
+          cp skyeye.exe dist/windows-amd64/skyeye.exe
+          cp README.md dist/windows-amd64/README.md
+          cp LICENSE dist/windows-amd64/LICENSE
+          cp docs/*.md dist/windows-amd64/docs/
+          zip -r dist/windows-amd64.zip dist/windows-amd64
+      - name: Upload artifact
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: skyeye-windows-amd64.zip
+          path: dist/windows-amd64.zip
+          if-no-files-found: error
+          overwrite: true
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs:
+      - build-linux-amd64
+      - build-windows-amd64
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        pattern: skyeye-*
+        path: dist
+        merge-multiple: true
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          dist/linux-amd64.tar.gz
+          dist/windows-amd64.zip
