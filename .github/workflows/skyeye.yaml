@@ -136,3 +136,4 @@ jobs:
           files: |
             dist/linux-amd64.tar.gz
             dist/windows-amd64.zip
+          token: ${{ secrets.RELEASE_TOKEN }}
