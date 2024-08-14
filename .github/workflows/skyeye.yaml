@@ -60,7 +60,7 @@ jobs:
           cp README.md dist/skyeye-linux-amd64/README.md
           cp LICENSE dist/skyeye-linux-amd64/LICENSE
           cp docs/*.md dist/skyeye-linux-amd64/docs/
-          chown -R skyeye:users dist/skyeye-linux-amd64
+          chgrp -R users dist/skyeye-linux-amd64
           tar -czf dist/skyeye-linux-amd64.tar.gz -C dist skyeye-linux-amd64
       - name: Upload artifact
         if: startsWith(github.ref, 'refs/tags/')
