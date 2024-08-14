@@ -4,28 +4,7 @@ SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-c
 
 SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same computer as SkyEye. No cloud APIs are required. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can even run SkyEye on your own PC to provide GCI service on a remote multiplayer server.
 
-SkyEye is under active development. Most types of radio calls are functional running against live multiplayer servers. Howevever, there's still plenty to do before this is ready for widespread use. To see what I'm working on, check out the [milestones](https://github.com/dharmab/skyeye/milestones?direction=asc&sort=due_date&state=open)!
-
-## Goals
-
-* Implement `ALPHA CHECK`, `BOGEY DOPE`, `DECLARE`, `FADED`, `PICTURE`, `RADIO CHECK`, `SNAPLOCK`, `SPIKED` and `THREAT` calls
-* Run entirely locally on reasonable consumer hardware
-* Use modern speech synthesis that sounds like a human (Goodbye, Microsoft SAM! Hello, [Piper](https://rhasspy.github.io/piper-samples)!)
-* Hybridize real-world [air control communication](https://www.alsa.mil/Portals/9/Documents/mttps/acc_2021.pdf) and [brevity](https://rdl.train.army.mil/catalog-ws/view/100.ATSC/5773E259-8F90-4694-97AD-81EFE6B73E63-1414757496033/atp1-02x1.pdf) with pragmatism
-* Proactively inform and update players instead of using static tripwire rules
-* Support accessible interfaces in addition to voice and audio, including keyboard based input and in-game subtitles
-* Excellent documentation for developers, server administrators and players
-* Be easy for a beginner programmer to customize
-* Have useful test coverage, especially of controller logic
-* Support Windows x86-64, Linux x86-64 and Linux ARM. Experimental functionality on macOS with Apple Sillicon.
-* Allow multiple GCI bots to run on the same DCS and SRS instance with different callsigns and frequencies
-* Minimize maintenance burden. Ship a static binary with as many pinned dependencies as possible, so this software continues to function with reduced maintainer activity
-
-## Anti-Goals
-
-* Follow [grug-brained principles](https://grugbrain.dev/). Avoid unecessary design patterns. Keep it simple!
-* Focused feature set. Don't try to match other bots 1:1 on feature set.
-* [Say "no" to complex features.](https://grugbrain.dev/#grug-on-saying-no) Provide the basics, and sufficient documentation for others to fork and customize for their use case.
+SkyEye is under active development. All of the radio calls I planned to support have been implemented - but there is still lots of work to do on performance, quality, accessibility, and additional features. To see what I'm working on, check out the [milestones](https://github.com/dharmab/skyeye/milestones?direction=asc&sort=due_date&state=open)!
 
 ## Getting Started
 
@@ -46,7 +25,7 @@ Skyeye would not be possible without these people and projects, for whom I am de
 * [Piper](https://github.com/rhasspy/piper) by the [Rhasspy](https://rhasspy.readthedocs.io/en/latest/) voice assistant project is used for speech-to-text.
 * The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for SkyEye.
 * @popey's dataset provides the masculine voice for SkyEye.
-* @amitybell's [embedded Piper module](https://github.com/amitybell/piper) makes distribution and implementation of Piper a breeze. @nabbl improved this module by adding support for macOS.
+* @amitybell's [embedded Piper module](https://github.com/amitybell/piper) makes distribution and implementation of Piper a breeze. @nabbl improved this module by adding support for macOS and variable speeds.
 * The [Opus codec](https://opus-codec.org) and the [`hraban/opus`](https://github.com/hraban/opus) module provides audio compression for the SRS protocol.
 * @hbollon's [go-edlib](github.com/hbollon/go-edlib) module provides algorithms to help SkyEye understand when it slightly mishears/the user slightly misspeaks a callsign or command over the radio.
 * @lithammer's [shortuuid](https://github.com/lithammer/shortuuid) module provides a GUID implementation compatible with the SRS protocols.
@@ -79,7 +58,7 @@ You can check current progress [here](https://github.com/dharmab/skyeye/mileston
 
 ### What kind of hardware does it require?
 
-CPU: SkyEye is currently highly sensitive to CPU performance. On my system with an AMD 5900X, it takes 1-3 seconds to recognize a voice command, and starts responding 1 second after that. However, SkyEye is extremely sensitive to CPU latency. It does not run well when sharing a CPU with other intensive software.
+CPU: SkyEye's speech recognition is extremely sensitive to CPU latency. It does not run well when sharing a CPU with other intensive software.
 
 * Avoid running SkyEye on the same physical machine as another intensive app like DCS or TacView client. Ideally, run it on a separate computer.
 * If you're running SkyEye on a cloud provider, ensure your virtual machine has dedicated CPU cores instead of shared CPU cores.
@@ -89,35 +68,11 @@ Memory: SkyEye uses about 2.5-3.0GB of RAM when using the `ggml-small.en.bin` mo
 
 Disk: SkyEye requires around 1-2GB of disk space depending on the selected Whisper model.
 
-There is some room for improvement:
+Some examples of the performance you can expect:
 
-* I'm using an off the shelf general purpose Whisper model in my development environment. There's some exciting research into faster [distilled models](https://github.com/huggingface/distil-whisper) and custom trained models that will be revisited in a few months. I also strongly suspect a combination of advances in AI and Moore's Law will significantly improve Speech-To-Text performance within the next year or so.
-* I need to investigate hardware acceleration using [CUDA](https://developer.nvidia.com/cuda-toolkit), [OpenVINO](https://docs.openvino.ai) and [Core ML](https://developer.apple.com/machine-learning/core-ml/). This is challenging because I have limited hardware - if you're interested in this and have hardware please get in touch!
-
-### Why not update OverlordBot?
-
-It would probably be less effort to update OverlordBot to use OpenAI Whisper speech recognition. I certainly wouldn't have had to reimplement the SRS wire protocol from scratch! If you are willing and capable, I encourage you to contribute that change to OverlordBot.
-
-I have some personal, selfish reasons for writing a new bot:
-
-1. I like programming in Go and *nix more than I like C#/.NET. Instrinic motivation is extremely important for hobby developers
-1. I use Go, Python and Linux professionally so this is more relevant to my career development than .NET development
-1. I want to learn more about practical network programming with coroutine-based concurrency
-1. I believe the TRIPWIRE functionality in OverlordBot is damaging to the community and want to eradicate it.
-1. I want to innovate and deliver new features that would be breaking changes to the OverlordBot community.
-1. Given my lack of .NET development skills, it is faster for me to write new software using technologies to which I am "native" rather than contribute to OverlordBot.
-
-### Why didn't you implement TRIPWIRE?
-
-TRIPWIRE encourages players to think about themselves in a small bubble. It also clutters the channel with information in a format only useful to a specific player. It encourages players to act as lone wolves rather than as members of a team.
-
-Instead, I have implemented THREAT monitoring. THREAT monitoring warns you when a hostile aircraft is a danger to your coalition. The advantages:
-
-- THREAT calls do not require you to individually register with the bot. The bot automatically monitors all friendly aircraft which tune to the SRS frequency.
-- Locations in THREAT calls are given in either BRAA or BULLSEYE format, depending on whether the call is relevant to a single aircraft or multiple aircraft TRIPWIRE calls only provide BRAA format.
-- THREAT monitoring provides continual updates on the threat as long as threat criteria are met, all the way til the merge. A TRIPWIRE call is only given once, at a single requested threat range. 
-- THREAT monitoring considers the bandit group's distance, platform (aircraft & weapons) and aspect (Hot, Flank, Beam, Drag). THREAT calls are broadcast earlier in the BVR timeline for bandits that present a higher relative threat. TRIPWIRE calls only consider threat range, and are broadcast at the same range regardless of other factors. 
-- THREAT monitoring deduplicates calls to multiple friendly aircraft about the same bandit group.
+* My personal rig: AMD 5900X, 64GB DDR4 RAM. Speech recognition takes 1.5-3.0 seconds.
+* Hetzner CCX23: AMD EPYC Milan (4 dedicated cores), 16GB RAM. Speech recognition takes around 5-6 seconds.
+* Hetzner CCX13: AMD EPYC Milan (2 dedicated cores), 8GB RAM. Speech recognition takes around 13-16 seconds.
 
 ### Can I train the speech recognition on my voice/accent?
 
