@@ -56,7 +56,7 @@ jobs:
         run: |
           mkdir -p dist/skyeye-linux-amd64/docs/
           cp skyeye dist/skyeye-linux-amd64/skyeye
-          chmod +x dist/skyeye-linux-amd64/skyey
+          chmod +x dist/skyeye-linux-amd64/skyeye
           cp README.md dist/skyeye-linux-amd64/README.md
           cp LICENSE dist/skyeye-linux-amd64/LICENSE
           cp docs/*.md dist/skyeye-linux-amd64/docs/
