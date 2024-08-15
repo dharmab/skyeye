@@ -148,7 +148,7 @@ mv skyeye-linux-amd64/skyeye /opt/skyeye/bin
 curl -Lo <ggml-*.en.bin download URL>
 mv ggml-*.en.bin /opt/skyeye/models/
 useradd -G users skyeye
-chgrp -R users /opt/skyeye/
+chown -R skyeye:users /opt/skyeye/
 ```
 
 Edit this systemd unit and save it to `/etc/systemd/system/skyeye.service`:
