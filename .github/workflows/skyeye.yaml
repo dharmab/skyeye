@@ -60,6 +60,7 @@ jobs:
           cp README.md dist/skyeye-linux-amd64/README.md
           cp LICENSE dist/skyeye-linux-amd64/LICENSE
           cp docs/*.md dist/skyeye-linux-amd64/docs/
+          cp init/powershell/run-skyeye.ps1 dist/skyeye-linux-amd64/run-skyeye.ps1
           tar -czf dist/skyeye-linux-amd64.tar.gz -C dist skyeye-linux-amd64
       - name: Upload artifact
         if: startsWith(github.ref, 'refs/tags/')

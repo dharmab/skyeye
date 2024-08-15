@@ -6,8 +6,6 @@ This is a technical article on how to deploy SkyEye, targeted at multiplayer ser
 
 ## Major Known Issues
 
-- **High**: SkyEye becomes hung after a new mission is started in the DCS server. It continues to run, but reports that the airspace is clear. [Bug tracked here](https://github.com/dharmab/skyeye/issues/75).
-  - Workaround: Restart SkyEye after a new mission starts.
 - **Medium**: SkyEye will not report about hostile contacts below 50 knots. Unfortunately, this includes hostile helicopters that are moving slowly or hovering. [Bug tracked here](https://github.com/dharmab/skyeye/issues/65).
 - See also [this section in the player guide](PLAYER.md#a-word-of-warning) about the bots' limitations.
 
@@ -151,7 +149,7 @@ useradd -G users skyeye
 chown -R skyeye:users /opt/skyeye/
 ```
 
-Edit this systemd unit and save it to `/etc/systemd/system/skyeye.service`:
+Edit this systemd unit to configure SkyEye as desired. Save it to `/etc/systemd/system/skyeye.service`:
 
 ```ini
 [Unit]
@@ -161,6 +159,7 @@ After=network-online.target
 [Service]
 User=skyeye
 ExecStart=/opt/skyeye/bin/skyeye \ 
+          --callsign=Focus \
           --telemetry-address=your-tacview-address:42674 \
           --telemetry-password=your-telemetry-password \
           --srs-server-address=your-srs-server:5002 \
@@ -177,17 +176,20 @@ WantedBy=multi-user.target
 Use `systemctl` to start the bot:
 
 ```bash
+# Load changes to skyeye.service file
+sudo systemctl daemon-reload
+
 # Start the bot
-systemctl start skyeye.service
+sudo systemctl start skyeye.service
 
 # Stop the bot
-systemctl stop skyeye.service
+sudo systemctl stop skyeye.service
 
-# Autostart the bot during boot
-systemctl enable skyeye.service
+# Autostart the bot when the system boots
+sudo systemctl enable skyeye.service
 
-# Disable autostart
-systemctl disable skyeye.service
+# Disable autostart on boot
+sudo systemctl disable skyeye.service
 ```
 
 View the logs with `journalctl`
@@ -206,32 +208,6 @@ I don't know much about Windows Server administration. If there's a better way t
 
 Download and extract the SkyEye release ZIP from the [releases page](https://github.com/dharmab/skyeye/releases) and extract it. Download the whisper.cpp model from [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main) and move it next to `skyeye.exe`.
 
-Save this script as `run-skyeye.ps1`:
+Edit `run-skyeye.ps1` to configure SkyEye as desired.
 
-```powershell
-# Disclaimer: GPT wrote this, I haven't completely vetted it
-
-$command = "skyeye.exe"
-$args = "--telemetry-address=your-tacview-address:42674 --telemetry-password=your-telemetry-password --srs-server-address=your-srs-server:5002  --srs-eam-password=your-srs-password --srs-frequency=135.0 --whisper-model=ggml-small.en.bin"
-$stdoutPath = "skyeye-stdout.log"
-$stderrPath = "skyeye-stderr.log"
-
-Start-Process \
-  -FilePath $command \
-  -ArgumentList $args \
-  -NoNewWindow \
-  -RedirectStandardOutput $stdoutPath \
-  -RedirectStandardError $stderrPath
-
-while (-not $process.HasExited) {
-    Get-Content $stdoutPath -Tail 10
-    Start-Sleep -Seconds 1
-
-    Get-Content $stderrPath -Tail 10
-    Start-Sleep -Seconds 1
-}
-Get-Content $stdoutPath
-Get-Content $stderrPath
-```
-
-Run the script with `./run-skyeye.ps1`. Logs will be saved in the `.log` files in the same directory.
+Open Powershell, change to the SkyEye directory and run the script with `./run-skyeye.ps1`. Logs will be saved in the `.log` files in the `logs` directory. Remember to regularly compress and/or delete old log files so they don't fill up the disk.
