@@ -123,6 +123,21 @@ Finally, you can disable this feature entirely with `--threat-monitoring=false`.
 
 ## Linux & systemd
 
+Install libopus and libsoxr.
+
+Ubuntu:
+
+```bash
+sudo apt-get update
+sudo apt-get install libopus0 libsoxr0
+```
+
+Arch Linux:
+
+```bash
+sudo pacman -Syu opus soxr
+```
+
 Download SkyEye and an AI model. Copy them to `/opt/skyeye/`. Create a `skyeye` user to run SkyEye.
 
 ```bash
