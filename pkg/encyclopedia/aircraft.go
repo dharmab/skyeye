@@ -1040,6 +1040,16 @@ var aircraftData = []Aircraft{
 		OfficialName:        "Predator",
 	},
 	{
+		ACMIShortName: "RQ-1A Predator",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
+		PlatformDesignation: "RQ-1",
+		TypeDesignation:     "RQ-1A",
+		OfficialName:        "Predator",
+	},
+	{
 		ACMIShortName: "MQ-9",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
