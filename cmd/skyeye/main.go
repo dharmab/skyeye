@@ -63,7 +63,6 @@ func init() {
 	skyeye.Flags().StringVar(&acmiFile, "acmi-file", "", "path to ACMI file")
 	skyeye.Flags().StringVar(&telemetryAddress, "telemetry-address", "localhost:42674", "Address of the real-time telemetry service")
 	skyeye.MarkFlagsMutuallyExclusive("acmi-file", "telemetry-address")
-	skyeye.MarkFlagsOneRequired("acmi-file", "telemetry-address")
 	skyeye.Flags().DurationVar(&telemetryConnectionTimeout, "telemetry-connection-timeout", 10*time.Second, "Connection timeout for real-time telemetry client")
 	skyeye.Flags().StringVar(&telemetryPassword, "telemetry-password", "", "Password for the real-time telemetry service")
 	skyeye.Flags().DurationVar(&telemetryUpdateInterval, "telemetry-update-interval", 2*time.Second, "Interval at which trackfiles are updated from telemetry data")
