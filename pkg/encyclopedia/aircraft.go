@@ -173,6 +173,25 @@ func c101Variants() []Aircraft {
 	)
 }
 
+var ch47Data = Aircraft{
+	tags: map[AircraftTag]bool{
+		RotaryWing: true,
+		Unarmed:    true,
+	},
+	PlatformDesignation: "CH-47",
+	OfficialName:        "Chinook",
+}
+
+func ch47Variants() []Aircraft {
+	return variants(
+		ch47Data,
+		map[string]string{
+			"D":    "D",
+			"Fbl1": "F",
+		},
+	)
+}
+
 var f86Data = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
@@ -792,16 +811,6 @@ var aircraftData = []Aircraft{
 		Nickname:            "Herc",
 	},
 	{
-		ACMIShortName: "CH-47D",
-		tags: map[AircraftTag]bool{
-			RotaryWing: true,
-			Unarmed:    true,
-		},
-		PlatformDesignation: "CH-47",
-		TypeDesignation:     "CH-47D",
-		OfficialName:        "Chinook",
-	},
-	{
 		ACMIShortName: "CH-53E",
 		tags: map[AircraftTag]bool{
 			RotaryWing: true,
@@ -1202,6 +1211,7 @@ func init() {
 		a10Variants(),
 		ah64Variants(),
 		c101Variants(),
+		ch47Variants(),
 		f86Variants(),
 		f4Variants(),
 		f5Variants(),
