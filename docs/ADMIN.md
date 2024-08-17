@@ -1,6 +1,6 @@
 # Deployment
 
-This is a technical article on how to deploy SkyEye, targeted at multiplayer server administrators. It assumes you are a semi-technical user who is comfortable adminsitering a Linux or Windows server. (A more basic quick-start guide will be published at a later date.)
+This is a technical article on how to deploy SkyEye, targeted at multiplayer server administrators. It assumes you are a semi-technical user who is comfortable administering a Linux or Windows server. (A more basic quick-start guide will be published at a later date.)
 
 # Planning Your Deployment
 
@@ -24,14 +24,18 @@ If you insist on running SkyEye on the same system as DCS, I cannot offer you an
 
 ## Hardware
 
-SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space. Skyeye currently only officially supports the x86-64/AMD64 CPU architecture; ARM CPUs are not yet officially supported.
+SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space.
+
+SkyEye currently only officially supports the x86-64/AMD64 CPU architecture; ARM CPUs are not yet officially supported. I've found that at least 4 dedicated CPU cores are needed for a good experience, but this may differ by the exact CPU being used, so experiment and see what works well for you.
 
 It is important that the CPU cores be **dedicated** cores. Shared core virtual machines are **not supported** and will result in **high latency and stuttering audio.**
+
+SkyEye does not use the disk very much, so a particularly fast disk is not required.
 
 Examples of suitable servers include:
 
 * [Amazon EC2 Dedicated Instances](https://aws.amazon.com/ec2/pricing/dedicated-instances/)
-* GCP Compute Engine `c2d-highcpu-*`, `c3d-highcpu-*`, `c3-highcpu-*`, `c4-highcpu-**` instances
+* GCP Compute Engine `c2d-highcpu-*`, `c3d-highcpu-*`, `c3-highcpu-*`, `c4-highcpu-*` instances
 * Hetzner CCX instances
 * [Linode Dedicated CPU Instances](https://www.linode.com/pricing/#compute-dedicated)
 
@@ -65,7 +69,7 @@ I recommend you retain your logs so that you can include them in any bug reports
 
 On Linux, the easiest way to retain your logs is to run SkyEye as a systemd-managed service. This will automatically retain your logs in the system journal, and you'll be able to query and search the logs using `journalctl -u skyeye`.
 
-On Windows, the easier way to redirect the logs is to use [redirection](https://learn.microsoft.com/en-us/troubleshoot/developer/visualstudio/cpp/language-compilers/redirecting-error-command-prompt).
+On Windows, the easiest way to retain your logs is to use [redirection](https://learn.microsoft.com/en-us/troubleshoot/developer/visualstudio/cpp/language-compilers/redirecting-error-command-prompt).
 
 Advanced users should consider sending their logs to a log aggregator such as [Grafana Cloud](https://grafana.com/products/cloud/logs/). If you do this, I also recommend using `--log-format=json` to log in JSON format, which is easier to search and filter when using an aggregator.
 
@@ -75,7 +79,7 @@ There's a few options you'll choose when running the bot. You can see all availa
 
 ### Coalition
 
-If you use the REDFOR coalition for players, pass the `--coalition=red` flag.
+By default, SkyEye assumes all players are on the BLUE coalition. If you use the RED coalition for players, pass the `--coalition=red` flag.
 
 Note: SkyEye is not recommended for PvP use at this time, as it sees and reports information that breaks gameplay balance.
 
@@ -113,7 +117,7 @@ The bot automatically begins monitoring any friendly aircraft which tunes onto i
 
 You can change the range at which _any_ hostile air-to-air-capable aircraft is considered a threat using the `--mandatory-threat-radius` flag. The default is a reasonable choice for a modern setting, but you may wish to tune this based on mission requirements.
 
-THREAT calls are repeated if the threat critera are still met after a cooldown period. You can change how often the bot rebroadcasts THREAT calls using `--threat-monitoring-interval`. To change this to every 90 seconds, use `--threat-monitoring-interval=1m30s`.
+THREAT calls are repeated if the threat criteria are still met after a cooldown period. You can change how often the bot rebroadcasts THREAT calls using `--threat-monitoring-interval`. To change this to every 90 seconds, use `--threat-monitoring-interval=1m30s`.
 
 Finally, you can disable this feature entirely with `--threat-monitoring=false`. I advise against this, since it greatly decreases situational awareness, but it's your video game and I'm not your dad.
 
@@ -123,7 +127,7 @@ Finally, you can disable this feature entirely with `--threat-monitoring=false`.
 
 ### cloud-init
 
-A [cloud-init](https://cloudinit.readthedocs.io/en/latest/) config is provided in `/init/cloud-init` directory in the Git repository. This automates the installation and startup on a new cloud server instance.
+A sample [cloud-init](https://cloudinit.readthedocs.io/en/latest/) config is provided in `/init/cloud-init` directory in the Git repository. This automates the installation and startup on a new cloud server instance running Ubuntu. It can also be modified to work on other Linux distros with minor tweaks.
 
 ### Manual Installation
 
