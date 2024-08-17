@@ -2,7 +2,7 @@
 
 SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-controlled_interception) (GCI) bot for the flight simulator [Digital Combat Simulator](https://www.digitalcombatsimulator.com) (DCS). A GCI bot allows players to request information about the airspace in English using either voice commands or text entry, and to receive answers via verbal speech and text messages
 
-SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same computer as SkyEye. No cloud APIs are required. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can even run SkyEye on your own PC to provide GCI service on a remote multiplayer server.
+SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same computer as SkyEye. No cloud APIs are required. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can run it for less than a nickel per hour on a cloud server, or run it on a PC in your home.
 
 SkyEye is under active development. All of the radio calls I planned to support have been implemented - but there is still lots of work to do on performance, quality, accessibility, and additional features. To see what I'm working on, check out the [milestones](https://github.com/dharmab/skyeye/milestones?direction=asc&sort=due_date&state=open)!
 
@@ -52,7 +52,9 @@ Skyeye would not be possible without these people and projects, for whom I am de
 
 ### Is this ready?
 
-This project is close to a Limited Availability release by early fall 2024. A General Availability release is expected during winter 2024-2025.
+This project is currently available in Limited Availability. Anyone can download the software and try it out, but it may contain bugs or have performance or quality issues. **I am currently only providing support for a limited number of personal friends**.
+
+A General Availability release is expected during winter 2024-2025. At that point, I expect the software to be stable with few or no issues, and support will be provided to the general audience.
 
 You can check current progress [here](https://github.com/dharmab/skyeye/milestones)!
 
