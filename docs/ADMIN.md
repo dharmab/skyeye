@@ -163,18 +163,22 @@ chown -R skyeye:users /opt/skyeye
 Edit this systemd unit to configure SkyEye as desired. Save it to `/etc/systemd/system/skyeye.service`:
 
 ```ini
+[Unit]
+Description=SkyEye GCI Bot
+After=network-online.target
+
 [Service]
 Type=simple
 User=skyeye
 WorkingDirectory=/opt/skyeye
 ExecStart=/opt/skyeye/bin/skyeye \
---callsign=Focus \
---telemetry-address=your-tacview-address:42674 \
---telemetry-password=your-telemetry-password \
---srs-server-address=your-srs-server:5002 \
---srs-eam-password=your-srs-password \
---srs-frequency=135.0 \
---whisper-model=/opt/skyeye/models/ggml-small.en.bin
+  --callsign=Focus \
+  --telemetry-address=your-tacview-address:42674 \
+  --telemetry-password=your-telemetry-password \
+  --srs-server-address=your-srs-server:5002 \
+  --srs-eam-password=your-srs-password \
+  --srs-frequency=135.0 \
+  --whisper-model=/opt/skyeye/models/ggml-small.en.bin
 Restart=always
 RestartSec=60
 

@@ -14,7 +14,7 @@ write_files:
     content: |
       [Unit]
       Description=SkyEye GCI Bot
-      After=network.target
+      After=network-online.target
 
       [Service]
       Type=simple
