@@ -1,0 +1,47 @@
+#cloud-config
+users:
+  - name: skyeye
+    groups: users
+packages:
+  - libopus0
+  - libsoxr0
+package_update: true
+package_upgrade: true
+write_files:
+  - path: /etc/systemd/system/skyeye.service
+    permissions: "0644"
+    owner: root:root
+    content: |
+      [Unit]
+      Description=SkyEye GCI Bot
+      After=network.target
+
+      [Service]
+      Type=simple
+      User=skyeye
+      WorkingDirectory=/opt/skyeye
+      ExecStart=/opt/skyeye/bin/skyeye \
+        --callsign=Focus \
+        --telemetry-address=your-tacview-address:42674 \
+        --telemetry-password=your-telemetry-password \
+        --srs-server-address=your-srs-server:5002 \
+        --srs-eam-password=your-srs-password \
+        --srs-frequency=135.0 \
+        --whisper-model=/opt/skyeye/models/ggml-small.en.bin
+      Restart=always
+      RestartSec=60
+
+      [Install]
+      WantedBy=multi-user.target
+runcmd:
+  - curl -sL https://github.com/dharmab/skyeye/releases/latest/download/skyeye-linux-amd64.tar.gz -o /tmp/skyeye-linux-amd64.tar.gz
+  - tar -xzf /tmp/skyeye-linux-amd64.tar.gz -C /tmp/
+  - mkdir -p /opt/skyeye/bin
+  - mv /tmp/skyeye-linux-amd64/skyeye /opt/skyeye/bin/skyeye
+  - chmod +x /opt/skyeye/bin/skyeye
+  - mkdir -p /opt/skyeye/models
+  - curl -sL https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin -o /opt/skyeye/models/ggml-small.en.bin
+  - chown -R skyeye:users /opt/skyeye
+  - systemctl daemon-reload
+  - systemctl enable skyeye
+  - reboot

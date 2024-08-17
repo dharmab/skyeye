@@ -119,7 +119,13 @@ Finally, you can disable this feature entirely with `--threat-monitoring=false`.
 
 # Installation
 
-## Linux & systemd
+## Linux
+
+### cloud-init
+
+A [cloud-init](https://cloudinit.readthedocs.io/en/latest/) config is provided in `/init/cloud-init` directory in the Git repository. This automates the installation and startup on a new cloud server instance.
+
+### Manual Installation
 
 Install libopus and libsoxr.
 
@@ -139,39 +145,40 @@ sudo pacman -Syu opus soxr
 Download SkyEye and an AI model. Copy them to `/opt/skyeye/`. Create a `skyeye` user to run SkyEye.
 
 ```bash
-mkdir -p /opt/skyeye/{bin,models}
-curl -Lo <skyeye-linux-amd64.tar.gz download URL>
-tar xf skyeye-linux-amd64.tar.gz
-mv skyeye-linux-amd64/skyeye /opt/skyeye/bin
-curl -Lo <ggml-*.en.bin download URL>
-mv ggml-*.en.bin /opt/skyeye/models/
 useradd -G users skyeye
-chown -R skyeye:users /opt/skyeye/
+curl -sL https://github.com/dharmab/skyeye/releases/latest/downloadyeye-linux-amd64.tar.gz -o /tmp/skyeye-linux-amd64.tar.gz
+tar -xzf /tmp/skyeye-linux-amd64.tar.gz -C /tmp/
+mkdir -p /opt/skyeye/bin
+mv /tmp/skyeye-linux-amd64/skyeye /opt/skyeye/bin/skyeye
+chmod +x /opt/skyeye/bin/skyeye
+mkdir -p /opt/skyeye/models
+curl -sL https://huggingface.co/ggerganov/whisper.cpp/resolve/mainml-small.en.bin -o /opt/skyeye/models/ggml-small.en.bin
+chown -R skyeye:users /opt/skyeye
 ```
 
 Edit this systemd unit to configure SkyEye as desired. Save it to `/etc/systemd/system/skyeye.service`:
 
 ```ini
-[Unit]
-Description=SkyEye GCI Bot
-After=network-online.target
-
 [Service]
+Type=simple
 User=skyeye
-ExecStart=/opt/skyeye/bin/skyeye \ 
-          --callsign=Focus \
-          --telemetry-address=your-tacview-address:42674 \
-          --telemetry-password=your-telemetry-password \
-          --srs-server-address=your-srs-server:5002 \
-          --srs-eam-password=your-srs-password \
-          --srs-frequency=135.0 \
-          --whisper-model=/opt/skyeye/models/ggml-small.en.bin
-Restart=on-failure
+WorkingDirectory=/opt/skyeye
+ExecStart=/opt/skyeye/bin/skyeye \
+--callsign=Focus \
+--telemetry-address=your-tacview-address:42674 \
+--telemetry-password=your-telemetry-password \
+--srs-server-address=your-srs-server:5002 \
+--srs-eam-password=your-srs-password \
+--srs-frequency=135.0 \
+--whisper-model=/opt/skyeye/models/ggml-small.en.bin
+Restart=always
 RestartSec=60
 
 [Install]
 WantedBy=multi-user.target
 ```
+
+### Service Management
 
 Use `systemctl` to start the bot:
 
