@@ -173,7 +173,7 @@ func (c *dataClient) handleMessage(message types.Message) {
 		c.syncClient(message.Client)
 	case types.MessageExternalAWACSModePassword:
 		if message.Client.Coalition == c.clientInfo.Coalition {
-			log.Info().Any("remoteClient", message.Client).Msg("received external AWACS mode password message")
+			log.Debug().Any("remoteClient", message.Client).Msg("received external AWACS mode password message")
 			if err := c.updateRadios(); err != nil {
 				log.Error().Err(err).Msg("failed to update radios")
 			}

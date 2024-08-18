@@ -36,7 +36,7 @@ type bra struct {
 
 func NewBRA(b bearings.Bearing, r unit.Length, a ...unit.Length) BRA {
 	if !b.IsMagnetic() {
-		log.Warn().Any("bearing", b).Msg("bearing provided to NewBRA should be magnetic")
+		log.Warn().Stringer("bearing", b).Msg("bearing provided to NewBRA should be magnetic")
 	}
 	return &bra{
 		bearing: b,
@@ -75,7 +75,7 @@ type braa struct {
 
 func NewBRAA(b bearings.Bearing, r unit.Length, a []unit.Length, aspect Aspect) BRAA {
 	if !b.IsMagnetic() {
-		log.Warn().Any("bearing", b).Msg("bearing provided to NewBRAA should be magnetic")
+		log.Warn().Stringer("bearing", b).Msg("bearing provided to NewBRAA should be magnetic")
 	}
 	return &braa{
 		bra:    NewBRA(b, r, a...),

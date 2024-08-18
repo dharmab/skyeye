@@ -33,10 +33,10 @@ func (c *composer) ComposeCoreInformationFormat(groups ...brevity.Group) Natural
 
 func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 	if group.BRAA() != nil && !group.BRAA().Bearing().IsMagnetic() {
-		log.Error().Any("bearing", group.BRAA().Bearing()).Msg("bearing provided to ComposeGroup should be magnetic")
+		log.Error().Stringer("bearing", group.BRAA().Bearing()).Msg("bearing provided to ComposeGroup should be magnetic")
 	}
 	if group.Bullseye() != nil && !group.Bullseye().Bearing().IsMagnetic() {
-		log.Error().Any("bearing", group.Bullseye().Bearing()).Msg("bearing provided to ComposeGroup should be magnetic")
+		log.Error().Stringer("bearing", group.Bullseye().Bearing()).Msg("bearing provided to ComposeGroup should be magnetic")
 	}
 	var speech, subtitle strings.Builder
 	writeBoth := func(s string) {

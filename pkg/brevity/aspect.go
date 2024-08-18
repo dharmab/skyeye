@@ -25,7 +25,7 @@ const (
 // AspectFromAngle computes target aspect based on the magnetic bearing from an aircraft to the target and the track direction of the target.
 func AspectFromAngle(bearing bearings.Bearing, track bearings.Bearing) Aspect {
 	if !bearing.IsMagnetic() || !track.IsMagnetic() {
-		log.Warn().Any("bearing", bearing).Any("track", track).Msg("bearing and track provided to AspectFromAngle should be magnetic")
+		log.Warn().Stringer("bearing", bearing).Stringer("track", track).Msg("bearing and track provided to AspectFromAngle should be magnetic")
 	}
 
 	var θ float64

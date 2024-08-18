@@ -23,7 +23,7 @@ const (
 // TrackFromBearing computes a track direction based on the given magnetic bearing.
 func TrackFromBearing(bearing bearings.Bearing) Track {
 	if !bearing.IsMagnetic() {
-		log.Warn().Any("bearing", bearing).Msg("bearing provided to TrackFromBearing should be magnetic")
+		log.Warn().Stringer("bearing", bearing).Msg("bearing provided to TrackFromBearing should be magnetic")
 	}
 	θ := bearing.Degrees()
 	switch {

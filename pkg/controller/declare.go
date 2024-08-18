@@ -44,7 +44,7 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 	if request.IsBRAA {
 		logger.Debug().Msg("locating point of interest using BRAA")
 		if !request.Bearing.IsMagnetic() {
-			logger.Warn().Any("bearing", request.Bearing).Msg("bearing provided to HandleDeclare should be magnetic")
+			logger.Warn().Stringer("bearing", request.Bearing).Msg("bearing provided to HandleDeclare should be magnetic")
 		}
 		origin = trackfile.LastKnown().Point
 		bearing = request.Bearing
@@ -57,7 +57,7 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 			logger.Error().Msg("request.Bullseye.Bearing() is nil")
 		}
 		if !request.Bullseye.Bearing().IsMagnetic() {
-			logger.Warn().Any("bearing", request.Bullseye.Bearing()).Msg("bearing provided to HandleDeclare should be magnetic")
+			logger.Warn().Stringer("bearing", request.Bullseye.Bearing()).Msg("bearing provided to HandleDeclare should be magnetic")
 		}
 		origin = c.scope.Bullseye(trackfile.Contact.Coalition)
 		bearing = request.Bullseye.Bearing().True(c.scope.Declination(origin))

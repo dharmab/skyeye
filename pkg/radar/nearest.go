@@ -116,7 +116,7 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxA
 
 // FindNearestGroupInSector implements [Radar.FindNearestGroupInSector]
 func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltitude, length unit.Length, bearing bearings.Bearing, arc unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
-	logger := log.With().Any("origin", origin).Float64("bearing", bearing.Degrees()).Float64("arc", arc.Degrees()).Logger()
+	logger := log.With().Any("origin", origin).Stringer("bearing", bearing).Float64("arc", arc.Degrees()).Logger()
 
 	declination := s.Declination(origin)
 	bearing = bearing.Magnetic(declination)
