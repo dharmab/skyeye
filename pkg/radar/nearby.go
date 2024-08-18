@@ -1,11 +1,9 @@
 package radar
 
 import (
-	"math"
-
-	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geo"
@@ -49,12 +47,8 @@ func (s *scope) FindNearbyGroupsWithBRAA(origin, interest orb.Point, minAltitude
 	groups := s.findNearbyGroups(interest, minAltitude, maxAltitude, radius, coalition, filter)
 	result := make([]brevity.Group, 0, len(groups))
 	for _, grp := range groups {
-		bearing := bearings.NewTrueBearing(
-			unit.Angle(
-				geo.Bearing(origin, grp.point()),
-			) * unit.Degree,
-		).Magnetic(s.Declination(origin))
-		_range := unit.Length(math.Abs(geo.Distance(origin, grp.point())))
+		bearing := spatial.TrueBearing(origin, grp.point()).Magnetic(s.Declination(origin))
+		_range := spatial.Distance(origin, grp.point())
 		aspect := brevity.AspectFromAngle(bearing, grp.course())
 		grp.braa = brevity.NewBRAA(bearing, _range, grp.altitudes(), aspect)
 		grp.bullseye = nil

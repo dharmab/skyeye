@@ -5,9 +5,9 @@ import (
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
-	"github.com/paulmach/orb/geo"
 )
 
 func (s *scope) enumerateGroups(coalition coalitions.Coalition) []*group {
@@ -106,7 +106,8 @@ func (s *scope) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *grou
 		}
 
 		// Check spread distance
-		isWithinSpread := geo.Distance(other.LastKnown().Point, this.LastKnown().Point) < spreadInterval.Meters()
+		distance := spatial.Distance(other.LastKnown().Point, this.LastKnown().Point)
+		isWithinSpread := distance < spreadInterval
 		if !isWithinSpread {
 			continue
 		}

@@ -8,6 +8,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -57,19 +58,13 @@ func (g *group) Bullseye() *brevity.Bullseye {
 	}
 
 	point := g.point()
-	bearing := bearings.NewTrueBearing(
-		unit.Angle(
-			geo.Bearing(*g.bullseye, point),
-		) * unit.Degree,
-	)
 	declination, err := bearings.Declination(*g.bullseye, g.missionTime())
 	if err != nil {
 		log.Error().Err(err).Str("group", g.String()).Msg("failed to get declination for group")
 	}
-	distance := unit.Length(
-		geo.Distance(*g.bullseye, point),
-	) * unit.Meter
-	return brevity.NewBullseye(bearing.Magnetic(declination), distance)
+	bearing := spatial.TrueBearing(*g.bullseye, point).Magnetic(declination)
+	distance := spatial.Distance(*g.bullseye, point)
+	return brevity.NewBullseye(bearing, distance)
 }
 
 func (g *group) Stacks() []brevity.Stack {

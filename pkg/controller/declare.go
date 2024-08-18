@@ -63,14 +63,14 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 		bearing = request.Bullseye.Bearing().True(c.scope.Declination(origin))
 		distance = request.Bullseye.Distance()
 	}
-	aoi := geo.PointAtBearingAndDistance(origin, bearing.Degrees(), distance.Meters())
+	pointOfInterest := geo.PointAtBearingAndDistance(origin, bearing.Degrees(), distance.Meters())
 
 	radius := 7 * unit.NauticalMile // TODO reduce to 3 when magvar is available
 	altitudeMargin := unit.Length(5000) * unit.Foot
 	minAltitude := request.Altitude - altitudeMargin
 	maxAltitude := request.Altitude + altitudeMargin
-	friendlyGroups := c.scope.FindNearbyGroupsWithBullseye(aoi, minAltitude, maxAltitude, radius, c.coalition, brevity.Aircraft)
-	hostileGroups := c.scope.FindNearbyGroupsWithBullseye(aoi, minAltitude, maxAltitude, radius, c.coalition.Opposite(), brevity.Aircraft)
+	friendlyGroups := c.scope.FindNearbyGroupsWithBullseye(pointOfInterest, minAltitude, maxAltitude, radius, c.coalition, brevity.Aircraft)
+	hostileGroups := c.scope.FindNearbyGroupsWithBullseye(pointOfInterest, minAltitude, maxAltitude, radius, c.coalition.Opposite(), brevity.Aircraft)
 	logger.Debug().Int("friendly", len(friendlyGroups)).Int("hostile", len(hostileGroups)).Msg("queried groups near declared location")
 
 	response := brevity.DeclareResponse{Callsign: foundCallsign}

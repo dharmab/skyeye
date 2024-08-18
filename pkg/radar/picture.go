@@ -6,8 +6,8 @@ import (
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/martinlindhe/unit"
-	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
 )
 
@@ -15,10 +15,10 @@ import (
 func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) (int, []brevity.Group) {
 	// Find groups near the center point
 	origin := s.center
-	if origin.Lon() == 0 && origin.Lat() == 0 {
+	if spatial.IsZero(origin) {
 		log.Warn().Msg("center point is not set yet, using bullseye")
 		origin = s.Bullseye(coalition)
-		if origin.Lon() == 0 && origin.Lat() == 0 {
+		if spatial.IsZero(origin) {
 			log.Warn().Msg("bullseye point is not yet set, picture will be incoherent")
 		}
 	}
@@ -61,8 +61,8 @@ func (s *scope) compareThreat(a, b *group) int {
 	}
 
 	// Prioritize aircraft within threat radius over aircraft outside threat radius
-	distanceA := unit.Length(geo.Distance(s.center, a.point())) * unit.Meter
-	distanceB := unit.Length(geo.Distance(s.center, b.point())) * unit.Meter
+	distanceA := spatial.Distance(s.center, a.point())
+	distanceB := spatial.Distance(s.center, b.point())
 	aIsThreat := distanceA < a.threatRadius()
 	bIsThreat := distanceB < b.threatRadius()
 	if aIsThreat && !bIsThreat {
