@@ -7,39 +7,35 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
-	"github.com/gammazero/deque"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetByCallsign(t *testing.T) {
-	d := newContactDatabase()
-	trackfile := &trackfiles.Trackfile{
-		Contact: trackfiles.Labels{
-			UnitID:    1,
-			Name:      "Mobius 1 Reaper",
-			Coalition: coalitions.Blue,
-			ACMIName:  "F-15C",
-		},
-		Track: *deque.New[trackfiles.Frame](),
-	}
-	d.set(trackfile)
+	db := newContactDatabase()
+	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
+		UnitID:    1,
+		Name:      "Mobius 1 Reaper",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-15C",
+	})
+	db.set(trackfile)
 
-	name, tf, ok := d.getByCallsignAndCoalititon("mobius 1", coalitions.Blue)
+	name, tf, ok := db.getByCallsignAndCoalititon("mobius 1", coalitions.Blue)
 	require.True(t, ok)
 	require.Equal(t, "mobius 1", name)
 	require.EqualValues(t, trackfile, tf)
 
-	_, _, ok = d.getByCallsignAndCoalititon("mobius 1", coalitions.Red)
+	_, _, ok = db.getByCallsignAndCoalititon("mobius 1", coalitions.Red)
 	require.False(t, ok)
 
-	name, tf, ok = d.getByCallsignAndCoalititon("moebius 1", coalitions.Blue)
+	name, tf, ok = db.getByCallsignAndCoalititon("moebius 1", coalitions.Blue)
 	require.True(t, ok)
 	require.Equal(t, "mobius 1", name)
 	require.EqualValues(t, trackfile, tf)
 
-	_, _, ok = d.getByCallsignAndCoalititon("yellow 13", coalitions.Red)
+	_, _, ok = db.getByCallsignAndCoalititon("yellow 13", coalitions.Red)
 	require.False(t, ok)
 }
 
@@ -54,25 +50,22 @@ func TestRealCallsigns(t *testing.T) {
 		{Name: "Spare 15", heardAs: "spear 15"},
 		{Name: "Olympus-1-1", heardAs: "olympus 1 1"},
 	}
-	d := newContactDatabase()
+	db := newContactDatabase()
 
 	for i, test := range testCases {
-		trackfile := &trackfiles.Trackfile{
-			Contact: trackfiles.Labels{
-				UnitID:    uint32(i),
-				Name:      test.Name,
-				Coalition: coalitions.Blue,
-				ACMIName:  "F-15C",
-			},
-			Track: *deque.New[trackfiles.Frame](),
-		}
-		d.set(trackfile)
+		trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
+			UnitID:    uint32(i),
+			Name:      test.Name,
+			Coalition: coalitions.Blue,
+			ACMIName:  "F-15C",
+		})
+		db.set(trackfile)
 	}
 
 	for i, test := range testCases {
 		parsedCallsign, ok := parser.ParsePilotCallsign(test.Name)
 		require.True(t, ok)
-		foundCallsign, tf, ok := d.getByCallsignAndCoalititon(test.heardAs, coalitions.Blue)
+		foundCallsign, tf, ok := db.getByCallsignAndCoalititon(test.heardAs, coalitions.Blue)
 		require.True(t, ok, "queried %s, expected %s, but result was %v", test.heardAs, test.Name, ok)
 		require.Equal(t, parsedCallsign, foundCallsign)
 		require.EqualValues(t, uint32(i), tf.Contact.UnitID)
@@ -80,37 +73,31 @@ func TestRealCallsigns(t *testing.T) {
 }
 
 func TestGetByUnitID(t *testing.T) {
-	d := newContactDatabase()
-	trackfile := &trackfiles.Trackfile{
-		Contact: trackfiles.Labels{
-			UnitID:    1,
-			Name:      "Mobius 1 Reaper",
-			Coalition: coalitions.Blue,
-			ACMIName:  "F-15C",
-		},
-		Track: *deque.New[trackfiles.Frame](),
-	}
-	d.set(trackfile)
+	db := newContactDatabase()
+	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
+		UnitID:    1,
+		Name:      "Mobius 1 Reaper",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-15C",
+	})
+	db.set(trackfile)
 
-	val, ok := d.getByUnitID(1)
+	val, ok := db.getByUnitID(1)
 	require.True(t, ok)
 	require.EqualValues(t, trackfile, val)
 
-	_, ok = d.getByUnitID(2)
+	_, ok = db.getByUnitID(2)
 	require.False(t, ok)
 }
 
 func TestSet(t *testing.T) {
 	database := newContactDatabase()
-	trackfile := &trackfiles.Trackfile{
-		Contact: trackfiles.Labels{
-			UnitID:    1,
-			Name:      "Mobius 1 Reaper",
-			Coalition: coalitions.Blue,
-			ACMIName:  "F-15C",
-		},
-		Track: *deque.New[trackfiles.Frame](),
-	}
+	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
+		UnitID:    1,
+		Name:      "Mobius 1 Reaper",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-15C",
+	})
 	database.set(trackfile)
 
 	val, ok := database.getByUnitID(1)
@@ -136,15 +123,12 @@ func TestSet(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	database := newContactDatabase()
-	trackfile := &trackfiles.Trackfile{
-		Contact: trackfiles.Labels{
-			UnitID:    1,
-			Name:      "Mobius 1 Reaper",
-			Coalition: coalitions.Blue,
-			ACMIName:  "F-15C",
-		},
-		Track: *deque.New[trackfiles.Frame](),
-	}
+	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
+		UnitID:    1,
+		Name:      "Mobius 1 Reaper",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-15C",
+	})
 	database.set(trackfile)
 
 	_, ok := database.getByUnitID(1)
@@ -161,30 +145,25 @@ func TestDelete(t *testing.T) {
 }
 
 func TestItr(t *testing.T) {
-	database := newContactDatabase()
-	mobius := &trackfiles.Trackfile{
-		Contact: trackfiles.Labels{
-			UnitID:    1,
-			Name:      "Mobius 1 Reaper",
-			Coalition: coalitions.Blue,
-			ACMIName:  "F-15C",
-		},
-		Track: *deque.New[trackfiles.Frame](),
-	}
-	database.set(mobius)
+	db := newContactDatabase()
 
-	yellow := &trackfiles.Trackfile{
-		Contact: trackfiles.Labels{
-			UnitID:    2,
-			Name:      "Yellow 13 Reiher",
-			Coalition: coalitions.Red,
-			ACMIName:  "Su-27",
-		},
-		Track: *deque.New[trackfiles.Frame](),
-	}
-	database.set(yellow)
+	mobius := trackfiles.NewTrackfile(trackfiles.Labels{
+		UnitID:    1,
+		Name:      "Mobius 1 Reaper",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-15C",
+	})
+	db.set(mobius)
 
-	itr := database.itr()
+	yellow := trackfiles.NewTrackfile(trackfiles.Labels{
+		UnitID:    2,
+		Name:      "Yellow 13 Reiher",
+		Coalition: coalitions.Red,
+		ACMIName:  "Su-27",
+	})
+	db.set(yellow)
+
+	itr := db.itr()
 
 	foundMobius := false
 	foundYellow := false

@@ -34,12 +34,11 @@ type Labels struct {
 type Trackfile struct {
 	// Contact contains identifying information.
 	Contact Labels
-	// Track is a collection of frames, ordered from most recent to least recent.
-	Track deque.Deque[Frame]
-	// MaxLength is the maximum number of frames to keep in the trackfile.
-	// At least 3 are needed to distinguish linear tracks and curved tracks. More than 5 is probably excessive.
-	MaxLength int
+	// track is a collection of frames, ordered from most recent to least recent.
+	track deque.Deque[Frame]
 }
+
+const maxLength = 4
 
 // Frame describes a contact's position and velocity at a point in time.
 type Frame struct {
@@ -56,9 +55,8 @@ type Frame struct {
 
 func NewTrackfile(a Labels) *Trackfile {
 	return &Trackfile{
-		Contact:   a,
-		Track:     *deque.New[Frame](),
-		MaxLength: 4,
+		Contact: a,
+		track:   *deque.New[Frame](),
 	}
 }
 
@@ -78,18 +76,18 @@ func (t *Trackfile) String() string {
 
 // Update the trackfile with a new frame. Frames older than the most recent one are discarded.
 func (t *Trackfile) Update(f Frame) {
-	if t.Track.Len() > 0 && f.Time.Before(t.Track.Front().Time) {
+	if t.track.Len() > 0 && f.Time.Before(t.track.Front().Time) {
 		return
 	}
-	t.Track.PushFront(f)
-	for t.Track.Len() > t.MaxLength {
-		t.Track.PopBack()
+	t.track.PushFront(f)
+	for t.track.Len() > maxLength {
+		t.track.PopBack()
 	}
 }
 
 // Bullseye returns the bearing and distance from the bullseye to the track's last known position.
 func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
-	latest := t.Track.Front()
+	latest := t.track.Front()
 	declination, _ := bearings.Declination(bullseye, latest.Time)
 	bearing := bearings.NewTrueBearing(
 		unit.Angle(
@@ -104,10 +102,10 @@ func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 // LastKnown returns the most recent frame in the trackfile.
 // If the trackfile is empty, a stub frame with a zero-value time is returned.
 func (t *Trackfile) LastKnown() Frame {
-	if t.Track.Len() == 0 {
+	if t.track.Len() == 0 {
 		return Frame{}
 	}
-	return t.Track.Front()
+	return t.track.Front()
 }
 
 func (t *Trackfile) bestAvailableDeclination() unit.Angle {
@@ -122,7 +120,7 @@ func (t *Trackfile) bestAvailableDeclination() unit.Angle {
 // If the track has not moved very far, the course may be unreliable.
 // You can check for this condition by checking if [Trackfile.Direction] returns [brevity.UnknownDirection].
 func (t *Trackfile) Course() bearings.Bearing {
-	if t.Track.Len() < 2 {
+	if t.track.Len() < 2 {
 		return bearings.NewTrueBearing(
 			unit.Angle(
 				t.LastKnown().Heading,
@@ -130,8 +128,8 @@ func (t *Trackfile) Course() bearings.Bearing {
 		).Magnetic(t.bestAvailableDeclination())
 	}
 
-	latest := t.Track.Front()
-	previous := t.Track.At(1)
+	latest := t.track.Front()
+	previous := t.track.At(1)
 
 	course := bearings.NewTrueBearing(
 		unit.Angle(
@@ -143,7 +141,7 @@ func (t *Trackfile) Course() bearings.Bearing {
 
 // Direction returns the cardinal direction that the track is moving in, or [brevity.UnknownDirection] if the track is not moving faster than 1 m/s.
 func (t *Trackfile) Direction() brevity.Track {
-	if t.Track.Len() < 2 {
+	if t.track.Len() < 2 {
 		return brevity.UnknownDirection
 	}
 	if t.groundSpeed() < 1*unit.MetersPerSecond {
@@ -156,12 +154,12 @@ func (t *Trackfile) Direction() brevity.Track {
 
 // groundSpeed returns the approxmiate speed of the track along the ground (i.e. in two dimensions).
 func (t *Trackfile) groundSpeed() unit.Speed {
-	if t.Track.Len() < 2 {
+	if t.track.Len() < 2 {
 		return 0
 	}
 
-	latest := t.Track.Front()
-	previous := t.Track.At(1)
+	latest := t.track.Front()
+	previous := t.track.At(1)
 
 	timeDelta := latest.Time.Sub(previous.Time) + 1*time.Millisecond
 
@@ -176,12 +174,12 @@ func (t *Trackfile) groundSpeed() unit.Speed {
 
 // Speed returns either the ground speed or the true 3D speed of the track, whichever is greater.
 func (t *Trackfile) Speed() unit.Speed {
-	if t.Track.Len() < 2 {
+	if t.track.Len() < 2 {
 		return 0
 	}
 
-	latest := t.Track.Front()
-	previous := t.Track.At(1)
+	latest := t.track.Front()
+	previous := t.track.At(1)
 	timeDelta := latest.Time.Sub(previous.Time) + 1*time.Millisecond
 	var verticalDistance unit.Length
 	if latest.Altitude > previous.Altitude {
