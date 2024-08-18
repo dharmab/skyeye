@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/martinlindhe/unit"
-	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
 )
 
@@ -30,10 +30,10 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 	}
 
 	origin := trackfile.LastKnown().Point
-	pointOfInterest := geo.PointAtBearingAndDistance(
+	pointOfInterest := spatial.PointAtBearingAndDistance(
 		origin,
-		request.BRA.Bearing().True(c.scope.Declination(origin)).Degrees(),
-		request.BRA.Range().Meters(),
+		request.BRA.Bearing().True(c.scope.Declination(origin)),
+		request.BRA.Range(),
 	)
 	radius := 10 * unit.NauticalMile // TODO reduce to 3 when magvar is available
 	altitudeMargin := unit.Length(5000) * unit.Foot

@@ -7,6 +7,7 @@ import (
 
 	"fmt"
 
+	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/stretchr/testify/assert"
@@ -146,6 +147,35 @@ func TestIsZero(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", test.p), func(t *testing.T) {
 			actual := IsZero(test.p)
 			assert.Equal(t, test.expected, actual)
+		})
+	}
+}
+func TestPointAtBearingAndDistance(t *testing.T) {
+	testCases := []struct {
+		origin   orb.Point
+		bearing  bearings.Bearing
+		distance unit.Length
+		expected orb.Point
+	}{
+		{
+			origin:   orb.Point{0, 0},
+			bearing:  bearings.NewTrueBearing(90 * unit.Degree),
+			distance: 0,
+			expected: orb.Point{0, 0},
+		},
+		{
+			origin:   orb.Point{0, 0},
+			bearing:  bearings.NewTrueBearing(90 * unit.Degree),
+			distance: 111 * unit.Kilometer,
+			expected: orb.Point{1, 0},
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(fmt.Sprintf("%v, %v, %v", test.origin, test.bearing, test.distance), func(t *testing.T) {
+			actual := PointAtBearingAndDistance(test.origin, test.bearing, test.distance)
+			assert.InDelta(t, test.expected.Lon(), actual.Lon(), 0.01)
+			assert.InDelta(t, test.expected.Lat(), actual.Lat(), 0.01)
 		})
 	}
 }

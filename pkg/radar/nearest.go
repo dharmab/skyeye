@@ -102,7 +102,7 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxA
 	grp.aspect = &aspect
 	_range := spatial.Distance(origin, grp.point())
 	grp.isThreat = _range < brevity.MandatoryThreatDistance
-	log.Debug().Any("origin", origin).Str("group", grp.String()).Msg("determined nearest group")
+	log.Debug().Any("origin", origin).Stringer("group", grp).Msg("determined nearest group")
 	return grp
 }
 
@@ -168,7 +168,7 @@ func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 		grp.altitudes(),
 		grp.Aspect(),
 	)
-	logger.Debug().Str("group", grp.String()).Msg("determined nearest group")
+	logger.Debug().Stringer("group", grp).Msg("determined nearest group")
 	grp.bullseye = nil
 	return grp
 }

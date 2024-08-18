@@ -7,9 +7,9 @@ import (
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
-	"github.com/paulmach/orb/geo"
 	"github.com/stretchr/testify/require"
 )
 
@@ -165,8 +165,8 @@ func TestTracking(t *testing.T) {
 				Altitude: alt,
 				Heading:  test.heading,
 			})
-			dest := geo.PointAtBearingAndDistance(trackfile.LastKnown().Point, 0, test.ΔY.Meters())
-			dest = geo.PointAtBearingAndDistance(dest, 90, test.ΔX.Meters())
+			dest := spatial.PointAtBearingAndDistance(trackfile.LastKnown().Point, bearings.NewTrueBearing(0), test.ΔY)
+			dest = spatial.PointAtBearingAndDistance(dest, bearings.NewTrueBearing(90*unit.Degree), test.ΔX)
 			trackfile.Update(Frame{
 				Time:     now,
 				Point:    dest,

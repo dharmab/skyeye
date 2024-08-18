@@ -92,7 +92,7 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 		}
 		if coalition == c.coalition.Opposite() {
 			group.SetDeclaration(brevity.Hostile)
-			log.Info().Str("group", group.String()).Msg("broadcasting FADED call")
+			log.Info().Stringer("group", group).Msg("broadcasting FADED call")
 			c.out <- brevity.FadedCall{Group: group}
 		}
 	})
@@ -101,6 +101,7 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 	c.out <- brevity.SunriseCall{Frequency: c.frequency}
 
 	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
 
 	for {
 		select {

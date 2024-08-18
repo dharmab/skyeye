@@ -152,7 +152,7 @@ func setupLogging() {
 		level = zerolog.InfoLevel
 	}
 	zerolog.SetGlobalLevel(level)
-	log.Info().Str("level", level.String()).Msg("log level set")
+	log.Info().Stringer("level", level).Msg("log level set")
 }
 
 func loadCoalition() (coalition coalitions.Coalition) {

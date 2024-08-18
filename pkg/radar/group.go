@@ -57,11 +57,11 @@ func (g *group) Bullseye() *brevity.Bullseye {
 		return nil
 	}
 
-	point := g.point()
 	declination, err := bearings.Declination(*g.bullseye, g.missionTime())
 	if err != nil {
-		log.Error().Err(err).Str("group", g.String()).Msg("failed to get declination for group")
+		log.Error().Err(err).Stringer("group", g).Msg("failed to get declination for group")
 	}
+	point := g.point()
 	bearing := spatial.TrueBearing(*g.bullseye, point).Magnetic(declination)
 	distance := spatial.Distance(*g.bullseye, point)
 	return brevity.NewBullseye(bearing, distance)

@@ -3,9 +3,9 @@ package controller
 import (
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
-	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
 )
 
@@ -47,7 +47,8 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 			logger.Warn().Stringer("bearing", request.Bearing).Msg("bearing provided to HandleDeclare should be magnetic")
 		}
 		origin = trackfile.LastKnown().Point
-		bearing = request.Bearing
+		declination := c.scope.Declination(origin)
+		bearing = request.Bearing.True(declination)
 		distance = request.Range
 	} else {
 		logger.Debug().Msg("locating point of interest using bullseye")
@@ -60,10 +61,11 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 			logger.Warn().Stringer("bearing", request.Bullseye.Bearing()).Msg("bearing provided to HandleDeclare should be magnetic")
 		}
 		origin = c.scope.Bullseye(trackfile.Contact.Coalition)
-		bearing = request.Bullseye.Bearing().True(c.scope.Declination(origin))
+		declination := c.scope.Declination(origin)
+		bearing = request.Bullseye.Bearing().True(declination)
 		distance = request.Bullseye.Distance()
 	}
-	pointOfInterest := geo.PointAtBearingAndDistance(origin, bearing.Degrees(), distance.Meters())
+	pointOfInterest := spatial.PointAtBearingAndDistance(origin, bearing, distance)
 
 	radius := 7 * unit.NauticalMile // TODO reduce to 3 when magvar is available
 	altitudeMargin := unit.Length(5000) * unit.Foot

@@ -272,7 +272,7 @@ func (a *app) recognize(ctx context.Context, out chan<- string) {
 			} else if text == "" || text == "[BLANK AUDIO]\n" {
 				log.Info().Str("text", text).Msg("unable to recognize any words in audio sample")
 			} else {
-				log.Info().Str("clockTime", time.Since(start).String()).Str("text", text).Msg("recognized audio")
+				log.Info().Stringer("clockTime", time.Since(start)).Str("text", text).Msg("recognized audio")
 				out <- text
 			}
 		}
@@ -433,7 +433,7 @@ func (a *app) synthesize(ctx context.Context, in <-chan composer.NaturalLanguage
 				if len(audio) == 0 {
 					log.Warn().Msg("synthesized audio is empty")
 				} else {
-					log.Info().Str("clockTime", time.Since(start).String()).Msg("synthesized audio")
+					log.Info().Stringer("clockTime", time.Since(start)).Msg("synthesized audio")
 					out <- audio
 				}
 			}
