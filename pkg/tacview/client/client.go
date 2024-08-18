@@ -11,6 +11,7 @@ import (
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/sim"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/dharmab/skyeye/pkg/tacview/acmi"
 	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
@@ -116,7 +117,7 @@ func (c *tacviewClient) Bullseye(coalition coalitions.Coalition) (orb.Point, err
 	if !ok {
 		return orb.Point{}, fmt.Errorf("bullseye not found for coalition %d", int(coalition))
 	}
-	if point.Lat() == 0 && point.Lon() == 0 {
+	if spatial.IsZero(point) {
 		log.Warn().Int("coalition", int(coalition)).Msg("bullseye is set to zero value")
 	}
 	return point, nil

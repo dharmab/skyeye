@@ -7,6 +7,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -33,7 +34,7 @@ func (s *scope) FindNearestTrackfile(
 		altitude := trackfile.LastKnown().Altitude
 		isWithinAltitude := minAltitude <= altitude && altitude <= maxAltitude
 		if isMatch && isWithinAltitude {
-			distance := unit.Length(math.Abs(geo.Distance(origin, trackfile.LastKnown().Point)))
+			distance := spatial.Distance(origin, trackfile.LastKnown().Point)
 			isNearer := distance < nearestDistance
 			if isNearer {
 				nearestTrackfile = trackfile
@@ -74,12 +75,8 @@ func (s *scope) FindNearestGroupWithBRAA(
 	}
 
 	declination := s.Declination(origin)
-	bearing := bearings.NewTrueBearing(
-		unit.Angle(
-			geo.Bearing(origin, grp.point()),
-		) * unit.Degree,
-	).Magnetic(declination)
-	_range := unit.Length(geo.Distance(origin, grp.point())) * unit.Meter
+	bearing := spatial.TrueBearing(origin, grp.point()).Magnetic(declination)
+	_range := spatial.Distance(origin, grp.point())
 	aspect := brevity.AspectFromAngle(bearing, trackfile.Course())
 	grp.braa = brevity.NewBRAA(
 		bearing,
@@ -98,18 +95,13 @@ func (s *scope) FindNearestGroupWithBRAA(
 func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	nearestTrackfile := s.FindNearestTrackfile(origin, minAltitude, maxAltitude, radius, coalition, filter)
 	grp := s.findGroupForAircraft(nearestTrackfile)
-	groupLocation := nearestTrackfile.LastKnown().Point
-	aspect := brevity.AspectFromAngle(
-		bearings.NewTrueBearing(
-			unit.Angle(
-				geo.Bearing(origin, groupLocation),
-			)*unit.Degree,
-		).Magnetic(s.Declination(origin)), nearestTrackfile.Course(),
-	)
+	declination := s.Declination(origin)
+	bearing := spatial.TrueBearing(origin, grp.point()).Magnetic(declination)
+	aspect := brevity.AspectFromAngle(bearing, grp.course())
 
 	grp.aspect = &aspect
-	rang := unit.Length(geo.Distance(origin, groupLocation)) * unit.Meter
-	grp.isThreat = rang < brevity.MandatoryThreatDistance
+	_range := spatial.Distance(origin, grp.point())
+	grp.isThreat = _range < brevity.MandatoryThreatDistance
 	log.Debug().Any("origin", origin).Str("group", grp.String()).Msg("determined nearest group")
 	return grp
 }
@@ -146,9 +138,9 @@ func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 		isWithinAltitude := minAltitude <= trackfile.LastKnown().Altitude && trackfile.LastKnown().Altitude <= maxAltitude
 		if isMatch && isWithinAltitude {
 			contactLocation := trackfile.LastKnown().Point
-			distanceToContact := unit.Length(geo.Distance(origin, contactLocation)) * unit.Meter
+			distanceToContact := spatial.Distance(origin, contactLocation)
 			inSector := planar.PolygonContains(sector, contactLocation)
-			logger.Debug().Float64("distanceNM", distanceToContact.NauticalMiles()).Bool("isWithinCone", inSector).Msg("checking distance and location")
+			logger.Debug().Float64("distanceNM", distanceToContact.NauticalMiles()).Bool("inSector", inSector).Msg("checking distance and location")
 			if distanceToContact < nearestDistance && distanceToContact > conf.DefaultMarginRadius && inSector {
 				nearestContact = trackfile
 			}
@@ -165,14 +157,10 @@ func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 	if grp == nil {
 		return nil
 	}
-	preciseBearing := bearings.NewTrueBearing(
-		unit.Angle(
-			geo.Bearing(origin, nearestContact.LastKnown().Point),
-		) * unit.Degree,
-	).Magnetic(declination)
+	preciseBearing := spatial.TrueBearing(origin, nearestContact.LastKnown().Point).Magnetic(declination)
 	aspect := brevity.AspectFromAngle(preciseBearing, nearestContact.Course())
 	log.Debug().Str("aspect", string(aspect)).Msg("determined aspect")
-	_range := unit.Length(geo.Distance(origin, nearestContact.LastKnown().Point)) * unit.Meter
+	_range := spatial.Distance(origin, nearestContact.LastKnown().Point)
 	grp.aspect = &aspect
 	grp.braa = brevity.NewBRAA(
 		preciseBearing,

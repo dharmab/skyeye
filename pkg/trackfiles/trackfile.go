@@ -9,10 +9,10 @@ import (
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/gammazero/deque"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
-	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
 )
 
@@ -91,13 +91,9 @@ func (t *Trackfile) Update(f Frame) {
 func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 	latest := t.Track.Front()
 	declination, _ := bearings.Declination(bullseye, latest.Time)
-	bearing := bearings.NewTrueBearing(
-		unit.Angle(
-			geo.Bearing(bullseye, latest.Point),
-		) * unit.Degree,
-	).Magnetic(declination)
+	bearing := spatial.TrueBearing(bullseye, latest.Point).Magnetic(declination)
 	log.Debug().Float64("bearing", bearing.Degrees()).Msg("calculated bullseye bearing for group")
-	distance := unit.Length(geo.Distance(bullseye, latest.Point)) * unit.Meter
+	distance := spatial.Distance(bullseye, latest.Point)
 	return *brevity.NewBullseye(bearing, distance)
 }
 
@@ -133,11 +129,8 @@ func (t *Trackfile) Course() bearings.Bearing {
 	latest := t.Track.Front()
 	previous := t.Track.At(1)
 
-	course := bearings.NewTrueBearing(
-		unit.Angle(
-			geo.Bearing(previous.Point, latest.Point),
-		) * unit.Degree,
-	).Magnetic(t.bestAvailableDeclination())
+	declination := t.bestAvailableDeclination()
+	course := spatial.TrueBearing(previous.Point, latest.Point).Magnetic(declination)
 	return course
 }
 
@@ -165,7 +158,7 @@ func (t *Trackfile) groundSpeed() unit.Speed {
 
 	timeDelta := latest.Time.Sub(previous.Time) + 1*time.Millisecond
 
-	groundDistance := unit.Length(math.Abs(geo.Distance(latest.Point, previous.Point))) * unit.Meter
+	groundDistance := spatial.Distance(latest.Point, previous.Point)
 	groundSpeed := unit.Speed(
 		groundDistance.Meters()/
 			timeDelta.Seconds(),

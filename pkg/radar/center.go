@@ -1,17 +1,17 @@
 package radar
 
 import (
-	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
-	"github.com/martinlindhe/unit"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geo"
 	"github.com/rs/zerolog/log"
 )
 
+// shiftPointTowards returns the midpoint between two points, or the second point if the first point is the origin.
 func shiftPointTowards(a orb.Point, b orb.Point) orb.Point {
-	if a.Lon() == 0 && a.Lat() == 0 {
+	if spatial.IsZero(a) {
 		return b
 	}
 	return geo.Midpoint(a, b)
@@ -46,8 +46,8 @@ func (s *scope) updateCenterPoint() {
 	} else {
 		newCenter = geo.Midpoint(blue, red)
 	}
-	distance := unit.Length(geo.Distance(s.center, newCenter)) * unit.Meter
-	bearing := bearings.NewTrueBearing(unit.Angle(geo.Bearing(s.center, newCenter)) * unit.Degree)
+	distance := spatial.Distance(s.center, newCenter)
+	bearing := spatial.TrueBearing(s.center, newCenter)
 	s.center = newCenter
 	log.Trace().
 		Float64("lon", s.center.Lon()).
