@@ -16,15 +16,14 @@ func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
 	}
 
 	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
-
 	if trackfile == nil {
 		logger.Info().Msg("no trackfile found for requestor")
 		c.out <- brevity.NegativeRadarContactResponse{Callsign: request.Callsign}
 		return
 	}
+
 	origin := trackfile.LastKnown().Point
 	arc := unit.Angle(30) * unit.Degree
-
 	distance := unit.Length(120) * unit.NauticalMile
 	nearestGroup := c.scope.FindNearestGroupInSector(
 		origin,
@@ -43,7 +42,7 @@ func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
 		return
 	}
 
-	logger = logger.With().Str("group", nearestGroup.String()).Logger()
+	logger = logger.With().Stringer("group", nearestGroup).Logger()
 	logger.Debug().Msg("hostile group found within spike cone")
 	c.out <- brevity.SpikedResponse{
 		Callsign:    foundCallsign,

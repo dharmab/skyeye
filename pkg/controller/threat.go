@@ -57,7 +57,7 @@ func (t *controller) broadcastThreats() {
 
 	threats := t.scope.Threats(t.coalition.Opposite())
 	for group, unitIDs := range threats {
-		logger := log.With().Str("group", group.String()).Uints32("unitIDs", unitIDs).Logger()
+		logger := log.With().Stringer("group", group).Uints32("unitIDs", unitIDs).Logger()
 		isOnFrequency := false
 		for _, unitID := range unitIDs {
 			if t.srsClient.IsOnFrequency(unitID) {
