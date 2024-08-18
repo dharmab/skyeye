@@ -178,10 +178,15 @@ func (a *app) Run(ctx context.Context, wg *sync.WaitGroup) error {
 				log.Info().Msg("stopping mission time and bullseye updates due to context cancellation")
 				return
 			case <-ticker.C:
-				a.radar.SetMissionTime(a.tacviewClient.Time())
+				missionTime := a.tacviewClient.Time()
+				a.radar.SetMissionTime(missionTime)
 				for _, coalition := range []coalitions.Coalition{coalitions.Red, coalitions.Blue} {
-					bullseye := a.tacviewClient.Bullseye(coalition)
-					a.radar.SetBullseye(bullseye, coalition)
+					bullseye, err := a.tacviewClient.Bullseye(coalition)
+					if err != nil {
+						log.Warn().Err(err).Msg("error reading bullseye")
+					} else {
+						a.radar.SetBullseye(bullseye, coalition)
+					}
 				}
 			}
 		}
