@@ -18,7 +18,7 @@ type Sim interface {
 	// This function blocks until the context is cancelled.
 	Stream(context.Context, chan<- Updated, chan<- Faded)
 	// Bullseye returns the coalition's bullseye center.
-	Bullseye(coalitions.Coalition) orb.Point
+	Bullseye(coalitions.Coalition) (orb.Point, error)
 	// Time returns the starting time of the mission.
 	// This is useful for looking up magnetic variation.
 	Time() time.Time

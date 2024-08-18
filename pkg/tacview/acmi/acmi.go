@@ -146,14 +146,14 @@ func (s *streamer) handleLine(line string) error {
 
 	// A line beginning with a # is a new relative time frame, relative to the global object's reference time.
 	if line[0] == '#' {
-		timeframe, err := types.ParseTimeFrame(line)
+		offset, err := types.ParseTimeFrame(line)
 
 		if err != nil {
 			log.Error().Err(err).Msg("error parsing time frame")
 			return fmt.Errorf("error parsing time frame: %w", err)
 		}
 
-		s.cursorTime = s.referenceTime.Add(timeframe.Offset)
+		s.cursorTime = s.referenceTime.Add(offset)
 		return nil
 	}
 
@@ -173,7 +173,7 @@ func (s *streamer) handleLine(line string) error {
 				updateErr = errors.Join(updateErr, fmt.Errorf("error parsing reference time: %w", err))
 			}
 			s.referenceTime = referenceTime
-			logger.Trace().Time("referenceTime", s.referenceTime).Msg("reference time updated")
+			logger.Debug().Time("referenceTime", s.referenceTime).Msg("reference time updated")
 		}
 		if _, ok := update.Properties[properties.ReferenceLongitude]; ok {
 			longitude, err := strconv.ParseFloat(update.Properties[properties.ReferenceLongitude], 64)
@@ -294,23 +294,23 @@ func (s *streamer) updateBullseye(object *types.Object) {
 }
 
 // Bullseye implements [ACMI.Bullseye].
-func (s *streamer) Bullseye(coalition coalitions.Coalition) (p orb.Point) {
+func (s *streamer) Bullseye(coalition coalitions.Coalition) (orb.Point, error) {
 	val, ok := s.bullseyesIdx.Load(coalition)
 	if !ok {
-		return
+		return orb.Point{}, errors.New("bullseye for coalition not found")
 	}
 	objectID := val.(int)
 	s.objectsLock.RLock()
 	defer s.objectsLock.RUnlock()
 	object, ok := s.objects[objectID]
 	if !ok {
-		return
+		return orb.Point{}, errors.New("bullseye object for coalition not found")
 	}
 	coordinates, err := object.GetCoordinates(s.referencePoint)
 	if err != nil {
-		return
+		return orb.Point{}, fmt.Errorf("error getting bullseye coordinates: %w", err)
 	}
-	return coordinates.Location
+	return coordinates.Location, nil
 
 }
 

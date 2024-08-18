@@ -18,7 +18,7 @@ import (
 
 type Client interface {
 	Run(context.Context, *sync.WaitGroup) error
-	Bullseye(coalitions.Coalition) orb.Point
+	Bullseye(coalitions.Coalition) (orb.Point, error)
 	Time() time.Time
 	Close() error
 }
@@ -50,20 +50,33 @@ func (c *tacviewClient) stream(ctx context.Context, wg *sync.WaitGroup, source a
 		source.Stream(sCtx, c.updates, c.fades)
 	}()
 
-	ticker := time.NewTicker(c.updateInterval)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-sCtx.Done():
+				log.Info().Msg("stopping time and bullseye updates due to context cancellation")
+				return
+			case <-ticker.C:
+				c.updateTime(source)
+				err := c.updateBullseyes(source)
+				if err != nil {
+					log.Warn().Err(err).Msg("error updating bullseyes")
+				}
+			}
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
 			log.Info().Msg("stopping tacview client due to context cancellation")
 			return nil
-		case <-ticker.C:
-			for _, coalition := range []coalitions.Coalition{coalitions.Red, coalitions.Blue} {
-				c.bullseyesLock.Lock()
-				c.bullseyes[coalition] = source.Bullseye(coalition)
-				c.bullseyesLock.Unlock()
-				c.missionTime = source.Time()
-			}
-
 		default:
 			err := source.Run(ctx)
 			if err != nil {
@@ -79,8 +92,32 @@ func (c *tacviewClient) stream(ctx context.Context, wg *sync.WaitGroup, source a
 	}
 }
 
-func (c *tacviewClient) Bullseye(coalition coalitions.Coalition) orb.Point {
+func (c *tacviewClient) updateTime(source acmi.ACMI) {
+	c.missionTime = source.Time()
+}
+
+func (c *tacviewClient) updateBullseyes(source acmi.ACMI) error {
+	c.bullseyesLock.Lock()
+	defer c.bullseyesLock.Unlock()
+	for _, coalition := range []coalitions.Coalition{coalitions.Red, coalitions.Blue} {
+		point, err := source.Bullseye(coalition)
+		if err != nil {
+			return fmt.Errorf("error reading bullseye from ACMI source: %w", err)
+		}
+		c.bullseyes[coalition] = point
+	}
+	return nil
+}
+
+func (c *tacviewClient) Bullseye(coalition coalitions.Coalition) (orb.Point, error) {
 	c.bullseyesLock.RLock()
 	defer c.bullseyesLock.RUnlock()
-	return c.bullseyes[coalition]
+	point, ok := c.bullseyes[coalition]
+	if !ok {
+		return orb.Point{}, fmt.Errorf("bullseye not found for coalition %d", int(coalition))
+	}
+	if point.Lat() == 0 && point.Lon() == 0 {
+		log.Warn().Int("coalition", int(coalition)).Msg("bullseye is set to zero value")
+	}
+	return point, nil
 }

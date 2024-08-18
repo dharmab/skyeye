@@ -8,20 +8,16 @@ import (
 	"time"
 )
 
-type TimeFrame struct {
-	Offset time.Duration
-}
-
-func ParseTimeFrame(line string) (*TimeFrame, error) {
+func ParseTimeFrame(line string) (time.Duration, error) {
 	if !strings.HasPrefix(line, "#") {
-		return nil, fmt.Errorf("line does not contain TimeFrame: %s", line)
+		return 0, fmt.Errorf("line does not contain TimeFrame: %s", line)
 	}
 	seconds, err := strconv.ParseFloat(strings.TrimPrefix(line, "#"), 64)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing duration: %w", err)
+		return 0, fmt.Errorf("error parsing duration: %w", err)
 	}
 	duration := time.Duration(seconds) * time.Second
-	return &TimeFrame{Offset: duration}, nil
+	return duration, nil
 }
 
 type ObjectUpdate struct {
