@@ -119,7 +119,7 @@ $(SKYEYE_ELF): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 
 .PHONY: test
 test: generate
-	$(BUILD_VARS) $(GO) test $(BUILD_TAGS) ./...
+	$(BUILD_VARS) $(GO) run gotest.tools/gotestsum -- $(BUILD_FLAGS) ./...
 
 .PHONY: mostlyclean
 mostlyclean:
