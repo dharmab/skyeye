@@ -8,21 +8,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewTrueBearing(t *testing.T) {
+func TestNewMagneticBearing(t *testing.T) {
 	for _, test := range testCompassBearings {
 		a := unit.Angle(test.inputDegrees) * unit.Degree
-		bearing := NewTrueBearing(a)
+		bearing := NewMagneticBearing(a)
 		assert.InDelta(t, test.expectedDegrees, bearing.Value().Degrees(), 0.0001)
 		assert.InDelta(t, test.expectedDegrees, bearing.Degrees(), 0.0001)
 		assert.InDelta(t, bearing.Value().Degrees(), bearing.Degrees(), 0.0001)
 		assert.InDelta(t, math.Round(test.expectedDegrees), bearing.Rounded().Degrees(), 0.0001)
 		assert.InDelta(t, math.Round(test.expectedDegrees), bearing.RoundedDegrees(), 0.0001)
-		assert.True(t, bearing.IsTrue())
-		assert.False(t, bearing.IsMagnetic())
+		assert.False(t, bearing.IsTrue())
+		assert.True(t, bearing.IsMagnetic())
 	}
 }
 
-func TestTrueReciprocal(t *testing.T) {
+func TestMagneticReciprocal(t *testing.T) {
 	testCases := []struct {
 		input    float64
 		expected float64
@@ -39,13 +39,13 @@ func TestTrueReciprocal(t *testing.T) {
 
 	for _, test := range testCases {
 		a := unit.Angle(test.input) * unit.Degree
-		bearing := NewTrueBearing(a)
+		bearing := NewMagneticBearing(a)
 		reciprocal := bearing.Reciprocal()
 		assert.InDelta(t, test.expected, reciprocal.Degrees(), 0.0001)
 	}
 }
 
-func TestTrueMagnetic(t *testing.T) {
+func TestMagneticTrue(t *testing.T) {
 	testCases := []struct {
 		input       float64
 		declination float64
@@ -53,23 +53,22 @@ func TestTrueMagnetic(t *testing.T) {
 	}{
 		{0, 0, 360},
 		{360, 0, 360},
-		{0, 1, 359},
-		{2, 4, 358},
+		{0, 1, 1},
+		{358, 4, 2},
 	}
 
 	for _, test := range testCases {
 		a := unit.Angle(test.input) * unit.Degree
-		d := unit.Angle(test.declination) * unit.Degree
-		tru := NewTrueBearing(a)
-		mag := tru.Magnetic(d)
-		assert.InDelta(t, test.expected, mag.Degrees(), 0.0001)
+		bearing := NewMagneticBearing(a)
+		trueBearing := bearing.True(unit.Angle(test.declination) * unit.Degree)
+		assert.InDelta(t, test.expected, trueBearing.Degrees(), 0.0001)
 	}
 }
 
-func TestTrueString(t *testing.T) {
+func TestMagneticString(t *testing.T) {
 	for _, test := range testCompassBearings {
 		a := unit.Angle(test.inputDegrees) * unit.Degree
-		bearing := NewTrueBearing(a)
+		bearing := NewMagneticBearing(a)
 		assert.Equal(t, test.expectedString, bearing.String())
 	}
 }

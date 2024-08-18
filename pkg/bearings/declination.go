@@ -19,7 +19,7 @@ func Declination(p orb.Point, t time.Time) (unit.Angle, error) {
 		t = time.Now()
 	}
 	if t.Year() > 2025 {
-		log.Warn().Msg("date is too late for IGRF model, replacing with 2025-01-01")
+		log.Warn().Msg("year is too late for IGRF model, replacing with 2025")
 		t = time.Date(2025, t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
 	}
 	field, err := igrfData.IGRF(p.Lat(), p.Lon(), 0, float64(t.Year())+float64(t.YearDay())/366)
