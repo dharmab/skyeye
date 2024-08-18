@@ -21,6 +21,8 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
+      - name: vet
+        run: make vet
       - name: Format
         run: go fmt ./... && git diff --exit-code
       - name: Tidy

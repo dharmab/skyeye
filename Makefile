@@ -121,6 +121,10 @@ $(SKYEYE_ELF): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 test: generate
 	$(BUILD_VARS) $(GO) run gotest.tools/gotestsum -- $(BUILD_FLAGS) ./...
 
+.PHONY: vet
+vet: generate
+	$(BUILD_VARS) $(GO) vet $(BUILD_FLAGS) ./...
+
 .PHONY: mostlyclean
 mostlyclean:
 	rm -f "$(SKYEYE_EXE)" "$(SKYEYE_ELF)"
