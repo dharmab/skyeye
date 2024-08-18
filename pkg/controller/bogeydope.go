@@ -41,7 +41,7 @@ func (c *controller) HandleBogeyDope(request *brevity.BogeyDopeRequest) {
 	nearestGroup.SetDeclaration(brevity.Hostile)
 
 	logger.Info().
-		Any("platforms", nearestGroup.Platforms()).
+		Strs("platforms", nearestGroup.Platforms()).
 		Str("aspect", string(nearestGroup.Aspect())).
 		Msg("found nearest hostile group")
 	c.out <- brevity.BogeyDopeResponse{Callsign: foundCallsign, Group: nearestGroup}

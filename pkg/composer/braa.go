@@ -11,7 +11,7 @@ import (
 // Example: "BRAA 270/20, 20000, hot"
 func (c *composer) ComposeBRAA(braa brevity.BRAA, declaration brevity.Declaration) NaturalLanguageResponse {
 	if !braa.Bearing().IsMagnetic() {
-		log.Error().Any("bearing", braa.Bearing()).Msg("bearing provided to ComposeBRAA should be magnetic")
+		log.Error().Stringer("bearing", braa.Bearing()).Msg("bearing provided to ComposeBRAA should be magnetic")
 	}
 	bearing := PronounceBearing(braa.Bearing())
 	var aspect string

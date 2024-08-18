@@ -17,7 +17,7 @@ func (c *composer) ComposeBogeyDopeResponse(response brevity.BogeyDopeResponse) 
 		}
 	}
 	if !response.Group.BRAA().Bearing().IsMagnetic() {
-		log.Error().Any("bearing", response.Group.BRAA().Bearing()).Msg("bearing provided to ComposeBogeyDopeResponse should be magnetic")
+		log.Error().Stringer("bearing", response.Group.BRAA().Bearing()).Msg("bearing provided to ComposeBogeyDopeResponse should be magnetic")
 	}
 	info := c.ComposeCoreInformationFormat(response.Group)
 	return NaturalLanguageResponse{

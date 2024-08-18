@@ -11,7 +11,7 @@ import (
 func (c *composer) ComposeAlphaCheckResponse(response brevity.AlphaCheckResponse) NaturalLanguageResponse {
 	if response.Status {
 		if !response.Location.Bearing().IsMagnetic() {
-			log.Error().Any("bearing", response.Location.Bearing()).Msg("bearing provided to ComposeAlphaCheckResponse should be magnetic")
+			log.Error().Stringer("bearing", response.Location.Bearing()).Msg("bearing provided to ComposeAlphaCheckResponse should be magnetic")
 		}
 		return NaturalLanguageResponse{
 			Subtitle: fmt.Sprintf(

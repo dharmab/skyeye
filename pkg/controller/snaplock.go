@@ -19,7 +19,7 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 		Msg("received request")
 
 	if !request.BRA.Bearing().IsMagnetic() {
-		logger.Error().Any("bearing", request.BRA.Bearing()).Msg("bearing provided to HandleSnaplock should be magnetic")
+		logger.Error().Stringer("bearing", request.BRA.Bearing()).Msg("bearing provided to HandleSnaplock should be magnetic")
 	}
 
 	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)

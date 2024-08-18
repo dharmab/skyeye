@@ -17,7 +17,7 @@ type Bullseye struct {
 
 func NewBullseye(bearing bearings.Bearing, distance unit.Length) *Bullseye {
 	if !bearing.IsMagnetic() {
-		log.Warn().Any("bearing", bearing).Msg("bearing provided to NewBullseye should be magnetic")
+		log.Warn().Stringer("bearing", bearing).Msg("bearing provided to NewBullseye should be magnetic")
 	}
 	return &Bullseye{
 		bearing:  bearing,

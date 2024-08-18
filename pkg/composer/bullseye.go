@@ -11,7 +11,7 @@ import (
 // Example: "bullseye 270/20"
 func (c *composer) ComposeBullseye(bullseye brevity.Bullseye) NaturalLanguageResponse {
 	if !bullseye.Bearing().IsMagnetic() {
-		log.Error().Any("bearing", bullseye.Bearing()).Msg("bearing provided to ComposeBullseye should be magnetic")
+		log.Error().Stringer("bearing", bullseye.Bearing()).Msg("bearing provided to ComposeBullseye should be magnetic")
 	}
 	return NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf(

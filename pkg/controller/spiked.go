@@ -12,7 +12,7 @@ func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
 	logger.Debug().Msg("handling request")
 
 	if !request.Bearing.IsMagnetic() {
-		logger.Error().Any("bearing", request.Bearing).Msg("bearing provided to HandleSpiked should be magnetic")
+		logger.Error().Stringer("bearing", request.Bearing).Msg("bearing provided to HandleSpiked should be magnetic")
 	}
 
 	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
