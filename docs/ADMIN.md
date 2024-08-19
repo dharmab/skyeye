@@ -73,6 +73,10 @@ On Windows, the easiest way to retain your logs is to use [redirection](https://
 
 Advanced users should consider sending their logs to a log aggregator such as [Grafana Cloud](https://grafana.com/products/cloud/logs/). If you do this, I also recommend using `--log-format=json` to log in JSON format, which is easier to search and filter when using an aggregator.
 
+## Config Path
+
+Instead of using command line arguments you can also create a file called `skyeye-config.yaml`. It will search for the file in the root folder of your skyeye.exe. You can also define a custom location with the `--config-path` parameter. There is an example file located in the repository. CLI arguments however will always override the config values.
+
 ## Gameplay Configuration
 
 There's a few options you'll choose when running the bot. You can see all available options using `--help`.
