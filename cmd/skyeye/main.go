@@ -44,6 +44,7 @@ var (
 	whisperModelPath             string
 	voiceName                    string
 	playbackSpeed                string
+	playbackPause                float32
 	enableAutomaticPicture       bool
 	automaticPictureInterval     time.Duration
 	enableThreatMonitoring       bool
@@ -87,6 +88,7 @@ func init() {
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine)")
 	playbackSpeedFlag := NewEnum(&playbackSpeed, "string", "standard", "veryslow", "slow", "fast", "veryfast")
 	skyeye.Flags().Var(playbackSpeedFlag, "voice-playback-speed", "Voice playback speed of GCI")
+	skyeye.Flags().Float32Var(&playbackPause, "voice-playback-pause", 0.2, "Voice playback pause time after every sentence in seconds")
 
 	// Controller behavior
 	skyeye.Flags().BoolVar(&enableAutomaticPicture, "auto-picture", true, "Enable automatic PICTURE broadcasts")
@@ -302,6 +304,7 @@ func Supervise(cmd *cobra.Command, args []string) {
 		WhisperModel:                 whisperModel,
 		Voice:                        voice,
 		PlaybackSpeed:                playbackSpeed,
+		PlaybackPause:                playbackPause,
 		EnableThreatMonitoring:       enableThreatMonitoring,
 		ThreatMonitoringInterval:     threatMonitoringInterval,
 		ThreatMonitoringRequiresSRS:  threatMonitoringRequiresSRS,

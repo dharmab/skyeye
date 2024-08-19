@@ -75,6 +75,8 @@ github.com/mattn/go-isatty v0.0.19/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D
 github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe/go.mod h1:wL8QJuTMNUDYhXwkmfOly8iTdp5TEcJFWZD2D7SIkUc=
 github.com/nabbl/piper v0.0.0-20240807143155-14d7a439759f h1:myqV4cNCgFdczDGogP+LzReopLvKIc8qZxACatYRfOU=
 github.com/nabbl/piper v0.0.0-20240807143155-14d7a439759f/go.mod h1:bFBWV8PBQEC05ZPi5L4cBMBZQg5STeec4GmL6nvnTg4=
+github.com/nabbl/piper v0.0.0-20240819160100-e51f2288a5c0 h1:U9cqEmB3rVgMp0A8zTSP3TnlmnMPrbwWApEXObTBKCQ=
+github.com/nabbl/piper v0.0.0-20240819160100-e51f2288a5c0/go.mod h1:bFBWV8PBQEC05ZPi5L4cBMBZQg5STeec4GmL6nvnTg4=
 github.com/nabbl/piper-bin-macos v0.0.0-20240805085459-7f1b1df8c68d h1:I3pOmUaoFE8Lvf5j++9hc/UaXfW21zodWT1sihHY57M=
 github.com/nabbl/piper-bin-macos v0.0.0-20240805085459-7f1b1df8c68d/go.mod h1:NIGeON0x6RckQptwA2jS7U89GcsjMXbzSBw5edGOw9A=
 github.com/paulmach/orb v0.11.1 h1:3koVegMC4X/WeiXYz9iswopaTwMem53NzTJuTF20JzU=

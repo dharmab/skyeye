@@ -16,12 +16,13 @@ import (
 type piperSynth struct {
 	tts           *piper.TTS
 	playbackSpeed float32
+	playbackPause float32
 }
 
 var _ Speaker = (*piperSynth)(nil)
 
 // NewPiperSpeaker creates a Speaker powered by Piper (https://github.com/rhasspy/piper)
-func NewPiperSpeaker(v voices.Voice, playbackSpeed float32) (Speaker, error) {
+func NewPiperSpeaker(v voices.Voice, playbackSpeed float32, playbackPause float32) (Speaker, error) {
 	var a asset.Asset
 	if v == voices.MasculineVoice {
 		a = masculine.Asset
@@ -32,12 +33,12 @@ func NewPiperSpeaker(v voices.Voice, playbackSpeed float32) (Speaker, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create speaker: %w", err)
 	}
-	return &piperSynth{tts: tts, playbackSpeed: playbackSpeed}, nil
+	return &piperSynth{tts: tts, playbackSpeed: playbackSpeed, playbackPause: playbackPause}, nil
 }
 
 // Say implements Speaker.Say
 func (s *piperSynth) Say(text string) ([]float32, error) {
-	synthesized, err := s.tts.Synthesize(text, piper.WithSpeed(s.playbackSpeed))
+	synthesized, err := s.tts.Synthesize(text, piper.WithSpeed(s.playbackSpeed), piper.WithPause(s.playbackPause))
 	if err != nil {
 		return nil, fmt.Errorf("failed to synthesize text: %w", err)
 	}
