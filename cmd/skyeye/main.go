@@ -151,7 +151,7 @@ func initializeConfig(cmd *cobra.Command) error {
 	v.SetConfigFile(configFile)
 	if err := v.ReadInConfig(); err != nil {
 		// having no config file is fine
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		if !errors.Is(err, viper.ConfigFileNotFoundError{}) {
 			return err
 		}
 	}
