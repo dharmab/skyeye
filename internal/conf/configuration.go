@@ -45,7 +45,7 @@ type Configuration struct {
 	// Piper playback speed (default is 1.0) - The higher the value the slower it is.
 	PlaybackSpeed float32
 	// Piper playback pause after every sentence in seconds (default is 0.2)
-	PlaybackPause float32
+	PlaybackPause time.Duration
 	// PictureBroadcastInterval is the interval at which the controller will automatically broadcast a PICTURE.
 	PictureBroadcastInterval time.Duration
 	// EnableThreatMonitoring controls whether the controller will broadcast THREAT calls.
