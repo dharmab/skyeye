@@ -151,9 +151,13 @@ Wow, that was easy!
 
 ## Test
 
-The canonical way to run the unit tests is by running `make test`. This can run tests for code that uses CGO. **This is the gate used for MR checks.**
+The canonical way to run the unit tests is by running `make test`. This can run tests for code that uses CGO. **This is the gate used for PR checks.**
 
 I have made an effort to structure packages so that CGO is never imported directly or indirectly within packages that aren't directly related to the Speech-To-Text and Text-To-Speech models. This means that most tests can be run though Visual Studio Code without the complexity and performance hit of CGO. **This is the easiest way to test and debug during development.**
+
+## Lint
+
+You can run `make lint` and `make vet` to run some linters to catch some common mistakes, like forgetting to check an error. These also run on every submitted PR as a required check.
 
 ## Project Layout and Key Files
 
