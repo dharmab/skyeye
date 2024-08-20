@@ -17,6 +17,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"github.com/dharmab/skyeye/internal/application"
@@ -28,7 +29,7 @@ import (
 
 // Variables for CLI/Config flags
 var (
-	configPath                   string
+	configFile                   string
 	logLevel                     string
 	logFormat                    string
 	acmiFile                     string
@@ -54,113 +55,55 @@ var (
 	mandatoryThreatRadiusNM      float64
 )
 
-func init() {
-	skyeye.Flags().StringVar(&configPath, "config-path", ".", "Path to a config file e.g. '/home/user/xyz'. It is looking for a file called skyeye-config.yaml")
+var (
+	envPrefix = "SKYEYE"
+)
 
-	viper.SetConfigName("skyeye-config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(configPath)
-	if err := viper.ReadInConfig(); err != nil {
-		log.Error().Err(err).Msg("Unable to read config yaml file")
-	}
+func init() {
+	skyeye.Flags().StringVar(&configFile, "config-file", ".", "Path to a config file e.g. '/home/user/xyz.yaml'")
 
 	// Logging
 	logLevelFlag := NewEnum(&logLevel, "Level", "info", "error", "warn", "info", "debug", "trace")
 	skyeye.Flags().Var(logLevelFlag, "log-level", "Log level (error, warn, info, debug, trace)")
-	viper.BindPFlag("log-level", skyeye.Flags().Lookup("log-level"))
-	viper.SetDefault("log-level", "info")
-
 	logFormats := NewEnum(&logFormat, "Format", "pretty", "json")
 	skyeye.Flags().Var(logFormats, "log-format", "Log format (pretty, json)")
-	viper.BindPFlag("log-format", skyeye.Flags().Lookup("log-format"))
-	viper.SetDefault("log-format", "pretty")
 
 	// Telemetry
 	skyeye.Flags().StringVar(&acmiFile, "acmi-file", "", "path to ACMI file")
-	viper.BindPFlag("acmi-file", skyeye.Flags().Lookup("acmi-file"))
-
 	skyeye.Flags().StringVar(&telemetryAddress, "telemetry-address", "localhost:42674", "Address of the real-time telemetry service")
-	viper.BindPFlag("telemetry-address", skyeye.Flags().Lookup("telemetry-address"))
-	viper.SetDefault("telemetry-address", "localhost:42674")
-
 	skyeye.MarkFlagsMutuallyExclusive("acmi-file", "telemetry-address")
-
 	skyeye.Flags().DurationVar(&telemetryConnectionTimeout, "telemetry-connection-timeout", 10*time.Second, "Connection timeout for real-time telemetry client")
-	viper.BindPFlag("telemetry-connection-timeout", skyeye.Flags().Lookup("telemetry-connection-timeout"))
-	viper.SetDefault("telemetry-connection-timeout", 10*time.Second)
-
 	skyeye.Flags().StringVar(&telemetryPassword, "telemetry-password", "", "Password for the real-time telemetry service")
-	viper.BindPFlag("telemetry-password", skyeye.Flags().Lookup("telemetry-password"))
-
 	skyeye.Flags().DurationVar(&telemetryUpdateInterval, "telemetry-update-interval", 2*time.Second, "Interval at which trackfiles are updated from telemetry data")
-	viper.BindPFlag("telemetry-update-interval", skyeye.Flags().Lookup("telemetry-update-interval"))
-	viper.SetDefault("telemetry-update-interval", 2*time.Second)
 
 	// SRS
 	skyeye.Flags().StringVar(&srsAddress, "srs-server-address", "localhost:5002", "Address of the SRS server")
-	viper.BindPFlag("srs-server-address", skyeye.Flags().Lookup("srs-server-address"))
-	viper.SetDefault("srs-server-address", "localhost:5002")
-
 	skyeye.Flags().DurationVar(&srsConnectionTimeout, "srs-connection-timeout", 10*time.Second, "Connection timeout for SRS client")
-	viper.BindPFlag("srs-connection-timeout", skyeye.Flags().Lookup("srs-connection-timeout"))
-	viper.SetDefault("srs-connection-timeout", 10*time.Second)
-
 	skyeye.Flags().StringVar(&srsExternalAWACSModePassword, "srs-eam-password", "", "SRS external AWACS mode password")
-	viper.BindPFlag("srs-eam-password", skyeye.Flags().Lookup("srs-eam-password"))
-
 	skyeye.Flags().Float64Var(&srsFrequency, "srs-frequency", 251.0, "AWACS frequency in MHz")
-	viper.BindPFlag("srs-frequency", skyeye.Flags().Lookup("srs-frequency"))
-	viper.SetDefault("srs-frequency", 251.0)
 
 	// Identity
 	skyeye.Flags().StringVar(&gciCallsign, "callsign", "", "GCI callsign used in radio transmissions. Automatically chosen if not provided.")
-	viper.BindPFlag("callsign", skyeye.Flags().Lookup("callsign"))
-
 	skyeye.Flags().StringSliceVar(&gciCallsigns, "callsigns", []string{}, "A list of GCI callsigns to select from.")
-	viper.BindPFlag("callsigns", skyeye.Flags().Lookup("callsigns"))
-
 	skyeye.MarkFlagsMutuallyExclusive("callsign", "callsigns")
-
 	coalitionFlag := NewEnum(&coalitionName, "Coalition", "blue", "red")
 	skyeye.Flags().Var(coalitionFlag, "coalition", "GCI coalition (blue, red)")
-	viper.BindPFlag("coalition", skyeye.Flags().Lookup("coalition"))
 
 	// AI models
 	skyeye.Flags().StringVar(&whisperModelPath, "whisper-model", "", "Path to whisper.cpp model")
-	viper.BindPFlag("whisper-model", skyeye.Flags().Lookup("whisper-model"))
-
+	_ = skyeye.MarkFlagRequired("whisper-model")
 	voiceFlag := NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine)")
-	viper.BindPFlag("voice", skyeye.Flags().Lookup("voice"))
-
 	playbackSpeedFlag := NewEnum(&playbackSpeed, "string", "standard", "veryslow", "slow", "fast", "veryfast")
 	skyeye.Flags().Var(playbackSpeedFlag, "voice-playback-speed", "Voice playback speed of GCI")
-	viper.BindPFlag("voice-playback-speed", skyeye.Flags().Lookup("voice-playback-speed"))
 
 	// Controller behavior
 	skyeye.Flags().BoolVar(&enableAutomaticPicture, "auto-picture", true, "Enable automatic PICTURE broadcasts")
-	viper.BindPFlag("auto-picture", skyeye.Flags().Lookup("auto-picture"))
-	viper.SetDefault("auto-picture", true)
-
 	skyeye.Flags().DurationVar(&automaticPictureInterval, "auto-picture-interval", 2*time.Minute, "How often to broadcast PICTURE")
-	viper.BindPFlag("auto-picture-interval", skyeye.Flags().Lookup("auto-picture-interval"))
-	viper.SetDefault("auto-picture-interval", 2*time.Minute)
-
 	skyeye.Flags().BoolVar(&enableThreatMonitoring, "threat-monitoring", true, "Enable THREAT monitoring")
-	viper.BindPFlag("threat-monitoring", skyeye.Flags().Lookup("threat-monitoring"))
-	viper.SetDefault("threat-monitoring", true)
-
 	skyeye.Flags().DurationVar(&threatMonitoringInterval, "threat-monitoring-interval", 3*time.Minute, "How often to broadcast THREAT")
-	viper.BindPFlag("threat-monitoring-interval", skyeye.Flags().Lookup("threat-monitoring-interval"))
-	viper.SetDefault("threat-monitoring-interval", 3*time.Minute)
-
 	skyeye.Flags().Float64Var(&mandatoryThreatRadiusNM, "mandatory-threat-radius", 25, "Briefed radius for mandatory THREAT calls, in nautical miles")
-	viper.BindPFlag("mandatory-threat-radius", skyeye.Flags().Lookup("mandatory-threat-radius"))
-	viper.SetDefault("mandatory-threat-radius", 25.0)
-
 	skyeye.Flags().BoolVar(&threatMonitoringRequiresSRS, "threat-monitoring-requires-srs", true, "Require aircraft to be on SRS to receive THREAT calls. Only useful to disable when debugging.")
-	viper.BindPFlag("threat-monitoring-requires-srs", skyeye.Flags().Lookup("threat-monitoring-requires-srs"))
-	viper.SetDefault("threat-monitoring-requires-srs", true)
 }
 
 // Top-level CLI command
@@ -171,10 +114,10 @@ var skyeye = &cobra.Command{
 	Long:    "Skyeye uses real-time telemetry data from TacView to provide Ground-Controlled Intercept service over SimpleRadio-Standalone.",
 	Example: strings.Join(
 		[]string{
-			"Custom Config Path",
-			"skyeye --config-path='/home/user/xyz'",
+			"  " + "Custom Config Path",
+			"skyeye --config-file='/home/user/xyz.yaml'",
 			"",
-			"  " + "Remote TacView and SRS server",
+			"Remote TacView and SRS server",
 			"skyeye --telemetry-address=your-tacview-server:42674 --telemetry-password=your-tacview-password --srs-server-address=your-srs-server:5002 --srs-eam-password=your-srs-eam-password --whisper-model=ggml-small.en.bin",
 			"",
 			"Local TacView and SRS server",
@@ -183,34 +126,12 @@ var skyeye = &cobra.Command{
 		"\n  ",
 	),
 	PreRun: func(cmd *cobra.Command, args []string) {
+		initializeConfig(cmd)
+
 		if whisperModelPath == "" && !viper.IsSet("whisper-model") {
 			_ = cmd.Help()
 			os.Exit(0)
 		}
-		// Load all necessary config parameters from Viper
-		logLevel = viper.GetString("log-level")
-		logFormat = viper.GetString("log-format")
-		acmiFile = viper.GetString("acmi-file")
-		telemetryAddress = viper.GetString("telemetry-address")
-		telemetryConnectionTimeout = viper.GetDuration("telemetry-connection-timeout")
-		telemetryPassword = viper.GetString("telemetry-password")
-		telemetryUpdateInterval = viper.GetDuration("telemetry-update-interval")
-		srsAddress = viper.GetString("srs-server-address")
-		srsConnectionTimeout = viper.GetDuration("srs-connection-timeout")
-		srsExternalAWACSModePassword = viper.GetString("srs-eam-password")
-		srsFrequency = viper.GetFloat64("srs-frequency")
-		gciCallsign = viper.GetString("callsign")
-		gciCallsigns = viper.GetStringSlice("callsigns")
-		coalitionName = viper.GetString("coalition")
-		whisperModelPath = viper.GetString("whisper-model")
-		voiceName = viper.GetString("voice")
-		playbackSpeed = viper.GetString("voice-playback-speed")
-		enableAutomaticPicture = viper.GetBool("auto-picture")
-		automaticPictureInterval = viper.GetDuration("auto-picture-interval")
-		enableThreatMonitoring = viper.GetBool("threat-monitoring")
-		threatMonitoringInterval = viper.GetDuration("threat-monitoring-interval")
-		mandatoryThreatRadiusNM = viper.GetFloat64("mandatory-threat-radius")
-		threatMonitoringRequiresSRS = viper.GetBool("threat-monitoring-requires-srs")
 	},
 	Run: Supervise,
 }
@@ -222,6 +143,37 @@ func main() {
 		log.Error().Err(err).Msg("application exited with error")
 		os.Exit(1)
 	}
+}
+
+func initializeConfig(cmd *cobra.Command) error {
+	v := viper.New()
+
+	v.SetConfigFile(configFile)
+	if err := v.ReadInConfig(); err != nil {
+		// having no config file is fine
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return err
+		}
+	}
+
+	v.SetEnvPrefix(envPrefix)
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	v.AutomaticEnv()
+
+	bindFlags(cmd, v)
+	return nil
+}
+
+func bindFlags(cmd *cobra.Command, v *viper.Viper) {
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		configName := f.Name
+
+		// Apply the viper config value to the flag when the flag is not set and viper has a value
+		if !f.Changed && v.IsSet(configName) {
+			val := v.Get(configName)
+			cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+		}
+	})
 }
 
 func setupLogging() {
