@@ -117,6 +117,7 @@ $(SKYEYE_EXE): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 $(SKYEYE_ELF): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
 
+
 .PHONY: test
 test: generate
 	$(BUILD_VARS) $(GO) run gotest.tools/gotestsum -- $(BUILD_FLAGS) ./...
@@ -124,6 +125,12 @@ test: generate
 .PHONY: vet
 vet: generate
 	$(BUILD_VARS) $(GO) vet $(BUILD_FLAGS) ./...
+
+# Note: Running golangci-lint from source like this is not recommended, see https://golangci-lint.run/welcome/install/#install-from-source
+# Don't use this make target in CI, it's not guaranteed to be accurate. Provided for convenience only.
+.PHONY: lint
+lint:
+	$(BUILD_VARS) $(GO) run $(BUILD_FLAGS) github.com/golangci/golangci-lint/cmd/golangci-lint run ./...
 
 .PHONY: mostlyclean
 mostlyclean:
