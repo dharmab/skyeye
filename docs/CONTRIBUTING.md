@@ -80,7 +80,7 @@ Recommended models:
 
 Whichever model you choose, put the model next to the SkyEye binary.
 
-Run SkyEye from the command line. You can run `./skyeye --help` for an example and a list of available flags. If all goes well, you should see the SkyEye software start up and start logging to the console.
+Run SkyEye from the command line. You can run `./skyeye --help` for an example and a list of available flags, or check out the sample `config.yaml` file. If all goes well, you should see the SkyEye software start up and start logging to the console.
 
 If you get an error, double check the following:
 

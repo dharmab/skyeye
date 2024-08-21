@@ -9,8 +9,8 @@ SkyEye is under active development. All of the radio calls I planned to support 
 ## Getting Started
 
 * Players: See [the user guide](docs/PLAYER.md) (work in progress) for instructions on using the bot.
-* Server admins: See [ADMIN.md](docs/ADMIN.md) (work in progress) for a technical guide on deploying the bot.
-* Developers: See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for instructions on building, running and modifying the bot.
+* Server admins: See [the admin guide](docs/ADMIN.md) (work in progress) for a technical guide on deploying the bot.
+* Developers: See [the contributing guide](docs/CONTRIBUTING.md) for instructions on building, running and modifying the bot.
 * Please also see [the privacy statement](docs/PRIVACY.md) to understand how SkyEye uses your voice and gameplay data to function.
 
 ## Technology
@@ -32,7 +32,7 @@ Skyeye would not be possible without these people and projects, for whom I am de
 * @zaf's [resample](https://github.com/zaf/resample) module helps with audio format conversion between Piper and SRS.
 * @martinlindhe's [unit](https://github.com/martinlindhe/unit) module provides easy angular, length, speed and frequency unit conversion.
 * @paulmach's [orb](https://github.com/paulmach/orb) module provides a simple, flexible GIS library for analyzing the geometric relationships between aircraft.
-* @proway's [go-igrf](github.com/proway2/go-igrf) module implements the [Internation Geomagnetic Reference Field](https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html) used to correct for magnetic declination.
+* @proway's [go-igrf](github.com/proway2/go-igrf) module implements the [International Geomagnetic Reference Field](https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html) used to correct for magnetic declination.
 * [Cobra](https://cobra.dev) is used for the CLI frontend, including configuration, help and examples.
 * [MSYS2](https://www.msys2.org/) provides a Windows build environment.
 * [Oto](https://github.com/ebitengine/oto) was helpful for debugging audio format conversion problems.
@@ -78,9 +78,9 @@ Some examples of the performance you can expect:
 
 ### Can I train the speech recognition on my voice/accent?
 
-Since the software runs 100% locally, the speech recognition model is a local file. Server oprators can provide a trained model as an alternative to the off-the-shelf model. See [this blog post](https://huggingface.co/blog/fine-tune-whisper) for an example.
+Since the software runs 100% locally, the speech recognition model is a local file. Server operators can provide a trained model as an alternative to the off-the-shelf model. See [this blog post](https://huggingface.co/blog/fine-tune-whisper) for an example.
 
-I don't plan to provide a mechanism for players to submit their voice recordings to the main repostitory due to data privacy concerns.
+I don't plan to provide a mechanism for players to submit their voice recordings to the main repository due to data privacy concerns.
 
 ### Does this use Line-Of-Sight restrictions?
 
