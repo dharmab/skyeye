@@ -17,6 +17,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 
 	"github.com/dharmab/skyeye/internal/application"
 	"github.com/dharmab/skyeye/internal/conf"
@@ -25,8 +27,9 @@ import (
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
 
-// Variables for CLI flags
+// Variables for CLI/Config flags
 var (
+	configFile                   string
 	logLevel                     string
 	logFormat                    string
 	acmiFile                     string
@@ -53,7 +56,13 @@ var (
 	mandatoryThreatRadiusNM      float64
 )
 
+var (
+	envPrefix = "SKYEYE"
+)
+
 func init() {
+	skyeye.Flags().StringVar(&configFile, "config-file", ".", "Path to a config file e.g. '/home/user/xyz.yaml'")
+
 	// Logging
 	logLevelFlag := NewEnum(&logLevel, "Level", "info", "error", "warn", "info", "debug", "trace")
 	skyeye.Flags().Var(logLevelFlag, "log-level", "Log level (error, warn, info, debug, trace)")
@@ -107,7 +116,10 @@ var skyeye = &cobra.Command{
 	Long:    "Skyeye uses real-time telemetry data from TacView to provide Ground-Controlled Intercept service over SimpleRadio-Standalone.",
 	Example: strings.Join(
 		[]string{
-			"  " + "Remote TacView and SRS server",
+			"  " + "Custom Config Path",
+			"skyeye --config-file='/home/user/xyz.yaml'",
+			"",
+			"Remote TacView and SRS server",
 			"skyeye --telemetry-address=your-tacview-server:42674 --telemetry-password=your-tacview-password --srs-server-address=your-srs-server:5002 --srs-eam-password=your-srs-eam-password --whisper-model=ggml-small.en.bin",
 			"",
 			"Local TacView and SRS server",
@@ -116,7 +128,11 @@ var skyeye = &cobra.Command{
 		"\n  ",
 	),
 	PreRun: func(cmd *cobra.Command, args []string) {
-		if whisperModelPath == "" {
+		if err := initializeConfig(cmd); err != nil {
+			log.Info().Msg("Could not initialize config")
+		}
+
+		if whisperModelPath == "" && !viper.IsSet("whisper-model") {
 			_ = cmd.Help()
 			os.Exit(0)
 		}
@@ -131,6 +147,39 @@ func main() {
 		log.Error().Err(err).Msg("application exited with error")
 		os.Exit(1)
 	}
+}
+
+func initializeConfig(cmd *cobra.Command) error {
+	v := viper.New()
+
+	v.SetConfigFile(configFile)
+	if err := v.ReadInConfig(); err != nil {
+		// having no config file is fine
+		if !errors.Is(err, viper.ConfigFileNotFoundError{}) {
+			return err
+		}
+	}
+
+	v.SetEnvPrefix(envPrefix)
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	v.AutomaticEnv()
+
+	bindFlags(cmd, v)
+	return nil
+}
+
+func bindFlags(cmd *cobra.Command, v *viper.Viper) {
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		configName := f.Name
+
+		// Apply the viper config value to the flag when the flag is not set and viper has a value
+		if !f.Changed && v.IsSet(configName) {
+			val := v.Get(configName)
+			if err := cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val)); err != nil {
+				log.Warn().Str("flag", f.Name).Msg("Failed to set flag")
+			}
+		}
+	})
 }
 
 func setupLogging() {
