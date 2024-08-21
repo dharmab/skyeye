@@ -5,7 +5,6 @@ import (
 	"slices"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/parser"
@@ -23,8 +22,6 @@ type contactDatabase interface {
 	// getByUnitID returns the trackfile for the given unit ID, or nil if no trackfile was found.
 	// The second return value is true if a trackfile was found, and false otherwise.
 	getByUnitID(uint32) (*trackfiles.Trackfile, bool)
-	// lastUpdated returns the last time a trackfile was updated, using the real time timestamp.
-	lastUpdated(uint32) (time.Time, bool)
 	// set updates the trackfile for the given trackfile's unit ID, or inserts a new trackfile if no trackfile was found.
 	set(*trackfiles.Trackfile)
 	// delete removes the trackfile for the given unit ID.
@@ -35,10 +32,9 @@ type contactDatabase interface {
 }
 
 type database struct {
-	lock           sync.RWMutex
-	contacts       map[uint32]*trackfiles.Trackfile
-	callsignIdx    map[coalitions.Coalition]map[string]uint32
-	lastUpdatedIdx map[uint32]time.Time
+	lock        sync.RWMutex
+	contacts    map[uint32]*trackfiles.Trackfile
+	callsignIdx map[coalitions.Coalition]map[string]uint32
 }
 
 func newContactDatabase() contactDatabase {
@@ -47,9 +43,8 @@ func newContactDatabase() contactDatabase {
 		callsignIdx[c] = make(map[string]uint32)
 	}
 	return &database{
-		contacts:       make(map[uint32]*trackfiles.Trackfile),
-		callsignIdx:    callsignIdx,
-		lastUpdatedIdx: make(map[uint32]time.Time),
+		contacts:    make(map[uint32]*trackfiles.Trackfile),
+		callsignIdx: callsignIdx,
 	}
 }
 
@@ -110,16 +105,6 @@ func (d *database) set(trackfile *trackfiles.Trackfile) {
 	}
 	d.callsignIdx[trackfile.Contact.Coalition][callsign] = trackfile.Contact.UnitID
 	d.contacts[trackfile.Contact.UnitID] = trackfile
-	d.lastUpdatedIdx[trackfile.Contact.UnitID] = time.Now()
-}
-
-// lastUpdated implements [contactDatabase.lastUpdated].
-func (d *database) lastUpdated(unitId uint32) (time.Time, bool) {
-	d.lock.RLock()
-	defer d.lock.RUnlock()
-
-	lastUpdated, ok := d.lastUpdatedIdx[unitId]
-	return lastUpdated, ok
 }
 
 // delete implements [contactDatabase.delete].
@@ -132,7 +117,6 @@ func (d *database) delete(unitId uint32) bool {
 		delete(d.callsignIdx[contact.Contact.Coalition], contact.Contact.Name)
 	}
 	delete(d.contacts, unitId)
-	delete(d.lastUpdatedIdx, unitId)
 
 	return ok
 }
