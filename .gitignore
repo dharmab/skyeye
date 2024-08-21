@@ -63,6 +63,7 @@ third_party/whisper.cpp
 
 # Local dev scripts ignored by default
 scripts/
+dev/
 
 # ACMI files
 *.txt.acmi
