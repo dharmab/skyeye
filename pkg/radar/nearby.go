@@ -9,8 +9,8 @@ import (
 	"github.com/paulmach/orb/geo"
 )
 
-func (s *scope) findNearbyGroups(interest orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) []*group {
-	circle := geo.NewBoundAroundPoint(interest, float64(radius.Meters()))
+func (s *scope) findNearbyGroups(pointOfInterest orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) []*group {
+	circle := geo.NewBoundAroundPoint(pointOfInterest, radius.Meters())
 	groups := make([]*group, 0)
 	visited := make(map[uint32]struct{})
 	for trackfile := range s.contacts.values() {
@@ -22,8 +22,8 @@ func (s *scope) findNearbyGroups(interest orb.Point, minAltitude, maxAltitude, r
 		inStack := minAltitude <= trackfile.LastKnown().Altitude && trackfile.LastKnown().Altitude <= maxAltitude
 		if isMatch && inCircle && inStack {
 			grp := s.findGroupForAircraft(trackfile)
-			for id := range grp.UnitIDs() {
-				visited[uint32(id)] = struct{}{}
+			for _, id := range grp.UnitIDs() {
+				visited[id] = struct{}{}
 			}
 			groups = append(groups, grp)
 		}

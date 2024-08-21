@@ -11,13 +11,13 @@ import (
 )
 
 func (s *scope) enumerateGroups(coalition coalitions.Coalition) []*group {
-	visited := make(map[uint32]bool)
+	visited := make(map[uint32]struct{})
 	groups := make([]*group, 0)
 	for trackfile := range s.contacts.values() {
 		if _, ok := visited[trackfile.Contact.UnitID]; ok {
 			continue
 		}
-		visited[trackfile.Contact.UnitID] = true
+		visited[trackfile.Contact.UnitID] = struct{}{}
 
 		if trackfile.Contact.Coalition != coalition {
 			continue
@@ -31,8 +31,8 @@ func (s *scope) enumerateGroups(coalition coalitions.Coalition) []*group {
 		if grp == nil {
 			continue
 		}
-		for _, contact := range grp.contacts {
-			visited[contact.Contact.UnitID] = true
+		for _, unitID := range grp.UnitIDs() {
+			visited[unitID] = struct{}{}
 		}
 		groups = append(groups, grp)
 	}
@@ -74,12 +74,7 @@ func (s *scope) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *grou
 	spreadInterval := 5 * unit.NauticalMile
 	for other := range s.contacts.values() {
 		// Skip if this one is already in the group
-		if slices.ContainsFunc(group.contacts, func(t *trackfiles.Trackfile) bool {
-			if t == nil {
-				return false
-			}
-			return t.Contact.UnitID == other.Contact.UnitID
-		}) {
+		if slices.Contains(group.UnitIDs(), other.Contact.UnitID) {
 			continue
 		}
 
