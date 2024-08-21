@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/martinlindhe/unit"
-	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,6 +13,22 @@ func TestStacks(t *testing.T) {
 		input    []unit.Length
 		expected []Stack
 	}{
+		{
+			input:    []unit.Length{},
+			expected: []Stack{},
+		},
+		{
+			input:    []unit.Length{unit.Foot * 40},
+			expected: []Stack{{Altitude: unit.Foot * 0, Count: 1}},
+		},
+		{
+			input:    []unit.Length{unit.Foot * 100},
+			expected: []Stack{{Altitude: unit.Foot * 100, Count: 1}},
+		},
+		{
+			input:    []unit.Length{unit.Foot * 100, unit.Foot * 12000},
+			expected: []Stack{{Altitude: unit.Foot * 12000, Count: 1}, {Altitude: unit.Foot * 100, Count: 1}},
+		},
 		{
 			input:    []unit.Length{unit.Foot * 10000, unit.Foot * 20000, unit.Foot * 30000, unit.Foot * 40000, unit.Foot * 50000},
 			expected: []Stack{{Altitude: unit.Foot * 50000, Count: 1}, {Altitude: unit.Foot * 40000, Count: 1}, {Altitude: unit.Foot * 30000, Count: 1}, {Altitude: unit.Foot * 20000, Count: 1}, {Altitude: unit.Foot * 10000, Count: 1}},
@@ -36,10 +51,8 @@ func TestStacks(t *testing.T) {
 			stacks := Stacks(test.input...)
 			for i, stack := range stacks {
 				expectedStack := test.expected[i]
-				log.Trace().Float64("expected", float64(expectedStack.Altitude)).Float64("actual", float64(stack.Altitude)).Msg("checking altitudes")
-				assert.Equal(t, expectedStack.Altitude, stack.Altitude)
-				log.Trace().Int("expected", expectedStack.Count).Int("actual", stack.Count).Msg("checking counts")
-				assert.Equal(t, expectedStack.Count, stack.Count)
+				assert.Equalf(t, expectedStack.Altitude, stack.Altitude, "expected %fft, got %fft", expectedStack.Altitude.Feet(), stack.Altitude.Feet())
+				assert.Equal(t, expectedStack.Count, stack.Count, "stack count mismatch")
 			}
 		})
 	}

@@ -158,19 +158,21 @@ func (c *composer) ComposeAltitudeFillIns(stacks []brevity.Stack) string {
 }
 
 func (c *composer) ComposeAltitude(altitude unit.Length, declaration brevity.Declaration) string {
-	if altitude.Meters() < 100 {
+	hundreds := int(math.Round(altitude.Feet() / 100))
+	thousands := int(math.Round(altitude.Feet() / 1000))
+	if hundreds == 0 {
 		return "altitude unknown"
 	}
+
 	if declaration == brevity.Friendly {
-		if altitude.Feet() < 1000 {
-			hundreds := int(math.Round(altitude.Feet() / 100))
+		if altitude < 1000*unit.Foot {
 			return fmt.Sprintf("cherubs %d", hundreds)
 		}
-		thousands := int(math.Round(altitude.Feet() / 1000))
 		return fmt.Sprintf("angels %d", thousands)
 	}
-	if altitude > 1000 {
-		return fmt.Sprint(int(math.Round(altitude.Feet()/1000) * 1000))
+
+	if altitude < 1000*unit.Foot {
+		return fmt.Sprint(hundreds * 100)
 	}
-	return fmt.Sprint(int(math.Round(altitude.Feet()/100) * 100))
+	return fmt.Sprint(thousands * 1000)
 }

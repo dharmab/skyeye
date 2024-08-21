@@ -2,7 +2,6 @@ package composer
 
 import (
 	"fmt"
-	"math"
 	"slices"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -12,10 +11,10 @@ import (
 func (c *composer) ComposeSpikedResponse(response brevity.SpikedResponse) NaturalLanguageResponse {
 	if response.Status {
 		reply := fmt.Sprintf(
-			"%s, spike range %d, %d, %s",
+			"%s, spike range %d, %s, %s",
 			response.Callsign,
 			int(response.Range.NauticalMiles()),
-			int(math.Round(response.Altitude.Feet()/1000)*1000),
+			c.ComposeAltitude(response.Altitude, brevity.Bogey),
 			response.Aspect)
 		isCardinalAspect := slices.Contains([]brevity.Aspect{brevity.Flank, brevity.Beam, brevity.Drag}, response.Aspect)
 		isTrackKnown := response.Track != brevity.UnknownDirection
