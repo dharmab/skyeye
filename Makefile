@@ -1,9 +1,9 @@
 GO = go
 
 # Detect CPU architecture
-ifeq ($(shell uname -m),arm64) 
+ifeq ($(shell uname -m),arm64)
 GOARCH = arm64
-else ifeq ($(shell uname -m),x86_64) 
+else ifeq ($(shell uname -m),x86_64)
 GOARCH = amd64
 endif
 
@@ -44,7 +44,10 @@ BUILD_VARS = CGO_ENABLED=1 \
 BUILD_FLAGS = -tags nolibopusfile
 
 # Populate --version from Git tag
-LDFLAGS= -X "main.Version=$(shell git describe --tags || echo devel)"
+ifeq ($(SKYEYE_VERSION),)
+SKYEYE_VERSION=$(shell git describe --tags || echo devel)
+endif
+LDFLAGS= -X "main.Version=$(SKYEYE_VERSION)"
 
 ifeq ($(OS_DISTRIBUTION),Windows)
 # Static linking on Windows to avoid MSYS2 dependency at runtime
@@ -102,7 +105,7 @@ install-macos-dependencies:
 	  libsoxr
 
 $(LIBWHISPER_PATH) $(WHISPER_H_PATH):
-	if [[ ! -f $(LIBWHISPER_PATH) || ! -f $(WHISPER_H_PATH) ]]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false https://github.com/ggerganov/whisper.cpp.git "$(WHISPER_CPP_PATH)" && make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
+	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false https://github.com/ggerganov/whisper.cpp.git "$(WHISPER_CPP_PATH)" && make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
 
 .PHONY: whisper
 whisper: $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
@@ -116,7 +119,6 @@ $(SKYEYE_EXE): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 
 $(SKYEYE_ELF): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
-
 
 .PHONY: test
 test: generate
