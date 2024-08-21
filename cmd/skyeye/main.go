@@ -126,7 +126,9 @@ var skyeye = &cobra.Command{
 		"\n  ",
 	),
 	PreRun: func(cmd *cobra.Command, args []string) {
-		initializeConfig(cmd)
+		if err := initializeConfig(cmd); err != nil {
+			log.Info().Msg("Could not initialize config")
+		}
 
 		if whisperModelPath == "" && !viper.IsSet("whisper-model") {
 			_ = cmd.Help()
@@ -171,7 +173,9 @@ func bindFlags(cmd *cobra.Command, v *viper.Viper) {
 		// Apply the viper config value to the flag when the flag is not set and viper has a value
 		if !f.Changed && v.IsSet(configName) {
 			val := v.Get(configName)
-			cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+			if err := cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val)); err != nil {
+				log.Warn().Str("flag", f.Name).Msg("Failed to set flag")
+			}
 		}
 	})
 }
