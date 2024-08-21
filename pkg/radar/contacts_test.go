@@ -144,7 +144,7 @@ func TestDelete(t *testing.T) {
 	require.False(t, ok)
 }
 
-func TestItr(t *testing.T) {
+func TestValues(t *testing.T) {
 	db := newContactDatabase()
 
 	mobius := trackfiles.NewTrackfile(trackfiles.Labels{
@@ -163,29 +163,20 @@ func TestItr(t *testing.T) {
 	})
 	db.set(yellow)
 
-	itr := db.itr()
-
 	foundMobius := false
 	foundYellow := false
-	iterate := func() {
-		for itr.next() {
-			trackfile := itr.value()
-			if trackfile.Contact.UnitID == mobius.Contact.UnitID {
-				require.EqualValues(t, mobius, trackfile)
-				foundMobius = true
-			} else if trackfile.Contact.UnitID == yellow.Contact.UnitID {
-				require.EqualValues(t, yellow, trackfile)
-				foundYellow = true
-			}
+	for trackfile := range db.values() {
+		if trackfile.Contact.UnitID == mobius.Contact.UnitID {
+			require.EqualValues(t, mobius, trackfile)
+			foundMobius = true
+		} else if trackfile.Contact.UnitID == yellow.Contact.UnitID {
+			require.EqualValues(t, yellow, trackfile)
+			foundYellow = true
+		}
+		if foundMobius && foundYellow {
+			break
 		}
 	}
-	iterate()
 	require.True(t, foundMobius)
 	require.True(t, foundYellow)
-
-	itr.reset()
-
-	foundMobius = false
-	foundYellow = false
-	iterate()
 }

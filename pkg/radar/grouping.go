@@ -13,10 +13,7 @@ import (
 func (s *scope) enumerateGroups(coalition coalitions.Coalition) []*group {
 	visited := make(map[uint32]bool)
 	groups := make([]*group, 0)
-	itr := s.contacts.itr()
-	for itr.next() {
-		trackfile := itr.value()
-
+	for trackfile := range s.contacts.values() {
 		if _, ok := visited[trackfile.Contact.UnitID]; ok {
 			continue
 		}
@@ -75,9 +72,7 @@ func (s *scope) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *grou
 		}
 	}
 	spreadInterval := 5 * unit.NauticalMile
-	itr := s.contacts.itr()
-	for itr.next() {
-		other := itr.value()
+	for other := range s.contacts.values() {
 		// Skip if this one is already in the group
 		if slices.ContainsFunc(group.contacts, func(t *trackfiles.Trackfile) bool {
 			if t == nil {

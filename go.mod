@@ -1,6 +1,6 @@
 module github.com/dharmab/skyeye
 
-go 1.22.1
+go 1.23.0
 
 require (
 	github.com/amitybell/piper-asset v0.0.0-20231030194325-d36a29e3b1fd

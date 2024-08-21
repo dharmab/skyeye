@@ -13,6 +13,18 @@ const (
 	Neutrals = 3
 )
 
+// String returns the string representation of a coalition.
+func (c Coalition) String() string {
+	switch c {
+	case Red:
+		return "Red"
+	case Blue:
+		return "Blue"
+	default:
+		return "Neutrals"
+	}
+}
+
 // All returns all coalitions.
 func All() []Coalition {
 	return []Coalition{Red, Blue, Neutrals}

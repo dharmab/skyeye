@@ -13,9 +13,7 @@ func (s *scope) findNearbyGroups(interest orb.Point, minAltitude, maxAltitude, r
 	circle := geo.NewBoundAroundPoint(interest, float64(radius.Meters()))
 	groups := make([]*group, 0)
 	visited := make(map[uint32]struct{})
-	itr := s.contacts.itr()
-	for itr.next() {
-		trackfile := itr.value()
+	for trackfile := range s.contacts.values() {
 		if _, ok := visited[trackfile.Contact.UnitID]; ok {
 			continue
 		}
