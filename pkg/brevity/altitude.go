@@ -1,9 +1,9 @@
 package brevity
 
 import (
-	"math"
 	"slices"
 
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/martinlindhe/unit"
 )
 
@@ -16,7 +16,7 @@ type Stack struct {
 // Stacks creates altitude STACKS from altitudes.
 func Stacks(a ...unit.Length) []Stack {
 	for i, alt := range a {
-		a[i] = unit.Length(math.Round(alt.Feet()/1000)) * 1000 * unit.Foot
+		a[i] = spatial.NormalizeAltitude(alt)
 	}
 	// reverse sort
 	slices.SortFunc(a, func(i, j unit.Length) int {

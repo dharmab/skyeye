@@ -179,3 +179,59 @@ func TestPointAtBearingAndDistance(t *testing.T) {
 		})
 	}
 }
+
+func TestNormalizeAltitude(t *testing.T) {
+	testCases := []struct {
+		input    unit.Length
+		expected unit.Length
+	}{
+		{
+			input:    -100 * unit.Foot,
+			expected: 100 * unit.Foot,
+		},
+		{
+			input:    0,
+			expected: 0,
+		},
+		{
+			input:    40 * unit.Foot,
+			expected: 0,
+		},
+		{
+			input:    100 * unit.Foot,
+			expected: 100 * unit.Foot,
+		},
+		{
+
+			input:    120 * unit.Foot,
+			expected: 100 * unit.Foot,
+		},
+		{
+			input:    200 * unit.Foot,
+			expected: 200 * unit.Foot,
+		},
+		{
+			input:    249 * unit.Foot,
+			expected: 200 * unit.Foot,
+		},
+		{
+			input:    250 * unit.Foot,
+			expected: 300 * unit.Foot,
+		},
+		{
+			input:    1234 * unit.Foot,
+			expected: 1000 * unit.Foot,
+		},
+		{
+			input:    10000 * unit.Foot,
+			expected: 10000 * unit.Foot,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(fmt.Sprintf("%fft", test.input.Feet()), func(t *testing.T) {
+			actual := NormalizeAltitude(test.input)
+			assert.Equal(t, test.expected, actual, "expected %fft, got %fft", test.expected.Feet(), actual.Feet())
+		})
+	}
+}

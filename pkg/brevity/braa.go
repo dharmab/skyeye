@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
@@ -60,7 +61,7 @@ func (b *bra) Altitude() unit.Length {
 	if len(b.stacks) == 0 {
 		return 0
 	}
-	return unit.Length(math.Round(b.stacks[0].Altitude.Feet()/1000)) * 1000 * unit.Foot
+	return spatial.NormalizeAltitude(b.stacks[0].Altitude)
 }
 
 // Stacks implements [BRA.Stacks].

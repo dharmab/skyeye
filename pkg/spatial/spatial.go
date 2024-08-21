@@ -38,3 +38,17 @@ func PointAtBearingAndDistance(origin orb.Point, bearing bearings.Bearing, dista
 func IsZero(point orb.Point) bool {
 	return point.Equal(orb.Point{})
 }
+
+// NormalizeAltitude returns the absolute length rounded to the nearest 1000 feet, or nearest 100 feet if less than 1000 feet.
+func NormalizeAltitude(altitude unit.Length) unit.Length {
+	if altitude < 0 {
+		altitude = -altitude
+	}
+	bucketWidth := 1000 * unit.Foot
+	if altitude < bucketWidth {
+		bucketWidth = 100. * unit.Foot
+	}
+	bucket := int(math.Round(altitude.Feet() / bucketWidth.Feet()))
+	rounded := int(bucketWidth.Feet()) * bucket
+	return unit.Length(rounded) * unit.Foot
+}
