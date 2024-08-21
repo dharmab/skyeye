@@ -41,13 +41,46 @@ Examples of suitable servers include:
 
 I won't provide an endorsement of any particular provider, but I will point out that as of August 2024 Hetzner's CCX23 instance is probably the cheapest way the run SkyEye on public cloud. The cheapest way to run SkyEye overall is probably on a spare computer in your house.
 
+## Configuration
+
+Skyeye can be configured using a YAML or JSON configuration file, environment variables and/or command-line flags. The order of priority is:
+
+1. CLI flags
+2. Environment variabls
+3. Configuration file
+
+That is, environment variables override the config file, and CLI flags override everything.
+
+Command-line flags are documented in the `--help` text. Each flag can be provided directly as a config file key or as a `SKYEYE_` variable. For example, the whisper.cpp model path can be configured on Linux as a flag:
+
+```sh
+./skyeye --whisper-model=models/ggml-small.en.bin
+```
+
+Or a variable:
+
+```sh
+export SKYEYE_WHISPER_MODEL=models/ggml-small.en.bin
+./skyeye
+```
+
+Or in a config file:
+
+```yaml
+whisper-model: models/ggml-small.en.bin
+```
+
+```sh
+./skyeye --config-file=config.yaml
+```
+
+It is recommended to use the configuration file as the main source of config. Most users find it the easiest option, and a file is simple to protect using access control policies, unlike a processes' environment or arguments.
+
+A sample configuration file is provided in the download which should be customized to fit your needs. It contains many explanatory comments which guide you through customization.
+
 ## Speech Recognition
 
-You'll need to choose a whisper.cpp speech recognition model from [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). These are my recommendations:
-
-* `ggml-small.en.bin` - My recommendation. Good balance of quality and performance.
-* `ggml-medium.en.bin` - Try this if you have powerful hardware, especially a dedicated PC in your house with a powerful CPU with many cores.
-* `ggml-tiny.en.bin` - Only if the small model is too slow. Expect poor speech recognition accuracy.
+You'll need to choose a whisper.cpp speech recognition model from [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). See the example config file for recommendations on which model to use.
 
 ## Networking
 
@@ -72,58 +105,6 @@ On Linux, the easiest way to retain your logs is to run SkyEye as a systemd-mana
 On Windows, the easiest way to retain your logs is to use [redirection](https://learn.microsoft.com/en-us/troubleshoot/developer/visualstudio/cpp/language-compilers/redirecting-error-command-prompt).
 
 Advanced users should consider sending their logs to a log aggregator such as [Grafana Cloud](https://grafana.com/products/cloud/logs/). If you do this, I also recommend using `--log-format=json` to log in JSON format, which is easier to search and filter when using an aggregator.
-
-## Config Path
-
-Instead of using command line arguments you can also create a file called `skyeye-config.yaml`. It will search for the file in the root folder of your skyeye.exe. You can also define a custom location with the `--config-path` parameter. There is an example file located in the repository. CLI arguments however will always override the config values.
-
-## Gameplay Configuration
-
-There's a few options you'll choose when running the bot. You can see all available options using `--help`.
-
-### Coalition
-
-By default, SkyEye assumes all players are on the BLUE coalition. If you use the RED coalition for players, pass the `--coalition=red` flag.
-
-Note: SkyEye is not recommended for PvP use at this time, as it sees and reports information that breaks gameplay balance.
-
-### Callsign
-
-`--callsign` or `--callsigns` should be set to whatever you want the bot to use as it's AWACS callsign. Good callsigns should be in English, two or three syllables, and easy to pronounce. Real world examples include:
-
-* Baron
-* Chalice
-* Darkstar
-* Disco
-* Focus
-* Goliath
-* Magic
-* Sentry
-* Wizard
-
-I ask that you do _not_ use the callsign "Overlord" to avoid any possible confusion with RurouniJones' OverlordBot. I do not want any confused players filing bug reports to the wrong project!
-
-### Frequency
-
-The `--srs-frequency` flag selects the SRS frequency the bot will serve. Be sure to choose a frequency that all aircraft in your mission can tune on their radios. Remember that some aircraft cannot manually tune some of their radios, so you may need to choose a frequency matching a mission editor preset.
-
-### PICTURE
-
-By default, the bot broadcasts an updated PICTURE if a PICTURE has not been given for two minutes. I find this feature works very well for smaller missions like Retribution campaigns, where the PICTURE helps maintain situational awareness. However, I understand that on a large server with lots of enemy aircraft this could become annoying, so the feature is customizable.
-
-To change the interval, use `--auto-picture-interval`. To set the interval to 3 minutes, use `--auto-picture-interval=3m`. I find values between 2 minutes and 5 minutes work best.
-
-To disable this feature, use `--auto-picture=false`. Players will still be able to request a picture on demand, but the bot won't automatically broadcast them.
-
-### THREAT Monitoring
-
-The bot automatically begins monitoring any friendly aircraft which tunes onto its SRS frequency. It broadcasts THREAT calls if an enemy aircraft approaches close enough to a monitored friendly aircraft to satisfy threat criteria. The threat criteria are dynamic; for example, a Su-27 Flanker is considered a threat at a longer range than a Su-17 Fitter.
-
-You can change the range at which _any_ hostile air-to-air-capable aircraft is considered a threat using the `--mandatory-threat-radius` flag. The default is a reasonable choice for a modern setting, but you may wish to tune this based on mission requirements.
-
-THREAT calls are repeated if the threat criteria are still met after a cooldown period. You can change how often the bot rebroadcasts THREAT calls using `--threat-monitoring-interval`. To change this to every 90 seconds, use `--threat-monitoring-interval=1m30s`.
-
-Finally, you can disable this feature entirely with `--threat-monitoring=false`. I advise against this, since it greatly decreases situational awareness, but it's your video game and I'm not your dad.
 
 # Installation
 
@@ -154,17 +135,21 @@ Download SkyEye and an AI model. Copy them to `/opt/skyeye/`. Create a `skyeye` 
 
 ```bash
 useradd -G users skyeye
-curl -sL https://github.com/dharmab/skyeye/releases/latest/downloadyeye-linux-amd64.tar.gz -o /tmp/skyeye-linux-amd64.tar.gz
+curl -sL https://github.com/dharmab/skyeye/releases/latest/download/skyeye-linux-amd64.tar.gz -o /tmp/skyeye-linux-amd64.tar.gz
 tar -xzf /tmp/skyeye-linux-amd64.tar.gz -C /tmp/
 mkdir -p /opt/skyeye/bin
 mv /tmp/skyeye-linux-amd64/skyeye /opt/skyeye/bin/skyeye
 chmod +x /opt/skyeye/bin/skyeye
 mkdir -p /opt/skyeye/models
-curl -sL https://huggingface.co/ggerganov/whisper.cpp/resolve/mainml-small.en.bin -o /opt/skyeye/models/ggml-small.en.bin
+curl -sL https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin -o /opt/skyeye/models/ggml-small.en.bin
 chown -R skyeye:users /opt/skyeye
+mkdir -p /etc/skyeye
+mv /tmp/skyeye-linux-amd64/config.yaml /etc/skyeye/config.yaml
+chmod 600 /etc/skyeye/config.yaml
+chown -R skyeye:users /etc/skyeye
 ```
 
-Edit this systemd unit to configure SkyEye as desired. Save it to `/etc/systemd/system/skyeye.service`:
+Save this systemd unit to `/etc/systemd/system/skyeye.service`:
 
 ```ini
 [Unit]
@@ -175,20 +160,15 @@ After=network-online.target
 Type=simple
 User=skyeye
 WorkingDirectory=/opt/skyeye
-ExecStart=/opt/skyeye/bin/skyeye \
-  --callsign=Focus \
-  --telemetry-address=your-tacview-address:42674 \
-  --telemetry-password=your-telemetry-password \
-  --srs-server-address=your-srs-server:5002 \
-  --srs-eam-password=your-srs-password \
-  --srs-frequency=135.0 \
-  --whisper-model=/opt/skyeye/models/ggml-small.en.bin
+ExecStart=/opt/skyeye/bin/skyeye
 Restart=always
 RestartSec=60
 
 [Install]
 WantedBy=multi-user.target
 ```
+
+Edit the config file as required using `sudoedit /etc/skyeye/config.yaml`.
 
 ### Service Management
 
@@ -211,7 +191,7 @@ sudo systemctl enable skyeye.service
 sudo systemctl disable skyeye.service
 ```
 
-View the logs with `journalctl`
+View the logs with `journalctl`:
 
 ```bash
 # Stream the logs
@@ -225,8 +205,8 @@ journalctl -u skyeye
 
 I don't know much about Windows Server administration. If there's a better way to do this please get in touch.
 
-Download and extract the SkyEye release ZIP from the [releases page](https://github.com/dharmab/skyeye/releases) and extract it. Download the whisper.cpp model from [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main) and move it next to `skyeye.exe`.
+Download the SkyEye release ZIP from the [releases page](https://github.com/dharmab/skyeye/releases) and extract it. Download the whisper.cpp model from [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main) and move it next to `skyeye.exe`.
 
-Edit `run-skyeye.ps1` to configure SkyEye as desired.
+Edit `config.yaml` to configure SkyEye as desired.
 
 Open Powershell, change to the SkyEye directory and run the script with `./run-skyeye.ps1`. Logs will be saved in the `.log` files in the `logs` directory. Remember to regularly compress and/or delete old log files so they don't fill up the disk.

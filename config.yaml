@@ -1,0 +1,141 @@
+# Sample YAML configuration file for SkyEye.
+
+# New to YAML? Here's a crash course.
+#
+# Comments:
+# - Comments are lines that start with the '#' symbol. Comments are ignored
+# when the config file is loaded.
+# - You'll need to uncomment the example configuration values if you want to
+# customize them. You can do this by deleting the '#' at the start of that
+# line.
+#
+# Setting configuration values:
+# - A key is a unique identifier, followed by a colon and a space, and then the
+# value.
+# - Values can be strings (text), booleans (true/false), numbers, or lists of
+# strings.
+#   - Strings can be enclosed in quotes to disambiguate them if needed.
+# - Some values are time intervals. You can specify "m" for minutes and "s" for
+# seconds. For example, "90s" and "1m30s" are both 90 seconds.
+# - You can check the defaults by passing the --help flag to the executable.
+#
+# Learn more: https://learnxinyminutes.com/docs/yaml/
+
+# SPEECH RECOGNITION
+# You MUST download a whisper.cpp model from
+# https://huggingface.co/ggerganov/whisper.cpp/tree/main and provide the path
+# to the model file here.
+#
+# The small English-only model provides a good balance between performance, RAM
+# usage and quality.
+#whisper-model: ggml-small.en.bin
+#
+# The medium English-only model has better quality, but requires a powerful CPU
+# and additional RAM.
+#whisper-model: ggml-medium.en.bin
+#
+# Only resort to the tiny model if the small model is too slow. It has poor
+# speech recognition quality.
+#whisper-model: ggml-tiny.en.bin
+
+# TACVIEW
+# Telemetry service address. Set this to the host and port of the TacView
+# real-time telemetry service for your DCS World installation.
+# DCS running on the same computer:
+#telemetry-address: localhost:42674
+# DCS running remotely:
+#telemetry-address: dcs.example.com:42674
+#
+# If your TacView telemetry is password-protected, set the password here.
+#telemetry-password: tacviewpasswordgoeshere
+
+# SIMPLERADIO-STANDALONE
+# SRS server address. Set this to the host and port of the SRS server.
+# SRS server running on the same computer:
+#srs-address: localhost:5002
+# SRS server running remotely:
+#srs-address: srs.example.com:5002
+#
+# SRS EAM password. Set this to the password used to connect to External AWACS
+# Mode in SRS.
+#srs-eam-password: eampasswordgoeshere
+#
+# SRS frequency. Set this to the AM radio frequency the GCI should listen and
+# speak on. Be sure to choose a frequency that all allied aircraft in your
+# mission can tune on their radios. Some aircraft cannot manually tune some of
+# their radios, so you may need to choose a frequency matching a preset
+# configured in the DCS mission editor.
+#srs-frequency: 251.0
+
+# IDENTITY
+# Set the callsign to whatever you want the GCI to use as the callsign. Good
+# callsigns should be in English, two or three syllables, and easy to
+# pronounce. Real-world examples include: Baron, Chalice, Darkstar, Disco,
+# Focus, Goliath, Magic, Sentry and Wizard. If you don't provide a callsign, a
+# random callsign is selected from a set of Ace Combat/Project Wingman easter
+# eggs. Please do _not_ use the callsign "Overlord" to avoid any possible
+# confusion with OverlordBot. I do not want any confused players to send bug
+# reports to the wrong project!
+#callsign: Focus
+# Alternatively you can provide a list of callsigns and one will be randomly
+# selected.
+#callsigns: [Wizard, Magic, Goliath]
+#
+# Set the coalition this GCI will serve - either "red" or "blue"
+#coalition: blue
+
+# SPEECH SYNTHESIS
+# Select a voice (either feminine or masculine). If you don't select one, one
+# is selected for you.
+#voice: feminine
+#
+# See --help for further customization if the GCI speaks too fast for you to
+# understand.
+
+# BEHAVIOR
+# By default, the GCI broadcasts an updated PICTURE if a PICTURE has not been
+# given for two minutes. I find this feature works very well for smaller
+# missions like Retribution campaigns, where the PICTURE helps maintain
+# situational awareness. However, I understand that on a large server with lots
+# of enemy aircraft this could become annoying, so the feature is customizable.
+#
+# You can disable PICTURE broadcasts by setting auto-picture to false. Players
+# may still request a PICTURE on demand, but automatic broadcasts will be
+# disabled.
+#auto-picture: true
+#
+# You can customize the PICTURE broadcast interval. I find values between 2 and
+# 5 minutes work best.
+#auto-picture-interval: 2m
+#
+# By default, the GCI monitors any friendly aircraft which tunes onto the
+# configured SRS frequency. The GCI will broadcast a threat call if a hostile
+# aircraft approaches close enough to a monitored friendly aircraft to satisfy
+# threat criteria. Threat criteria are dynamic; for example, a Su-27 Flanker is
+# considered to be a threat at a greater range than a Su-17 Fitter.
+#
+# You can disable threat monitoring by setting threat-monitoring to false. I
+# don't recommend this because it greatly reduces situational awareness. But
+# hey, it's your video game and I'm not your dad.
+#threat-monitoring: true
+#
+# Threat calls are repeated if the threat criteria are still met after a
+# cooldown period. You can customize how often the bot rebroadcasts threat
+# calls.
+#threat-monitoring-interval: 3m
+#
+# At a close enough range, any hostile aircraft with air-to-air capabilities is
+# considred a threat regardless of its platform. The default value (25 nautical
+# miles) is a reasonable choice for a modern setting, but you may wish to tune
+# this based on mission requirements and player skill level.
+#mandatory-threat-radius: 25
+
+# LOGGING
+#
+# Log verbosity. Most should leave this at the default INFO level, unless
+# troubleshooting an issue.
+#log-level: info
+#
+# Log format. "pretty" is easier to read in a console, "json" is easier to
+# search/query later.
+#log-format: pretty

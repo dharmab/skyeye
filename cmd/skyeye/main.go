@@ -61,7 +61,7 @@ var (
 )
 
 func init() {
-	skyeye.Flags().StringVar(&configFile, "config-file", ".", "Path to a config file e.g. '/home/user/xyz.yaml'")
+	skyeye.Flags().StringVar(&configFile, "config-file", "/etc/skyeye/config.yaml", "Path to config file")
 
 	// Logging
 	logLevelFlag := NewEnum(&logLevel, "Level", "info", "error", "warn", "info", "debug", "trace")
@@ -81,11 +81,11 @@ func init() {
 	skyeye.Flags().StringVar(&srsAddress, "srs-server-address", "localhost:5002", "Address of the SRS server")
 	skyeye.Flags().DurationVar(&srsConnectionTimeout, "srs-connection-timeout", 10*time.Second, "Connection timeout for SRS client")
 	skyeye.Flags().StringVar(&srsExternalAWACSModePassword, "srs-eam-password", "", "SRS external AWACS mode password")
-	skyeye.Flags().Float64Var(&srsFrequency, "srs-frequency", 251.0, "AWACS frequency in MHz")
+	skyeye.Flags().Float64Var(&srsFrequency, "srs-frequency", 251.0, "GCI frequency in MHz")
 
 	// Identity
-	skyeye.Flags().StringVar(&gciCallsign, "callsign", "", "GCI callsign used in radio transmissions. Automatically chosen if not provided.")
-	skyeye.Flags().StringSliceVar(&gciCallsigns, "callsigns", []string{}, "A list of GCI callsigns to select from.")
+	skyeye.Flags().StringVar(&gciCallsign, "callsign", "", "GCI callsign used in radio transmissions. Automatically chosen if not provided")
+	skyeye.Flags().StringSliceVar(&gciCallsigns, "callsigns", []string{}, "A list of GCI callsigns to select from")
 	skyeye.MarkFlagsMutuallyExclusive("callsign", "callsigns")
 	coalitionFlag := NewEnum(&coalitionName, "Coalition", "blue", "red")
 	skyeye.Flags().Var(coalitionFlag, "coalition", "GCI coalition (blue, red)")
@@ -94,10 +94,10 @@ func init() {
 	skyeye.Flags().StringVar(&whisperModelPath, "whisper-model", "", "Path to whisper.cpp model")
 	_ = skyeye.MarkFlagRequired("whisper-model")
 	voiceFlag := NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
-	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine)")
+	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine). Automatically chosen if not provided")
 	playbackSpeedFlag := NewEnum(&playbackSpeed, "string", "standard", "veryslow", "slow", "fast", "veryfast")
-	skyeye.Flags().Var(playbackSpeedFlag, "voice-playback-speed", "Voice playback speed of GCI")
-	skyeye.Flags().DurationVar(&playbackPause, "voice-playback-pause", 200*time.Millisecond, "Voice playback pause time after every sentence in seconds")
+	skyeye.Flags().Var(playbackSpeedFlag, "voice-playback-speed", "How fast the GCI speaks")
+	skyeye.Flags().DurationVar(&playbackPause, "voice-playback-pause", 200*time.Millisecond, "How long the GCI pauses between sentences")
 
 	// Controller behavior
 	skyeye.Flags().BoolVar(&enableAutomaticPicture, "auto-picture", true, "Enable automatic PICTURE broadcasts")
@@ -105,7 +105,7 @@ func init() {
 	skyeye.Flags().BoolVar(&enableThreatMonitoring, "threat-monitoring", true, "Enable THREAT monitoring")
 	skyeye.Flags().DurationVar(&threatMonitoringInterval, "threat-monitoring-interval", 3*time.Minute, "How often to broadcast THREAT")
 	skyeye.Flags().Float64Var(&mandatoryThreatRadiusNM, "mandatory-threat-radius", 25, "Briefed radius for mandatory THREAT calls, in nautical miles")
-	skyeye.Flags().BoolVar(&threatMonitoringRequiresSRS, "threat-monitoring-requires-srs", true, "Require aircraft to be on SRS to receive THREAT calls. Only useful to disable when debugging.")
+	skyeye.Flags().BoolVar(&threatMonitoringRequiresSRS, "threat-monitoring-requires-srs", true, "Require aircraft to be on SRS to receive THREAT calls. Only useful to disable when debugging")
 }
 
 // Top-level CLI command
@@ -127,15 +127,16 @@ var skyeye = &cobra.Command{
 		},
 		"\n  ",
 	),
-	PreRun: func(cmd *cobra.Command, args []string) {
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		if err := initializeConfig(cmd); err != nil {
-			log.Info().Msg("Could not initialize config")
+			return fmt.Errorf("failed to initialize config: %w", err)
 		}
 
 		if whisperModelPath == "" && !viper.IsSet("whisper-model") {
 			_ = cmd.Help()
 			os.Exit(0)
 		}
+		return nil
 	},
 	Run: Supervise,
 }

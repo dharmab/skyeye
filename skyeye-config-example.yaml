@@ -1,8 +1,0 @@
-telemetry-address: "localhost:42674"
-srs-server-address: "localhost:5002"
-callsign: "Magic"
-auto-picture: true
-auto-picture-interval: "3m"
-threat-monitoring: true
-mandatory-threat-radius: 20
-whisper-model: ggml-large-v3.bin
