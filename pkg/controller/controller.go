@@ -54,6 +54,7 @@ type controller struct {
 	enableThreatMonitoring      bool
 	threatMonitoringRequiresSRS bool
 	threatMonitoringCooldown    time.Duration
+	wasLastPictureClean         bool
 }
 
 func New(
@@ -113,7 +114,7 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 			if time.Now().After(c.pictureBroadcastDeadline) {
 				logger := log.With().Logger()
 				logger.Info().Msg("broadcasting PICTURE call")
-				c.broadcastPicture(&logger)
+				c.broadcastPicture(&logger, false)
 			}
 			c.broadcastThreats()
 		}
