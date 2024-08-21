@@ -20,9 +20,7 @@ func shiftPointTowards(a orb.Point, b orb.Point) orb.Point {
 func (s *scope) updateCenterPoint() {
 	blue := orb.Point{}
 	red := orb.Point{}
-	itr := s.contacts.itr()
-	for itr.next() {
-		contact := itr.value()
+	for contact := range s.contacts.values() {
 		data, ok := encyclopedia.GetAircraftData(contact.Contact.ACMIName)
 		isArmed := !ok || data.ThreatRadius() > 0
 		isValid := isValidTrack(contact)

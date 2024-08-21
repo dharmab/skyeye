@@ -1,6 +1,8 @@
 package radar
 
 import (
+	"iter"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -28,20 +30,8 @@ type contactDatabase interface {
 	// delete removes the trackfile for the given unit ID.
 	// It returns true if the trackfile was found and removed, and false otherwise.
 	delete(uint32) bool
-	// itr returns an iterator over the database.
-	itr() databaseIterator
-}
-
-// databaseIterator iterates over the contents of a contactDatabase.
-type databaseIterator interface {
-	// next advances the iterator to the next trackfile in the database.
-	// It returns false when the iterator has passed the last trackfile.
-	next() bool
-	// reset the iterator to the beginning.
-	reset()
-	// value returns the trackfile at the current position of the iterator.
-	// It should only be called after Next returns true.
-	value() *trackfiles.Trackfile
+	// values iterates over all trackfiles in the database.
+	values() iter.Seq[*trackfiles.Trackfile]
 }
 
 type database struct {
@@ -65,6 +55,7 @@ func newContactDatabase() contactDatabase {
 
 // getByCallsignAndCoalititon implements [contactDatabase.getByCallsignAndCoalititon].
 func (d *database) getByCallsignAndCoalititon(callsign string, coalition coalitions.Coalition) (string, *trackfiles.Trackfile, bool) {
+	logger := log.With().Str("callsign", callsign).Str("coalition", coalition.String()).Logger()
 	d.lock.RLock()
 	defer d.lock.RUnlock()
 
@@ -77,14 +68,14 @@ func (d *database) getByCallsignAndCoalititon(callsign string, coalition coaliti
 		for k := range d.callsignIdx[coalition] {
 			keys = append(keys, k)
 		}
-		log.Info().Str("callsign", callsign).Msg("callsign not found in index, attempting fuzzy search")
+		logger.Info().Msg("callsign not found in index, attempting fuzzy search")
 		var err error
 		foundCallsign, err = fuzz.FuzzySearchThreshold(callsign, keys, 0.63, fuzz.Levenshtein)
 		if foundCallsign == "" || err != nil {
-			log.Warn().Err(err).Str("callsign", callsign).Msg("callsign not found in index")
+			logger.Warn().Err(err).Msg("callsign not found in index")
 			return "", nil, false
 		}
-		log.Info().Str("callsign", callsign).Str("foundCallsign", foundCallsign).Msg("similar callsign found in index")
+		logger.Info().Str("foundCallsign", foundCallsign).Msg("similar callsign found in index")
 		unitId = d.callsignIdx[coalition][foundCallsign]
 	}
 	contact, ok := d.contacts[unitId]
@@ -146,55 +137,14 @@ func (d *database) delete(unitId uint32) bool {
 	return ok
 }
 
-// itr implements [contactDatabase.itr].
-func (d *database) itr() databaseIterator {
+// values implements [contactDatabase.values].
+func (d *database) values() iter.Seq[*trackfiles.Trackfile] {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
 
-	// Iterate over a copy, for thread safety
-	unitIds := make([]uint32, 0, len(d.contacts))
-	copy := make(map[uint32]*trackfiles.Trackfile)
-	for unitId := range d.contacts {
-		unitIds = append(unitIds, unitId)
-		copy[unitId] = d.contacts[unitId]
+	contacts := make([]*trackfiles.Trackfile, 0, len(d.contacts))
+	for _, contact := range d.contacts {
+		contacts = append(contacts, contact)
 	}
-
-	return newDatabaseIterator(unitIds, func(id uint32) (*trackfiles.Trackfile, bool) {
-		contact, ok := copy[id]
-		return contact, ok
-	})
-}
-
-type iterator struct {
-	cursor  int
-	unitIds []uint32
-	getFn   func(uint32) (*trackfiles.Trackfile, bool)
-}
-
-func newDatabaseIterator(unitIds []uint32, getFn func(uint32) (*trackfiles.Trackfile, bool)) databaseIterator {
-	return &iterator{
-		cursor:  -1,
-		unitIds: unitIds,
-		getFn:   getFn,
-	}
-}
-
-// next implements [iterator.next].
-func (i *iterator) next() bool {
-	i.cursor++
-	return i.cursor < len(i.unitIds)
-}
-
-// reset implements [iterator.reset].
-func (i *iterator) reset() {
-	i.cursor = -1
-}
-
-// value implements [iterator.value].
-func (i *iterator) value() *trackfiles.Trackfile {
-	contact, ok := i.getFn(i.unitIds[i.cursor])
-	if !ok {
-		return nil
-	}
-	return contact
+	return slices.Values(contacts)
 }

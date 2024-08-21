@@ -206,9 +206,7 @@ func (s *scope) handleUpdate(update sim.Updated) {
 
 // handleGarbageCollection removes trackfiles that have not been updated in a long time.
 func (s *scope) handleGarbageCollection() {
-	itr := s.contacts.itr()
-	for itr.next() {
-		trackfile := itr.value()
+	for trackfile := range s.contacts.values() {
 		logger := log.With().
 			Int("unitID", int(trackfile.Contact.UnitID)).
 			Str("name", trackfile.Contact.Name).
