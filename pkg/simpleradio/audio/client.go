@@ -50,6 +50,8 @@ type audioClient struct {
 
 	// busy indicates if there is a transmission in progress.
 	busy sync.Mutex
+
+	mute bool
 }
 
 // rxState contains the state of the current received transmission.
@@ -82,6 +84,7 @@ func NewClient(guid types.GUID, config types.ClientConfiguration) (AudioClient, 
 		lastRx:       rxState{},
 		packetNumber: 1,
 		busy:         sync.Mutex{},
+		mute:         config.Mute,
 	}, nil
 }
 

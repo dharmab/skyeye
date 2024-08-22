@@ -42,6 +42,8 @@ type Configuration struct {
 	WhisperModel *whisper.Model
 	// Voice is the voice used for SRS transmissions
 	Voice voices.Voice
+	// Mute disables SRS transmissions
+	Mute bool
 	// Piper playback speed (default is 1.0) - The higher the value the slower it is.
 	PlaybackSpeed float32
 	// Piper playback pause after every sentence in seconds (default is 0.2)

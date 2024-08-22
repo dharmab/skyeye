@@ -47,6 +47,7 @@ var (
 	telemetryUpdateInterval      time.Duration
 	whisperModelPath             string
 	voiceName                    string
+	mute                         bool
 	playbackSpeed                string
 	playbackPause                time.Duration
 	enableAutomaticPicture       bool
@@ -99,6 +100,7 @@ func init() {
 	playbackSpeedFlag := NewEnum(&playbackSpeed, "string", "standard", "veryslow", "slow", "fast", "veryfast")
 	skyeye.Flags().Var(playbackSpeedFlag, "voice-playback-speed", "How fast the GCI speaks")
 	skyeye.Flags().DurationVar(&playbackPause, "voice-playback-pause", 200*time.Millisecond, "How long the GCI pauses between sentences")
+	skyeye.Flags().BoolVar(&mute, "mute", false, "Mute all SRS transmissions. Useful for testing without disrupting play")
 
 	// Controller behavior
 	skyeye.Flags().BoolVar(&enableAutomaticPicture, "auto-picture", true, "Enable automatic PICTURE broadcasts")
@@ -354,6 +356,7 @@ func Supervise(cmd *cobra.Command, args []string) {
 		RadarSweepInterval:           telemetryUpdateInterval,
 		WhisperModel:                 whisperModel,
 		Voice:                        voice,
+		Mute:                         mute,
 		PlaybackSpeed:                playbackSpeed,
 		PlaybackPause:                playbackPause,
 		EnableThreatMonitoring:       enableThreatMonitoring,
