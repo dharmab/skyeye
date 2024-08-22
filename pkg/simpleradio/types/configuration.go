@@ -24,4 +24,6 @@ type ClientConfiguration struct {
 	Radio Radio
 	// AllowRecording corresponds to ClientInfo.AllowRecording
 	AllowRecording bool
+	// Mute is true if the client should not transmit
+	Mute bool
 }

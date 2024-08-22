@@ -74,6 +74,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 				Modulation:       srs.ModulationAM,
 				ShouldRetransmit: true,
 			},
+			Mute: config.Mute,
 		},
 	)
 	if err != nil {

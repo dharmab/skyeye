@@ -14,7 +14,10 @@ func (c *audioClient) transmit(ctx context.Context, packetCh <-chan []voice.Voic
 	for {
 		select {
 		case packets := <-packetCh:
-			c.tx(packets)
+			if !c.mute {
+				c.tx(packets)
+			}
+
 			// Pause between transmissions to sound more natural.
 			pause := time.Duration(500+rand.Intn(500)) * time.Millisecond
 			time.Sleep(pause)
