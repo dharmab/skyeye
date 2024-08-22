@@ -18,6 +18,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/recognizer"
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
+	"github.com/dharmab/skyeye/pkg/simpleradio/audio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/synthesizer/speakers"
 	tacview "github.com/dharmab/skyeye/pkg/tacview/client"
@@ -258,24 +259,31 @@ func (a *app) Run(ctx context.Context, wg *sync.WaitGroup) error {
 
 // recognize runs speech recognition on audio received from SRS and forwards recognized text to the given channel.
 func (a *app) recognize(ctx context.Context, out chan<- string) {
+	audioCh := a.srsClient.Receive()
 	for {
 		select {
 		case <-ctx.Done():
 			log.Info().Msg("stopping speech recognition due to context cancellation")
 			return
-		case sample := <-a.srsClient.Receive():
-			log.Info().Msg("recognizing audio sample")
-			start := time.Now()
-			text, err := a.recognizer.Recognize(sample)
-			if err != nil {
-				log.Error().Err(err).Msg("error recognizing audio sample")
-			} else if text == "" || text == "[BLANK AUDIO]\n" {
-				log.Info().Str("text", text).Msg("unable to recognize any words in audio sample")
-			} else {
-				log.Info().Stringer("clockTime", time.Since(start)).Str("text", text).Msg("recognized audio")
-				out <- text
-			}
+		case sample := <-audioCh:
+			a.recognizeSample(ctx, sample, out)
 		}
+	}
+}
+
+func (a *app) recognizeSample(ctx context.Context, sample audio.Audio, out chan<- string) {
+	recogCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	log.Info().Msg("recognizing audio sample")
+	start := time.Now()
+	text, err := a.recognizer.Recognize(recogCtx, sample)
+	if err != nil {
+		log.Error().Err(err).Msg("error recognizing audio sample")
+	} else if text == "" || text == "[BLANK AUDIO]\n" {
+		log.Info().Str("text", text).Msg("unable to recognize any words in audio sample")
+	} else {
+		log.Info().Stringer("clockTime", time.Since(start)).Str("text", text).Msg("recognized audio")
+		out <- text
 	}
 }
 
