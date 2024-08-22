@@ -6,7 +6,11 @@ This is a technical article on how to deploy SkyEye, targeted at multiplayer ser
 
 ## Major Known Issues
 
+- **High**: SkyEye does not automatically reconnect to SRS if the connection is lost. It must be manually restarted if this happens. [Bug tracked here](https://github.com/dharmab/skyeye/issues/221)
+- **High**: SkyEye may stop recognizing speech for no aparent reason after running for a while. It must be restarted if this happens. [Bug tracked here](https://github.com/dharmab/skyeye/issues/219).
+- **Medium**: Threat monitoring is not functional. [Bug tracked here](https://github.com/dharmab/skyeye/issues/218).
 - **Medium**: SkyEye will not report about hostile contacts below 50 knots. Unfortunately, this includes hostile helicopters that are moving slowly or hovering. [Bug tracked here](https://github.com/dharmab/skyeye/issues/65).
+- **Low**: The bot may interrupt players who are speaking. [Bug tracked here.](https://github.com/dharmab/skyeye/issues/220)
 - See also [this section in the player guide](PLAYER.md#a-word-of-warning) about the bots' limitations.
 
 ## System Architecture
@@ -169,6 +173,10 @@ WantedBy=multi-user.target
 ```
 
 Edit the config file as required using `sudoedit /etc/skyeye/config.yaml`.
+
+### Container (Experimental)
+
+An experimental container image is available at `ghcr.io/dharmab/skyeye`. This image is only functional on Linux; it will not work correctly on Windows or macOS. It is subject to the same dedicated CPU requirements as the native binary.
 
 ### Service Management
 
