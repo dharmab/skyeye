@@ -34,7 +34,8 @@ SKYEYE_ELF = skyeye
 WHISPER_CPP_PATH = third_party/whisper.cpp
 LIBWHISPER_PATH = $(WHISPER_CPP_PATH)/libwhisper.a
 WHISPER_H_PATH = $(WHISPER_CPP_PATH)/whisper.h
-WHISPER_CPP_VERSION = v1.6.2
+WHISPER_CPP_REPO = https://github.com/dharmab/whisper.cpp.git
+WHISPER_CPP_VERSION = v1.6.2-openmp
 
 # Compiler variables and flags
 BUILD_VARS = CGO_ENABLED=1 \
@@ -105,7 +106,7 @@ install-macos-dependencies:
 	  libsoxr
 
 $(LIBWHISPER_PATH) $(WHISPER_H_PATH):
-	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false https://github.com/ggerganov/whisper.cpp.git "$(WHISPER_CPP_PATH)" && make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
+	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false "$(WHISPER_CPP_REPO)" "$(WHISPER_CPP_PATH)" && make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
 
 .PHONY: whisper
 whisper: $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
