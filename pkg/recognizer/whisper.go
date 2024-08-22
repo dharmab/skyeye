@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 	"github.com/rs/zerolog/log"
@@ -48,6 +49,7 @@ func (r *whisperRecognizer) Recognize(sample []float32) (string, error) {
 		return "", fmt.Errorf("error processing sample: %w", err)
 	}
 
+	start := time.Now()
 	var textBuilder strings.Builder
 	for {
 		segment, err := wCtx.NextSegment()
@@ -56,6 +58,10 @@ func (r *whisperRecognizer) Recognize(sample []float32) (string, error) {
 		}
 		if err != nil {
 			return textBuilder.String(), fmt.Errorf("error processing segment: %w", err)
+		}
+		if time.Since(start) > 30*time.Second {
+			log.Warn().Msg("timed out while processing segments")
+			break
 		}
 
 		textBuilder.WriteString(fmt.Sprintf("%s\n", segment.Text))
