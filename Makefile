@@ -84,7 +84,7 @@ install-arch-linux-dependencies:
 	  base-devel \
 	  go \
 	  opus \
-	  soxr
+	  libsoxr
 
 .PHONY: install-debian-dependencies
 install-debian-dependencies:
