@@ -68,7 +68,7 @@ func (t *controller) broadcastThreats() {
 		}
 
 		if t.threatMonitoringRequiresSRS && !isOnFrequency {
-			logger.Trace().Msg("supressing threat call because units are not on frequency")
+			logger.Info().Uints32("unitIDs", unitIDs).Msg("supressing threat call because units are not on frequency")
 			continue
 		}
 
@@ -80,7 +80,7 @@ func (t *controller) broadcastThreats() {
 			}
 		}
 		if recentlyNotified {
-			logger.Trace().Msg("supressing threat call because a call was recently broadcast for this threat")
+			logger.Info().Uints32("threatIDs", group.UnitIDs()).Msg("supressing threat call because a call was recently broadcast for this threat")
 			continue
 		}
 
