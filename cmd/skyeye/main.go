@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -156,7 +157,7 @@ func initializeConfig(cmd *cobra.Command) error {
 	v.SetConfigFile(configFile)
 	if err := v.ReadInConfig(); err != nil {
 		// having no config file is fine
-		if !errors.Is(err, viper.ConfigFileNotFoundError{}) {
+		if !errors.Is(err, fs.ErrNotExist) {
 			return err
 		}
 	}
