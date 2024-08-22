@@ -35,10 +35,6 @@ func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32) (st
 	if err != nil {
 		return "", fmt.Errorf("error creating whisper context: %w", err)
 	}
-	err = wCtx.SetLanguage("en")
-	if err != nil {
-		return "", fmt.Errorf("error setting language: %w", err)
-	}
 	prompt := fmt.Sprintf("You are a Ground Control Intercept (GCI) operator. You recognize speech in the format ['Anyface' / '%s'] [CALLSIGN] [DIGITS] ['RADIO' or 'ALPHA' or 'BOGEY' or 'PICTURE' or 'DECLARE' or 'SNAPLOCK' or 'SPIKED'] [ARGUMENTS]. Parse numbers as digits.", r.callsign)
 	wCtx.SetInitialPrompt(prompt)
 
