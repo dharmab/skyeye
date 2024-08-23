@@ -71,6 +71,7 @@ func NewClient(guid types.GUID, config types.ClientConfiguration) (DataClient, e
 			Position: &types.Position{},
 		},
 		externalAWACSModePassword: config.ExternalAWACSModePassword,
+		clients:                   make(map[types.GUID]types.ClientInfo),
 	}
 	return client, nil
 }

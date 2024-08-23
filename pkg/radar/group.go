@@ -195,13 +195,17 @@ func (g *group) String() string {
 		)
 	}
 
-	return fmt.Sprintf(
+	s := fmt.Sprintf(
 		"%s %s (%d) %s",
 		location,
 		g.Declaration(),
 		g.Contacts(),
 		strings.Join(g.Platforms(), ","),
 	)
+	if g.isThreat {
+		s = "THREAT " + s
+	}
+	return s
 }
 
 // category of the group
