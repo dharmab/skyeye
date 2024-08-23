@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
+	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
 
@@ -171,7 +172,7 @@ func (c *dataClient) handleMessage(message types.Message) {
 	case types.MessageRadioUpdate:
 		c.syncClient(message.Client)
 	case types.MessageClientDisconnect:
-		c.syncClient(message.Client)
+		c.removeClient(message.Client)
 	case types.MessageExternalAWACSModePassword:
 		if message.Client.Coalition == c.clientInfo.Coalition {
 			log.Debug().Any("remoteClient", message.Client).Msg("received external AWACS mode password message")
@@ -204,21 +205,40 @@ func (c *dataClient) syncClient(other types.ClientInfo) {
 		return
 	}
 
+	if len(other.RadioInfo.Radios) == 0 {
+		return
+	}
+
+	frequencies := make([]string, 0)
+	for _, radio := range other.RadioInfo.Radios {
+		frequency := unit.Frequency(radio.Frequency) * unit.Hertz
+		if frequency.Megahertz() > 8 {
+			frequencies = append(frequencies, fmt.Sprint(frequency.Megahertz()))
+		}
+	}
+	log.Debug().
+		Str("name", other.Name).
+		Uint64("unitID", other.RadioInfo.UnitID).
+		Strs("frequencies", frequencies).
+		Msgf("synced with SRS client %q", other.Name)
+
 	isSameCoalition := c.clientInfo.Coalition == other.Coalition || types.IsSpectator(other.Coalition)
-	isSameFrequency := c.clientInfo.RadioInfo.IsOnFrequency(other.RadioInfo)
+	isOnFrequency := c.clientInfo.RadioInfo.IsOnFrequency(other.RadioInfo)
 
 	// if the other client has a matching radio and is not in an opposing coalition, store it in otherClients. Otherwise, banish it to the shadow realm.
 	c.clientsLock.Lock()
 	defer c.clientsLock.Unlock()
-	if isSameCoalition && isSameFrequency {
+	if isSameCoalition && isOnFrequency {
 		c.clients[other.GUID] = other
 	} else {
-		_, ok := c.clients[other.GUID]
-		if ok {
-			delete(c.clients, other.GUID)
-			// TODO memory leak here due to continually adding and removing clients from the map. https://100go.co/28-maps-memory-leaks/
-		}
+		delete(c.clients, other.GUID)
 	}
+}
+
+func (c *dataClient) removeClient(info types.ClientInfo) {
+	c.clientsLock.Lock()
+	defer c.clientsLock.Unlock()
+	delete(c.clients, info.GUID)
 }
 
 // Send implements DataClient.Send.
@@ -295,8 +315,7 @@ func (c *dataClient) IsOnFrequency(name string) bool {
 	defer c.clientsLock.RUnlock()
 	for _, client := range c.clients {
 		if client.Name == name {
-			radioMatches := c.clientInfo.RadioInfo.IsOnFrequency(client.RadioInfo)
-			if radioMatches {
+			if ok := c.clientInfo.RadioInfo.IsOnFrequency(client.RadioInfo); ok {
 				return true
 			}
 		}

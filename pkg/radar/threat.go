@@ -12,12 +12,16 @@ import (
 func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint64 {
 	threats := make(map[*group][]uint64)
 	hostileGroups := s.enumerateGroups(coalition)
+	radius := 100 * unit.NauticalMile
+	if s.mandatoryThreatRadius > radius {
+		radius = s.mandatoryThreatRadius
+	}
 	for _, grp := range hostileGroups {
 		friendlyGroups := s.findNearbyGroups(
 			grp.point(),
 			0,
 			math.MaxFloat64,
-			100*unit.NauticalMile,
+			radius,
 			coalition.Opposite(),
 			brevity.Aircraft,
 		)

@@ -107,7 +107,7 @@ type Radar interface {
 	) brevity.Group
 	// SetFadedCallback sets the callback function to be called when a trackfile fades.
 	SetFadedCallback(FadedCallback)
-
+	// Threats returns a map of threat groups of the given coalition to threatened object IDs.
 	Threats(coalitions.Coalition) map[brevity.Group][]uint64
 }
 

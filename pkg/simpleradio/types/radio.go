@@ -1,6 +1,8 @@
 package types
 
-import "math"
+import (
+	"math"
+)
 
 // This file implements types from https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/master/DCS-SR-Common/DCSState/RadioInformation.cs
 
@@ -44,13 +46,9 @@ type Radio struct {
 
 // IsSameFrequency is true if the other radio has the same frequency, modulation, and encryption settings as this radio.
 func (r Radio) IsSameFrequency(other Radio) bool {
-	isSame := false
 	// 1KHz range acceptable
 	doesFrequencyMatch := math.Abs(float64(r.Frequency)-float64(other.Frequency)) <= 500.0
 	doesModulationMatch := r.Modulation == other.Modulation
 	doesEncryptionMatch := (!r.IsEncrypted && !other.IsEncrypted) || (r.IsEncrypted && other.IsEncrypted && r.EncryptionKey == other.EncryptionKey)
-	if doesFrequencyMatch && doesModulationMatch && doesEncryptionMatch {
-		isSame = true
-	}
-	return isSame
+	return doesFrequencyMatch && doesModulationMatch && doesEncryptionMatch
 }

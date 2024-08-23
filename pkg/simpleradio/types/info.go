@@ -1,6 +1,8 @@
 package types
 
-import "github.com/dharmab/skyeye/pkg/coalitions"
+import (
+	"github.com/dharmab/skyeye/pkg/coalitions"
+)
 
 // ClientInfo is information about the client included in the message
 type ClientInfo struct {
