@@ -46,7 +46,7 @@ type streamer struct {
 	// cursorTime is the mission time of the frame currently being processed.
 	cursorTime time.Time
 	// objects maps object IDs to data.
-	objects map[int]*types.Object
+	objects map[uint64]*types.Object
 	// objectsLock protects the objects map.
 	objectsLock sync.RWMutex
 	// removals is an internal channel for passing messages when objects are removed.
@@ -67,7 +67,7 @@ type streamer struct {
 func New(acmi *bufio.Reader, updateInterval time.Duration) ACMI {
 	return &streamer{
 		acmi:           acmi,
-		objects:        make(map[int]*types.Object),
+		objects:        make(map[uint64]*types.Object),
 		removals:       make(chan *types.Object),
 		updateInterval: updateInterval,
 	}
@@ -199,7 +199,7 @@ func (s *streamer) handleLine(line string) error {
 		return nil
 	}
 
-	logger = logger.With().Int("id", update.ID).Logger()
+	logger = logger.With().Uint64("id", update.ID).Logger()
 
 	s.objectsLock.Lock()
 	defer s.objectsLock.Unlock()
@@ -234,7 +234,7 @@ func (s *streamer) Stream(ctx context.Context, updates chan<- sim.Updated, fades
 		case object := <-s.removals:
 			fades <- sim.Faded{
 				Timestamp: time.Now(),
-				UnitID:    uint32(object.ID),
+				ID:        object.ID,
 			}
 		case <-ticker.C:
 			s.processUpdates(updates)
@@ -247,7 +247,7 @@ func (s *streamer) processUpdates(updates chan<- sim.Updated) {
 	s.objectsLock.Lock()
 	defer s.objectsLock.Unlock()
 	for _, object := range s.objects {
-		logger := log.With().Int("id", object.ID).Logger()
+		logger := log.With().Uint64("id", object.ID).Logger()
 		types, err := object.GetTypes()
 		if err != nil {
 			logger.Error().Err(err).Msg("error getting object types")
@@ -268,7 +268,7 @@ func (s *streamer) processUpdates(updates chan<- sim.Updated) {
 
 // updateAircraft publishes an update for an aircraft object. It wraps buildUpdate with logging and error handling.
 func (s *streamer) updateAircraft(updates chan<- sim.Updated, object *types.Object) error {
-	logger := log.With().Int("id", object.ID).Logger()
+	logger := log.With().Uint64("id", object.ID).Logger()
 
 	update, err := s.buildUpdate(object)
 	if err != nil {
@@ -283,7 +283,7 @@ func (s *streamer) updateAircraft(updates chan<- sim.Updated, object *types.Obje
 
 // updateBullseye indexes the given bullseye object in the bullseyes index.
 func (s *streamer) updateBullseye(object *types.Object) {
-	logger := log.With().Int("id", object.ID).Logger()
+	logger := log.With().Uint64("id", object.ID).Logger()
 	prop, ok := object.GetProperty(properties.Coalition)
 	if !ok {
 		logger.Warn().Msg("bullseye has no coalition")
@@ -299,7 +299,7 @@ func (s *streamer) Bullseye(coalition coalitions.Coalition) (orb.Point, error) {
 	if !ok {
 		return orb.Point{}, errors.New("bullseye for coalition not found")
 	}
-	objectID := val.(int)
+	objectID := val.(uint64)
 	s.objectsLock.RLock()
 	defer s.objectsLock.RUnlock()
 	object, ok := s.objects[objectID]
@@ -363,7 +363,7 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 
 	return &sim.Updated{
 		Labels: trackfiles.Labels{
-			UnitID:    uint32(object.ID),
+			ID:        object.ID,
 			Name:      callsign,
 			Coalition: coalition,
 			ACMIName:  name,

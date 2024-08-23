@@ -13,8 +13,8 @@ func (s *scope) FindCallsign(callsign string, coalition coalitions.Coalition) (s
 	return foundCallsign, tf
 }
 
-func (s *scope) FindUnit(unitId uint32) *trackfiles.Trackfile {
-	trackfile, ok := s.contacts.getByUnitID(unitId)
+func (s *scope) FindUnit(id uint64) *trackfiles.Trackfile {
+	trackfile, ok := s.contacts.getByID(id)
 	if !ok {
 		return nil
 	}

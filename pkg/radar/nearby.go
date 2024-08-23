@@ -12,9 +12,9 @@ import (
 func (s *scope) findNearbyGroups(pointOfInterest orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) []*group {
 	circle := geo.NewBoundAroundPoint(pointOfInterest, radius.Meters())
 	groups := make([]*group, 0)
-	visited := make(map[uint32]struct{})
+	visited := make(map[uint64]struct{})
 	for trackfile := range s.contacts.values() {
-		if _, ok := visited[trackfile.Contact.UnitID]; ok {
+		if _, ok := visited[trackfile.Contact.ID]; ok {
 			continue
 		}
 		isMatch := s.isMatch(trackfile, coalition, filter)
@@ -22,7 +22,7 @@ func (s *scope) findNearbyGroups(pointOfInterest orb.Point, minAltitude, maxAlti
 		inStack := minAltitude <= trackfile.LastKnown().Altitude && trackfile.LastKnown().Altitude <= maxAltitude
 		if isMatch && inCircle && inStack {
 			grp := s.findGroupForAircraft(trackfile)
-			for _, id := range grp.UnitIDs() {
+			for _, id := range grp.ObjectIDs() {
 				visited[id] = struct{}{}
 			}
 			groups = append(groups, grp)

@@ -14,7 +14,7 @@ type cooldownTracker struct {
 	cooldown time.Duration
 	// cooldowns maps unit IDs to the time at which the the threat cooldown expires. The threat cooldown suppresses
 	// threat calls for the threat with the given unit ID.
-	cooldowns map[uint32]time.Time
+	cooldowns map[uint64]time.Time
 	// lock used to synchronize access to the cooldowns map.
 	lock sync.RWMutex
 }
@@ -22,21 +22,21 @@ type cooldownTracker struct {
 func newCooldownTracker(cooldown time.Duration) *cooldownTracker {
 	return &cooldownTracker{
 		cooldown:  cooldown,
-		cooldowns: make(map[uint32]time.Time),
+		cooldowns: make(map[uint64]time.Time),
 	}
 }
 
-func (t *cooldownTracker) extendCooldown(unitID uint32) {
+func (t *cooldownTracker) extendCooldown(id uint64) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
-	t.cooldowns[unitID] = time.Now().Add(t.cooldown)
+	t.cooldowns[id] = time.Now().Add(t.cooldown)
 }
 
-func (t *cooldownTracker) isOnCooldown(unitID uint32) bool {
+func (t *cooldownTracker) isOnCooldown(id uint64) bool {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
 
-	cooldown, ok := t.cooldowns[unitID]
+	cooldown, ok := t.cooldowns[id]
 	if !ok {
 		return false
 	}
@@ -44,10 +44,10 @@ func (t *cooldownTracker) isOnCooldown(unitID uint32) bool {
 	return time.Now().Before(cooldown)
 }
 
-func (t *cooldownTracker) remove(unitID uint32) {
+func (t *cooldownTracker) remove(id uint64) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
-	delete(t.cooldowns, unitID)
+	delete(t.cooldowns, id)
 }
 
 func (t *controller) broadcastThreats() {
@@ -56,53 +56,48 @@ func (t *controller) broadcastThreats() {
 	}
 
 	threats := t.scope.Threats(t.coalition.Opposite())
-	for group, unitIDs := range threats {
-		logger := log.With().Stringer("group", group).Uints32("unitIDs", unitIDs).Logger()
-		isOnFrequency := false
-		for _, unitID := range unitIDs {
-			if t.srsClient.IsOnFrequency(unitID) {
-				isOnFrequency = true
-			}
-			// if only one unit of multiple is on frequency, we still use bullsye instead
-			// of BRAA. can we do better?
-		}
-
-		if t.threatMonitoringRequiresSRS && !isOnFrequency {
-			logger.Info().Uints32("unitIDs", unitIDs).Msg("supressing threat call because units are not on frequency")
-			continue
-		}
+	for group, ids := range threats {
+		logger := log.With().Stringer("group", group).Uints64("ids", ids).Logger()
 
 		recentlyNotified := true
-		for threatID := range group.UnitIDs() {
-			if !t.threatCooldowns.isOnCooldown(uint32(threatID)) {
+		for _, threatID := range group.ObjectIDs() {
+			if !t.threatCooldowns.isOnCooldown(threatID) {
 				recentlyNotified = false
 				break
 			}
 		}
 		if recentlyNotified {
-			logger.Info().Uints32("threatIDs", group.UnitIDs()).Msg("supressing threat call because a call was recently broadcast for this threat")
+			logger.Debug().Uints64("threatIDs", group.ObjectIDs()).Msg("supressing threat call because a call was recently broadcast for this threat")
 			continue
-		}
-
-		for threatID := range group.UnitIDs() {
-			t.threatCooldowns.extendCooldown(uint32(threatID))
 		}
 
 		group.SetDeclaration(brevity.Hostile)
 		group.SetThreat(true)
 		call := brevity.ThreatCall{Group: group}
 
-		for _, unitID := range unitIDs {
-			if trackfile := t.scope.FindUnit(unitID); trackfile != nil {
-				if callsign, ok := parser.ParsePilotCallsign(trackfile.Contact.ACMIName); ok {
-					if !slices.Contains(call.Callsigns, callsign) {
-						call.Callsigns = append(call.Callsigns, callsign)
+		for _, id := range ids {
+			if trackfile := t.scope.FindUnit(id); trackfile != nil {
+				isOnFrequency := t.srsClient.IsOnFrequency(trackfile.Contact.Name)
+				if !t.threatMonitoringRequiresSRS || isOnFrequency {
+					if callsign, ok := parser.ParsePilotCallsign(trackfile.Contact.Name); ok {
+						if !slices.Contains(call.Callsigns, callsign) {
+							call.Callsigns = append(call.Callsigns, callsign)
+						}
 					}
 				}
 			}
 		}
 
+		if len(call.Callsigns) == 0 {
+			logger.Debug().Msg("skipping threat call because there is no one to notify")
+			continue
+		}
+
 		logger.Info().Any("call", call).Msg("broadcasting threat call for group")
 		t.out <- call
+
+		for _, threatID := range group.ObjectIDs() {
+			t.threatCooldowns.extendCooldown(threatID)
+		}
 	}
 }

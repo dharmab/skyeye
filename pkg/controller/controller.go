@@ -88,8 +88,8 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 
 	log.Info().Msg("attaching FADED callback")
 	c.scope.SetFadedCallback(func(group brevity.Group, coalition coalitions.Coalition) {
-		for _, id := range group.UnitIDs() {
-			c.threatCooldowns.remove(uint32(id))
+		for _, id := range group.ObjectIDs() {
+			c.threatCooldowns.remove(id)
 		}
 		if coalition == c.coalition.Opposite() {
 			group.SetDeclaration(brevity.Hostile)
@@ -98,7 +98,7 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 		}
 	})
 
-	log.Info().Int("frequency", int(c.frequency.Megahertz())).Msg("broadcasting SUNRISE call")
+	log.Info().Float64("frequency", c.frequency.Megahertz()).Msg("broadcasting SUNRISE call")
 	c.out <- brevity.SunriseCall{Frequency: c.frequency}
 
 	ticker := time.NewTicker(10 * time.Second)

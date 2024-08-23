@@ -287,7 +287,7 @@ The GCI controller monitors for threats which are near or approaching friendly a
 
 Threat locations are given in BRAA format if they are relevant to a single friendly aircraft, or Bullseye calls if they are relevant to multiple friendly aircraft.
 
-Your own aircraft must be on the SRS frequency to receive THREAT monitoring.
+Your own aircraft must be on the SRS frequency, and using the same name in DCS and in SRS, to receive THREAT monitoring.
 
 ### FADED
 

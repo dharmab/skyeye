@@ -48,6 +48,6 @@ type Group interface {
 	VeryFast() bool
 	// String returns a human-readable description of the group.
 	String() string
-	// UnitIDs returns the unit IDs of all contacts in the group.
-	UnitIDs() []uint32
+	// ObjectIDs returns the object IDs of all contacts in the group.
+	ObjectIDs() []uint64
 }

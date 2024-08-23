@@ -38,6 +38,6 @@ type Faded struct {
 	Timestamp time.Time
 	// Mission time when the aircraft disappeared.
 	MissionTimestamp time.Time
-	// UnitID of the aircraft that disappeared.
-	UnitID uint32
+	// ID of the aircraft that disappeared.
+	ID uint64
 }
