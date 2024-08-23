@@ -186,7 +186,8 @@ Providing the optional arguments can help the GCI distinguish between contacts. 
 Examples:
 
 ```
-// TODO
+MOBUIS 1: Thunderhead, Mobius One, declare two three zero, twelve, twelve thousands.
+THUNDERHEAD: Mobius One, Group bullseye 273/27, 2200, track east, hostile, Flanker.
 ```
 
 ### PICTURE
