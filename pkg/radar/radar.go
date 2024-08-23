@@ -36,7 +36,7 @@ type Radar interface {
 	// The returned callsign may differ from the input callsign!
 	FindCallsign(string, coalitions.Coalition) (string, *trackfiles.Trackfile)
 	// FindUnit returns the trackfile for the given unit ID and coalition, or nil if no trackfile was found.
-	FindUnit(uint32) *trackfiles.Trackfile
+	FindUnit(uint64) *trackfiles.Trackfile
 	// GetPicture returns a picture of the radar scope anchored at the center point, within the given radius,
 	// filtered by the given coalition and contact category. The first return value is the total number of groups
 	// and the second is a slice of up to to 3 high priority groups. Each group has Bullseye set relative to the
@@ -108,7 +108,7 @@ type Radar interface {
 	// SetFadedCallback sets the callback function to be called when a trackfile fades.
 	SetFadedCallback(FadedCallback)
 
-	Threats(coalitions.Coalition) map[brevity.Group][]uint32
+	Threats(coalitions.Coalition) map[brevity.Group][]uint64
 }
 
 var _ Radar = &scope{}
@@ -191,10 +191,10 @@ func (s *scope) handleUpdate(update sim.Updated) {
 	logger := log.With().
 		Str("name", update.Labels.Name).
 		Str("aircraft", update.Labels.ACMIName).
-		Int("unitID", int(update.Labels.UnitID)).
+		Uint64("id", update.Labels.ID).
 		Logger()
 
-	trackfile, ok := s.contacts.getByUnitID(update.Labels.UnitID)
+	trackfile, ok := s.contacts.getByID(update.Labels.ID)
 	if ok {
 		trackfile.Update(update.Frame)
 	} else {
@@ -208,14 +208,14 @@ func (s *scope) handleUpdate(update sim.Updated) {
 func (s *scope) handleGarbageCollection() {
 	for trackfile := range s.contacts.values() {
 		logger := log.With().
-			Int("unitID", int(trackfile.Contact.UnitID)).
+			Uint64("id", trackfile.Contact.ID).
 			Str("name", trackfile.Contact.Name).
 			Str("aircraft", trackfile.Contact.ACMIName).
 			Logger()
 
 		lastSeen := trackfile.LastKnown().Time
 		if lastSeen.Before(s.missionTime.Add(-1 * time.Minute)) {
-			s.contacts.delete(trackfile.Contact.UnitID)
+			s.contacts.delete(trackfile.Contact.ID)
 			logger.Info().
 				Dur("age", s.missionTime.Sub(lastSeen)).
 				Msg("removed aged out trackfile")

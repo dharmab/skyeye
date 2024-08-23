@@ -151,7 +151,7 @@ func TestTracking(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			trackfile := NewTrackfile(Labels{
-				UnitID:    1,
+				ID:        1,
 				ACMIName:  "F-15C",
 				Name:      "Eagle 1",
 				Coalition: coalitions.Blue,

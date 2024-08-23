@@ -25,7 +25,8 @@ type DataClient interface {
 	Run(context.Context, *sync.WaitGroup, chan<- any) error
 	// Send sends a message to the SRS server.
 	Send(types.Message) error
-	IsOnFrequency(unitID uint32) bool
+	// IsOnFrequency checks if the named unit is on the client's frequency.
+	IsOnFrequency(string) bool
 }
 
 type dataClient struct {
@@ -35,8 +36,10 @@ type dataClient struct {
 	clientInfo types.ClientInfo
 	// externalAWACSModePassword is the password for authenticating as an external AWACS in the SRS server.
 	externalAWACSModePassword string
-	// otherClients is a map of GUIDs to client info, which the bot will use to filter out other clients that are not in the same coalition and frequency.
-	otherClients map[types.GUID]types.ClientInfo
+	// clients is a map of GUIDs to client info, which the bot will use to filter out other clients that are not in the same coalition and frequency.
+	clients map[types.GUID]types.ClientInfo
+	// clientsLock controls access to the otherClients map.
+	clientsLock sync.RWMutex
 	// lastReceived is the most recent time data was received. If this exceeds a data timeout, we have likely been disconnected from the server.
 	lastReceived time.Time
 }
@@ -55,11 +58,9 @@ func NewClient(guid types.GUID, config types.ClientConfiguration) (DataClient, e
 	client := &dataClient{
 		connection: connection,
 		clientInfo: types.ClientInfo{
-			Name:           config.ClientName,
-			GUID:           guid,
-			Seat:           0,
-			Coalition:      config.Coalition,
-			AllowRecording: false,
+			Name:      config.ClientName,
+			GUID:      guid,
+			Coalition: config.Coalition,
 			RadioInfo: types.RadioInfo{
 				UnitID:  100000002,
 				Unit:    "External AWACS",
@@ -70,7 +71,6 @@ func NewClient(guid types.GUID, config types.ClientConfiguration) (DataClient, e
 			Position: &types.Position{},
 		},
 		externalAWACSModePassword: config.ExternalAWACSModePassword,
-		otherClients:              map[types.GUID]types.ClientInfo{},
 	}
 	return client, nil
 }
@@ -203,17 +203,18 @@ func (c *dataClient) syncClient(other types.ClientInfo) {
 		return
 	}
 
+	isSameCoalition := c.clientInfo.Coalition == other.Coalition || types.IsSpectator(other.Coalition)
 	isSameFrequency := c.clientInfo.RadioInfo.IsOnFrequency(other.RadioInfo)
-	// isSameCoalition is true if the other client is in the same coalition as this client, or if the other client is a spectator.
-	isSameCoalition := (c.clientInfo.Coalition == other.Coalition) || types.IsSpectator(other.Coalition)
 
 	// if the other client has a matching radio and is not in an opposing coalition, store it in otherClients. Otherwise, banish it to the shadow realm.
+	c.clientsLock.Lock()
+	defer c.clientsLock.Unlock()
 	if isSameCoalition && isSameFrequency {
-		c.otherClients[other.GUID] = other
+		c.clients[other.GUID] = other
 	} else {
-		_, ok := c.otherClients[other.GUID]
+		_, ok := c.clients[other.GUID]
 		if ok {
-			delete(c.otherClients, other.GUID)
+			delete(c.clients, other.GUID)
 			// TODO memory leak here due to continually adding and removing clients from the map. https://100go.co/28-maps-memory-leaks/
 		}
 	}
@@ -287,11 +288,16 @@ func (c *dataClient) close() error {
 	return nil
 }
 
-// IsOnFrequency returns true if the given unit ID is on the same frequency as this client.
-func (c *dataClient) IsOnFrequency(unitID uint32) bool {
-	for _, other := range c.otherClients {
-		if other.RadioInfo.UnitID == uint64(unitID) {
-			return c.clientInfo.RadioInfo.IsOnFrequency(other.RadioInfo)
+// IsOnFrequency implements [DataClient.IsOnFrequency].
+func (c *dataClient) IsOnFrequency(name string) bool {
+	c.clientsLock.RLock()
+	defer c.clientsLock.RUnlock()
+	for _, client := range c.clients {
+		if client.Name == name {
+			radioMatches := c.clientInfo.RadioInfo.IsOnFrequency(client.RadioInfo)
+			if radioMatches {
+				return true
+			}
 		}
 	}
 	return false

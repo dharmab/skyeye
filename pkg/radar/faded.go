@@ -10,7 +10,7 @@ import (
 
 func isTrackfileInGroup(trackfile *trackfiles.Trackfile, grp *group) bool {
 	for _, contact := range grp.contacts {
-		if contact.Contact.UnitID == trackfile.Contact.UnitID {
+		if contact.Contact.ID == trackfile.Contact.ID {
 			return true
 		}
 	}
@@ -53,7 +53,7 @@ func (s *scope) handleFaded(fades []sim.Faded) {
 	var groups []group
 	for _, fade := range fades {
 		// Find the trackfile for the faded contact
-		trackfile, ok := s.contacts.getByUnitID(fade.UnitID)
+		trackfile, ok := s.contacts.getByID(fade.ID)
 		if !ok {
 			continue
 		}
@@ -77,7 +77,7 @@ func (s *scope) handleFaded(fades []sim.Faded) {
 
 	// remove the faded contacts from the database
 	for _, fade := range fades {
-		s.contacts.delete(fade.UnitID)
+		s.contacts.delete(fade.ID)
 	}
 
 	// call the faded callback for each group

@@ -21,7 +21,7 @@ func ParseTimeFrame(line string) (time.Duration, error) {
 }
 
 type ObjectUpdate struct {
-	ID         int
+	ID         uint64
 	IsGlobal   bool
 	IsRemoval  bool
 	Properties map[string]string
@@ -38,14 +38,14 @@ func ParseObjectUpdate(line string) (*ObjectUpdate, error) {
 	}
 
 	idStr, propertiesStr, _ := strings.Cut(line, ",")
-	id, err := strconv.ParseInt(idStr, 16, 64)
+	id, err := strconv.ParseUint(idStr, 16, 64)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing object ID: %w", err)
 	}
 	if id > math.MaxInt {
 		return nil, fmt.Errorf("object ID is too large: %d", id)
 	}
-	update.ID = int(id)
+	update.ID = id
 	if id == GlobalObjectID {
 		update.IsGlobal = true
 	}

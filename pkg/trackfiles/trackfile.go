@@ -18,8 +18,8 @@ import (
 
 // Labels are identifying information attached to a trackfile.
 type Labels struct {
-	// UnitID is the in-game ID.
-	UnitID uint32
+	// ID is the object ID from TacView.
+	ID uint64
 	// Name is a unique string for each aircraft.
 	// If this is a player's aircraft, it will be the player's in-game name.
 	Name string
@@ -64,7 +64,7 @@ func (t *Trackfile) String() string {
 	point := t.LastKnown().Point
 	return fmt.Sprintf(
 		"%d %s (%f.3, %f.3) %f.0 ft %f.0 kts %q",
-		t.Contact.UnitID,
+		t.Contact.ID,
 		t.Contact.ACMIName,
 		point.Lon(),
 		point.Lat(),

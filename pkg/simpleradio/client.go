@@ -26,8 +26,8 @@ type Client interface {
 	Receive() <-chan audio.Audio
 	// Transmit queues a transmission to send over the radio. The audio data should be in F32LE PCM format.
 	Transmit(audio.Audio)
-	// IsOnFrequency checks if the given unit ID is on the client's frequency.
-	IsOnFrequency(unitID uint32) bool
+	// IsOnFrequency checks if the named unit is on the client's frequency.
+	IsOnFrequency(string) bool
 }
 
 // client implements the SRS Client.
@@ -58,22 +58,22 @@ func NewClient(config types.ClientConfiguration) (Client, error) {
 	return client, nil
 }
 
-// Name implements Client.Name.
+// Name implements [Client.Name].
 func (c *client) Name() string {
 	return c.dataClient.Name()
 }
 
-// Frequency implements Client.Frequency.
+// Frequency implements [Client.Frequency].
 func (c *client) Frequency() float64 {
 	return c.audioClient.Frequency()
 }
 
-// FrequencyMHz implements Client.FrequencyMHz.
+// FrequencyMHz implements [Client.FrequencyMHz].
 func (c *client) FrequencyMHz() float64 {
 	return c.Frequency() / 1e6
 }
 
-// Run implements Client.Run.
+// Run implements [Client.Run].
 func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	errorChan := make(chan error)
 
@@ -109,17 +109,17 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	}
 }
 
-// Receive implements Client.Receive.
+// Receive implements [Client.Receive].
 func (c *client) Receive() <-chan audio.Audio {
 	return c.audioClient.Receive()
 }
 
-// Transmit implements Client.Transmit.
+// Transmit implements [Client.Transmit].
 func (c *client) Transmit(sample audio.Audio) {
 	c.audioClient.Transmit(sample)
 }
 
-// IsOnFrequency implements Client.IsOnFrequency.
-func (c *client) IsOnFrequency(unitID uint32) bool {
-	return c.dataClient.IsOnFrequency(unitID)
+// IsOnFrequency implements [Client.IsOnFrequency].
+func (c *client) IsOnFrequency(name string) bool {
+	return c.dataClient.IsOnFrequency(name)
 }

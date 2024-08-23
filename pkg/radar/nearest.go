@@ -44,7 +44,7 @@ func (s *scope) FindNearestTrackfile(
 		log.Debug().
 			Any("origin", origin).
 			Str("aircraft", nearestTrackfile.Contact.ACMIName).
-			Int("unitID", int(nearestTrackfile.Contact.UnitID)).
+			Uint64("id", nearestTrackfile.Contact.ID).
 			Int("altitude", int(nearestTrackfile.LastKnown().Altitude.Feet())).
 			Msg("found nearest contact")
 	} else {
@@ -129,7 +129,7 @@ func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 	nearestDistance := unit.Length(math.MaxFloat64)
 	var nearestContact *trackfiles.Trackfile
 	for trackfile := range s.contacts.values() {
-		logger := logger.With().Int("unitID", int(trackfile.Contact.UnitID)).Logger()
+		logger := logger.With().Int("id", int(trackfile.Contact.ID)).Logger()
 		isMatch := s.isMatch(trackfile, coalition, filter)
 		isWithinAltitude := minAltitude <= trackfile.LastKnown().Altitude && trackfile.LastKnown().Altitude <= maxAltitude
 		if isMatch && isWithinAltitude {
@@ -147,7 +147,7 @@ func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 		return nil
 	}
 
-	logger = log.With().Int("unitID", int(nearestContact.Contact.UnitID)).Logger()
+	logger = log.With().Uint64("id", nearestContact.Contact.ID).Logger()
 	logger.Debug().Msg("found nearest contact")
 	grp := s.findGroupForAircraft(nearestContact)
 	if grp == nil {

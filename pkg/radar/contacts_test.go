@@ -15,7 +15,7 @@ import (
 func TestGetByCallsign(t *testing.T) {
 	db := newContactDatabase()
 	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
-		UnitID:    1,
+		ID:        1,
 		Name:      "Mobius 1 Reaper",
 		Coalition: coalitions.Blue,
 		ACMIName:  "F-15C",
@@ -54,7 +54,7 @@ func TestRealCallsigns(t *testing.T) {
 
 	for i, test := range testCases {
 		trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
-			UnitID:    uint32(i),
+			ID:        uint64(i),
 			Name:      test.Name,
 			Coalition: coalitions.Blue,
 			ACMIName:  "F-15C",
@@ -68,39 +68,39 @@ func TestRealCallsigns(t *testing.T) {
 		foundCallsign, tf, ok := db.getByCallsignAndCoalititon(test.heardAs, coalitions.Blue)
 		require.True(t, ok, "queried %s, expected %s, but result was %v", test.heardAs, test.Name, ok)
 		require.Equal(t, parsedCallsign, foundCallsign)
-		require.EqualValues(t, uint32(i), tf.Contact.UnitID)
+		require.EqualValues(t, uint64(i), tf.Contact.ID)
 	}
 }
 
-func TestGetByUnitID(t *testing.T) {
+func TestGetByID(t *testing.T) {
 	db := newContactDatabase()
 	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
-		UnitID:    1,
+		ID:        1,
 		Name:      "Mobius 1 Reaper",
 		Coalition: coalitions.Blue,
 		ACMIName:  "F-15C",
 	})
 	db.set(trackfile)
 
-	val, ok := db.getByUnitID(1)
+	val, ok := db.getByID(1)
 	require.True(t, ok)
 	require.EqualValues(t, trackfile, val)
 
-	_, ok = db.getByUnitID(2)
+	_, ok = db.getByID(2)
 	require.False(t, ok)
 }
 
 func TestSet(t *testing.T) {
 	database := newContactDatabase()
 	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
-		UnitID:    1,
+		ID:        1,
 		Name:      "Mobius 1 Reaper",
 		Coalition: coalitions.Blue,
 		ACMIName:  "F-15C",
 	})
 	database.set(trackfile)
 
-	val, ok := database.getByUnitID(1)
+	val, ok := database.getByID(1)
 	require.True(t, ok)
 	require.EqualValues(t, trackfile, val)
 
@@ -116,7 +116,7 @@ func TestSet(t *testing.T) {
 
 	database.set(trackfile)
 
-	val, ok = database.getByUnitID(1)
+	val, ok = database.getByID(1)
 	require.True(t, ok)
 	require.EqualValues(t, trackfile, val)
 }
@@ -124,20 +124,20 @@ func TestSet(t *testing.T) {
 func TestDelete(t *testing.T) {
 	database := newContactDatabase()
 	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
-		UnitID:    1,
+		ID:        1,
 		Name:      "Mobius 1 Reaper",
 		Coalition: coalitions.Blue,
 		ACMIName:  "F-15C",
 	})
 	database.set(trackfile)
 
-	_, ok := database.getByUnitID(1)
+	_, ok := database.getByID(1)
 	require.True(t, ok)
 
 	ok = database.delete(1)
 	require.True(t, ok)
 
-	_, ok = database.getByUnitID(1)
+	_, ok = database.getByID(1)
 	require.False(t, ok)
 
 	ok = database.delete(2)
@@ -148,7 +148,7 @@ func TestValues(t *testing.T) {
 	db := newContactDatabase()
 
 	mobius := trackfiles.NewTrackfile(trackfiles.Labels{
-		UnitID:    1,
+		ID:        1,
 		Name:      "Mobius 1 Reaper",
 		Coalition: coalitions.Blue,
 		ACMIName:  "F-15C",
@@ -156,7 +156,7 @@ func TestValues(t *testing.T) {
 	db.set(mobius)
 
 	yellow := trackfiles.NewTrackfile(trackfiles.Labels{
-		UnitID:    2,
+		ID:        2,
 		Name:      "Yellow 13 Reiher",
 		Coalition: coalitions.Red,
 		ACMIName:  "Su-27",
@@ -166,10 +166,10 @@ func TestValues(t *testing.T) {
 	foundMobius := false
 	foundYellow := false
 	for trackfile := range db.values() {
-		if trackfile.Contact.UnitID == mobius.Contact.UnitID {
+		if trackfile.Contact.ID == mobius.Contact.ID {
 			require.EqualValues(t, mobius, trackfile)
 			foundMobius = true
-		} else if trackfile.Contact.UnitID == yellow.Contact.UnitID {
+		} else if trackfile.Contact.ID == yellow.Contact.ID {
 			require.EqualValues(t, yellow, trackfile)
 			foundYellow = true
 		}

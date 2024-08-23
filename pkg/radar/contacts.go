@@ -19,31 +19,31 @@ type contactDatabase interface {
 	// The second return value is true if a trackfile was found, and false otherwise.
 	// The callsign in the trackfile may differ from the input callsign!
 	getByCallsignAndCoalititon(string, coalitions.Coalition) (string, *trackfiles.Trackfile, bool)
-	// getByUnitID returns the trackfile for the given unit ID, or nil if no trackfile was found.
+	// getByID returns the trackfile for the given unit ID, or nil if no trackfile was found.
 	// The second return value is true if a trackfile was found, and false otherwise.
-	getByUnitID(uint32) (*trackfiles.Trackfile, bool)
+	getByID(uint64) (*trackfiles.Trackfile, bool)
 	// set updates the trackfile for the given trackfile's unit ID, or inserts a new trackfile if no trackfile was found.
 	set(*trackfiles.Trackfile)
 	// delete removes the trackfile for the given unit ID.
 	// It returns true if the trackfile was found and removed, and false otherwise.
-	delete(uint32) bool
+	delete(uint64) bool
 	// values iterates over all trackfiles in the database.
 	values() iter.Seq[*trackfiles.Trackfile]
 }
 
 type database struct {
 	lock        sync.RWMutex
-	contacts    map[uint32]*trackfiles.Trackfile
-	callsignIdx map[coalitions.Coalition]map[string]uint32
+	contacts    map[uint64]*trackfiles.Trackfile
+	callsignIdx map[coalitions.Coalition]map[string]uint64
 }
 
 func newContactDatabase() contactDatabase {
-	callsignIdx := make(map[coalitions.Coalition]map[string]uint32)
+	callsignIdx := make(map[coalitions.Coalition]map[string]uint64)
 	for _, c := range []coalitions.Coalition{coalitions.Blue, coalitions.Red, coalitions.Neutrals} {
-		callsignIdx[c] = make(map[string]uint32)
+		callsignIdx[c] = make(map[string]uint64)
 	}
 	return &database{
-		contacts:    make(map[uint32]*trackfiles.Trackfile),
+		contacts:    make(map[uint64]*trackfiles.Trackfile),
 		callsignIdx: callsignIdx,
 	}
 }
@@ -55,7 +55,7 @@ func (d *database) getByCallsignAndCoalititon(callsign string, coalition coaliti
 	defer d.lock.RUnlock()
 
 	foundCallsign := ""
-	unitId, ok := d.callsignIdx[coalition][callsign]
+	id, ok := d.callsignIdx[coalition][callsign]
 	if ok {
 		foundCallsign = callsign
 	} else {
@@ -71,21 +71,21 @@ func (d *database) getByCallsignAndCoalititon(callsign string, coalition coaliti
 			return "", nil, false
 		}
 		logger.Info().Str("foundCallsign", foundCallsign).Msg("similar callsign found in index")
-		unitId = d.callsignIdx[coalition][foundCallsign]
+		id = d.callsignIdx[coalition][foundCallsign]
 	}
-	contact, ok := d.contacts[unitId]
+	contact, ok := d.contacts[id]
 	if !ok {
 		return "", nil, false
 	}
 	return foundCallsign, contact, true
 }
 
-// getByUnitID implements [contactDatabase.getByUnitID].
-func (d *database) getByUnitID(unitId uint32) (*trackfiles.Trackfile, bool) {
+// getByID implements [contactDatabase.getByID].
+func (d *database) getByID(id uint64) (*trackfiles.Trackfile, bool) {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
 
-	contact, ok := d.contacts[unitId]
+	contact, ok := d.contacts[id]
 	if !ok {
 		return nil, false
 	}
@@ -103,20 +103,20 @@ func (d *database) set(trackfile *trackfiles.Trackfile) {
 	if !ok {
 		callsign = trackfile.Contact.Name
 	}
-	d.callsignIdx[trackfile.Contact.Coalition][callsign] = trackfile.Contact.UnitID
-	d.contacts[trackfile.Contact.UnitID] = trackfile
+	d.callsignIdx[trackfile.Contact.Coalition][callsign] = trackfile.Contact.ID
+	d.contacts[trackfile.Contact.ID] = trackfile
 }
 
 // delete implements [contactDatabase.delete].
-func (d *database) delete(unitId uint32) bool {
+func (d *database) delete(id uint64) bool {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
-	contact, ok := d.contacts[unitId]
+	contact, ok := d.contacts[id]
 	if ok {
 		delete(d.callsignIdx[contact.Contact.Coalition], contact.Contact.Name)
 	}
-	delete(d.contacts, unitId)
+	delete(d.contacts, id)
 
 	return ok
 }

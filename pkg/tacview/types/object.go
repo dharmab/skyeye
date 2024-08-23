@@ -14,12 +14,12 @@ import (
 )
 
 type Object struct {
-	ID         int
+	ID         uint64
 	properties map[string]string
 	mut        sync.Mutex
 }
 
-func NewObject(id int) *Object {
+func NewObject(id uint64) *Object {
 	return &Object{
 		ID:         id,
 		properties: make(map[string]string),
@@ -78,7 +78,7 @@ func (o *Object) GetCoordinates(ref orb.Point) (*Coordinates, error) {
 	}
 	fields := strings.Split(val, "|")
 
-	logger := log.With().Int("id", o.ID).Str("transform", val).Logger()
+	logger := log.With().Uint64("id", o.ID).Str("transform", val).Logger()
 	if len(fields) < 3 {
 		logger.Trace().Msg("unexpected number of fields in coordinate transformation")
 		return nil, nil

@@ -9,8 +9,8 @@ import (
 	"github.com/martinlindhe/unit"
 )
 
-func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint32 {
-	threats := make(map[*group][]uint32)
+func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint64 {
+	threats := make(map[*group][]uint64)
 	hostileGroups := s.enumerateGroups(coalition)
 	for _, grp := range hostileGroups {
 		friendlyGroups := s.findNearbyGroups(
@@ -23,7 +23,7 @@ func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 		)
 
 		// Populate threats map with hostile-friendly relations that meet threat criteria.
-		unitIDs := make([]uint32, 0)
+		ids := make([]uint64, 0)
 		for _, friendlyGroup := range friendlyGroups {
 			distance := spatial.Distance(grp.point(), friendlyGroup.point())
 			withinThreatRadius := distance < grp.threatRadius() || distance < s.mandatoryThreatRadius
@@ -31,17 +31,17 @@ func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 			friendlyIsPlane := friendlyGroup.category() == brevity.FixedWing
 			heloVersusPlane := hostileIsHelo && friendlyIsPlane
 			if withinThreatRadius && !heloVersusPlane {
-				unitIDs = append(unitIDs, friendlyGroup.UnitIDs()...)
+				ids = append(ids, friendlyGroup.ObjectIDs()...)
 			}
 		}
-		if len(unitIDs) == 0 {
+		if len(ids) == 0 {
 			continue
 		}
-		threats[grp] = unitIDs
+		threats[grp] = ids
 
 		// If the hostile group only threatens a single friendly unit, use BRAA instead of Bullseye.
 		if len(threats[grp]) == 1 {
-			trackfile, ok := s.contacts.getByUnitID(threats[grp][0])
+			trackfile, ok := s.contacts.getByID(threats[grp][0])
 			if !ok {
 				continue
 			}
@@ -54,9 +54,9 @@ func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 		}
 	}
 
-	result := make(map[brevity.Group][]uint32)
-	for grp, unitIDs := range threats {
-		result[grp] = unitIDs
+	result := make(map[brevity.Group][]uint64)
+	for grp, ids := range threats {
+		result[grp] = ids
 	}
 	return result
 }
