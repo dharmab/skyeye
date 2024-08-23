@@ -58,6 +58,9 @@ func (c *controller) broadcastThreats() {
 
 	threats := c.scope.Threats(c.coalition.Opposite())
 	for group, ids := range threats {
+		group.SetDeclaration(brevity.Hostile)
+		group.SetThreat(true)
+
 		logger := log.With().Stringer("group", group).Uints64("ids", ids).Logger()
 
 		recentlyNotified := true
@@ -72,8 +75,6 @@ func (c *controller) broadcastThreats() {
 			continue
 		}
 
-		group.SetDeclaration(brevity.Hostile)
-		group.SetThreat(true)
 		call := brevity.ThreatCall{Group: group}
 
 		for _, id := range ids {
@@ -90,7 +91,7 @@ func (c *controller) broadcastThreats() {
 		}
 
 		if len(call.Callsigns) == 0 {
-			logger.Debug().Msg("skipping threat call because there is no one to notify")
+			logger.Debug().Msg("skipping threat call because there is no one on frequency to notify")
 			continue
 		}
 
