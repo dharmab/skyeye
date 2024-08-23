@@ -11,6 +11,7 @@ import (
 )
 
 type cooldownTracker struct {
+	// cooldown is the interval between threat calls for the same threat.
 	cooldown time.Duration
 	// cooldowns maps unit IDs to the time at which the the threat cooldown expires. The threat cooldown suppresses
 	// threat calls for the threat with the given unit ID.
@@ -50,18 +51,18 @@ func (t *cooldownTracker) remove(id uint64) {
 	delete(t.cooldowns, id)
 }
 
-func (t *controller) broadcastThreats() {
-	if !t.enableThreatMonitoring {
+func (c *controller) broadcastThreats() {
+	if !c.enableThreatMonitoring {
 		return
 	}
 
-	threats := t.scope.Threats(t.coalition.Opposite())
+	threats := c.scope.Threats(c.coalition.Opposite())
 	for group, ids := range threats {
 		logger := log.With().Stringer("group", group).Uints64("ids", ids).Logger()
 
 		recentlyNotified := true
 		for _, threatID := range group.ObjectIDs() {
-			if !t.threatCooldowns.isOnCooldown(threatID) {
+			if !c.threatCooldowns.isOnCooldown(threatID) {
 				recentlyNotified = false
 				break
 			}
@@ -76,9 +77,9 @@ func (t *controller) broadcastThreats() {
 		call := brevity.ThreatCall{Group: group}
 
 		for _, id := range ids {
-			if trackfile := t.scope.FindUnit(id); trackfile != nil {
-				isOnFrequency := t.srsClient.IsOnFrequency(trackfile.Contact.Name)
-				if !t.threatMonitoringRequiresSRS || isOnFrequency {
+			if trackfile := c.scope.FindUnit(id); trackfile != nil {
+				isOnFrequency := c.srsClient.IsOnFrequency(trackfile.Contact.Name)
+				if !c.threatMonitoringRequiresSRS || isOnFrequency {
 					if callsign, ok := parser.ParsePilotCallsign(trackfile.Contact.Name); ok {
 						if !slices.Contains(call.Callsigns, callsign) {
 							call.Callsigns = append(call.Callsigns, callsign)
@@ -94,10 +95,10 @@ func (t *controller) broadcastThreats() {
 		}
 
 		logger.Info().Any("call", call).Msg("broadcasting threat call for group")
-		t.out <- call
+		c.out <- call
 
 		for _, threatID := range group.ObjectIDs() {
-			t.threatCooldowns.extendCooldown(threatID)
+			c.threatCooldowns.extendCooldown(threatID)
 		}
 	}
 }
