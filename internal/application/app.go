@@ -28,7 +28,7 @@ import (
 // Application is the interface for running the SkyEye application.
 type Application interface {
 	// Run runs the SkyEye application. It should be called exactly once.
-	Run(context.Context, *sync.WaitGroup) error
+	Run(context.Context, context.CancelFunc, *sync.WaitGroup) error
 }
 
 // app implements the Application.
@@ -155,7 +155,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 }
 
 // Run implements Application.Run.
-func (a *app) Run(ctx context.Context, wg *sync.WaitGroup) error {
+func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitGroup) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -201,6 +201,7 @@ func (a *app) Run(ctx context.Context, wg *sync.WaitGroup) error {
 		if err := a.srsClient.Run(ctx, wg); err != nil {
 			if !errors.Is(err, context.Canceled) {
 				log.Error().Err(err).Msg("error running SRS client")
+				cancel()
 			}
 		}
 	}()
@@ -260,13 +261,12 @@ func (a *app) Run(ctx context.Context, wg *sync.WaitGroup) error {
 
 // recognize runs speech recognition on audio received from SRS and forwards recognized text to the given channel.
 func (a *app) recognize(ctx context.Context, out chan<- string) {
-	audioCh := a.srsClient.Receive()
 	for {
 		select {
 		case <-ctx.Done():
 			log.Info().Msg("stopping speech recognition due to context cancellation")
 			return
-		case sample := <-audioCh:
+		case sample := <-a.srsClient.Receive():
 			a.recognizeSample(ctx, sample, out)
 		}
 	}
