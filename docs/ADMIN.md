@@ -26,6 +26,8 @@ flowchart LR
 
 If you insist on running SkyEye on the same system as DCS, I cannot offer you any guarantees of performance. I do recommend configuring Process Affinity to pin SkyEye to a set of dedicated CPU cores separate from any other CPU-intensive software. The easiest way to do this on Windows is by using the [CPU Affinities feature in Process Lasso](https://bitsum.com/processlasso-docs/#default_affinities).
 
+SkyEye will automatically reconnect to TacView if the connection is lost. However, if the connection to SRS is lost, SkyEye will exit. The guides for Linux and Windows provided below include scripts to automatically restart SkyEye after a delay.
+
 ## Hardware
 
 SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space.
@@ -217,4 +219,6 @@ Download the SkyEye release ZIP from the [releases page](https://github.com/dhar
 
 Edit `config.yaml` to configure SkyEye as desired.
 
-Open Powershell, change to the SkyEye directory and run the script with `./run-skyeye.ps1`. Logs will be saved in the `.log` files in the `logs` directory. Remember to regularly compress and/or delete old log files so they don't fill up the disk.
+Open Powershell, change to the SkyEye directory and run the script with `./run-skyeye.ps1`.  SkyEye will automatically restart if it exits; press Ctrl+C to exit manually.
+
+Logs will be saved in the `.log` files in the `logs` directory. Remember to regularly compress and/or delete old log files so they don't fill up the disk.

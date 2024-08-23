@@ -64,6 +64,7 @@ func (c *audioClient) receivePings(ctx context.Context, in <-chan []byte) {
 				log.Debug().Int("bytes", n).Msg("received UDP ping larger than expected")
 			} else {
 				log.Trace().Str("GUID", string(b[0:types.GUIDLength])).Msg("received UDP ping")
+				c.lastPing = time.Now()
 			}
 		case <-ctx.Done():
 			log.Info().Msg("stopping SRS ping receiver due to context cancellation")

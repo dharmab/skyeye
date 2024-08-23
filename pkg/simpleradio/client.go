@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/audio"
 	"github.com/dharmab/skyeye/pkg/simpleradio/data"
@@ -98,6 +99,8 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 		}
 	}()
 
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
@@ -105,6 +108,12 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 			return fmt.Errorf("stopping client due to context cancelation: %w", ctx.Err())
 		case err := <-errorChan:
 			return fmt.Errorf("client error: %w", err)
+		case <-ticker.C:
+			if time.Since(c.audioClient.LastPing()) > 1*time.Minute {
+				log.Warn().Msg("stopped receiving pings from SRS data client")
+				return fmt.Errorf("stopped receiving pings from SRS data client")
+			}
+
 		}
 	}
 }

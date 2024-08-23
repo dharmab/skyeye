@@ -28,6 +28,7 @@ type AudioClient interface {
 	Transmit(Audio)
 	// Receive returns a channel which receives audio from the audio client's SRS frequency.
 	Receive() <-chan Audio
+	LastPing() time.Time
 }
 
 // audioClient implements AudioClient.
@@ -42,6 +43,9 @@ type audioClient struct {
 	rxchan chan Audio
 	// txChan is a channel where audio to be transmitted is buffered.
 	txChan chan Audio
+
+	// lastPing tracks the last time a ping was received so we can tell when the server is (probably) restarted or offline.
+	lastPing time.Time
 
 	// lastRx tracks the last received audio packet so we can tell when a transmission has (probably) ended.
 	lastRx rxState
@@ -85,6 +89,7 @@ func NewClient(guid types.GUID, config types.ClientConfiguration) (AudioClient, 
 		packetNumber: 1,
 		busy:         sync.Mutex{},
 		mute:         config.Mute,
+		lastPing:     time.Now(),
 	}, nil
 }
 
@@ -176,4 +181,8 @@ func (c *audioClient) close() error {
 		return fmt.Errorf("error closing UDP connection to SRS: %w", err)
 	}
 	return nil
+}
+
+func (c *audioClient) LastPing() time.Time {
+	return c.lastPing
 }

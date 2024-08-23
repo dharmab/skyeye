@@ -310,6 +310,14 @@ func Supervise(cmd *cobra.Command, args []string) {
 	// Set up an application-scoped context and a cancel function to shut down the application.
 	ctx, cancel := context.WithCancel(context.Background())
 
+	// Safety in case of hung routine
+	go func() {
+		<-ctx.Done()
+		time.Sleep(10 * time.Second)
+		log.Warn().Msg("shutdown took too long, forcing exit")
+		os.Exit(1)
+	}()
+
 	var wg sync.WaitGroup
 
 	// Set up logging
@@ -322,11 +330,6 @@ func Supervise(cmd *cobra.Command, args []string) {
 		s := <-interuptChan
 		log.Info().Any("signal", s).Msg("received shutdown signal")
 		cancel()
-		go func() {
-			time.Sleep(10 * time.Second)
-			log.Warn().Msg("shutdown took too long, forcing exit")
-			os.Exit(1)
-		}()
 		wg.Wait()
 		os.Exit(0)
 	}()
@@ -373,11 +376,11 @@ func Supervise(cmd *cobra.Command, args []string) {
 	}
 
 	log.Info().Msg("starting application")
-	err := runApplication(ctx, &wg, config)
+	err := runApplication(ctx, cancel, &wg, config)
 	exitOnErr(err)
 }
 
-func runApplication(ctx context.Context, wg *sync.WaitGroup, config conf.Configuration) error {
+func runApplication(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitGroup, config conf.Configuration) error {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Error().Any("recovered", r).Msg("!!! APPLICATION PANIC RECOVERY !!!")
@@ -388,7 +391,7 @@ func runApplication(ctx context.Context, wg *sync.WaitGroup, config conf.Configu
 	if err != nil {
 		return err
 	}
-	err = app.Run(ctx, wg)
+	err = app.Run(ctx, cancel, wg)
 	if err != nil {
 		log.Error().Err(err).Msg("application exited with error")
 	}
