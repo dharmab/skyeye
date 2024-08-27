@@ -52,9 +52,9 @@
 # SIMPLERADIO-STANDALONE
 # SRS server address. Set this to the host and port of the SRS server.
 # SRS server running on the same computer:
-#srs-address: localhost:5002
+#srs-server-address: localhost:5002
 # SRS server running remotely:
-#srs-address: srs.example.com:5002
+#srs-server-address: srs.example.com:5002
 #
 # SRS EAM password. Set this to the password used to connect to External AWACS
 # Mode in SRS.
