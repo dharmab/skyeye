@@ -18,6 +18,10 @@ func (c *controller) HandlePicture(request *brevity.PictureRequest) {
 }
 
 func (c *controller) broadcastPicture(logger *zerolog.Logger, forceBroadcast bool) {
+	if c.srsClient.ClientsOnFrequency() == 0 && !forceBroadcast {
+		logger.Debug().Msg("skipping PICTURE broadcast because no clients are on frequency")
+		return
+	}
 	count, groups := c.scope.GetPicture(conf.DefaultPictureRadius, c.coalition.Opposite(), brevity.FixedWing)
 	isPictureClean := count == 0
 	for _, group := range groups {
