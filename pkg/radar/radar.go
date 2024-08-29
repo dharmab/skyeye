@@ -214,7 +214,9 @@ func (s *scope) handleGarbageCollection() {
 			Logger()
 
 		lastSeen := trackfile.LastKnown().Time
-		if lastSeen.Before(s.missionTime.Add(-1 * time.Minute)) {
+		isOld := lastSeen.Before(s.missionTime.Add(-1 * time.Minute))
+		isNotZero := !lastSeen.IsZero()
+		if isNotZero && isOld {
 			s.contacts.delete(trackfile.Contact.ID)
 			logger.Info().
 				Dur("age", s.missionTime.Sub(lastSeen)).
