@@ -91,7 +91,7 @@ func (c *controller) broadcastThreats() {
 		}
 
 		if len(call.Callsigns) == 0 {
-			logger.Debug().Msg("skipping threat call because there is no one on frequency to notify")
+			logger.Debug().Msg("skipping threat call because no relevant clients are on frequency")
 			continue
 		}
 
