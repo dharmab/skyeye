@@ -29,6 +29,8 @@ type Client interface {
 	Transmit(audio.Audio)
 	// IsOnFrequency checks if the named unit is on the client's frequency.
 	IsOnFrequency(string) bool
+	// ClientsOnFrequency returns the number of peers on this client's frequency.
+	ClientsOnFrequency() int
 }
 
 // client implements the SRS Client.
@@ -131,4 +133,9 @@ func (c *client) Transmit(sample audio.Audio) {
 // IsOnFrequency implements [Client.IsOnFrequency].
 func (c *client) IsOnFrequency(name string) bool {
 	return c.dataClient.IsOnFrequency(name)
+}
+
+// ClientsOnFrequency implements [Client.ClientsOnFrequency].
+func (c *client) ClientsOnFrequency() int {
+	return c.dataClient.ClientsOnFrequency()
 }

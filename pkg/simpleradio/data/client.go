@@ -28,6 +28,8 @@ type DataClient interface {
 	Send(types.Message) error
 	// IsOnFrequency checks if the named unit is on the client's frequency.
 	IsOnFrequency(string) bool
+	// ClientsOnFrequency returns the number of peers on this client's frequency.
+	ClientsOnFrequency() int
 }
 
 type dataClient struct {
@@ -321,4 +323,16 @@ func (c *dataClient) IsOnFrequency(name string) bool {
 		}
 	}
 	return false
+}
+
+func (c *dataClient) ClientsOnFrequency() int {
+	c.clientsLock.RLock()
+	defer c.clientsLock.RUnlock()
+	count := 0
+	for _, client := range c.clients {
+		if ok := c.clientInfo.RadioInfo.IsOnFrequency(client.RadioInfo); ok {
+			count++
+		}
+	}
+	return count
 }
