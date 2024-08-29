@@ -93,8 +93,12 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 		}
 		if coalition == c.coalition.Opposite() {
 			group.SetDeclaration(brevity.Hostile)
-			log.Info().Stringer("group", group).Msg("broadcasting FADED call")
-			c.out <- brevity.FadedCall{Group: group}
+			if c.srsClient.ClientsOnFrequency() > 0 {
+				log.Info().Stringer("group", group).Msg("broadcasting FADED call")
+				c.out <- brevity.FadedCall{Group: group}
+			} else {
+				log.Debug().Msg("skipping FADED call because no clients are on frequency")
+			}
 		}
 	})
 
