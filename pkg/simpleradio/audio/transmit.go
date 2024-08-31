@@ -31,7 +31,7 @@ func (c *audioClient) transmit(ctx context.Context, packetCh <-chan []voice.Voic
 func (c *audioClient) tx(packets []voice.VoicePacket) {
 	for c.lastRx.deadline.After(time.Now()) {
 		delay := time.Until(c.lastRx.deadline) + 250*time.Millisecond
-		log.Info().Dur("delay", delay).Msg("delaying outgoing transmission to avoid interrupting incoming transmission")
+		log.Info().Stringer("delay", delay).Msg("delaying outgoing transmission to avoid interrupting incoming transmission")
 		time.Sleep(delay)
 	}
 	c.busy.Lock()

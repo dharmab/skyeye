@@ -16,7 +16,7 @@ const pingInterval = 15 * time.Second
 
 // sendPings is a loop which sends the client GUID to the server at regular intervals to keep our connection alive.
 func (c *audioClient) sendPings(ctx context.Context, wg *sync.WaitGroup) {
-	log.Info().Dur("interval", pingInterval).Msg("starting pings")
+	log.Info().Stringer("interval", pingInterval).Msg("starting pings")
 	wg.Add(1)
 	go func() {
 		defer wg.Done()

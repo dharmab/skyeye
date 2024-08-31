@@ -370,7 +370,7 @@ func Supervise(cmd *cobra.Command, args []string) {
 
 	if enableAutomaticPicture {
 		config.PictureBroadcastInterval = automaticPictureInterval
-		log.Info().Dur("interval", automaticPictureInterval).Msg("automatic PICTURE broadcasts enabled")
+		log.Info().Stringer("interval", automaticPictureInterval).Msg("automatic PICTURE broadcasts enabled")
 	} else {
 		config.PictureBroadcastInterval = 117 * time.Hour
 	}

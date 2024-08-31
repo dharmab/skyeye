@@ -56,7 +56,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 
 	log.Info().
 		Str("address", config.SRSAddress).
-		Dur("timeout", config.SRSConnectionTimeout).
+		Stringer("timeout", config.SRSConnectionTimeout).
 		Str("clientName", config.SRSClientName).
 		Int("coalitionID", int(config.Coalition)).
 		Float64("frequency", config.SRSFrequency.Megahertz()).
@@ -94,7 +94,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	} else {
 		log.Info().
 			Str("address", config.TelemetryAddress).
-			Dur("timeout", config.TelemetryConnectionTimeout).
+			Stringer("timeout", config.TelemetryConnectionTimeout).
 			Msg("constructing telemetry client")
 		tacviewClient, err = tacview.NewTelemetryClient(
 			config.TelemetryAddress,
