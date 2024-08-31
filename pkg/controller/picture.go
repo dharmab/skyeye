@@ -26,6 +26,7 @@ func (c *controller) broadcastPicture(logger *zerolog.Logger, forceBroadcast boo
 	isPictureClean := count == 0
 	for _, group := range groups {
 		group.SetDeclaration(brevity.Hostile)
+		c.fillInMergeDetails(group)
 	}
 
 	if c.wasLastPictureClean && isPictureClean && !forceBroadcast {

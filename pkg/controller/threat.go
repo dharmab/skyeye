@@ -1,12 +1,10 @@
 package controller
 
 import (
-	"slices"
 	"sync"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
-	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/rs/zerolog/log"
 )
 
@@ -55,51 +53,55 @@ func (c *controller) broadcastThreats() {
 	if !c.enableThreatMonitoring {
 		return
 	}
-
 	threats := c.scope.Threats(c.coalition.Opposite())
-	for group, ids := range threats {
-		group.SetDeclaration(brevity.Hostile)
-		group.SetThreat(true)
+	for hostileGroup, friendIDs := range threats {
+		c.broadcastThreat(hostileGroup, friendIDs)
+	}
+}
 
-		logger := log.With().Stringer("group", group).Uints64("ids", ids).Logger()
+func (c *controller) broadcastThreat(hostileGroup brevity.Group, friendIDs []uint64) {
+	hostileGroup.SetDeclaration(brevity.Hostile)
+	c.fillInMergeDetails(hostileGroup)
+	hostileGroup.SetThreat(true)
 
-		recentlyNotified := true
-		for _, threatID := range group.ObjectIDs() {
-			if !c.threatCooldowns.isOnCooldown(threatID) {
-				recentlyNotified = false
-				break
-			}
+	logger := log.With().Stringer("group", hostileGroup).Uints64("friendIDs", friendIDs).Logger()
+
+	recentlyNotified := true
+	for _, threatID := range hostileGroup.ObjectIDs() {
+		if !c.threatCooldowns.isOnCooldown(threatID) {
+			recentlyNotified = false
+			break
 		}
-		if recentlyNotified {
-			logger.Debug().Uints64("threatIDs", group.ObjectIDs()).Msg("supressing threat call because a call was recently broadcast for this threat")
+	}
+	if recentlyNotified {
+		logger.Debug().Uints64("threatIDs", hostileGroup.ObjectIDs()).Msg("supressing threat call because a call was recently broadcast for all contacts within the threat group")
+		return
+	}
+
+	call := brevity.ThreatCall{
+		Callsigns: make([]string, 0),
+		Group:     hostileGroup,
+	}
+
+	for _, friendID := range friendIDs {
+		if c.isGroupMergedWithFriendly(hostileGroup, friendID) {
+			logger.Debug().Msg("omitting friendly from threat call because the threat is already merged")
 			continue
 		}
-
-		call := brevity.ThreatCall{Group: group}
-
-		for _, id := range ids {
-			if trackfile := c.scope.FindUnit(id); trackfile != nil {
-				isOnFrequency := c.srsClient.IsOnFrequency(trackfile.Contact.Name)
-				if !c.threatMonitoringRequiresSRS || isOnFrequency {
-					if callsign, ok := parser.ParsePilotCallsign(trackfile.Contact.Name); ok {
-						if !slices.Contains(call.Callsigns, callsign) {
-							call.Callsigns = append(call.Callsigns, callsign)
-						}
-					}
-				}
-			}
+		if friendly := c.scope.FindUnit(friendID); friendly != nil {
+			call.Callsigns = c.addFriendlyToBroadcast(call.Callsigns, friendly)
 		}
+	}
 
-		if len(call.Callsigns) == 0 {
-			logger.Debug().Msg("skipping threat call because no relevant clients are on frequency")
-			continue
-		}
+	if len(call.Callsigns) == 0 {
+		logger.Debug().Msg("skipping threat call because no relevant clients are on frequency")
+		return
+	}
 
-		logger.Info().Any("call", call).Msg("broadcasting threat call for group")
-		c.out <- call
+	logger.Info().Any("call", call).Msg("broadcasting threat call for group")
+	c.out <- call
 
-		for _, threatID := range group.ObjectIDs() {
-			c.threatCooldowns.extendCooldown(threatID)
-		}
+	for _, threatID := range hostileGroup.ObjectIDs() {
+		c.threatCooldowns.extendCooldown(threatID)
 	}
 }

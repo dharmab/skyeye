@@ -36,7 +36,7 @@ type Radar interface {
 	// The first return value is the callsign of the trackfile, and the second is the trackfile itself.
 	// The returned callsign may differ from the input callsign!
 	FindCallsign(string, coalitions.Coalition) (string, *trackfiles.Trackfile)
-	// FindUnit returns the trackfile for the given unit ID and coalition, or nil if no trackfile was found.
+	// FindUnit returns the trackfile for the given unit ID, or nil if no trackfile was found.
 	FindUnit(uint64) *trackfiles.Trackfile
 	// GetPicture returns a picture of the radar scope anchored at the center point, within the given radius,
 	// filtered by the given coalition and contact category. The first return value is the total number of groups
@@ -112,8 +112,12 @@ type Radar interface {
 	) brevity.Group
 	// SetFadedCallback sets the callback function to be called when a trackfile fades.
 	SetFadedCallback(FadedCallback)
+	// SetRemovedCallback sets the callback function to be called when a trackfile is aged out.
+	SetRemovedCallback(RemovedCallback)
 	// Threats returns a map of threat groups of the given coalition to threatened object IDs.
 	Threats(coalitions.Coalition) map[brevity.Group][]uint64
+	// Merges returns a map of hostile groups of the given coalition to friendly trackfiles.
+	Merges(coalitions.Coalition) map[brevity.Group][]*trackfiles.Trackfile
 }
 
 var _ Radar = &scope{}
@@ -125,6 +129,7 @@ type scope struct {
 	bullseyes             sync.Map
 	contacts              contactDatabase
 	fadedCallback         FadedCallback
+	removalCallback       RemovedCallback
 	center                orb.Point
 	mandatoryThreatRadius unit.Length
 }
@@ -134,7 +139,6 @@ func New(coalition coalitions.Coalition, updates <-chan sim.Updated, fades <-cha
 		updates:               updates,
 		fades:                 fades,
 		contacts:              newContactDatabase(),
-		fadedCallback:         func(brevity.Group, coalitions.Coalition) {},
 		mandatoryThreatRadius: mandatoryThreatRadius,
 	}
 }

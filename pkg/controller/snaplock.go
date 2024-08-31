@@ -83,6 +83,7 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 
 	if response.Group != nil {
 		response.Group.SetDeclaration(response.Declaration)
+		c.fillInMergeDetails(response.Group)
 	}
 
 	c.out <- response

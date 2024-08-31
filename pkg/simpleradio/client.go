@@ -19,6 +19,8 @@ import (
 type Client interface {
 	// Name returns the name of the client as it appears in the SRS client list and in in-game transmissions.
 	Name() string
+	// Frequencies returns the frequencies the client is listening on.
+	Frequencies() []RadioFrequency
 	// Run starts the SimpleRadio-Standalone client. It should be called exactly once.
 	Run(context.Context, *sync.WaitGroup) error
 	// Receive returns a channel that receives transmissions over the radio. Each transmission is F32LE PCM audio data.
@@ -61,12 +63,22 @@ func NewClient(config types.ClientConfiguration) (Client, error) {
 
 // Name implements [Client.Name].
 func (c *client) Name() string {
-	return c.dataClient.Name()
+	info := c.dataClient.Info()
+	return info.Name
 }
 
 // Frequencies implements [Client.Frequencies].
-func (c *client) Frequencies() []unit.Frequency {
-	return c.audioClient.Frequencies()
+func (c *client) Frequencies() []RadioFrequency {
+	info := c.dataClient.Info()
+	frequencies := make([]RadioFrequency, 0)
+	for _, radio := range info.RadioInfo.Radios {
+		frequency := RadioFrequency{
+			Frequency:  unit.Frequency(radio.Frequency) * unit.Hertz,
+			Modulation: radio.Modulation,
+		}
+		frequencies = append(frequencies, frequency)
+	}
+	return frequencies
 }
 
 // Run implements [Client.Run].

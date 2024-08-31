@@ -30,6 +30,8 @@ type Composer interface {
 	ComposeSunriseCall(brevity.SunriseCall) NaturalLanguageResponse
 	// ComposeThreatCall constructs natural language brevity for announcing a threat.
 	ComposeThreatCall(brevity.ThreatCall) NaturalLanguageResponse
+	// ComposeMergedCall constructs natural language brevity for announcing a merge.
+	ComposeMergedCall(brevity.MergedCall) NaturalLanguageResponse
 	// ComposeSayAgainResponse constructs natural language brevity for asking a caller to repeat their last transmission.
 	ComposeSayAgainResponse(brevity.SayAgainResponse) NaturalLanguageResponse
 	// ComposeTripwireResponse constructs natural language brevity for educating a caller about threat monitoring.

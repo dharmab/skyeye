@@ -39,6 +39,7 @@ func (c *controller) HandleBogeyDope(request *brevity.BogeyDopeRequest) {
 	}
 
 	nearestGroup.SetDeclaration(brevity.Hostile)
+	c.fillInMergeDetails(nearestGroup)
 
 	logger.Info().
 		Strs("platforms", nearestGroup.Platforms()).

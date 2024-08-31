@@ -46,6 +46,10 @@ type Group interface {
 	Fast() bool
 	// VeryFast is true is the group's speed is above 900kts ground speed or 1.5 Mach.
 	VeryFast() bool
+	// MergedWith is the number of friendlies this group is merged with.
+	MergedWith() int
+	// SetMergedWith sets the number of friendlies this group is merged with.
+	SetMergedWith(int)
 	// String returns a human-readable description of the group.
 	String() string
 	// ObjectIDs returns the object IDs of all contacts in the group.
