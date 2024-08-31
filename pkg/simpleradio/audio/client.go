@@ -55,6 +55,7 @@ type audioClient struct {
 	// busy indicates if there is a transmission in progress.
 	busy sync.Mutex
 
+	// mute suppresses audio transmission.
 	mute bool
 }
 

@@ -46,6 +46,7 @@ func (c *audioClient) decodeVoice(ctx context.Context, voicePacketsCh <-chan []v
 			log.Trace().Int("len", len(txPCM)).Msg("decoded transmission PCM")
 
 			if len(txPCM) > 0 {
+				log.Info().Int("len", len(txPCM)).Msg("publishing received audio to receiving channel")
 				c.rxchan <- txPCM
 			} else {
 				log.Debug().Msg("decoded transmission PCM is empty")
