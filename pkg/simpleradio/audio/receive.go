@@ -92,8 +92,8 @@ func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out ch
 				continue
 			}
 
-			// isNewPacket is true if the packet is the first packet of a new transmission. This is the case if c.lastRx's fields are zero values.
-			isNewPacket := c.lastRx.origin == "" && c.lastRx.packetNumber == 0
+			// isNewTransmission is true if the packet is the first packet of a new transmission. This is the case if c.lastRx's fields are zero values.
+			isNewTransmission := c.lastRx.origin == "" && c.lastRx.packetNumber == 0
 			// isSameOrigin is true if the packet's origin GUID matches the last received packet's origin GUID.
 			isSameOrigin := c.lastRx.origin == types.GUID(vp.OriginGUID)
 			// isNewerPacket is true if the packet's packet number is greater than the last received packet's packet number.
@@ -117,10 +117,13 @@ func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out ch
 			// isMatchingPacket is true if the packet is either:
 			//   - the first packet of a new transmission
 			//   - a newer packet from the same origin and with matching radio frequencies as the last received packet
-			isMatchingPacket := isSameFrequency && (isNewPacket || (isNewerPacket && isSameOrigin))
+			isMatchingPacket := isSameFrequency && (isNewTransmission || (isNewerPacket && isSameOrigin))
 
 			// If the packet fits, buffer it and update the lastRx state.
 			if isMatchingPacket {
+				if isNewTransmission {
+					log.Info().Str("origin", string(vp.OriginGUID)).Msg("receiving transmission")
+				}
 				buf = append(buf, *vp)
 				c.updateLastRX(vp)
 			}
