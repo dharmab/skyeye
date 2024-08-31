@@ -9,6 +9,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
+	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
@@ -44,43 +45,64 @@ type Controller interface {
 }
 
 type controller struct {
-	out                         chan<- any
-	scope                       radar.Radar
-	coalition                   coalitions.Coalition
-	frequencies                 []simpleradio.RadioFrequency
-	pictureBroadcastInterval    time.Duration
-	pictureBroadcastDeadline    time.Time
-	threatCooldowns             *cooldownTracker
-	warmupTime                  time.Time
-	srsClient                   simpleradio.Client
-	enableThreatMonitoring      bool
+	// coalition this controller serves.
+	coalition coalitions.Coalition
+
+	// scope provides information about the airspace.
+	scope radar.Radar
+
+	// srsClient is used to to check if relevant friendly aircraft are on frequency before broadcasting calls.
+	srsClient simpleradio.Client
+
+	// warmupTime is when the controller is ready to broadcast tactical information. This provides time
+	// for the radar scope to populate with data.
+	warmupTime time.Time
+
+	// pictureBroadcastInterval is the interval at which the controller broadcasts a tactical air picture.
+	pictureBroadcastInterval time.Duration
+	// pictureBroadcastDeadline is the time at which the controller will broadcast the next tactical air picture.
+	pictureBroadcastDeadline time.Time
+	// wasLastPictureClean tracks if the most recently broadcast picture was clean, so that the controller can avoid
+	// repeatedly broadcasting clean pictures.
+	wasLastPictureClean bool
+
+	// enableThreatMonitoring enables automatic threat calls.
+	enableThreatMonitoring bool
+	// threatCooldowns tracks the next time a threat call should be published for each threat.
+	threatCooldowns *cooldownTracker
+	// threatMonitoringCooldown is the interval between threat calls for the same threat.
+	threatMonitoringCooldown time.Duration
+	// threatMonitoringRequiresSRS enforces that threat calls are only broadcast when the relevant friendly aircraft are on frequency.
 	threatMonitoringRequiresSRS bool
-	threatMonitoringCooldown    time.Duration
-	wasLastPictureClean         bool
+
+	// merges tracks which contacts are in the merge.
+	merges *mergeTracker
+
+	// out is the channel to publish responses and calls to.
+	out chan<- any
 }
 
 func New(
 	rdr radar.Radar,
 	srsClient simpleradio.Client,
 	coalition coalitions.Coalition,
-	frequencies []simpleradio.RadioFrequency,
 	pictureBroadcastInterval time.Duration,
 	enableThreatMonitoring bool,
 	threatMonitoringCooldown time.Duration,
 	threatMonitoringRequiresSRS bool,
 ) Controller {
 	return &controller{
-		scope:                       rdr,
 		coalition:                   coalition,
-		frequencies:                 frequencies,
+		scope:                       rdr,
+		srsClient:                   srsClient,
+		warmupTime:                  time.Now().Add(15 * time.Second),
 		pictureBroadcastInterval:    pictureBroadcastInterval,
 		pictureBroadcastDeadline:    time.Now().Add(pictureBroadcastInterval),
-		threatCooldowns:             newCooldownTracker(threatMonitoringCooldown),
-		warmupTime:                  time.Now().Add(15 * time.Second),
-		srsClient:                   srsClient,
 		enableThreatMonitoring:      enableThreatMonitoring,
 		threatMonitoringCooldown:    threatMonitoringCooldown,
+		threatCooldowns:             newCooldownTracker(threatMonitoringCooldown),
 		threatMonitoringRequiresSRS: threatMonitoringRequiresSRS,
+		merges:                      newMergeTracker(),
 	}
 }
 
@@ -88,10 +110,10 @@ func New(
 func (c *controller) Run(ctx context.Context, out chan<- any) {
 	c.out = out
 
-	log.Info().Msg("attaching FADED callback")
+	log.Info().Msg("attaching callbacks")
 	c.scope.SetFadedCallback(func(group brevity.Group, coalition coalitions.Coalition) {
 		for _, id := range group.ObjectIDs() {
-			c.threatCooldowns.remove(id)
+			c.remove(id)
 		}
 		if coalition == c.coalition.Opposite() {
 			group.SetDeclaration(brevity.Hostile)
@@ -103,13 +125,14 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 			}
 		}
 	})
+	c.scope.SetRemovedCallback(func(trackfile trackfiles.Trackfile) {
+		c.remove(trackfile.Contact.ID)
+	})
 
-	log.Info().Msg("broadcasting SUNRISE call")
-	frequencies := make([]unit.Frequency, 0, len(c.frequencies))
-	for _, f := range c.frequencies {
-		frequencies = append(frequencies, unit.Frequency(f.Frequency)*unit.Hertz)
+	frequencies := make([]unit.Frequency, 0)
+	for _, rf := range c.srsClient.Frequencies() {
+		frequencies = append(frequencies, rf.Frequency)
 	}
-	log.Info().Any("cf", c.frequencies).Any("frequencies", frequencies).Msg("WTF")
 	c.out <- brevity.SunriseCall{Frequencies: frequencies}
 
 	ticker := time.NewTicker(15 * time.Second)
@@ -118,15 +141,23 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 	for {
 		select {
 		case <-ctx.Done():
-			log.Info().Msg("detaching FADED callback")
+			log.Info().Msg("detaching callbacks")
 			c.scope.SetFadedCallback(nil)
+			c.scope.SetRemovedCallback(nil)
 			return
 		case <-ticker.C:
+			c.broadcastMerges()
+			c.broadcastThreats()
 			if time.Now().After(c.pictureBroadcastDeadline) {
 				logger := log.With().Logger()
 				c.broadcastPicture(&logger, false)
 			}
-			c.broadcastThreats()
 		}
 	}
+}
+
+func (c *controller) remove(id uint64) {
+	log.Debug().Uint64("id", id).Msg("removing ID from controller state tracking")
+	c.threatCooldowns.remove(id)
+	c.merges.remove(id)
 }

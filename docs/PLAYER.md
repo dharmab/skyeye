@@ -294,11 +294,17 @@ Requesting a PICTURE will reset the interval on any automatic broadcast.
 
 ### THREAT
 
-The GCI controller monitors for threats which are near or approaching friendly aircraft. Any hostile aircraft within a pre-briefed range (default 25NM) is always considered a threat. At further ranges, the bandit's aircraft capabilities are also considered. Threat calls are broadcast every few minutes for as long as the threat criteria are met.
+The GCI controller monitors for threats which are near or approaching friendly aircraft. Any hostile aircraft within a pre-briefed range (default 25NM) is always considered a threat. At further ranges, the bandit's aircraft capabilities are also considered. Threat calls are broadcast every few minutes for as long as the threat criteria are met. THREAT calls about rotary-wing threats are only broadcast to other rotary-wing aircraft. A plane won't receive warnings about helicopter threats.
 
 Threat locations are given in BRAA format if they are relevant to a single friendly aircraft, or in bullseye format if they are relevant to multiple friendly aircraft.
 
 Your own aircraft must be on a SkyEye SRS frequency, and using the same name in DCS and in SRS, to receive THREAT monitoring.
+
+### MERGED
+
+If a fixed-wing threat closes within 3 nautical miles of a friendly aircraft, the controller will transmit a MERGED call. MERGED calls only apply to fixed-wing threats. You won't receive a MERGED call about a helicopter threat.
+
+Your own aircraft must be on the SRS frequency, and using the same name in DCS and in SRS, to receive MERGED calls.
 
 ### FADED
 

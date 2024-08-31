@@ -94,6 +94,9 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 
 	if response.Group != nil {
 		response.Group.SetDeclaration(response.Declaration)
+		if response.Group.Declaration() == brevity.Hostile {
+			c.fillInMergeDetails(response.Group)
+		}
 	}
 
 	logger.Debug().Any("declaration", response.Declaration).Msg("responding to DECLARE request")

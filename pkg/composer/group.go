@@ -66,13 +66,20 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 		subtitle.WriteString(fmt.Sprintf("%s %s", label, braa.Subtitle))
 		isCardinalAspect := slices.Contains([]brevity.Aspect{brevity.Flank, brevity.Beam, brevity.Drag}, group.BRAA().Aspect())
 		isTrackKnown := group.Track() != brevity.UnknownDirection
-		if isCardinalAspect && isTrackKnown {
+		isFurball := group.Declaration() == brevity.Furball
+		if isCardinalAspect && isTrackKnown && !isFurball {
 			writeBoth(fmt.Sprintf(" %s", group.Track()))
 		}
 	}
 
 	// Declaration
 	writeBoth(fmt.Sprintf(", %s", group.Declaration()))
+	if group.MergedWith() == 1 {
+		writeBoth(", merged with 1 friendly")
+	}
+	if group.MergedWith() > 1 {
+		writeBoth(fmt.Sprintf(", merged with %d friendlies", group.MergedWith()))
+	}
 
 	// Fill-in information
 
@@ -109,6 +116,30 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 	}
 
 	writeBoth(". ")
+
+	return NaturalLanguageResponse{
+		Subtitle: subtitle.String(),
+		Speech:   speech.String(),
+	}
+}
+
+// ComposeMergedWithGroup is a short form of describing a group for use in merge calls.
+func (c *composer) ComposeMergedWithGroup(group brevity.Group) NaturalLanguageResponse {
+	var speech, subtitle strings.Builder
+	if group.Contacts() > 1 {
+		contacts := c.ComposeContacts(group.Contacts())
+		speech.WriteString(contacts.Speech + ", ")
+		subtitle.WriteString(contacts.Subtitle + ", ")
+	}
+
+	if group.MergedWith() > 0 {
+		mergedWith := " merged with 1 other friendly"
+		if group.MergedWith() > 1 {
+			mergedWith = fmt.Sprintf(" merged with %d other friendlies", group.MergedWith())
+		}
+		speech.WriteString(mergedWith)
+		subtitle.WriteString(mergedWith)
+	}
 
 	return NaturalLanguageResponse{
 		Subtitle: subtitle.String(),

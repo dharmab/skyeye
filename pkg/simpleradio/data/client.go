@@ -21,8 +21,8 @@ import (
 
 // DataClient is a client for the SRS data protocol.
 type DataClient interface {
-	// Name returns the name of the client as it appears in the SRS client list and in in-game transmissions.
-	Name() string
+	// Info returns the client information.
+	Info() types.ClientInfo
 	// Run starts the SRS data client. It should be called exactly once. The given channel will be closed when the client is ready.
 	Run(context.Context, *sync.WaitGroup, chan<- any) error
 	// Send sends a message to the SRS server.
@@ -80,9 +80,9 @@ func NewClient(guid types.GUID, config types.ClientConfiguration) (DataClient, e
 	return client, nil
 }
 
-// Name implements DataClient.Name.
-func (c *dataClient) Name() string {
-	return c.clientInfo.Name
+// Info implements [DataClient.Info].
+func (c *dataClient) Info() types.ClientInfo {
+	return c.clientInfo
 }
 
 // Run implements DataClient.Run.

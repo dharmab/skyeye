@@ -123,9 +123,9 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	rdr := radar.New(config.Coalition, updates, fades, config.MandatoryThreatRadius)
 	log.Info().Msg("constructing GCI controller")
 	controller := controller.New(
-		rdr, srsClient,
+		rdr,
+		srsClient,
 		config.Coalition,
-		config.SRSFrequencies,
 		config.PictureBroadcastInterval,
 		config.EnableThreatMonitoring,
 		config.ThreatMonitoringInterval,
@@ -408,6 +408,9 @@ func (a *app) compose(ctx context.Context, in <-chan any, out chan<- composer.Na
 			case brevity.ThreatCall:
 				logger.Debug().Msg("composing THREAT call")
 				response = a.composer.ComposeThreatCall(c)
+			case brevity.MergedCall:
+				logger.Debug().Msg("composing MERGED call")
+				response = a.composer.ComposeMergedCall(c)
 			case brevity.SayAgainResponse:
 				logger.Debug().Msg("composing SAY AGAIN call")
 				response = a.composer.ComposeSayAgainResponse(c)

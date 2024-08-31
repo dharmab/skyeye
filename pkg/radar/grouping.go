@@ -3,6 +3,7 @@ package radar
 import (
 	"slices"
 
+	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/spatial"
@@ -46,7 +47,11 @@ func (s *scope) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {
 		return nil
 	}
 	bullseye := s.Bullseye(trackfile.Contact.Coalition)
-	grp := newGroupUsingBullseye(bullseye)
+	grp := &group{
+		bullseye:    &bullseye,
+		contacts:    make([]*trackfiles.Trackfile, 0),
+		declaration: brevity.Unable,
+	}
 	grp.contacts = append(grp.contacts, trackfile)
 	s.addNearbyAircraftToGroup(trackfile, grp)
 	return grp

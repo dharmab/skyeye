@@ -2,6 +2,7 @@ package radar
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -18,21 +19,22 @@ import (
 )
 
 type group struct {
-	isThreat     bool
-	contacts     []*trackfiles.Trackfile
-	bullseye     *orb.Point
-	braa         brevity.BRAA
-	aspect       *brevity.Aspect
-	declaraction brevity.Declaration
+	isThreat    bool
+	contacts    []*trackfiles.Trackfile
+	bullseye    *orb.Point
+	braa        brevity.BRAA
+	aspect      *brevity.Aspect
+	declaration brevity.Declaration
+	mergedWith  int
 }
 
 var _ brevity.Group = &group{}
 
 func newGroupUsingBullseye(bullseye orb.Point) *group {
 	return &group{
-		bullseye:     &bullseye,
-		contacts:     make([]*trackfiles.Trackfile, 0),
-		declaraction: brevity.Unable,
+		bullseye:    &bullseye,
+		contacts:    make([]*trackfiles.Trackfile, 0),
+		declaration: brevity.Unable,
 	}
 }
 
@@ -126,12 +128,12 @@ func (g *group) BRAA() brevity.BRAA {
 
 // Declaration implements [brevity.Group.Declaration].
 func (g *group) Declaration() brevity.Declaration {
-	return g.declaraction
+	return g.declaration
 }
 
 // SetDeclaration implements [brevity.Group.SetDeclaration].
 func (g *group) SetDeclaration(declaration brevity.Declaration) {
-	g.declaraction = declaration
+	g.declaration = declaration
 }
 
 // Heavy implements [brevity.Group.Heavy].
@@ -175,6 +177,16 @@ func (g *group) Fast() bool {
 // VeryFast implements [brevity.Group.VeryFast].
 func (g *group) VeryFast() bool {
 	return false
+}
+
+// MergedWith implements [brevity.Group.MergedWith].
+func (g *group) MergedWith() int {
+	return g.mergedWith
+}
+
+// SetMergedWith implements [brevity.Group.SetMergedWith].
+func (g *group) SetMergedWith(mergedWith int) {
+	g.mergedWith = mergedWith
 }
 
 func (g *group) String() string {
@@ -270,5 +282,6 @@ func (g *group) ObjectIDs() []uint64 {
 	for _, trackfile := range g.contacts {
 		ids = append(ids, trackfile.Contact.ID)
 	}
+	slices.Sort(ids)
 	return ids
 }
