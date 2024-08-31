@@ -128,17 +128,17 @@ func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out ch
 				c.updateLastRX(vp)
 			}
 		case <-t.C:
-			// Check if there is enough in the buffer and that we've consumed all queued packets. Then check if we've passed the receive deadline.
+			// Check if there anything the buffer and that we've consumed all queued packets. Then check if we've passed the receive deadline.
 			// If so, we have a tranmission ready to publish for audio decoding.
-			// 25 packets * 40ms = 1s which is the minimum whisper can transcribe anyway.
-			if len(in) == 0 && time.Now().After(c.lastRx.deadline) {
+			if len(buf) > 0 && len(in) == 0 && time.Now().After(c.lastRx.deadline) {
 				log.Trace().Int("bufferLength", len(buf)).Uint64("lastPacketID", c.lastRx.packetNumber).Str("lastOrigin", string(c.lastRx.origin)).Msg("passed receive deadline with packets in buffer")
+				// 25 packets * 40ms = 1s which is the minimum whisper can transcribe anyway.
 				if len(buf) > 25 {
 					audio := make([]voice.VoicePacket, len(buf))
 					copy(audio, buf)
 					out <- audio
 				} else {
-					log.Warn().Int("bufferLength", len(buf)).Msg("audio in buffer is too short to publish, discarding buffer")
+					log.Debug().Int("bufferLength", len(buf)).Msg("audio in buffer is too short to publish, discarding buffer")
 				}
 				// Reset receiver state
 				buf = make([]voice.VoicePacket, 0)
