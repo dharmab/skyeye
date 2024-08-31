@@ -219,7 +219,7 @@ func (s *scope) handleGarbageCollection() {
 		if isNotZero && isOld {
 			s.contacts.delete(trackfile.Contact.ID)
 			logger.Info().
-				Dur("age", s.missionTime.Sub(lastSeen)).
+				Stringer("age", s.missionTime.Sub(lastSeen)).
 				Msg("removed aged out trackfile")
 		}
 	}
