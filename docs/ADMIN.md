@@ -120,19 +120,19 @@ A sample [cloud-init](https://cloudinit.readthedocs.io/en/latest/) config is pro
 
 ### Manual Installation
 
-Install libopus and libsoxr.
+Install shared libraries for [Opus](https://opus-codec.org/), [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/) and [OpenBLAS](http://www.openblas.net/) with [OpenMP](https://www.openmp.org/about/openmp-faq/#OMPAPI).
 
 Ubuntu:
 
 ```bash
 sudo apt-get update
-sudo apt-get install libopus0 libsoxr0
+sudo apt-get install libopus0 libsoxr0 libopenblas0-openmp
 ```
 
 Arch Linux:
 
 ```bash
-sudo pacman -Syu opus soxr
+sudo pacman -Syu opus soxr openblas
 ```
 
 Download SkyEye and an AI model. Copy them to `/opt/skyeye/`. Create a `skyeye` user to run SkyEye.

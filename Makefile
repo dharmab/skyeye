@@ -76,7 +76,8 @@ install-msys2-dependencies:
 	  $(MINGW_PACKAGE_PREFIX)-toolchain \
 	  $(MINGW_PACKAGE_PREFIX)-go \
 	  $(MINGW_PACKAGE_PREFIX)-opus \
-	  $(MINGW_PACKAGE_PREFIX)-libsoxr
+	  $(MINGW_PACKAGE_PREFIX)-libsoxr \
+	  $(MINGW_PACKAGE_PREFIX)-openblas
 
 .PHONY: install-arch-linux-dependencies
 install-arch-linux-dependencies:
@@ -85,7 +86,8 @@ install-arch-linux-dependencies:
 	  base-devel \
 	  go \
 	  opus \
-	  libsoxr
+	  libsoxr \
+	  openblas
 
 .PHONY: install-debian-dependencies
 install-debian-dependencies:
@@ -96,7 +98,9 @@ install-debian-dependencies:
 	  libopus-dev \
 	  libopus0 \
 	  libsoxr-dev \
-	  libsoxr0
+	  libsoxr0 \
+	  libopenblas0-openmp \
+	  libopenblas-openmp-dev \
 
 .PHONY: install-macos-dependencies
 install-macos-dependencies:
@@ -105,8 +109,13 @@ install-macos-dependencies:
 	  opus \
 	  libsoxr
 
+WHISPER_CPP_BUILD_ENV =
+ifneq ($(OS_DISTRIBUTION),macOS)
+WHISPER_CPP_BUILD_ENV = GGML_OPENBLAS=1
+endif
+
 $(LIBWHISPER_PATH) $(WHISPER_H_PATH):
-	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false "$(WHISPER_CPP_REPO)" "$(WHISPER_CPP_PATH)" && make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
+	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false "$(WHISPER_CPP_REPO)" "$(WHISPER_CPP_PATH)" && $(WHISPER_CPP_BUILD_ENV) make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
 
 .PHONY: whisper
 whisper: $(LIBWHISPER_PATH) $(WHISPER_H_PATH)

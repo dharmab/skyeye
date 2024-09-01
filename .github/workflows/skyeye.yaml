@@ -90,9 +90,12 @@ jobs:
             mingw-w64-ucrt-x86_64-toolchain
             mingw-w64-ucrt-x86_64-opus
             mingw-w64-ucrt-x86_64-libsoxr
+            mingw-w64-ucrt-x86_64-openblas
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-go
             zip
+      - name: Build whisper.cpp
+        uses: ./.github/actions/build-whisper
       - name: Build Skyeye
         shell: msys2 {0}
         run: make skyeye.exe
