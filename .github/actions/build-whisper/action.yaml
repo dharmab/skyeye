@@ -1,10 +1,14 @@
 name: Setup
 description: Build whisper.cpp
 inputs:
+  whisper-cpp-repo:
+    description: 'The whisper.cpp repository to use'
+    required: true
+    default: 'dharmab/whisper.cpp'
   whisper-cpp-version:
     description: 'The version of whisper.cpp to use'
     required: true
-    default: 'v1.6.2'
+    default: 'v1.6.2-openmp'
   os:
     description: 'The operating system to build for'
     required: true
@@ -23,18 +27,22 @@ runs:
         path: |
           third_party/whisper.cpp/libwhisper.a
           third_party/whisper.cpp/*.h
-        key: whisper-${{ inputs.whisper-cpp-version }}-${{ inputs.os }}-amd64-cache
+        # Increment the number after the version if the cache must be invalidated within a version
+        # v1.6.2-openmp-1: OpenBLAS support on Windows/Linux, OpenMP support on all platforms
+        key: whisper-${{ inputs.whisper-cpp-version }}-1-${{ inputs.os }}-amd64-cache
     - name: Checkout whisper.cpp
       if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
       uses: actions/checkout@v4
       with:
-        repository: ggerganov/whisper.cpp
+        repository: ${{ inputs.whisper-cpp-repo }}
         path: third_party/whisper.cpp
         ref: ${{ inputs.whisper-cpp-version }}
     - name: Build whisper.cpp
       if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
+      env:
+        CC: gcc
       shell: ${{ inputs.shell }}
-      run: make -C third_party/whisper.cpp/bindings/go whisper
+      run: make whisper
     - name: Set whisper paths
       shell: ${{ inputs.shell }}
       run: |

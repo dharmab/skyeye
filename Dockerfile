@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y \
   gcc \
   libopus-dev \
   libsoxr-dev \
-&& rm -rf /var/lib/apt/lists/*
+  libopenblas-openmp-dev \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /skyeye
 COPY third_party third_party
 COPY Makefile Makefile
@@ -24,6 +25,7 @@ FROM debian:bookworm-slim AS skyeye
 RUN apt-get update && apt-get install -y \
   libopus0 \
   libsoxr0 \
-&& rm -rf /var/lib/apt/lists/*
+  libopenblas0-openmp \
+  && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /skyeye/skyeye /opt/skyeye/bin/skyeye
 ENTRYPOINT ["/opt/skyeye/bin/skyeye"]

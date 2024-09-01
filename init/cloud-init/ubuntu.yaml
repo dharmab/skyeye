@@ -5,6 +5,7 @@ users:
 packages:
   - libopus0
   - libsoxr0
+  - libopenblas0-openmp
 package_update: true
 package_upgrade: true
 write_files:
