@@ -11,6 +11,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/sim"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -225,22 +226,13 @@ func (s *scope) handleGarbageCollection() {
 	}
 }
 
-// isValidTrack checks if the trackfile is valid. This means all of the following conditions are met:
-// Last known position is not (0, 0)
-// Speed is above 50 knots
-// Altitude is above 10 meters above sea level
+// isValidTrack checks if the trackfile is valid. This means the following conditions are met:
+//   - Last known position is not (0, 0)
+//   - Speed is above 50 knots
 func isValidTrack(trackfile *trackfiles.Trackfile) bool {
-	point := trackfile.LastKnown().Point
-
-	isValidLongitude := point.Lon() != 0
-	isValidLatitude := point.Lat() != 0
-	isValidPosition := isValidLongitude && isValidLatitude
-
+	isValidPosition := !spatial.IsZero(trackfile.LastKnown().Point)
 	isAboveSpeedFilter := trackfile.Speed() > 50*unit.Knot
-
-	isAboveAltitudeFilter := trackfile.LastKnown().Altitude > 10*unit.Meter
-
-	isValid := isValidPosition && isAboveSpeedFilter && isAboveAltitudeFilter
+	isValid := isValidPosition && isAboveSpeedFilter
 	return isValid
 }
 
