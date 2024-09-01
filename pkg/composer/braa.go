@@ -21,7 +21,7 @@ func (c *composer) ComposeBRAA(braa brevity.BRAA, declaration brevity.Declaratio
 	_range := int(braa.Range().NauticalMiles())
 	altitude := c.ComposeAltitude(braa.Altitude(), declaration)
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("BRAA %s/%d, %s, %s", bearing, _range, altitude, aspect),
-		Speech:   fmt.Sprintf("brah %s, %d, %s, %s", bearing, _range, altitude, aspect),
+		Subtitle: fmt.Sprintf("BRAA %s/%d, %s, %s", braa.Bearing().String(), _range, altitude, aspect),
+		Speech:   fmt.Sprintf("BRAA %s, %d, %s, %s", bearing, _range, altitude, aspect),
 	}
 }
