@@ -96,6 +96,9 @@ jobs:
             zip
       - name: Build whisper.cpp
         uses: ./.github/actions/build-whisper
+        with:
+          os: windows
+          shell: msys2 {0}
       - name: Build Skyeye
         shell: msys2 {0}
         run: make skyeye.exe
