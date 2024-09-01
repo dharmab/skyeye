@@ -31,6 +31,9 @@ func Stacks(a ...unit.Length) []Stack {
 
 	stacks := []Stack{}
 	for i := len(a) - 1; i >= 0; i-- {
+		if a[i] == 0 {
+			continue
+		}
 		if len(stacks) == 0 {
 			stacks = append(stacks, Stack{Altitude: a[i], Count: 1})
 		} else {
