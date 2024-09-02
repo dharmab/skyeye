@@ -117,7 +117,6 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 		case <-ticker.C:
 			if time.Now().After(c.pictureBroadcastDeadline) {
 				logger := log.With().Logger()
-				logger.Info().Msg("broadcasting PICTURE call")
 				c.broadcastPicture(&logger, false)
 			}
 			c.broadcastThreats()
