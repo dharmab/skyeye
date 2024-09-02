@@ -14,10 +14,7 @@ func (c *audioClient) transmit(ctx context.Context, packetCh <-chan []voice.Voic
 	for {
 		select {
 		case packets := <-packetCh:
-			if !c.mute {
-				c.tx(packets)
-			}
-
+			c.tx(packets)
 			// Pause between transmissions to sound more natural.
 			pause := time.Duration(500+rand.Intn(500)) * time.Millisecond
 			time.Sleep(pause)
@@ -28,15 +25,29 @@ func (c *audioClient) transmit(ctx context.Context, packetCh <-chan []voice.Voic
 	}
 }
 
-func (c *audioClient) tx(packets []voice.VoicePacket) {
-	for c.lastRx.deadline.After(time.Now()) {
-		delay := time.Until(c.lastRx.deadline) + 250*time.Millisecond
-		log.Info().Stringer("delay", delay).Msg("delaying outgoing transmission to avoid interrupting incoming transmission")
-		time.Sleep(delay)
+func (c *audioClient) waitForClearChannel() {
+	for {
+		isReceiving := false
+		deadline := time.Now()
+		for _, receiver := range c.receivers {
+			if receiver.isReceivingTransmission() {
+				isReceiving = true
+				if receiver.deadline.After(deadline) {
+					deadline = receiver.deadline
+				}
+			}
+		}
+		if isReceiving {
+			delay := time.Until(deadline) + 250*time.Millisecond
+			log.Info().Stringer("delay", delay).Msg("delaying outgoing transmission to avoid interrupting incoming transmission")
+			time.Sleep(delay)
+		} else {
+			return
+		}
 	}
-	c.busy.Lock()
-	defer c.busy.Unlock()
-	// TODO in-game subtitles
+}
+
+func (c *audioClient) writePackets(packets []voice.VoicePacket) {
 	startTime := time.Now()
 	for i, vp := range packets {
 		b := vp.Encode()
@@ -53,5 +64,14 @@ func (c *audioClient) tx(packets []voice.VoicePacket) {
 		if err != nil {
 			log.Error().Err(err).Msg("failed to transmit voice packet")
 		}
+	}
+}
+
+func (c *audioClient) tx(packets []voice.VoicePacket) {
+	c.busy.Lock()
+	defer c.busy.Unlock()
+	c.waitForClearChannel()
+	if !c.mute {
+		c.writePackets(packets)
 	}
 }

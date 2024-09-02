@@ -13,6 +13,14 @@ const opusApplicationVoIP = 2048
 
 // encodeVoice encodes audio from txChan and publishes an entire transmission's worth of voice packets to packetCh.
 func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.VoicePacket) {
+	frequencyList := make([]voice.Frequency, 0, len(c.radios))
+	for _, radio := range c.radios {
+		frequencyList = append(frequencyList, voice.Frequency{
+			Frequency:  radio.Frequency,
+			Modulation: byte(radio.Modulation),
+			Encryption: 0,
+		})
+	}
 	for {
 		select {
 		case audio := <-c.txChan:
@@ -46,13 +54,7 @@ func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.V
 
 				vp := voice.NewVoicePacket(
 					audioBytes,
-					[]voice.Frequency{
-						{
-							Frequency:  c.radio.Frequency,
-							Modulation: byte(c.radio.Modulation),
-							Encryption: 0,
-						},
-					},
+					frequencyList,
 					100000002,
 					c.packetNumber,
 					0,

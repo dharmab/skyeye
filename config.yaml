@@ -60,12 +60,16 @@
 # Mode in SRS.
 #srs-eam-password: eampasswordgoeshere
 #
-# SRS frequency. Set this to the AM radio frequency the GCI should listen and
-# speak on. Be sure to choose a frequency that all allied aircraft in your
-# mission can tune on their radios. Some aircraft cannot manually tune some of
-# their radios, so you may need to choose a frequency matching a preset
-# configured in the DCS mission editor.
-#srs-frequency: 251.0
+# SRS frequencies. Set this to the radio frequencies the GCI should listen and
+# speak on. The GCI can understand players speaking simultaneously on multiple
+# frequencies. It speaks on all frequencies simultaneously, similar to the
+# Simultaneous Tranmission (ST) option in the official SRS client application.
+#
+# ⚠️ Consider that some aircraft are limited to certain frequencies. For example,
+# the F-4E can only tune 225.0AM-399.95AM on the primary radio and 265.0AM-284.9AM
+# on the aux radio. Meanwhile, the F-16 can only tune 225.000-399.975 on COM1 and
+# 108.000-151.975 on COM2.
+#srs-frequencies: 251.0AM,133.0AM,30.0FM
 
 # IDENTITY
 # Set the callsign to whatever you want the GCI to use as the callsign. Good
@@ -73,7 +77,9 @@
 # pronounce. Real-world examples include: Baron, Chalice, Darkstar, Disco,
 # Focus, Goliath, Magic, Sentry and Wizard. If you don't provide a callsign, a
 # random callsign is selected from a set of Ace Combat/Project Wingman easter
-# eggs. Please do _not_ use the callsign "Overlord" to avoid any possible
+# eggs. 
+#
+# ⚠️ Please do _not_ use the callsign "Overlord" to avoid any possible
 # confusion with OverlordBot. I do not want any confused players to send bug
 # reports to the wrong project!
 #callsign: Focus
@@ -108,8 +114,8 @@
 # 5 minutes work best.
 #auto-picture-interval: 2m
 #
-# By default, the GCI monitors any friendly aircraft which tunes onto the
-# configured SRS frequency. The GCI will broadcast a threat call if a hostile
+# By default, the GCI monitors any friendly aircraft which tunes onto any of the
+# configured SRS frequencies. The GCI will broadcast a threat call if a hostile
 # aircraft approaches close enough to a monitored friendly aircraft to satisfy
 # threat criteria. Threat criteria are dynamic; for example, a Su-27 Flanker is
 # considered to be a threat at a greater range than a Su-17 Fitter.

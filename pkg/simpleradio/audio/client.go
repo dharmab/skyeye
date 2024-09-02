@@ -11,6 +11,7 @@ import (
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/simpleradio/voice"
+	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
 
@@ -20,8 +21,8 @@ type Audio []float32
 
 // AudioClient is an SRS audio client configured to receive and transmit on a specific SRS frequency.
 type AudioClient interface {
-	// Frequency returns the SRS frequency this client is configured to receive and transmit on in Hz.
-	Frequency() float64
+	// Frequencies returns the SRS frequencies this client is configured to receive and transmit on in Hz.
+	Frequencies() []unit.Frequency
 	// Run executes the control loops of the SRS audio client. It should be called exactly once. When the context is canceled or if the client encounters a non-recoverable error, the client will close its resources.
 	Run(context.Context, *sync.WaitGroup) error
 	// Transmit queues the given audio to play on the audio client's SRS frequency.
@@ -36,7 +37,7 @@ type audioClient struct {
 	// guid is used to identify this client to the SRS server.
 	guid types.GUID
 	// radio is the SRS radio this client will receive and transmit on.
-	radio types.Radio
+	radios []types.Radio
 	// connection is the UDP connection to the SRS server.
 	connection *net.UDPConn // todo move connection mgmt into Run()
 	// rxChan is a channel where received audio is published. A read-only version is available publicly.
@@ -47,8 +48,8 @@ type audioClient struct {
 	// lastPing tracks the last time a ping was received so we can tell when the server is (probably) restarted or offline.
 	lastPing time.Time
 
-	// lastRx tracks the last received audio packet so we can tell when a transmission has (probably) ended.
-	lastRx rxState
+	// receivers tracks the state of each radio we are listening to.
+	receivers map[types.Radio]*receiver
 	// packetNumber is incremented for each voice packet transmitted.
 	packetNumber uint64
 
@@ -57,17 +58,6 @@ type audioClient struct {
 
 	// mute suppresses audio transmission.
 	mute bool
-}
-
-// rxState contains the state of the current received transmission.
-type rxState struct {
-	// origin is the GUID of a client we are currently listening to. We can only listen to one client at a time, and whoever started broadcasting first wins.
-	origin types.GUID
-	// deadline is extended every time another voice packet is received. When we pass the deadline, the transmission is considered over.
-	deadline time.Time
-	// packetNumber is the number of the last received voice packet. We only record a packet if its packet number is larger than the last received packet's, and skip any that were dropped or delivered out of order.
-	// If we were more ambitious we would reassemble the packets and use Opus's forward error correction to recover from lost packets... too bad!
-	packetNumber uint64
 }
 
 func NewClient(guid types.GUID, config types.ClientConfiguration) (AudioClient, error) {
@@ -80,13 +70,17 @@ func NewClient(guid types.GUID, config types.ClientConfiguration) (AudioClient, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to SRS server %v over UDP: %w", config.Address, err)
 	}
+	receivers := make(map[types.Radio]*receiver, len(config.Radios))
+	for _, radio := range config.Radios {
+		receivers[radio] = &receiver{}
+	}
 	return &audioClient{
 		guid:         guid,
-		radio:        config.Radio,
+		radios:       config.Radios,
 		connection:   connection,
 		txChan:       make(chan Audio),
 		rxchan:       make(chan Audio),
-		lastRx:       rxState{},
+		receivers:    receivers,
 		packetNumber: 1,
 		busy:         sync.Mutex{},
 		mute:         config.Mute,
@@ -95,8 +89,12 @@ func NewClient(guid types.GUID, config types.ClientConfiguration) (AudioClient, 
 }
 
 // Frequency implements AudioClient.Frequency
-func (c *audioClient) Frequency() float64 {
-	return c.radio.Frequency
+func (c *audioClient) Frequencies() []unit.Frequency {
+	frequencies := make([]unit.Frequency, 0, len(c.radios))
+	for _, radio := range c.radios {
+		frequencies = append(frequencies, unit.Frequency(radio.Frequency)*unit.Hertz)
+	}
+	return frequencies
 }
 
 // Run implements AudioClient.Run

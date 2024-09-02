@@ -54,29 +54,30 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	updates := make(chan sim.Updated)
 	fades := make(chan sim.Faded)
 
+	radios := make([]srs.Radio, 0, len(config.SRSFrequencies))
+	for _, radioFrequency := range config.SRSFrequencies {
+		radios = append(radios, srs.Radio{
+			Frequency:        radioFrequency.Frequency.Hertz(),
+			Modulation:       radioFrequency.Modulation,
+			ShouldRetransmit: true,
+		})
+	}
+
 	log.Info().
 		Str("address", config.SRSAddress).
 		Stringer("timeout", config.SRSConnectionTimeout).
 		Str("clientName", config.SRSClientName).
 		Int("coalitionID", int(config.Coalition)).
-		Float64("frequency", config.SRSFrequency.Megahertz()).
 		Int("modulationID", int(srs.ModulationAM)).
 		Msg("constructing SRS client")
-	srsClient, err := simpleradio.NewClient(
-		srs.ClientConfiguration{
-			Address:                   config.SRSAddress,
-			ConnectionTimeout:         config.SRSConnectionTimeout,
-			ClientName:                config.SRSClientName,
-			ExternalAWACSModePassword: config.SRSExternalAWACSModePassword,
-			Coalition:                 config.Coalition,
-			Radio: srs.Radio{
-				Frequency:        config.SRSFrequency.Hertz(),
-				Modulation:       srs.ModulationAM,
-				ShouldRetransmit: true,
-			},
-			Mute: config.Mute,
-		},
-	)
+	srsClient, err := simpleradio.NewClient(srs.ClientConfiguration{
+		Address:                   config.SRSAddress,
+		ConnectionTimeout:         config.SRSConnectionTimeout,
+		ClientName:                config.SRSClientName,
+		ExternalAWACSModePassword: config.SRSExternalAWACSModePassword,
+		Coalition:                 config.Coalition,
+		Radios:                    radios,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct application: %w", err)
 	}
@@ -124,7 +125,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	controller := controller.New(
 		rdr, srsClient,
 		config.Coalition,
-		config.SRSFrequency,
+		config.SRSFrequencies,
 		config.PictureBroadcastInterval,
 		config.EnableThreatMonitoring,
 		config.ThreatMonitoringInterval,

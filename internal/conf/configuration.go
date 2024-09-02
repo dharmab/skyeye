@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 	"github.com/martinlindhe/unit"
@@ -29,8 +30,8 @@ type Configuration struct {
 	SRSClientName string
 	// SRSExternalAWACSModePassword is the password for connecting to the SimpleRadio Standalone server using External AWACS Mode
 	SRSExternalAWACSModePassword string
-	// SRSFrequency is the radio frequency the bot will listen to and talk on in Hz
-	SRSFrequency unit.Frequency
+	// SRSFrequencies that the bot simultaneously receives and transmits on
+	SRSFrequencies []simpleradio.RadioFrequency
 	// Callsign is the GCI callsign used on SRS
 	Callsign string
 	// Coalition is the coalition that the bot will act on
@@ -56,7 +57,7 @@ type Configuration struct {
 	ThreatMonitoringInterval time.Duration
 	// MandatoryThreatRadius is the brief range at which a THREAT call is mandatory.
 	MandatoryThreatRadius unit.Length
-	// ThreatMonitoringRequiresSRS controls whether threat calls are issued to aircraft that are not on the SRS frequency. This is mostly
+	// ThreatMonitoringRequiresSRS controls whether threat calls are issued to aircraft that are not on an SRS frequency. This is mostly
 	// for debugging.
 	ThreatMonitoringRequiresSRS bool
 }

@@ -5,7 +5,7 @@
 1. Set your in-game callsign to a simple callsign in the format `Callsign 1 | yourname`.
 1. Join a server that uses SRS and SkyEye.
 1. Get airborne.
-1. Tune to the server's SkyEye frequency in SRS.
+1. Tune to any of the server's SkyEye frequencies in SRS.
 1. Say "Anyface, Callsign 1, radio check" and see if the bot understands you.
 1. Say "Anyface, Callsign 1, picture" to be told about the highest priority threats to your coalition. 
 1. Say "Anyface, Callsign 1, bogey" to get a bearing to the nearest threat to you.
@@ -52,7 +52,7 @@ If your callsign doesn't follow this format, SkyEye makes a best effort to under
 
 ### Using Your Voice
 
-You can send a request to SkyEye by speaking on the SkyEye frequency in SRS. The format of the request is:
+You can send a request to SkyEye by speaking on any SkyEye frequency in SRS. The format of the request is:
 
 `GCI_CALLSIGN YOUR_CALLSIGN (...) REQUEST_TYPE (...) (REQUEST_ARGUMENTS...) (...)`
 
@@ -82,7 +82,7 @@ Tips:
 * Think about what you want to say before you say it.
 * Speak clearly at a measured pace, as if you were recording a vlog or talking to colleages in a meeting room. Speaking too quickly or excessively slowly can confuse the bot.
 * If you misspeak, release your Push-to-Talk key and start over rather than trying to correct yourself.
-* Avoid chatter on the SkyEye frequency. This may delay responses to actual requests.
+* Avoid excessive chatter on SkyEye frequencies. This may delay responses to actual requests.
 
 ### Using the Keyboard and Mouse
 
@@ -288,7 +288,7 @@ The GCI controller monitors for threats which are near or approaching friendly a
 
 Threat locations are given in BRAA format if they are relevant to a single friendly aircraft, or Bullseye calls if they are relevant to multiple friendly aircraft.
 
-Your own aircraft must be on the SRS frequency, and using the same name in DCS and in SRS, to receive THREAT monitoring.
+Your own aircraft must be on a SRS frequency, and using the same name in DCS and in SRS, to receive THREAT monitoring.
 
 ### FADED
 

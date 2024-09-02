@@ -24,6 +24,7 @@ import (
 	"github.com/dharmab/skyeye/internal/application"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
@@ -40,7 +41,7 @@ var (
 	srsAddress                   string
 	srsConnectionTimeout         time.Duration
 	srsExternalAWACSModePassword string
-	srsFrequency                 float64
+	srsFrequencies               []string
 	gciCallsign                  string
 	gciCallsigns                 []string
 	coalitionName                string
@@ -83,7 +84,7 @@ func init() {
 	skyeye.Flags().StringVar(&srsAddress, "srs-server-address", "localhost:5002", "Address of the SRS server")
 	skyeye.Flags().DurationVar(&srsConnectionTimeout, "srs-connection-timeout", 10*time.Second, "Connection timeout for SRS client")
 	skyeye.Flags().StringVar(&srsExternalAWACSModePassword, "srs-eam-password", "", "SRS external AWACS mode password")
-	skyeye.Flags().Float64Var(&srsFrequency, "srs-frequency", 251.0, "GCI frequency in MHz")
+	skyeye.Flags().StringSliceVar(&srsFrequencies, "srs-frequencies", []string{"251.0AM", "133.0AM", "30.0FM"}, "List of SRS frequencies to use")
 
 	// Identity
 	skyeye.Flags().StringVar(&gciCallsign, "callsign", "", "GCI callsign used in radio transmissions. Automatically chosen if not provided")
@@ -300,10 +301,17 @@ func loadCallsign(rando *rand.Rand) (callsign string) {
 	return
 }
 
-func loadFrequency() (frequency unit.Frequency) {
-	frequency = unit.Frequency(srsFrequency) * unit.Megahertz
-	log.Info().Float64("frequency", frequency.Megahertz()).Msg("parsed SRS frequency")
-	return
+func loadFrequencies() []simpleradio.RadioFrequency {
+	frequencies := make([]simpleradio.RadioFrequency, 0, len(srsFrequencies))
+	for _, s := range srsFrequencies {
+		freq, err := simpleradio.ParseRadioFrequency(s)
+		if err != nil {
+			exitOnErr(fmt.Errorf("failed to parse frequency: %w", err))
+		}
+		frequencies = append(frequencies, *freq)
+		log.Info().Stringer("frequency", freq).Msg("parsed SRS frequency")
+	}
+	return frequencies
 }
 
 func Supervise(cmd *cobra.Command, args []string) {
@@ -340,7 +348,7 @@ func Supervise(cmd *cobra.Command, args []string) {
 	rando := randomizer()
 	voice := loadVoice(rando)
 	callsign := loadCallsign(rando)
-	frequency := loadFrequency()
+	srsFrequencies := loadFrequencies()
 	playbackSpeed := loadPlaybackSpeed()
 
 	config := conf.Configuration{
@@ -353,7 +361,7 @@ func Supervise(cmd *cobra.Command, args []string) {
 		SRSConnectionTimeout:         srsConnectionTimeout,
 		SRSClientName:                fmt.Sprintf("GCI %s [BOT]", callsign),
 		SRSExternalAWACSModePassword: srsExternalAWACSModePassword,
-		SRSFrequency:                 frequency,
+		SRSFrequencies:               srsFrequencies,
 		Callsign:                     callsign,
 		Coalition:                    coalition,
 		RadarSweepInterval:           telemetryUpdateInterval,

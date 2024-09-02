@@ -67,7 +67,7 @@ func NewClient(guid types.GUID, config types.ClientConfiguration) (DataClient, e
 			RadioInfo: types.RadioInfo{
 				UnitID:  100000002,
 				Unit:    "External AWACS",
-				Radios:  []types.Radio{config.Radio},
+				Radios:  config.Radios,
 				IFF:     types.NewIFF(),
 				Ambient: types.NewAmbient(),
 			},
