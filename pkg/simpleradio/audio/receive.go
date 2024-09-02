@@ -138,7 +138,8 @@ func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out ch
 					copy(audio, buf)
 					out <- audio
 				} else {
-					log.Debug().Int("bufferLength", len(buf)).Msg("audio in buffer is too short to publish, discarding buffer")
+					duration := 40 * time.Millisecond * time.Duration(len(buf))
+					log.Info().Stringer("duration", duration).Msg("discarding transmission because it is too short for speech recognition")
 				}
 				// Reset receiver state
 				buf = make([]voice.VoicePacket, 0)
