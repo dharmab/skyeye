@@ -7,7 +7,6 @@ This is a technical article on how to deploy SkyEye, targeted at multiplayer ser
 ## Major Known Issues
 
 - **High**: SkyEye does not automatically reconnect to SRS if the connection is lost. It must be restarted if this happens. [Bug tracked here](https://github.com/dharmab/skyeye/issues/221) This guide recommends using systemd or PowerShell to automatically restart SkyEye.
-- **High**: SkyEye may stop recognizing speech for no aparent reason after running for a while. It must be restarted if this happens. [Bug tracked here](https://github.com/dharmab/skyeye/issues/219).
 - **Medium**: SkyEye will not report about hostile contacts below 50 knots. Unfortunately, this includes hostile helicopters that are moving slowly or hovering. [Bug tracked here](https://github.com/dharmab/skyeye/issues/65).
 - See also [this section in the player guide](PLAYER.md#a-word-of-warning) about the bots' limitations.
 
