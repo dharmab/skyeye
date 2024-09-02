@@ -45,7 +45,7 @@ type controller struct {
 	out                         chan<- any
 	scope                       radar.Radar
 	coalition                   coalitions.Coalition
-	frequency                   unit.Frequency
+	frequencies                 []simpleradio.RadioFrequency
 	pictureBroadcastInterval    time.Duration
 	pictureBroadcastDeadline    time.Time
 	threatCooldowns             *cooldownTracker
@@ -61,7 +61,7 @@ func New(
 	rdr radar.Radar,
 	srsClient simpleradio.Client,
 	coalition coalitions.Coalition,
-	frequency unit.Frequency,
+	frequencies []simpleradio.RadioFrequency,
 	pictureBroadcastInterval time.Duration,
 	enableThreatMonitoring bool,
 	threatMonitoringCooldown time.Duration,
@@ -70,7 +70,7 @@ func New(
 	return &controller{
 		scope:                       rdr,
 		coalition:                   coalition,
-		frequency:                   frequency,
+		frequencies:                 frequencies,
 		pictureBroadcastInterval:    pictureBroadcastInterval,
 		pictureBroadcastDeadline:    time.Now().Add(pictureBroadcastInterval),
 		threatCooldowns:             newCooldownTracker(threatMonitoringCooldown),
@@ -102,8 +102,13 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 		}
 	})
 
-	log.Info().Float64("frequency", c.frequency.Megahertz()).Msg("broadcasting SUNRISE call")
-	c.out <- brevity.SunriseCall{Frequency: c.frequency}
+	log.Info().Msg("broadcasting SUNRISE call")
+	frequencies := make([]unit.Frequency, 0, len(c.frequencies))
+	for _, f := range c.frequencies {
+		frequencies = append(frequencies, unit.Frequency(f.Frequency)*unit.Hertz)
+	}
+	log.Info().Any("cf", c.frequencies).Any("frequencies", frequencies).Msg("WTF")
+	c.out <- brevity.SunriseCall{Frequencies: frequencies}
 
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()

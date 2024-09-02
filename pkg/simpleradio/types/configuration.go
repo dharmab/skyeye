@@ -21,7 +21,7 @@ type ClientConfiguration struct {
 	// Coalition corresponds to ClientInfo.Coalition
 	Coalition coalitions.Coalition
 	// Radio is the Radio to listen and talk on
-	Radio Radio
+	Radios []Radio
 	// AllowRecording corresponds to ClientInfo.AllowRecording
 	AllowRecording bool
 	// Mute is true if the client should not transmit

@@ -10,6 +10,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/simpleradio/audio"
 	"github.com/dharmab/skyeye/pkg/simpleradio/data"
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
+	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
 
@@ -17,19 +18,15 @@ import (
 type Client interface {
 	// Name returns the name of the client as it appears in the SRS client list and in in-game transmissions.
 	Name() string
-	// Frequency returns the radio frequency the client is configured to receive and transmit on in Hz.
-	Frequency() float64
-	// FrequencyMHz returns Client.Frequency in MHz.
-	FrequencyMHz() float64
 	// Run starts the SimpleRadio-Standalone client. It should be called exactly once.
 	Run(context.Context, *sync.WaitGroup) error
 	// Receive returns a channel that receives transmissions over the radio. Each transmission is F32LE PCM audio data.
 	Receive() <-chan audio.Audio
 	// Transmit queues a transmission to send over the radio. The audio data should be in F32LE PCM format.
 	Transmit(audio.Audio)
-	// IsOnFrequency checks if the named unit is on the client's frequency.
+	// IsOnFrequency checks if the named unit is on any of the client's frequencies.
 	IsOnFrequency(string) bool
-	// ClientsOnFrequency returns the number of peers on this client's frequency.
+	// ClientsOnFrequency returns the number of peers on the client's frequencies.
 	ClientsOnFrequency() int
 }
 
@@ -66,14 +63,9 @@ func (c *client) Name() string {
 	return c.dataClient.Name()
 }
 
-// Frequency implements [Client.Frequency].
-func (c *client) Frequency() float64 {
-	return c.audioClient.Frequency()
-}
-
-// FrequencyMHz implements [Client.FrequencyMHz].
-func (c *client) FrequencyMHz() float64 {
-	return c.Frequency() / 1e6
+// Frequencies implements [Client.Frequencies].
+func (c *client) Frequencies() []unit.Frequency {
+	return c.audioClient.Frequencies()
 }
 
 // Run implements [Client.Run].

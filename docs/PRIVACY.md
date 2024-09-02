@@ -26,12 +26,12 @@ SkyEye connects to the SimpleRadio Standalone server (just like the official SRS
 
 > Note: The "encryption" feature inside SRS is **not** an actual encryption system. It does not actually protect your voice audio from being read by other SRS clients.
 
-In order to function, SkyEye temporarily buffers audio data from SRS broadcast on the configured SkyEye frequency. This audio data is discarded immediately after it is transcripted into text, usually within seconds. It is never saved to disk or to a database.
+In order to function, SkyEye temporarily buffers audio data from SRS broadcast on the configured SkyEye frequencies. This audio data is discarded immediately after it is transcripted into text, usually within seconds. It is never saved to disk or to a database.
 
 SkyEye outputs logs so server operators and developers can troubleshoot and improve SkyEye. The logs may be stored as long as the operator of the SkyEye server chooses to do so. These logs may include:
 
 - Your name inside both DCS and SRS
-- Automated transcriptions of voice audio in SimpleRadio on the configured SkyEye frequency
+- Automated transcriptions of voice audio in SimpleRadio on the configured SkyEye frequencies
 - Gameplay activity inside DCS and SRS including UnitID, vehicle name, in-game position data and your selected radio channels
 
 An example of the transcripted audio is provided below:
