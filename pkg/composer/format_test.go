@@ -2,6 +2,7 @@ package composer
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -39,7 +40,7 @@ func TestPronounceInt(t *testing.T) {
 		{arg: 2992, expect: "two niner niner two"},
 	}
 	for _, test := range testCases {
-		t.Run(fmt.Sprint(test.arg), func(t *testing.T) {
+		t.Run(strconv.Itoa(test.arg), func(t *testing.T) {
 			actual := PronounceInt(test.arg)
 			require.Equal(t, test.expect, actual, fmt.Sprintf("got %v, expected %v", actual, test.expect))
 		})

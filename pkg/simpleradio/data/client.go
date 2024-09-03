@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -247,7 +248,7 @@ func (c *dataClient) removeClient(info types.ClientInfo) {
 func (c *dataClient) Send(message types.Message) error {
 	// Sending a message means writing a JSON-serialized message to the TCP connection, followed by a newline.
 	if message.Version == "" {
-		return fmt.Errorf("message Version is required")
+		return errors.New("message Version is required")
 	}
 	b, err := json.Marshal(message)
 	if err != nil {

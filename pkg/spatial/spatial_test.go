@@ -1,5 +1,4 @@
 // spatial contains functions for working with the orb, bearings and unit modules together.
-
 package spatial
 
 import (
@@ -231,7 +230,7 @@ func TestNormalizeAltitude(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(fmt.Sprintf("%fft", test.input.Feet()), func(t *testing.T) {
 			actual := NormalizeAltitude(test.input)
-			assert.Equal(t, test.expected, actual, "expected %fft, got %fft", test.expected.Feet(), actual.Feet())
+			assert.InDelta(t, test.expected.Feet(), actual.Feet(), 0.1)
 		})
 	}
 }

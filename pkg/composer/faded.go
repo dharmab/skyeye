@@ -24,8 +24,8 @@ func (c *composer) ComposeFadedCall(call brevity.FadedCall) NaturalLanguageRespo
 
 	if bullseye := call.Group.Bullseye(); bullseye != nil {
 		bullseye := c.ComposeBullseye(*bullseye)
-		subtitle.WriteString(fmt.Sprintf(" %s", bullseye.Subtitle))
-		speech.WriteString(fmt.Sprintf(" %s", bullseye.Speech))
+		subtitle.WriteString(" " + bullseye.Subtitle)
+		speech.WriteString(" " + bullseye.Speech)
 	}
 
 	if call.Group.Track() != brevity.UnknownDirection {
@@ -37,7 +37,7 @@ func (c *composer) ComposeFadedCall(call brevity.FadedCall) NaturalLanguageRespo
 	}
 
 	for _, platform := range call.Group.Platforms() {
-		writeBoth(fmt.Sprintf(", %s", platform))
+		writeBoth(", " + platform)
 	}
 
 	writeBoth(".")

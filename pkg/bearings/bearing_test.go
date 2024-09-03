@@ -50,7 +50,7 @@ func TestNormalize(t *testing.T) {
 	for _, test := range tests {
 		t.Run(fmt.Sprint(test.input), func(t *testing.T) {
 			actual := normalize(unit.Angle(test.input) * unit.Degree).Degrees()
-			require.Equal(t, test.expected, actual)
+			require.InDelta(t, test.expected, actual, 0.1)
 		})
 	}
 }

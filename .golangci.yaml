@@ -1,3 +1,15 @@
 run:
   build-tags:
     - nolibopusfile
+linters:
+  presets:
+    - bugs
+    - performance
+  disable:
+    - asciicheck  # Unicode is fine!
+linters-settings:
+  gosec:
+    excludes:
+      - G404
+
+

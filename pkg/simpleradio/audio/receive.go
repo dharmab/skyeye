@@ -2,6 +2,7 @@ package audio
 
 import (
 	"context"
+	"errors"
 	"io"
 	"sync"
 	"time"
@@ -98,7 +99,7 @@ func (c *audioClient) receiveUDP(ctx context.Context, pingCh chan<- []byte, voic
 		copy(udpPacket, udpPacketBuf[0:n])
 
 		switch {
-		case err == io.EOF:
+		case errors.Is(err, io.EOF):
 			log.Error().Err(err).Msg("UDP connection closed")
 		case err != nil:
 			log.Error().Err(err).Msg("UDP connection read error")

@@ -2,6 +2,7 @@ package recognizer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -57,13 +58,13 @@ func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32) (st
 			return textBuilder.String(), nil
 		default:
 			segment, err := wCtx.NextSegment()
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				return textBuilder.String(), nil
 			}
 			if err != nil {
 				return textBuilder.String(), fmt.Errorf("error processing segment: %w", err)
 			}
-			textBuilder.WriteString(fmt.Sprintf("%s\n", segment.Text))
+			textBuilder.WriteString(segment.Text)
 		}
 	}
 }

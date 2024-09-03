@@ -15,8 +15,7 @@ func (c *composer) ComposeSunriseCall(call brevity.SunriseCall) NaturalLanguageR
 
 	for i, freq := range call.Frequencies {
 		message.Subtitle += fmt.Sprintf(", %f.3", freq.Megahertz())
-		decimal := PronounceDecimal(freq.Megahertz(), 3, "point")
-		message.Speech += fmt.Sprintf(", %s", decimal)
+		message.Speech += ", " + PronounceDecimal(freq.Megahertz(), 3, "point")
 		if len(call.Frequencies) > 1 && i == len(call.Frequencies)-2 {
 			message.Subtitle += " and"
 			message.Speech += " and"

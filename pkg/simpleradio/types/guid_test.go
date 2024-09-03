@@ -11,10 +11,6 @@ import (
 func TestNewGUID(t *testing.T) {
 	for range 9999 {
 		g := NewGUID()
-		require.Equal(
-			t,
-			GUIDLength, len([]byte(g)),
-			"GUID %v is not %v bytes in length", g, GUIDLength,
-		)
+		require.Len(t, []byte(g), GUIDLength)
 	}
 }
