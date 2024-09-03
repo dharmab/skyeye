@@ -110,7 +110,7 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 	log.Info().Any("cf", c.frequencies).Any("frequencies", frequencies).Msg("WTF")
 	c.out <- brevity.SunriseCall{Frequencies: frequencies}
 
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
 
 	for {

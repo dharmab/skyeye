@@ -36,7 +36,7 @@ func (s *scope) collectFaded(ctx context.Context) {
 		case fade := <-s.fades:
 			// When we receive a faded contact, we wait a little in case it's wingman is also fading.
 			// This is common if the flight lands or is being engaged by a coordinated flight.
-			deadline = time.Now().Add(10 * time.Second)
+			deadline = time.Now().Add(15 * time.Second)
 			collectedFades = append(collectedFades, fade)
 		case <-ticker.C:
 			if len(collectedFades) > 0 && time.Now().After(deadline) {
