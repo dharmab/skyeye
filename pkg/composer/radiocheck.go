@@ -2,7 +2,7 @@ package composer
 
 import (
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
@@ -21,7 +21,7 @@ func (c *composer) ComposeRadioCheckResponse(response brevity.RadioCheckResponse
 		"%s, Lima Charlie!",
 	}
 
-	variation := replies[rand.Intn(len(replies))]
+	variation := replies[rand.IntN(len(replies))]
 	reply := fmt.Sprintf(variation, response.Callsign)
 	return NaturalLanguageResponse{
 		Subtitle: reply,

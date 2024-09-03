@@ -2,7 +2,7 @@ package composer
 
 import (
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
@@ -22,7 +22,7 @@ func (c *composer) ComposeTripwireResponse(response brevity.TripwireResponse) Na
 		"%s, TRIPWIRE ain't no brevity I ever heard of!",
 		"%s, please refer to MULTI-SERVICE TACTICS TECHNIQUES AND PROCEDURES for Air Control Communication. You will find that it does not contain any so-called TRIPWIRE.",
 	}
-	variation1 := replies1[rand.Intn(len(replies1))]
+	variation1 := replies1[rand.IntN(len(replies1))]
 
 	replies2 := []string{
 		"Look, I'm watching you on the radar, and I'll let you know if I see any threats, okay?",
@@ -38,7 +38,7 @@ func (c *composer) ComposeTripwireResponse(response brevity.TripwireResponse) Na
 		"I am following you on the radar and will tell you about any threats.",
 		"I'm monitoring you on the radar. I will inform you if I see any threats, and you can ask me for an updated PICTURE at any time.",
 	}
-	variation2 := replies2[rand.Intn(len(replies2))]
+	variation2 := replies2[rand.IntN(len(replies2))]
 
 	reply := fmt.Sprintf(
 		fmt.Sprintf("%s %s", variation1, variation2),
