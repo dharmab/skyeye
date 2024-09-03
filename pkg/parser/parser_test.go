@@ -17,6 +17,7 @@ type parserTestCase struct {
 }
 
 func TestParsePilotCallsign(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name     string
 		expected string
@@ -33,6 +34,7 @@ func TestParsePilotCallsign(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			actual, ok := ParsePilotCallsign(test.name)
 			require.True(t, ok)
 			assert.Equal(t, test.expected, actual)
@@ -46,8 +48,10 @@ func runParserTestCases(
 	testCases []parserTestCase,
 	fn func(*testing.T, parserTestCase, any),
 ) {
+	t.Helper()
 	for _, test := range testCases {
 		t.Run(test.text, func(t *testing.T) {
+			t.Parallel()
 			actual := p.Parse(test.text)
 			require.IsType(t, test.expected, actual)
 			fn(t, test, actual)
@@ -56,6 +60,7 @@ func runParserTestCases(
 }
 
 func TestParserSadPaths(t *testing.T) {
+	t.Parallel()
 	testCases := []parserTestCase{
 		{
 			text:     "anyface",
@@ -75,6 +80,7 @@ func TestParserSadPaths(t *testing.T) {
 }
 
 func TestParserAlphaCheck(t *testing.T) {
+	t.Parallel()
 	testCases := []parserTestCase{
 		{
 			text: "ANYFACE, HORNET 1, CHECKING IN AS FRAGGED, REQUEST ALPHA CHECK DEPOT",
@@ -96,6 +102,7 @@ func TestParserAlphaCheck(t *testing.T) {
 		},
 	}
 	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
+		t.Helper()
 		expected := test.expected.(*brevity.AlphaCheckRequest)
 		actual := request.(*brevity.AlphaCheckRequest)
 		require.Equal(t, expected.Callsign, actual.Callsign)
@@ -103,6 +110,7 @@ func TestParserAlphaCheck(t *testing.T) {
 }
 
 func TestParserRadioCheck(t *testing.T) {
+	t.Parallel()
 	testCases := []parserTestCase{
 		{
 			text: "anyface Wildcat11 radio check out.",
@@ -154,6 +162,7 @@ func TestParserRadioCheck(t *testing.T) {
 		},
 	}
 	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
+		t.Helper()
 		expected := test.expected.(*brevity.RadioCheckRequest)
 		actual := request.(*brevity.RadioCheckRequest)
 		require.Equal(t, expected.Callsign, actual.Callsign)
@@ -161,6 +170,7 @@ func TestParserRadioCheck(t *testing.T) {
 }
 
 func TestIsSimilar(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		a        string
 		b        string
@@ -172,6 +182,7 @@ func TestIsSimilar(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%s_%s", test.a, test.b), func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, test.expected, IsSimilar(test.a, test.b))
 		})
 	}

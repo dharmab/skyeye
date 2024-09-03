@@ -9,6 +9,7 @@ import (
 )
 
 func TestPronounceInt(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		arg    int
 		expect string
@@ -41,6 +42,7 @@ func TestPronounceInt(t *testing.T) {
 	}
 	for _, test := range testCases {
 		t.Run(strconv.Itoa(test.arg), func(t *testing.T) {
+			t.Parallel()
 			actual := PronounceInt(test.arg)
 			require.Equal(t, test.expect, actual, fmt.Sprintf("got %v, expected %v", actual, test.expect))
 		})
@@ -48,6 +50,7 @@ func TestPronounceInt(t *testing.T) {
 }
 
 func TestPronounceDecimal(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		arg       float64
 		precision int
@@ -62,6 +65,7 @@ func TestPronounceDecimal(t *testing.T) {
 	}
 	for _, test := range testCases {
 		t.Run(fmt.Sprintf("%v %v %v", test.arg, test.precision, test.separator), func(t *testing.T) {
+			t.Parallel()
 			actual := PronounceDecimal(test.arg, test.precision, test.separator)
 			require.Equal(t, test.expect, actual, fmt.Sprintf("got %v, expected %v", actual, test.expect))
 		})

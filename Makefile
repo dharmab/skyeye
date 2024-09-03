@@ -144,6 +144,7 @@ vet: generate
 lint:
 	$(BUILD_VARS) $(GO) run $(BUILD_FLAGS) github.com/golangci/golangci-lint/cmd/golangci-lint run ./...
 
+
 .PHONY: mostlyclean
 mostlyclean:
 	rm -f "$(SKYEYE_EXE)" "$(SKYEYE_ELF)"

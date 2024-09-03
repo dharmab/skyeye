@@ -1,12 +1,14 @@
 package coalitions
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestOpposite(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		input    Coalition
 		expected Coalition
@@ -17,7 +19,10 @@ func TestOpposite(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		actual := test.input.Opposite()
-		assert.Equal(t, test.expected, actual)
+		t.Run(fmt.Sprint(test.input), func(t *testing.T) {
+			t.Parallel()
+			actual := test.input.Opposite()
+			assert.Equal(t, test.expected, actual)
+		})
 	}
 }

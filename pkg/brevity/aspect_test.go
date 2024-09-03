@@ -10,6 +10,7 @@ import (
 )
 
 func TestAspectFromAngle(t *testing.T) {
+	t.Parallel()
 	n := bearings.NewMagneticBearing(0 * unit.Degree)
 	nne := bearings.NewMagneticBearing(22.5 * unit.Degree)
 	ne := bearings.NewMagneticBearing(45 * unit.Degree)
@@ -406,6 +407,7 @@ func TestAspectFromAngle(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(fmt.Sprintf("bearing %.1f track %.1f", test.bearing.Degrees(), test.track.Degrees()), func(t *testing.T) {
+			t.Parallel()
 			actual := AspectFromAngle(test.bearing, test.track)
 			assert.Equal(t, test.expected, actual)
 		})

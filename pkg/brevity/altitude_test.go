@@ -9,6 +9,7 @@ import (
 )
 
 func TestStacks(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input    []unit.Length
 		expected []Stack
@@ -56,6 +57,7 @@ func TestStacks(t *testing.T) {
 	}
 	for i, test := range tests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			t.Parallel()
 			stacks := Stacks(test.input...)
 			for i, stack := range stacks {
 				expectedStack := test.expected[i]

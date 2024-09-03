@@ -6,10 +6,13 @@ linters:
     - bugs
     - performance
     - format
+    - test
   disable:
     - asciicheck  # Unicode is fine!
     - gofumpt  # Neat tool but no editor integration
-    - gci  # Does some weird ordering
+    - gci  # Bugged? Stdlib imports out of order
+    - testpackage  # Test packages only allow blackbox testing
+    - exhaustruct  # Too verbose
 linters-settings:
   gosec:
     excludes:

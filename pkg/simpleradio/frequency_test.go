@@ -10,6 +10,7 @@ import (
 )
 
 func TestParseFrequency(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input             string
 		expectedFrequency RadioFrequency
@@ -32,6 +33,7 @@ func TestParseFrequency(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.input, func(t *testing.T) {
+			t.Parallel()
 			frequency, err := ParseRadioFrequency(test.input)
 			if !test.expectedOk {
 				assert.Error(t, err)

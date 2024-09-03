@@ -9,6 +9,7 @@ import (
 )
 
 func TestTrackFromBearing(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		input    bearings.Bearing
 		expected Track
@@ -25,6 +26,7 @@ func TestTrackFromBearing(t *testing.T) {
 	}
 	for _, test := range testCases {
 		t.Run(test.input.String(), func(t *testing.T) {
+			t.Parallel()
 			actual := TrackFromBearing(test.input)
 			assert.Equal(t, test.expected, actual)
 		})

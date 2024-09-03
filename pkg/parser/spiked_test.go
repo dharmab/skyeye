@@ -10,6 +10,7 @@ import (
 )
 
 func TestParserSpiked(t *testing.T) {
+	t.Parallel()
 	testCases := []parserTestCase{
 		{
 			text: "ANYFACE, EAGLE 1 SPIKED 2-7-0",
@@ -27,6 +28,7 @@ func TestParserSpiked(t *testing.T) {
 		},
 	}
 	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
+		t.Helper()
 		expected := test.expected.(*brevity.SpikedRequest)
 		actual := request.(*brevity.SpikedRequest)
 		require.Equal(t, expected.Callsign, actual.Callsign)

@@ -10,6 +10,7 @@ import (
 )
 
 func TestParserSnaplock(t *testing.T) {
+	t.Parallel()
 	testCases := []parserTestCase{
 		{
 			text: "ANYFACE, FREEDOM 31, SNAPLOCK 125 10, 8000",
@@ -35,6 +36,7 @@ func TestParserSnaplock(t *testing.T) {
 		},
 	}
 	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
+		t.Helper()
 		expected := test.expected.(*brevity.SnaplockRequest)
 		actual := request.(*brevity.SnaplockRequest)
 		require.Equal(t, expected.Callsign, actual.Callsign)
