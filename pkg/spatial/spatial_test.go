@@ -2,9 +2,8 @@
 package spatial
 
 import (
-	"testing"
-
 	"fmt"
+	"testing"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/martinlindhe/unit"
@@ -149,6 +148,7 @@ func TestIsZero(t *testing.T) {
 		})
 	}
 }
+
 func TestPointAtBearingAndDistance(t *testing.T) {
 	testCases := []struct {
 		origin   orb.Point
@@ -201,7 +201,6 @@ func TestNormalizeAltitude(t *testing.T) {
 			expected: 100 * unit.Foot,
 		},
 		{
-
 			input:    120 * unit.Foot,
 			expected: 100 * unit.Foot,
 		},

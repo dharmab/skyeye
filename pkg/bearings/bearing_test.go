@@ -65,7 +65,6 @@ func TestBearingToString(t *testing.T) {
 			expected: "360",
 		},
 		{
-
 			bearing:  NewTrueBearing(1 * unit.Degree),
 			expected: "001",
 		},

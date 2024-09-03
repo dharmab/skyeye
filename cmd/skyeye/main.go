@@ -59,9 +59,7 @@ var (
 	mandatoryThreatRadiusNM      float64
 )
 
-var (
-	envPrefix = "SKYEYE"
-)
+var envPrefix = "SKYEYE"
 
 func init() {
 	skyeye.Flags().StringVar(&configFile, "config-file", "/etc/skyeye/config.yaml", "Path to config file")

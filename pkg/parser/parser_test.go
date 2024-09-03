@@ -54,6 +54,7 @@ func runParserTestCases(
 		})
 	}
 }
+
 func TestParserSadPaths(t *testing.T) {
 	testCases := []parserTestCase{
 		{

@@ -9,5 +9,4 @@ type SunriseCall struct {
 }
 
 // MidnightCall reports that the GCI is offline.
-type MidnightCall struct {
-}
+type MidnightCall struct{}

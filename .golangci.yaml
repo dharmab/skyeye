@@ -5,8 +5,11 @@ linters:
   presets:
     - bugs
     - performance
+    - format
   disable:
     - asciicheck  # Unicode is fine!
+    - gofumpt  # Neat tool but no editor integration
+    - gci  # Does some weird ordering
 linters-settings:
   gosec:
     excludes:

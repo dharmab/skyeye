@@ -4,8 +4,10 @@ import "github.com/dharmab/skyeye/pkg/coalitions"
 
 // RED IS ALLIES - DCS descends from the Flanker games where the player was red by default
 
-const AlliesCoalition = "Allies"   // RED
-const EnemiesCoalition = "Enemies" // BLUE
+const (
+	AlliesCoalition  = "Allies"  // RED
+	EnemiesCoalition = "Enemies" // BLUE
+)
 
 func CoaliationToProperty(coalition coalitions.Coalition) string {
 	switch coalition {

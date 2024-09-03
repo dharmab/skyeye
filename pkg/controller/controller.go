@@ -13,8 +13,10 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var lowestAltitude = unit.Length(0)
-var highestAltitude = unit.Length(100000) * unit.Foot
+var (
+	lowestAltitude  = unit.Length(0)
+	highestAltitude = unit.Length(100000) * unit.Foot
+)
 
 // Controller handles requests for GCI service.
 type Controller interface {

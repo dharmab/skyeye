@@ -166,7 +166,6 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitG
 				log.Error().Err(err).Msg("error running telemetry client")
 			}
 		}
-
 	}()
 
 	wg.Add(1)

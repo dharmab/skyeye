@@ -147,7 +147,6 @@ func (s *streamer) handleLine(line string) error {
 	// A line beginning with a # is a new relative time frame, relative to the global object's reference time.
 	if line[0] == '#' {
 		offset, err := types.ParseTimeFrame(line)
-
 		if err != nil {
 			log.Error().Err(err).Msg("error parsing time frame")
 			return fmt.Errorf("error parsing time frame: %w", err)
@@ -311,7 +310,6 @@ func (s *streamer) Bullseye(coalition coalitions.Coalition) (orb.Point, error) {
 		return orb.Point{}, fmt.Errorf("error getting bullseye coordinates: %w", err)
 	}
 	return coordinates.Location, nil
-
 }
 
 // Time implements [ACMI.Time].

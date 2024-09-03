@@ -272,5 +272,4 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	}
 
 	return callsign, true
-
 }
