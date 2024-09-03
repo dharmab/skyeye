@@ -118,8 +118,20 @@ const (
 )
 
 func NewVoicePacket(audioBytes []byte, frequencies []Frequency, unitID uint32, packetID uint64, hops byte, relay []byte, origin []byte) VoicePacket {
-	audioSegmentLength := uint16(len(audioBytes))
-	frequenciesSegmentLength := uint16(len(frequencies) * frequencyLength)
+	var audioSegmentLength uint16
+	if len(audioBytes) > math.MaxUint16 {
+		audioSegmentLength = math.MaxUint16
+	} else {
+		audioSegmentLength = uint16(len(audioBytes))
+	}
+
+	var frequenciesSegmentLength uint16
+	if len(frequencies)*frequencyLength > math.MaxUint16 {
+		frequenciesSegmentLength = math.MaxUint16
+	} else {
+		frequenciesSegmentLength = uint16(len(frequencies) * frequencyLength)
+	}
+
 	return VoicePacket{
 		PacketLength:             headerSegmentLength + audioSegmentLength + frequenciesSegmentLength + fixedSegmentLength,
 		AudioSegmentLength:       audioSegmentLength,

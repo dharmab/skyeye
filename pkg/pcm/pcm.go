@@ -63,7 +63,8 @@ func S16LEToF32LE(in []int16) []float32 {
 func S16LEBytesToF32LE(in []byte) []float32 {
 	out := make([]float32, 0)
 	for i := 0; i < len(in); i += 2 {
-		s := int16(binary.LittleEndian.Uint16(in[i : i+2]))
+		u := binary.LittleEndian.Uint16(in[i : i+2])
+		s := int16(u)
 		f := S16ToF32(s)
 		out = append(out, f)
 	}

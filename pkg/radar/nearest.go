@@ -129,7 +129,7 @@ func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 	nearestDistance := unit.Length(math.MaxFloat64)
 	var nearestContact *trackfiles.Trackfile
 	for trackfile := range s.contacts.values() {
-		logger := logger.With().Int("id", int(trackfile.Contact.ID)).Logger()
+		logger := logger.With().Uint64("id", trackfile.Contact.ID).Logger()
 		isMatch := s.isMatch(trackfile, coalition, filter)
 		isWithinAltitude := minAltitude <= trackfile.LastKnown().Altitude && trackfile.LastKnown().Altitude <= maxAltitude
 		if isMatch && isWithinAltitude {

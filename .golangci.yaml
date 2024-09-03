@@ -26,6 +26,6 @@ linters:
 linters-settings:
   gosec:
     excludes:
-      - G404
+      - G115 # https://github.com/securego/gosec/issues/1187
 issues:
   max-same-issues: 0

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"math/rand"
+	"math/rand/v2"
 	"os"
 	"os/signal"
 	"reflect"
@@ -260,7 +260,7 @@ func randomizer() (rando *rand.Rand) {
 	} else if 16 <= hour && hour < 24 {
 		seed = seed - 3
 	}
-	rando = rand.New(rand.NewSource(int64(seed)))
+	rando = rand.New(rand.NewPCG(uint64(seed), uint64(seed)))
 	return
 }
 
@@ -271,7 +271,7 @@ func loadVoice(rando *rand.Rand) (voice voices.Voice) {
 	}
 	if voiceName == "" {
 		keys := reflect.ValueOf(options).MapKeys()
-		voice = options[keys[rando.Intn(len(keys))].String()]
+		voice = options[keys[rando.IntN(len(keys))].String()]
 		log.Info().Type("voice", voice).Msg("randomly selected voice")
 	} else {
 		voice = options[voiceName]
@@ -291,7 +291,7 @@ func loadCallsign(rando *rand.Rand) (callsign string) {
 	if len(options) == 0 {
 		options = conf.DefaultCallsigns
 	}
-	callsign = options[rando.Intn(len(options))]
+	callsign = options[rando.IntN(len(options))]
 	if callsign == "" {
 		panic("callsign is empty")
 	}
