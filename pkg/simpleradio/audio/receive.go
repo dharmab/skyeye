@@ -31,7 +31,7 @@ func (r *receiver) receive(vp *voice.VoicePacket) {
 	// - the first packet of a new transmission
 	isNewTransmission := r.origin == "" && r.packetNumber == 0
 	// - a newer packet from the same origin
-	isNewerPacket := vp.PacketID > uint64(r.packetNumber)
+	isNewerPacket := vp.PacketID > r.packetNumber
 	isSameOrigin := r.origin == types.GUID(vp.OriginGUID)
 	shouldAcceptPacket := isNewTransmission || (isNewerPacket && isSameOrigin)
 	if !shouldAcceptPacket {

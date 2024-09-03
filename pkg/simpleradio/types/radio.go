@@ -10,21 +10,21 @@ import (
 type Modulation byte
 
 const (
-	// ModulationAM is Amplitude Modulation
+	// ModulationAM is Amplitude Modulation.
 	ModulationAM = 0
-	// ModulationFM is Frequency Modulation
+	// ModulationFM is Frequency Modulation.
 	ModulationFM = 1
-	// ModulationIntercom is intercom (used for multi-crew)
+	// ModulationIntercom is intercom (used for multi-crew).
 	ModulationIntercom = 2
 	ModulationDisabled = 3
-	// ModulationIntercom is HAVE QUICK (https://en.wikipedia.org/wiki/Have_Quick, unused)
+	// ModulationIntercom is HAVE QUICK (https://en.wikipedia.org/wiki/Have_Quick, unused).
 	ModulationHAVEQUICK = 4
-	// ModulationSATCOM is satellite voice channels (unused)
+	// ModulationSATCOM is satellite voice channels (unused).
 	ModulationSATCOM = 5
 	// ModulationMIDS is Multifunction Information Distribution System (datalink digital voice channels)
-	// These are used by F/A-18C for VOC A and VOC B
+	// These are used by F/A-18C for VOC A and VOC B.
 	ModulationMIDS = 6
-	// ModulationSINCGARS is Single Channel Ground and Airborne Radio System (https://en.wikipedia.org/wiki/SINCGARS, unused)
+	// ModulationSINCGARS is Single Channel Ground and Airborne Radio System (https://en.wikipedia.org/wiki/SINCGARS, unused).
 	ModulationSINCGARS = 7
 )
 

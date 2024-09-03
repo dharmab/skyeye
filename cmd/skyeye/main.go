@@ -29,7 +29,7 @@ import (
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
 
-// Variables for CLI/Config flags
+// Used for CLI configuration values.
 var (
 	configFile                   string
 	logLevel                     string
@@ -110,7 +110,7 @@ func init() {
 	skyeye.Flags().BoolVar(&threatMonitoringRequiresSRS, "threat-monitoring-requires-srs", true, "Require aircraft to be on SRS to receive THREAT calls. Only useful to disable when debugging")
 }
 
-// Top-level CLI command
+// Top-level CLI command.
 var skyeye = &cobra.Command{
 	Use:     "skyeye",
 	Version: Version,

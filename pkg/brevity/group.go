@@ -10,7 +10,7 @@ import (
 //   - BOGEY DOPE and SNAPLOCK responses
 //   - THREAT calls that pertain to a single aircraft
 //
-// Reference: ATP 3-52.4 Chapter IV section 2
+// Reference: ATP 3-52.4 Chapter IV section 2.
 type Group interface {
 	// Threat indicates if the THREAT criteria is met.
 	Threat() bool

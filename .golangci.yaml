@@ -7,6 +7,16 @@ linters:
     - performance
     - format
     - test
+  enable:
+    - copyloopvar
+    - goconst
+    - godot
+    - intrange
+    - predeclared
+    - unconvert
+    - usestdlibvars
+    - whitespace
+    - zerologlint
   disable:
     - asciicheck  # Unicode is fine!
     - gofumpt  # Neat tool but no editor integration
@@ -17,5 +27,5 @@ linters-settings:
   gosec:
     excludes:
       - G404
-
-
+issues:
+  max-same-issues: 0

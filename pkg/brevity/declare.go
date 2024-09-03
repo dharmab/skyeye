@@ -5,38 +5,38 @@ import (
 	"github.com/martinlindhe/unit"
 )
 
-// Reference ATP 3-52.4 Chapter V section 6
+// Reference ATP 3-52.4 Chapter V section 6.
 type Declaration string
 
 const (
 	// Bogey indicates the contact's' whose identity is unknown.
-	// Reference: ATP 1-02.1 Chapter I Table 2
+	// Reference: ATP 1-02.1 Chapter I Table 2.
 	Bogey Declaration = "bogey"
 	// Friendly indicates the contact is a positively identified friendly.
-	// Reference: ATP 1-02.1 Chapter I Table 2
+	// Reference: ATP 1-02.1 Chapter I Table 2.
 	Friendly Declaration = "friendly"
 	// Neutral indicates the contact is a positively identified aircraft whose characteristics, behavior, origin or nationality indicate it is neither supporting nor opposing friendly forces.
-	// Reference: ATP 1-02.1 Chapter I Table 2
+	// Reference: ATP 1-02.1 Chapter I Table 2.
 	Neutral Declaration = "neutral"
 	// Bandit indicates the contact is a positively idenfieid enemy in accordance with theater identification criteria. It does not imply direction or authority to engage.
-	// Reference: ATP 1-02.1 Chapter I Table 2
+	// Reference: ATP 1-02.1 Chapter I Table 2.
 	Bandit Declaration = "bandit"
 	// Hostile indicates the contact is a identified as an enemy upon which clearance to fire is authorized in accordance with theater rules of engagement.
-	// Reference: ATP 1-02.1 Chapter I Table 2
+	// Reference: ATP 1-02.1 Chapter I Table 2.
 	Hostile Declaration = "hostile"
 	// DeclarationFurball indicates that non-friendly and friendly aircraft are inside of 5 nauctical miles of each other.
-	// Reference: ATP 1-02.1 Chapter I Table 2
+	// Reference: ATP 1-02.1 Chapter I Table 2.
 	Furball Declaration = "furball"
 	// Unable indications that the responder is unable to provide a declaration as requested.
-	// Reference: ATP 1-02.1 Chapter I Table 2
+	// Reference: ATP 1-02.1 Chapter I Table 2.
 	Unable Declaration = "unable"
 	// Clean indicates there is no sensor information on the contact.
-	// Reference: ATP 1-02.1 Chapter I Table 2
+	// Reference: ATP 1-02.1 Chapter I Table 2.
 	Clean Declaration = "clean"
 )
 
 // DeclareRequest is a DECLARE call.
-// Reference: ATP 3-52.4 Chapter V section 6
+// Reference: ATP 3-52.4 Chapter V section 6.
 type DeclareRequest struct {
 	// Callsign of the friendly aircraft requesting DECLARE.
 	Callsign string
@@ -55,7 +55,7 @@ type DeclareRequest struct {
 }
 
 // DeclareResponse is a response to a DECLARE call.
-// Reference: ATP 3-52.4 Chapter V section 6
+// Reference: ATP 3-52.4 Chapter V section 6.
 type DeclareResponse struct {
 	// Callsign of the friendly aircraft requesting DECLARE.
 	Callsign string

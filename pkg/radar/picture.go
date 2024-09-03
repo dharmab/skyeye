@@ -11,7 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// GetPicture implements [Radar.GetPicture]
+// GetPicture implements [Radar.GetPicture].
 func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) (int, []brevity.Group) {
 	// Find groups near the center point
 	origin := s.center
@@ -41,7 +41,7 @@ func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, f
 		capacity = len(groups)
 	}
 	result := make([]brevity.Group, capacity)
-	for i := 0; i < capacity; i++ {
+	for i := range capacity {
 		result[i] = groups[i]
 	}
 	return len(groups), result

@@ -7,7 +7,7 @@ import (
 )
 
 // Aspect indicates the target aspect or aspect angle between a contact and fighter.
-// Reference: ATP 3-52.4 Chapter IV section 6, Figure 1
+// Reference: ATP 3-52.4 Chapter IV section 6, Figure 1.
 type Aspect string
 
 const (

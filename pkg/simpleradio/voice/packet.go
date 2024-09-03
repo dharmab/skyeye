@@ -91,7 +91,7 @@ type VoicePacket struct {
 }
 
 // Frequency describes an audio transmission channel. This struct is only for use in [VoicePacket]. For client information, use [types.Radio] instead.
-// Length: 10 bytes
+// Length: 10 bytes.
 type Frequency struct {
 	// Frequency is the transmission frequency in Hz.
 	// Example: 249.500MHz is encoded as 249500000.0
@@ -189,7 +189,7 @@ func (vp *VoicePacket) String() string {
 	)
 }
 
-// newVoicePacketFrom deserializes a voice packet from bytes to struct
+// newVoicePacketFrom deserializes a voice packet from bytes to struct.
 func NewVoicePacketFrom(b []byte) VoicePacket {
 	// The packet length is the first 2 bytes of the packet.
 	packetLength := binary.LittleEndian.Uint16(b[0:2])

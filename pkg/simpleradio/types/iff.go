@@ -7,11 +7,11 @@ package types
 type IFFControlMode int
 
 const (
-	// IFFControlModeCockpit corresponds to IFFControlMode.COCKPIT in SRS
+	// IFFControlModeCockpit corresponds to IFFControlMode.COCKPIT in SRS.
 	IFFControlModeCockpit = 0
-	// IFFControlModeOverlay corresponds to IFFControlMode.OVERLAY in SRS
+	// IFFControlModeOverlay corresponds to IFFControlMode.OVERLAY in SRS.
 	IFFControlModeOverlay = 1
-	// IFFControlModeDisabled corresponds to IFFControlMode.DISABLED in SRS
+	// IFFControlModeDisabled corresponds to IFFControlMode.DISABLED in SRS.
 	IFFControlModeDisabled = 2
 )
 
@@ -19,11 +19,11 @@ const (
 type IFFStatus int
 
 const (
-	// IFFStatusOff corresponds to IFFStatus.OFF in SRS
+	// IFFStatusOff corresponds to IFFStatus.OFF in SRS.
 	IFFStatusOff = 0
-	// IFFStatusNormal corresponds to IFFStatus.NORMAL in SRS
+	// IFFStatusNormal corresponds to IFFStatus.NORMAL in SRS.
 	IFFStatusNormal = 1
-	// IFFStatusIdent corresponds to IFFStatus.IDENT in SRS
+	// IFFStatusIdent corresponds to IFFStatus.IDENT in SRS.
 	IFFStatusIdent = 2
 )
 

@@ -37,7 +37,7 @@ func NewPiperSpeaker(v voices.Voice, playbackSpeed float32, playbackPause time.D
 	return &piperSynth{tts: tts, playbackSpeed: playbackSpeed, playbackPause: playbackPause}, nil
 }
 
-// Say implements Speaker.Say
+// Say implements [Speaker.Say].
 func (s *piperSynth) Say(text string) ([]float32, error) {
 	synthesized, err := s.tts.Synthesize(text, piper.WithSpeed(s.playbackSpeed), piper.WithPause(float32(s.playbackPause.Seconds())))
 	if err != nil {

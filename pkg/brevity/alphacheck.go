@@ -3,7 +3,7 @@ package brevity
 // AlphaCheckRequest is a request for an ALPHA CHECK.
 // An ALPHA CHECK is a request for the friendly aircraft's position.
 // It is used by aircrews to check their position equipment, especially for aircraft without GPS.
-// Reference: ATP 3-52.4 Chapter II section 4
+// Reference: ATP 3-52.4 Chapter II section 4.
 type AlphaCheckRequest struct {
 	// Callsign of the friendly aircraft requesting the ALPHA CHECK.
 	Callsign string

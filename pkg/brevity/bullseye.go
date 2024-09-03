@@ -9,7 +9,7 @@ import (
 )
 
 // Bullseye is a magnetic bearing and distance from a reference point called the BULLSEYE.
-// Reference: ATP 3-52.4 Chapter IV section 4 subsection a
+// Reference: ATP 3-52.4 Chapter IV section 4 subsection a.
 type Bullseye struct {
 	bearing  bearings.Bearing
 	distance unit.Length

@@ -13,7 +13,7 @@ import (
 )
 
 // ComposeCoreInformationFormat communicates information about groups.
-// Reference: ATP 3-52.4 chapter IV section 3
+// Reference: ATP 3-52.4 chapter IV section 3.
 func (c *composer) ComposeCoreInformationFormat(groups ...brevity.Group) NaturalLanguageResponse {
 	if len(groups) == 0 {
 		return NaturalLanguageResponse{
@@ -117,7 +117,7 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 }
 
 // ComposeContacts communicates the number of contacts in a group.
-// Reference: ATP 3-52.4 chapter IV section 2
+// Reference: ATP 3-52.4 chapter IV section 2.
 func (c *composer) ComposeContacts(n int) NaturalLanguageResponse {
 	// single contact is assumed if unspecified
 	s := ""

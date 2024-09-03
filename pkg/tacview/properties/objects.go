@@ -7,7 +7,7 @@ const (
 	Type = "Type"
 	// Transform contains the object's coordinates, relative to the global reference point.
 	Transform = "T"
-	// And a whole bunch of other properties lol
+
 	AdditionalType                    = "AdditionalType"
 	Parent                            = "Parent"
 	Next                              = "Next"

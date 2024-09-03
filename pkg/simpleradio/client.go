@@ -108,7 +108,6 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 				log.Warn().Msg("stopped receiving pings from SRS data client")
 				return errors.New("stopped receiving pings from SRS data client")
 			}
-
 		}
 	}
 }

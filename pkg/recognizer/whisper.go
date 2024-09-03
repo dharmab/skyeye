@@ -18,14 +18,14 @@ type whisperRecognizer struct {
 
 var _ Recognizer = &whisperRecognizer{}
 
-// NewWhisperRecognizer creates a new recognizer using OpenAI Whisper
+// NewWhisperRecognizer creates a new recognizer using OpenAI Whisper.
 func NewWhisperRecognizer(model *whisper.Model, callsign string) Recognizer {
 	return &whisperRecognizer{model: *model}
 }
 
 const maxSize = 256 * 1024
 
-// Recognize implements [Recognizer.Recognize] using whisper.cpp
+// Recognize implements [Recognizer.Recognize] using whisper.cpp.
 func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32) (string, error) {
 	if len(sample) > maxSize {
 		log.Warn().Int("length", len(sample)).Int("maxLength", maxSize).Msg("clamping sample to maximum size")

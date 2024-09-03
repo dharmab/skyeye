@@ -1203,7 +1203,7 @@ var aircraftData = []Aircraft{
 	},
 }
 
-// aircraftDataLUT maps the name exported in ACMI data to aircraft data
+// aircraftDataLUT maps the name exported in ACMI data to aircraft data.
 var aircraftDataLUT map[string]Aircraft
 
 func init() {
