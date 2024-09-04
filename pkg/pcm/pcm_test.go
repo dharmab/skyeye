@@ -4,12 +4,14 @@ package pcm
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestF32ToS16(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		arg      float32
 		expected int16
@@ -34,6 +36,7 @@ func TestF32ToS16(t *testing.T) {
 	}
 	for _, test := range testCases {
 		t.Run(fmt.Sprint(test.arg), func(t *testing.T) {
+			t.Parallel()
 			actual := F32ToS16(test.arg)
 			require.Equal(t, test.expected, actual, "got %v, expected %v", actual, test.expected)
 		})
@@ -41,6 +44,7 @@ func TestF32ToS16(t *testing.T) {
 }
 
 func TestS16toF32toS16RoundTrip(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		arg int16
 	}{
@@ -63,7 +67,8 @@ func TestS16toF32toS16RoundTrip(t *testing.T) {
 		{32767},
 	}
 	for _, test := range testCases {
-		t.Run(fmt.Sprint(test.arg), func(t *testing.T) {
+		t.Run(strconv.Itoa(int(test.arg)), func(t *testing.T) {
+			t.Parallel()
 			intermediate := S16ToF32(test.arg)
 			result := F32ToS16(intermediate)
 			require.Equal(t, test.arg, result, "got %v, expected %v, intemediate %v", result, test.arg, intermediate)

@@ -1,6 +1,7 @@
 package simpleradio
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -38,7 +39,7 @@ func ParseRadioFrequency(s string) (*RadioFrequency, error) {
 		return nil, fmt.Errorf("failed to parse frequency: %w", err)
 	}
 	if math.IsNaN(mhz) || math.IsInf(mhz, 0) || mhz <= 0 {
-		return nil, fmt.Errorf("frequency must be a real postive number")
+		return nil, errors.New("frequency must be a real postive number")
 	}
 	frequency := unit.Frequency(mhz) * unit.Megahertz
 

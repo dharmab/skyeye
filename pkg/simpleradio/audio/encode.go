@@ -8,7 +8,7 @@ import (
 	"gopkg.in/hraban/opus.v2"
 )
 
-// Mirror of OPUS_APPLICATION_VOIP from the Opus API
+// Mirror of OPUS_APPLICATION_VOIP from the Opus API.
 const opusApplicationVoIP = 2048
 
 // encodeVoice encodes audio from txChan and publishes an entire transmission's worth of voice packets to packetCh.

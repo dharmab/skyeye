@@ -159,7 +159,7 @@ func (s *scope) Bullseye(coalition coalitions.Coalition) orb.Point {
 	return p.(orb.Point)
 }
 
-// Run implements [Radar.Run]
+// Run implements [Radar.Run].
 func (s *scope) Run(ctx context.Context, wg *sync.WaitGroup) {
 	wg.Add(1)
 	go func() {

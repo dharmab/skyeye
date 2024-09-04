@@ -2,7 +2,7 @@ package composer
 
 import (
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
@@ -26,7 +26,7 @@ func (c *composer) ComposeSayAgainResponse(response brevity.SayAgainResponse) Na
 		},
 	}
 	haveCallsign := response.Callsign != ""
-	variation := replies[haveCallsign][rand.Intn(len(replies[haveCallsign]))]
+	variation := replies[haveCallsign][rand.IntN(len(replies[haveCallsign]))]
 	reply := ""
 	if haveCallsign {
 		reply = fmt.Sprintf(variation, response.Callsign)

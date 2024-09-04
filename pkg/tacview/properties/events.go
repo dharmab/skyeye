@@ -7,7 +7,7 @@ const (
 	// They are handy to highlight parts of the flight, like a bombing run, or when the trainee was in her final approach for landing.
 	BookmarkEvent = "Bookmark"
 	// Debug events are highlighted and easy to spot in the timeline and event log.
-	// Because they must be used for development purposes, they are displayed only when launching Tacview with the command line argument /Debug:on
+	// Because they must be used for development purposes, they are displayed only when launching Tacview with the command line argument '/Debug:on'.
 	DebugEvent = "Debug"
 	// LeftArea events specify when an aircraft (or any object) is cleanly removed from the battlefield (not destroyed).
 	LeftAreaEvent = "LeftArea"

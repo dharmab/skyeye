@@ -2,7 +2,7 @@ package audio
 
 import (
 	"context"
-	"math/rand"
+	"math/rand/v2"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/voice"
@@ -16,7 +16,7 @@ func (c *audioClient) transmit(ctx context.Context, packetCh <-chan []voice.Voic
 		case packets := <-packetCh:
 			c.tx(packets)
 			// Pause between transmissions to sound more natural.
-			pause := time.Duration(500+rand.Intn(500)) * time.Millisecond
+			pause := time.Duration(500+rand.IntN(500)) * time.Millisecond
 			time.Sleep(pause)
 		case <-ctx.Done():
 			log.Info().Msg("stopping SRS audio transmitter due to context cancellation")

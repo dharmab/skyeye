@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -12,7 +13,7 @@ import (
 )
 
 // ComposeCoreInformationFormat communicates information about groups.
-// Reference: ATP 3-52.4 chapter IV section 3
+// Reference: ATP 3-52.4 chapter IV section 3.
 func (c *composer) ComposeCoreInformationFormat(groups ...brevity.Group) NaturalLanguageResponse {
 	if len(groups) == 0 {
 		return NaturalLanguageResponse{
@@ -85,7 +86,7 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 
 	if !group.High() {
 		if len(stacks) > 1 {
-			writeBoth(fmt.Sprintf(", %s", c.ComposeAltitudeFillIns(stacks)))
+			writeBoth(", " + c.ComposeAltitudeFillIns(stacks))
 		}
 	}
 
@@ -116,7 +117,7 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 }
 
 // ComposeContacts communicates the number of contacts in a group.
-// Reference: ATP 3-52.4 chapter IV section 2
+// Reference: ATP 3-52.4 chapter IV section 2.
 func (c *composer) ComposeContacts(n int) NaturalLanguageResponse {
 	// single contact is assumed if unspecified
 	s := ""
@@ -138,11 +139,11 @@ func (c *composer) ComposeAltitudeStacks(stacks []brevity.Stack, declaration bre
 		return c.ComposeAltitude(stacks[0].Altitude, declaration)
 	}
 
-	s := fmt.Sprintf("stack %s", c.ComposeAltitude(stacks[0].Altitude, declaration))
+	s := "stack " + c.ComposeAltitude(stacks[0].Altitude, declaration)
 	for i := 1; i < len(stacks)-1; i++ {
-		s += fmt.Sprintf(", %s", c.ComposeAltitude(stacks[i].Altitude, declaration))
+		s += ", " + c.ComposeAltitude(stacks[i].Altitude, declaration)
 	}
-	s += fmt.Sprintf(", and %s", c.ComposeAltitude(stacks[len(stacks)-1].Altitude, declaration))
+	s += ", and " + c.ComposeAltitude(stacks[len(stacks)-1].Altitude, declaration)
 	return s
 }
 
@@ -172,7 +173,7 @@ func (c *composer) ComposeAltitude(altitude unit.Length, declaration brevity.Dec
 	}
 
 	if altitude < 1000*unit.Foot {
-		return fmt.Sprint(hundreds * 100)
+		return strconv.Itoa(hundreds * 100)
 	}
-	return fmt.Sprint(thousands * 1000)
+	return strconv.Itoa(thousands * 1000)
 }

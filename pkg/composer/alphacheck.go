@@ -31,7 +31,7 @@ func (c *composer) ComposeAlphaCheckResponse(response brevity.AlphaCheckResponse
 		}
 	}
 
-	reply := fmt.Sprintf("%s, negative contact", response.Callsign)
+	reply := response.Callsign + ", negative contact"
 	return NaturalLanguageResponse{
 		Subtitle: reply,
 		Speech:   reply,

@@ -16,7 +16,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// FindNearestTrackfile implements [Radar.FindNearestTrackfile]
+// FindNearestTrackfile implements [Radar.FindNearestTrackfile].
 func (s *scope) FindNearestTrackfile(
 	origin orb.Point,
 	minAltitude unit.Length,
@@ -53,7 +53,7 @@ func (s *scope) FindNearestTrackfile(
 	return nearestTrackfile
 }
 
-// FindNearestGroupWithBRAA implements [Radar.FindNearestGroupWithBRAA]
+// FindNearestGroupWithBRAA implements [Radar.FindNearestGroupWithBRAA].
 func (s *scope) FindNearestGroupWithBRAA(
 	origin orb.Point,
 	minAltitude unit.Length,
@@ -89,7 +89,7 @@ func (s *scope) FindNearestGroupWithBRAA(
 	return grp
 }
 
-// FindNearestGroupWithBullseye implements [Radar.FindNearestGroupWithBullseye]
+// FindNearestGroupWithBullseye implements [Radar.FindNearestGroupWithBullseye].
 func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	nearestTrackfile := s.FindNearestTrackfile(origin, minAltitude, maxAltitude, radius, coalition, filter)
 	grp := s.findGroupForAircraft(nearestTrackfile)
@@ -104,7 +104,7 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxA
 	return grp
 }
 
-// FindNearestGroupInSector implements [Radar.FindNearestGroupInSector]
+// FindNearestGroupInSector implements [Radar.FindNearestGroupInSector].
 func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltitude, length unit.Length, bearing bearings.Bearing, arc unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	logger := log.With().Any("origin", origin).Stringer("bearing", bearing).Float64("arc", arc.Degrees()).Logger()
 
@@ -129,7 +129,7 @@ func (s *scope) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 	nearestDistance := unit.Length(math.MaxFloat64)
 	var nearestContact *trackfiles.Trackfile
 	for trackfile := range s.contacts.values() {
-		logger := logger.With().Int("id", int(trackfile.Contact.ID)).Logger()
+		logger := logger.With().Uint64("id", trackfile.Contact.ID).Logger()
 		isMatch := s.isMatch(trackfile, coalition, filter)
 		isWithinAltitude := minAltitude <= trackfile.LastKnown().Altitude && trackfile.LastKnown().Altitude <= maxAltitude
 		if isMatch && isWithinAltitude {

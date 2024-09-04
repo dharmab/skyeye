@@ -63,7 +63,7 @@ func (b True) IsMagnetic() bool {
 	return false
 }
 
-// String implements [Bearing.String]
+// String implements [Bearing.String].
 func (b True) String() string {
 	return toString(b)
 }

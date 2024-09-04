@@ -36,22 +36,22 @@ func newGroupUsingBullseye(bullseye orb.Point) *group {
 	}
 }
 
-// Threat implements [brevity.Group.Threat]
+// Threat implements [brevity.Group.Threat].
 func (g *group) Threat() bool {
 	return g.isThreat
 }
 
-// SetThreat implements [brevity.Group.SetThreat]
+// SetThreat implements [brevity.Group.SetThreat].
 func (g *group) SetThreat(isThreat bool) {
 	g.isThreat = isThreat
 }
 
-// Contacts implements [brevity.Group.Contacts]
+// Contacts implements [brevity.Group.Contacts].
 func (g *group) Contacts() int {
 	return len(g.contacts)
 }
 
-// Bullseye implements [brevity.Group.Bullseye]
+// Bullseye implements [brevity.Group.Bullseye].
 func (g *group) Bullseye() *brevity.Bullseye {
 	if g.bullseye == nil {
 		return nil
@@ -92,7 +92,7 @@ func (g *group) altitudes() []unit.Length {
 	return altitudes
 }
 
-// Track implements [brevity.Group.Track]
+// Track implements [brevity.Group.Track].
 func (g *group) Track() brevity.Track {
 	if len(g.contacts) == 0 {
 		return brevity.UnknownDirection
@@ -106,7 +106,7 @@ func (g *group) course() bearings.Bearing {
 	return g.contacts[0].Course()
 }
 
-// Aspect implements [brevity.Group.Aspect]
+// Aspect implements [brevity.Group.Aspect].
 func (g *group) Aspect() brevity.Aspect {
 	if g.aspect == nil {
 		return brevity.UnknownAspect
@@ -114,32 +114,32 @@ func (g *group) Aspect() brevity.Aspect {
 	return *g.aspect
 }
 
-// SetAspect implements [brevity.Group.SetAspect]
+// SetAspect implements [brevity.Group.SetAspect].
 func (g *group) SetAspect(aspect *brevity.Aspect) {
 	g.aspect = aspect
 }
 
-// BRAA implements [brevity.Group.BRAA]
+// BRAA implements [brevity.Group.BRAA].
 func (g *group) BRAA() brevity.BRAA {
 	return g.braa
 }
 
-// Declaration implements [brevity.Group.Declaration]
+// Declaration implements [brevity.Group.Declaration].
 func (g *group) Declaration() brevity.Declaration {
 	return g.declaraction
 }
 
-// SetDeclaration implements [brevity.Group.SetDeclaration]
+// SetDeclaration implements [brevity.Group.SetDeclaration].
 func (g *group) SetDeclaration(declaration brevity.Declaration) {
 	g.declaraction = declaration
 }
 
-// Heavy implements [brevity.Group.Heavy]
+// Heavy implements [brevity.Group.Heavy].
 func (g *group) Heavy() bool {
 	return len(g.contacts) >= 3
 }
 
-// Platforms implements [brevity.Group.Platforms]
+// Platforms implements [brevity.Group.Platforms].
 func (g *group) Platforms() []string {
 	platforms := make(map[string]struct{})
 	for _, trackfile := range g.contacts {
@@ -162,17 +162,17 @@ func (g *group) Platforms() []string {
 	return result
 }
 
-// High implements [brevity.Group.High]
+// High implements [brevity.Group.High].
 func (g *group) High() bool {
 	return g.Altitude() > 40000*unit.Foot
 }
 
-// Fast implements [brevity.Group.Fast]
+// Fast implements [brevity.Group.Fast].
 func (g *group) Fast() bool {
 	return false
 }
 
-// VeryFast implements [brevity.Group.VeryFast]
+// VeryFast implements [brevity.Group.VeryFast].
 func (g *group) VeryFast() bool {
 	return false
 }
@@ -208,7 +208,7 @@ func (g *group) String() string {
 	return s
 }
 
-// category of the group
+// category of the group.
 func (g *group) category() brevity.ContactCategory {
 	aircraft, ok := encyclopedia.GetAircraftData(g.contacts[0].Contact.ACMIName)
 	if !ok {
@@ -230,7 +230,7 @@ func (g *group) isFighter() bool {
 	return isFighter
 }
 
-// point returns the center point of the group
+// point returns the center point of the group.
 func (g *group) point() orb.Point {
 	center := g.contacts[0].LastKnown().Point
 	for _, trackfile := range g.contacts[1:] {
@@ -239,7 +239,7 @@ func (g *group) point() orb.Point {
 	return center
 }
 
-// missionTime returns the mission-time timestamp of the most recent trackfile in the group
+// missionTime returns the mission-time timestamp of the most recent trackfile in the group.
 func (g *group) missionTime() time.Time {
 	var latest time.Time
 	for _, trackfile := range g.contacts {
@@ -250,7 +250,7 @@ func (g *group) missionTime() time.Time {
 	return latest
 }
 
-// threatRadius returns the highest threat radius of all contacts in the group
+// threatRadius returns the highest threat radius of all contacts in the group.
 func (g *group) threatRadius() unit.Length {
 	highest := unit.Length(0)
 	for _, trackfile := range g.contacts {

@@ -1,7 +1,7 @@
 package brevity
 
 import (
-	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/martinlindhe/unit"
@@ -9,6 +9,7 @@ import (
 )
 
 func TestStacks(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input    []unit.Length
 		expected []Stack
@@ -55,11 +56,12 @@ func TestStacks(t *testing.T) {
 		},
 	}
 	for i, test := range tests {
-		t.Run(fmt.Sprint(i), func(t *testing.T) {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			t.Parallel()
 			stacks := Stacks(test.input...)
 			for i, stack := range stacks {
 				expectedStack := test.expected[i]
-				assert.Equalf(t, expectedStack.Altitude, stack.Altitude, "expected %fft, got %fft", expectedStack.Altitude.Feet(), stack.Altitude.Feet())
+				assert.InDelta(t, expectedStack.Altitude.Feet(), stack.Altitude.Feet(), 0.5)
 				assert.Equal(t, expectedStack.Count, stack.Count, "stack count mismatch")
 			}
 		})

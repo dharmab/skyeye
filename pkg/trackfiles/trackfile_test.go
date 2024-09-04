@@ -14,6 +14,7 @@ import (
 )
 
 func TestTracking(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name                 string
 		heading              unit.Angle
@@ -150,6 +151,7 @@ func TestTracking(t *testing.T) {
 
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			trackfile := NewTrackfile(Labels{
 				ID:        1,
 				ACMIName:  "F-15C",

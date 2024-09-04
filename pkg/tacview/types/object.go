@@ -56,7 +56,7 @@ func (o *Object) GetProperty(p string) (string, bool) {
 	return val, true
 }
 
-// GetTypes returns all object type tags
+// GetTypes returns all object type tags.
 func (o *Object) GetTypes() ([]string, error) {
 	val, ok := o.GetProperty(properties.Type)
 	if !ok {
@@ -68,7 +68,7 @@ func (o *Object) GetTypes() ([]string, error) {
 // GetCoordinates returns the coordinates of the object, if possible.
 // Many objects have insufficient information to determine their coordinates.
 // In such a case, the function returns nil and no error.
-// ref is the reference point from the global properties
+// ref is the reference point from the global properties.
 func (o *Object) GetCoordinates(ref orb.Point) (*Coordinates, error) {
 	c := &Coordinates{}
 

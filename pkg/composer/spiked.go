@@ -23,7 +23,7 @@ func (c *composer) ComposeSpikedResponse(response brevity.SpikedResponse) Natura
 		}
 		reply = fmt.Sprintf("%s, %s", reply, response.Declaration)
 		if response.Contacts == 1 {
-			reply = fmt.Sprintf("%s, single contact.", reply)
+			reply += ", single contact."
 		} else if response.Contacts > 1 {
 			reply = fmt.Sprintf("%s, %d contacts.", reply, response.Contacts)
 		}

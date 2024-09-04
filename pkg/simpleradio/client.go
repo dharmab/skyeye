@@ -3,6 +3,7 @@ package simpleradio
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -105,9 +106,8 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 		case <-ticker.C:
 			if time.Since(c.audioClient.LastPing()) > 1*time.Minute {
 				log.Warn().Msg("stopped receiving pings from SRS data client")
-				return fmt.Errorf("stopped receiving pings from SRS data client")
+				return errors.New("stopped receiving pings from SRS data client")
 			}
-
 		}
 	}
 }

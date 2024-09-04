@@ -8,6 +8,7 @@ import (
 )
 
 func TestParserPicture(t *testing.T) {
+	t.Parallel()
 	testCases := []parserTestCase{
 		{
 			text: "anyface, intruder 1-1 request picture",
@@ -23,6 +24,7 @@ func TestParserPicture(t *testing.T) {
 		},
 	}
 	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
+		t.Helper()
 		expected := test.expected.(*brevity.PictureRequest)
 		actual := request.(*brevity.PictureRequest)
 		assert.Equal(t, expected.Callsign, actual.Callsign)

@@ -10,7 +10,7 @@ import (
 )
 
 // BRAA provides target bearing, range, altitude and aspect relative to a specified friendly aircraft.
-// Reference: ATP 3-52.4 Chapter IV section 4 subsection b
+// Reference: ATP 3-52.4 Chapter IV section 4 subsection b.
 type BRAA interface {
 	BRA
 	// Aspect of the contact.

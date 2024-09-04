@@ -2,6 +2,7 @@ package recognizer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -17,14 +18,14 @@ type whisperRecognizer struct {
 
 var _ Recognizer = &whisperRecognizer{}
 
-// NewWhisperRecognizer creates a new recognizer using OpenAI Whisper
+// NewWhisperRecognizer creates a new recognizer using OpenAI Whisper.
 func NewWhisperRecognizer(model *whisper.Model, callsign string) Recognizer {
 	return &whisperRecognizer{model: *model}
 }
 
 const maxSize = 256 * 1024
 
-// Recognize implements [Recognizer.Recognize] using whisper.cpp
+// Recognize implements [Recognizer.Recognize] using whisper.cpp.
 func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32) (string, error) {
 	if len(sample) > maxSize {
 		log.Warn().Int("length", len(sample)).Int("maxLength", maxSize).Msg("clamping sample to maximum size")
@@ -57,13 +58,13 @@ func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32) (st
 			return textBuilder.String(), nil
 		default:
 			segment, err := wCtx.NextSegment()
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				return textBuilder.String(), nil
 			}
 			if err != nil {
 				return textBuilder.String(), fmt.Errorf("error processing segment: %w", err)
 			}
-			textBuilder.WriteString(fmt.Sprintf("%s\n", segment.Text))
+			textBuilder.WriteString(segment.Text)
 		}
 	}
 }

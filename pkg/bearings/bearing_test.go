@@ -9,6 +9,7 @@ import (
 )
 
 func TestNormalize(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input    float64
 		expected float64
@@ -49,13 +50,15 @@ func TestNormalize(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprint(test.input), func(t *testing.T) {
+			t.Parallel()
 			actual := normalize(unit.Angle(test.input) * unit.Degree).Degrees()
-			require.Equal(t, test.expected, actual)
+			require.InDelta(t, test.expected, actual, 0.1)
 		})
 	}
 }
 
 func TestBearingToString(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		bearing  Bearing
 		expected string
@@ -65,7 +68,6 @@ func TestBearingToString(t *testing.T) {
 			expected: "360",
 		},
 		{
-
 			bearing:  NewTrueBearing(1 * unit.Degree),
 			expected: "001",
 		},
@@ -89,13 +91,14 @@ func TestBearingToString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.expected, func(t *testing.T) {
+			t.Parallel()
 			require.Equal(t, tc.expected, tc.bearing.String())
 		})
 	}
 }
 
 var testCompassBearings = []struct {
-	inputDegrees    float64
+	input           float64
 	expectedDegrees float64
 	expectedString  string
 }{

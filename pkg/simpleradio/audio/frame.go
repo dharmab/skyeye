@@ -11,7 +11,7 @@ import (
 const (
 	// frameLength is the length of an Opus frame sent by SRS.
 	frameLength = 40 * time.Millisecond
-	// sampleRate is the sample rate of the audio data sent by SRS in Hz
+	// sampleRate is the sample rate of the audio data sent by SRS in Hz.
 	sampleRate = 16000 // Wideband
 	// channels is the number of channels in the audio data sent by SRS.
 	channels = 1 // Mono

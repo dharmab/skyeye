@@ -13,6 +13,7 @@ import (
 )
 
 func TestGetByCallsign(t *testing.T) {
+	t.Parallel()
 	db := newContactDatabase()
 	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
 		ID:        1,
@@ -40,6 +41,7 @@ func TestGetByCallsign(t *testing.T) {
 }
 
 func TestRealCallsigns(t *testing.T) {
+	t.Parallel()
 	// Callsigns collected from Discord
 	testCases := []struct {
 		Name    string
@@ -73,6 +75,7 @@ func TestRealCallsigns(t *testing.T) {
 }
 
 func TestGetByID(t *testing.T) {
+	t.Parallel()
 	db := newContactDatabase()
 	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
 		ID:        1,
@@ -91,6 +94,7 @@ func TestGetByID(t *testing.T) {
 }
 
 func TestSet(t *testing.T) {
+	t.Parallel()
 	database := newContactDatabase()
 	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
 		ID:        1,
@@ -122,6 +126,7 @@ func TestSet(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	t.Parallel()
 	database := newContactDatabase()
 	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
 		ID:        1,
@@ -145,6 +150,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestValues(t *testing.T) {
+	t.Parallel()
 	db := newContactDatabase()
 
 	mobius := trackfiles.NewTrackfile(trackfiles.Labels{

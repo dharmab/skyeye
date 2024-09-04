@@ -4,9 +4,9 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 )
 
-// ClientInfo is information about the client included in the message
+// ClientInfo is information about the client included in messages.
 type ClientInfo struct {
-	// GUID is some kind of unique ID for the client (???)
+	// GUID a unique client ID.
 	GUID GUID `json:"ClientGuid"`
 	// Name is the name that will appear in the client list and in in-game transmissions
 	Name string `json:"Name"`
@@ -35,7 +35,7 @@ type RadioInfo struct {
 	Ambient Ambient `json:"ambient"`
 }
 
-// IsOnFrequency is true if the other client has a radio with the same frequency, modulation, and encryption settings as this client
+// IsOnFrequency is true if the other client has a radio with the same frequency, modulation, and encryption settings as this client.
 func (i *RadioInfo) IsOnFrequency(other RadioInfo) bool {
 	for _, thisRadio := range i.Radios {
 		for _, otherRadio := range other.Radios {

@@ -1,3 +1,32 @@
 run:
   build-tags:
     - nolibopusfile
+linters:
+  presets:
+    - bugs
+    - performance
+    - format
+    - test
+  enable:
+    - copyloopvar
+    - goconst
+    - godot
+    - intrange
+    - predeclared
+    - unconvert
+    - usestdlibvars
+    - whitespace
+    - zerologlint
+  disable:
+    - asciicheck  # Unicode is fine!
+    - gofumpt  # Neat tool but no editor integration
+    - gci  # Bugged? Stdlib imports out of order
+    - testpackage  # Test packages only allow blackbox testing
+    - exhaustruct  # Too verbose
+linters-settings:
+  gosec:
+    excludes:
+      - G115 # https://github.com/securego/gosec/issues/1187
+      - G404 # We aren't using math/rand/v2 for secure random numbers in this project
+issues:
+  max-same-issues: 0

@@ -15,8 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// Audio is a type alias for F32LE PCM data
-// TODO turn this into a struct with trace id
+// Audio is a type alias for F32LE PCM data.
 type Audio []float32
 
 // AudioClient is an SRS audio client configured to receive and transmit on a specific SRS frequency.
@@ -88,7 +87,7 @@ func NewClient(guid types.GUID, config types.ClientConfiguration) (AudioClient, 
 	}, nil
 }
 
-// Frequency implements AudioClient.Frequency
+// Frequency implements [AudioClient.Frequency].
 func (c *audioClient) Frequencies() []unit.Frequency {
 	frequencies := make([]unit.Frequency, 0, len(c.radios))
 	for _, radio := range c.radios {
@@ -97,7 +96,7 @@ func (c *audioClient) Frequencies() []unit.Frequency {
 	return frequencies
 }
 
-// Run implements AudioClient.Run
+// Run implements [AudioClient.Run].
 func (c *audioClient) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	defer func() {
 		if err := c.close(); err != nil {
@@ -164,12 +163,12 @@ func (c *audioClient) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	return nil
 }
 
-// Receive implements AudioClient.Receive
+// Receive implements [AudioClient.Receive].
 func (c *audioClient) Receive() <-chan Audio {
 	return c.rxchan
 }
 
-// Transmit implements AudioClient.Transmit
+// Transmit implements [AudioClient.Transmit].
 func (c *audioClient) Transmit(sample Audio) {
 	c.txChan <- sample
 }

@@ -6,7 +6,7 @@ import (
 )
 
 // SpikedRequest is a request to correlate a radar spike within ±30 degrees.
-// Reference: ATP 3-52.4 Chapter V section 13
+// Reference: ATP 3-52.4 Chapter V section 13.
 type SpikedRequest struct {
 	// Callsign of the friendly aircraft calling SPIKED.
 	Callsign string
@@ -15,7 +15,7 @@ type SpikedRequest struct {
 }
 
 // SpikedResponse reports any contacts within ±30 degrees of a reported radar spike.
-// Reference: ATP 3-52.4 Chapter V section 13
+// Reference: ATP 3-52.4 Chapter V section 13.
 type SpikedResponse struct {
 	// Callsign of the friendly aircraft calling SPIKED.
 	Callsign string

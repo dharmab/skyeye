@@ -78,7 +78,7 @@ func PronounceDecimal(f float64, precision int, separator string) string {
 	} else {
 		fractionalPart, err := strconv.Atoi(fractionalPartStr)
 		if err != nil {
-			panic(fmt.Sprintf("unexpected fractional part: %s", fractionalPartStr))
+			panic("unexpected fractional part: " + fractionalPartStr)
 		}
 
 		return fmt.Sprintf("%s %s %s", PronounceInt(integerPart), separator, PronounceInt(fractionalPart))
@@ -95,7 +95,7 @@ func PronounceNumbers(s string) string {
 			if err != nil {
 				continue
 			}
-			builder.WriteString(fmt.Sprintf("%s ", PronounceInt(i)))
+			builder.WriteString(PronounceInt(i) + " ")
 		}
 	}
 	return builder.String()

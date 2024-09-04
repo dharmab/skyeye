@@ -11,6 +11,7 @@ import (
 )
 
 func TestParserDeclare(t *testing.T) {
+	t.Parallel()
 	testCases := []parserTestCase{
 		{
 			text: "anyface, tater 1-1, declare bullseye 0-5-4, 123, 3000",
@@ -118,6 +119,7 @@ func TestParserDeclare(t *testing.T) {
 		},
 	}
 	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
+		t.Helper()
 		expected := test.expected.(*brevity.DeclareRequest)
 		actual := request.(*brevity.DeclareRequest)
 		assert.Equal(t, expected.Callsign, actual.Callsign)

@@ -43,9 +43,11 @@ type Aircraft struct {
 	threatRadius unit.Length
 }
 
-var SAR1IRThreat = 15 * unit.NauticalMile
-var SAR2AR1Threat = 25 * unit.NauticalMile
-var ExtendedThreat = 35 * unit.NauticalMile
+var (
+	SAR1IRThreat   = 15 * unit.NauticalMile
+	SAR2AR1Threat  = 25 * unit.NauticalMile
+	ExtendedThreat = 35 * unit.NauticalMile
+)
 
 func (a Aircraft) Category() brevity.ContactCategory {
 	if _, ok := a.tags[FixedWing]; ok {
@@ -1201,7 +1203,7 @@ var aircraftData = []Aircraft{
 	},
 }
 
-// aircraftDataLUT maps the name exported in ACMI data to aircraft data
+// aircraftDataLUT maps the name exported in ACMI data to aircraft data.
 var aircraftDataLUT map[string]Aircraft
 
 func init() {
