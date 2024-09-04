@@ -52,9 +52,10 @@ LDFLAGS= -X "main.Version=$(SKYEYE_VERSION)"
 
 ifeq ($(OS_DISTRIBUTION),Windows)
 # Static linking on Windows to avoid MSYS2 dependency at runtime
-CFLAGS = $(pkg-config opus soxr --cflags --static)
+LIBRARIES = opus soxr openblas
+CFLAGS = $(pkg-config $(LIBRARIES) --cflags --static)
 BUILD_VARS += CFLAGS=$(CFLAGS)
-EXTLDFLAGS = $(pkg-config opus soxr --libs --static)
+EXTLDFLAGS = $(pkg-config $(LIBRARIES) --libs --static)
 LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS) -static -fopenmp"
 endif
 
@@ -114,7 +115,7 @@ ifneq ($(OS_DISTRIBUTION),macOS)
 WHISPER_CPP_BUILD_ENV = GGML_OPENBLAS=1
 endif
 
-$(LIBWHISPER_PATH) $(WHISPER_H_PATH):
+$(LIBWHISPER_PATH) $(WHISPER_H_PATH) -j:
 	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false "$(WHISPER_CPP_REPO)" "$(WHISPER_CPP_PATH)" && $(WHISPER_CPP_BUILD_ENV) make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
 
 .PHONY: whisper
@@ -133,6 +134,11 @@ $(SKYEYE_ELF): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 .PHONY: test
 test: generate
 	$(BUILD_VARS) $(GO) run gotest.tools/gotestsum -- $(BUILD_FLAGS) ./...
+
+.PHONY: benchmark-whisper
+benchmark-whisper: whisper
+	test -n "$(SKYEYE_WHISPER_MODEL)"  # Set SKYEYE_WHISPER_MODEL to the absolute path to the model's .bin file
+	$(BUILD_VARS) $(GO) test -bench=. -run BenchmarkWhisperRecognizer ./pkg/recognizer
 
 .PHONY: vet
 vet: generate
