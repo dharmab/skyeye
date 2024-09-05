@@ -9,10 +9,13 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
+	"runtime"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
+
+	"golang.org/x/sys/cpu"
 
 	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog"
@@ -241,6 +244,10 @@ func loadPlaybackSpeed() float32 {
 }
 
 func loadWhisperModel() *whisper.Model {
+	if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX2 {
+		log.Fatal().Msg("The CPU on this machine does not support AVX2 instructions.")
+	}
+
 	log.Info().Str("path", whisperModelPath).Msg("loading whisper model")
 	whisperModel, err := whisper.New(whisperModelPath)
 	if err != nil {
