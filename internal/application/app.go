@@ -34,16 +34,18 @@ type Application interface {
 // app implements the Application.
 type app struct {
 	// srsClient is a SimpleRadio Standalone client
-	srsClient     simpleradio.Client
+	srsClient simpleradio.Client
+	// tacviewClient streams ACMI data
 	tacviewClient tacview.Client
 	// recognizer provides speech-to-text recognition
 	recognizer recognizer.Recognizer
 	// parser converts English brevity text to internal representations
 	parser parser.Parser
-	radar  radar.Radar
-	// controller implements internal GCI logic
+	// radar tracks contacts and provides geometric computations
+	radar radar.Radar
+	// controller publishes responses and calls
 	controller controller.Controller
-	// composer converys from internal representations to English brevity text
+	// composer converts responses and calls from internal representations to English brevity text
 	composer composer.Composer
 	// speaker provides text-to-speech synthesis
 	speaker speakers.Speaker
@@ -51,6 +53,7 @@ type app struct {
 
 // NewApplication constructs a new Application.
 func NewApplication(ctx context.Context, config conf.Configuration) (Application, error) {
+	starts := make(chan sim.Started)
 	updates := make(chan sim.Updated)
 	fades := make(chan sim.Faded)
 
@@ -88,6 +91,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		tacviewClient, err = tacview.NewFileClient(
 			config.ACMIFile,
 			config.Coalition,
+			starts,
 			updates,
 			fades,
 			config.RadarSweepInterval,
@@ -102,6 +106,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 			config.Callsign,
 			config.TelemetryPassword,
 			config.Coalition,
+			starts,
 			updates,
 			fades,
 			config.RadarSweepInterval,
@@ -120,7 +125,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 
 	log.Info().Msg("constructing radar scope")
 
-	rdr := radar.New(config.Coalition, updates, fades, config.MandatoryThreatRadius)
+	rdr := radar.New(config.Coalition, starts, updates, fades, config.MandatoryThreatRadius)
 	log.Info().Msg("constructing GCI controller")
 	controller := controller.New(
 		rdr,

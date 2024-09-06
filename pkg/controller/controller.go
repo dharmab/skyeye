@@ -23,7 +23,7 @@ var (
 type Controller interface {
 	// Run starts the controller's control loops. It should be called exactly once. It blocks until the context is canceled.
 	// The controller publishes responses to the given channel.
-	Run(context.Context, chan<- any)
+	Run(ctx context.Context, out chan<- any)
 	// HandleAlphaCheck handles an ALPHA CHECK by reporting the position of the requesting aircraft.
 	HandleAlphaCheck(*brevity.AlphaCheckRequest)
 	// HandleBogeyDope handles a BOGEY DOPE by reporting the closest enemy group to the requesting aircraft.

@@ -27,6 +27,7 @@ var _ Client = &fileClient{}
 func NewFileClient(
 	path string,
 	coalition coalitions.Coalition,
+	starts chan<- sim.Started,
 	updates chan<- sim.Updated,
 	fades chan<- sim.Faded,
 	updateInterval time.Duration,
@@ -35,7 +36,7 @@ func NewFileClient(
 	if err != nil {
 		return nil, err
 	}
-	tacviewClient := newTacviewClient(updates, fades, updateInterval)
+	tacviewClient := newTacviewClient(starts, updates, fades, updateInterval)
 	return &fileClient{
 		file:          f,
 		tacviewClient: tacviewClient,

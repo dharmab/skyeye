@@ -9,6 +9,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,19 +26,19 @@ func TestGetByCallsign(t *testing.T) {
 
 	name, tf, ok := db.getByCallsignAndCoalititon("mobius 1", coalitions.Blue)
 	require.True(t, ok)
-	require.Equal(t, "mobius 1", name)
-	require.EqualValues(t, trackfile, tf)
+	assert.Equal(t, "mobius 1", name)
+	assert.EqualValues(t, trackfile, tf)
 
 	_, _, ok = db.getByCallsignAndCoalititon("mobius 1", coalitions.Red)
 	require.False(t, ok)
 
 	name, tf, ok = db.getByCallsignAndCoalititon("moebius 1", coalitions.Blue)
 	require.True(t, ok)
-	require.Equal(t, "mobius 1", name)
-	require.EqualValues(t, trackfile, tf)
+	assert.Equal(t, "mobius 1", name)
+	assert.EqualValues(t, trackfile, tf)
 
 	_, _, ok = db.getByCallsignAndCoalititon("yellow 13", coalitions.Red)
-	require.False(t, ok)
+	assert.False(t, ok)
 }
 
 func TestRealCallsigns(t *testing.T) {
@@ -69,8 +70,8 @@ func TestRealCallsigns(t *testing.T) {
 		require.True(t, ok)
 		foundCallsign, tf, ok := db.getByCallsignAndCoalititon(test.heardAs, coalitions.Blue)
 		require.True(t, ok, "queried %s, expected %s, but result was %v", test.heardAs, test.Name, ok)
-		require.Equal(t, parsedCallsign, foundCallsign)
-		require.EqualValues(t, uint64(i), tf.Contact.ID)
+		assert.Equal(t, parsedCallsign, foundCallsign)
+		assert.EqualValues(t, uint64(i), tf.Contact.ID)
 	}
 }
 
@@ -87,10 +88,10 @@ func TestGetByID(t *testing.T) {
 
 	val, ok := db.getByID(1)
 	require.True(t, ok)
-	require.EqualValues(t, trackfile, val)
+	assert.EqualValues(t, trackfile, val)
 
 	_, ok = db.getByID(2)
-	require.False(t, ok)
+	assert.False(t, ok)
 }
 
 func TestSet(t *testing.T) {
@@ -106,7 +107,7 @@ func TestSet(t *testing.T) {
 
 	val, ok := database.getByID(1)
 	require.True(t, ok)
-	require.EqualValues(t, trackfile, val)
+	assert.EqualValues(t, trackfile, val)
 
 	trackfile.Update(trackfiles.Frame{
 		Time: time.Now(),
@@ -122,7 +123,7 @@ func TestSet(t *testing.T) {
 
 	val, ok = database.getByID(1)
 	require.True(t, ok)
-	require.EqualValues(t, trackfile, val)
+	assert.EqualValues(t, trackfile, val)
 }
 
 func TestDelete(t *testing.T) {
@@ -147,6 +148,38 @@ func TestDelete(t *testing.T) {
 
 	ok = database.delete(2)
 	require.False(t, ok)
+}
+
+func TestClear(t *testing.T) {
+	t.Parallel()
+	database := newContactDatabase()
+	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
+		ID:        1,
+		Name:      "Mobius 1 Reaper",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-15C",
+	})
+	database.set(trackfile)
+
+	trackfile, ok := database.getByID(1)
+	require.True(t, ok)
+	assert.Equal(t, "Mobius 1 Reaper", trackfile.Contact.Name)
+
+	database.reset()
+
+	trackfile = trackfiles.NewTrackfile(trackfiles.Labels{
+		ID:        2,
+		Name:      "Yellow 13 Reiher",
+		Coalition: coalitions.Red,
+		ACMIName:  "Su-27",
+	})
+	database.set(trackfile)
+
+	_, ok = database.getByID(1)
+	require.False(t, ok)
+	trackfile, ok = database.getByID(2)
+	require.True(t, ok)
+	assert.Equal(t, "Yellow 13 Reiher", trackfile.Contact.Name)
 }
 
 func TestValues(t *testing.T) {
@@ -183,6 +216,6 @@ func TestValues(t *testing.T) {
 			break
 		}
 	}
-	require.True(t, foundMobius)
-	require.True(t, foundYellow)
+	assert.True(t, foundMobius)
+	assert.True(t, foundYellow)
 }

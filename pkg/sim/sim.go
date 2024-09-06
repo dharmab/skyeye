@@ -16,12 +16,20 @@ type Sim interface {
 	// The first channel receives updates for active aircraft.
 	// The second channel receives messages when an aircraft disappears.
 	// This function blocks until the context is cancelled.
-	Stream(context.Context, chan<- Updated, chan<- Faded)
+	Stream(context.Context, chan<- Started, chan<- Updated, chan<- Faded)
 	// Bullseye returns the coalition's bullseye center.
 	Bullseye(coalitions.Coalition) (orb.Point, error)
 	// Time returns the starting time of the mission.
 	// This is useful for looking up magnetic variation.
 	Time() time.Time
+}
+
+// Started is a message sent when a new mission starts.
+type Started struct {
+	// Real-time timestamp when the mission start was observed.
+	Timestamp time.Time
+	// Mission time when the mission started.
+	MissionTimestamp time.Time
 }
 
 // Updated is a message sent when an aircraft is updated.

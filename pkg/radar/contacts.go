@@ -27,6 +27,8 @@ type contactDatabase interface {
 	// delete removes the trackfile for the given unit ID.
 	// It returns true if the trackfile was found and removed, and false otherwise.
 	delete(uint64) bool
+	// reset removes all trackfiles from the database.
+	reset()
 	// values iterates over all trackfiles in the database.
 	values() iter.Seq[*trackfiles.Trackfile]
 }
@@ -38,14 +40,9 @@ type database struct {
 }
 
 func newContactDatabase() contactDatabase {
-	callsignIdx := make(map[coalitions.Coalition]map[string]uint64)
-	for _, c := range []coalitions.Coalition{coalitions.Blue, coalitions.Red, coalitions.Neutrals} {
-		callsignIdx[c] = make(map[string]uint64)
-	}
-	return &database{
-		contacts:    make(map[uint64]*trackfiles.Trackfile),
-		callsignIdx: callsignIdx,
-	}
+	d := &database{}
+	d.reset()
+	return d
 }
 
 // getByCallsignAndCoalititon implements [contactDatabase.getByCallsignAndCoalititon].
@@ -119,6 +116,17 @@ func (d *database) delete(id uint64) bool {
 	delete(d.contacts, id)
 
 	return ok
+}
+
+// reset implements [contactDatabase.reset].
+func (d *database) reset() {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	d.contacts = make(map[uint64]*trackfiles.Trackfile)
+	d.callsignIdx = make(map[coalitions.Coalition]map[string]uint64)
+	for _, c := range []coalitions.Coalition{coalitions.Blue, coalitions.Red, coalitions.Neutrals} {
+		d.callsignIdx[c] = make(map[string]uint64)
+	}
 }
 
 // values implements [contactDatabase.values].

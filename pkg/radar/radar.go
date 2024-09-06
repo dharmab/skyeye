@@ -123,6 +123,7 @@ type Radar interface {
 var _ Radar = &scope{}
 
 type scope struct {
+	starts                <-chan sim.Started
 	updates               <-chan sim.Updated
 	fades                 <-chan sim.Faded
 	missionTime           time.Time
@@ -134,8 +135,9 @@ type scope struct {
 	mandatoryThreatRadius unit.Length
 }
 
-func New(coalition coalitions.Coalition, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length) Radar {
+func New(coalition coalitions.Coalition, starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length) Radar {
 	return &scope{
+		starts:                starts,
 		updates:               updates,
 		fades:                 fades,
 		contacts:              newContactDatabase(),
@@ -183,6 +185,9 @@ func (s *scope) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer recenterTicker.Stop()
 	for {
 		select {
+		case start := <-s.starts:
+			log.Info().Time("missionTime", start.MissionTimestamp).Msg("clearing all trackfiles due to mission (re)start")
+			s.contacts.reset()
 		case update := <-s.updates:
 			s.handleUpdate(update)
 		case <-gcTicker.C:

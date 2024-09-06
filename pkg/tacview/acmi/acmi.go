@@ -39,6 +39,7 @@ type ACMI interface {
 type streamer struct {
 	// acmi reads ACMI data lines.
 	acmi *bufio.Reader
+
 	// referencePoint is a center point that must be added to the coordinates of all objects to get the true coordinates.
 	referencePoint orb.Point
 	// referenceTime is the base time for the current mission. It must be added to the frame offset time of each event to get the mission time.
@@ -49,6 +50,10 @@ type streamer struct {
 	objects map[uint64]*types.Object
 	// objectsLock protects the objects map.
 	objectsLock sync.RWMutex
+	// starts is an internal channel for passing the real-time observed time when the mission starts (i.e. the reference time is first set)
+	starts chan time.Time
+	// started tracks if a start event has been published
+	started bool
 	// removals is an internal channel for passing messages when objects are removed.
 	removals chan *types.Object
 	// bullseyesIdx indexes bullseye object IDs by coalition.
@@ -68,6 +73,7 @@ func New(acmi *bufio.Reader, updateInterval time.Duration) ACMI {
 	return &streamer{
 		acmi:           acmi,
 		objects:        make(map[uint64]*types.Object),
+		starts:         make(chan time.Time),
 		removals:       make(chan *types.Object),
 		updateInterval: updateInterval,
 	}
@@ -173,6 +179,10 @@ func (s *streamer) handleLine(line string) error {
 			}
 			s.referenceTime = referenceTime
 			logger.Debug().Time("referenceTime", s.referenceTime).Msg("reference time updated")
+			if !s.started {
+				s.starts <- time.Now()
+				s.started = true
+			}
 		}
 		if _, ok := update.Properties[properties.ReferenceLongitude]; ok {
 			longitude, err := strconv.ParseFloat(update.Properties[properties.ReferenceLongitude], 64)
@@ -221,7 +231,7 @@ func (s *streamer) handleLine(line string) error {
 }
 
 // Stream implements [ACMI.Stream].
-func (s *streamer) Stream(ctx context.Context, updates chan<- sim.Updated, fades chan<- sim.Faded) {
+func (s *streamer) Stream(ctx context.Context, starts chan<- sim.Started, updates chan<- sim.Updated, fades chan<- sim.Faded) {
 	ticker := time.NewTicker(s.updateInterval)
 	defer ticker.Stop()
 	s.processUpdates(updates)
@@ -234,6 +244,11 @@ func (s *streamer) Stream(ctx context.Context, updates chan<- sim.Updated, fades
 			fades <- sim.Faded{
 				Timestamp: time.Now(),
 				ID:        object.ID,
+			}
+		case observedAt := <-s.starts:
+			starts <- sim.Started{
+				Timestamp:        observedAt,
+				MissionTimestamp: s.referenceTime,
 			}
 		case <-ticker.C:
 			s.processUpdates(updates)
