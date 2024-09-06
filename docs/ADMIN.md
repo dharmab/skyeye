@@ -47,12 +47,13 @@ It is important that the CPU cores be **dedicated** cores. Shared core virtual m
 
 Some examples of the performance you can expect:
 
-System|CPU|Speech Recognition Model|Speech Recognition Time|Notes
+System|CPU|Speech Recognition Model|Speech Recognition Time
 -|-|-|-|-
-My current PC|AMD 5900X|ggml-small.en.bin|1-3s|Uncannily fast.
-My older PC|AMD 3900XT|ggml-small.en.bin|2-3s|
-Hetzner CCX23|AMD EPYC Milan (4 dedicated cores)|ggml-small.en.bin|5-6s|Very playable.
-Hetzner CCX13|AMD EPYC Milan (2 dedicated cores)|ggml-small.en.bin|13-16s|Unplayable.
+My current PC|AMD 5900X|ggml-small.en.bin|1-3s
+My older PC|AMD 3900XT|ggml-small.en.bin|2-3s
+My older PC|AMD 3900XT|ggml-medium.en.bin|6.5-7.5s
+Hetzner CCX23|AMD EPYC Milan (4 dedicated cores)|ggml-small.en.bin|5-6s
+Hetzner CCX13|AMD EPYC Milan (2 dedicated cores)|ggml-small.en.bin|13-16s
 
 SkyEye does not use the disk very much, so a particularly fast disk is not required.
 
