@@ -1,26 +1,26 @@
 # SkyEye: AI Powered GCI Bot for DCS
 
-SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-controlled_interception) (GCI) bot for the flight simulator [Digital Combat Simulator](https://www.digitalcombatsimulator.com) (DCS). A GCI bot allows players to request information about the airspace in English using either voice commands or text entry, and to receive answers via verbal speech and text messages
+SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-controlled_interception) (GCI) bot for the flight simulator [Digital Combat Simulator](https://www.digitalcombatsimulator.com) (DCS). A GCI bot allows players to request information about the airspace in English using either voice commands or text entry, and to receive answers via verbal speech and text messages.
 
 SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same computer as SkyEye. No cloud APIs are required. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can run it for less than a nickel per hour on a cloud server, or run it on a PC in your home.
 
-SkyEye is under active development. All of the radio calls I planned to support have been implemented - but there is still lots of work to do on performance, quality, accessibility, and additional features. To see what I'm working on, check out the [milestones](https://github.com/dharmab/skyeye/milestones?direction=asc&sort=due_date&state=open)!
+SkyEye is under active development. All of the radio calls I planned to support have been implemented - but there is still lots of work to do on performance, quality, accessibility, and additional features. To see what I'm working on, check out the [dev blog](https://www.8492sqdn.net/posts/)!
 
 ## Getting Started
 
-* Players: See [the user guide](docs/PLAYER.md) (work in progress) for instructions on using the bot.
-* Server admins: See [the admin guide](docs/ADMIN.md) (work in progress) for a technical guide on deploying the bot.
+* Players: See [the user guide](docs/PLAYER.md) for instructions on using the bot.
+* Server admins: See [the admin guide](docs/ADMIN.md) for a technical guide on deploying the bot.
 * Developers: See [the contributing guide](docs/CONTRIBUTING.md) for instructions on building, running and modifying the bot.
 * Please also see [the privacy statement](docs/PRIVACY.md) to understand how SkyEye uses your voice and gameplay data to function.
 
 ## Technology
 
-Skyeye would not be possible without these people and projects, for whom I am deeply appreciative:
+SkyEye would not be possible without these people and projects, for whom I am deeply appreciative:
 
 * [DCS-SRS](https://github.com/ciribob/DCS-SimpleRadioStandalone) by @ciribob. Ciribob also patiently answered many of my questions on SRS internals and provided helpful debugging tips whenever I ran into a block in the SRS integration.
 * [Tacview](https://www.tacview.net/) - specifically, [ACMI real time telemetry](https://www.tacview.net/documentation/realtime/en/) - provides the data feed from DCS World.
 * @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against SkyEye during early development, and Jones himself was also patient with my questions on Discord.
-* @ggerganov's [whisper.cpp](https://github.com/ggerganov/whisper.cpp) models provides text-to-speech.
+* @ggerganov's [whisper.cpp](https://github.com/ggerganov/whisper.cpp) models provides speech-to-text.
 * @rodaine's [numwords](https://github.com/rodaine/numwords) module is invaluable for parsing numeric quantities from voice input.
 * [Piper](https://github.com/rhasspy/piper) by the [Rhasspy](https://rhasspy.readthedocs.io/en/latest/) voice assistant project is used for speech-to-text.
 * The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for SkyEye.
@@ -33,7 +33,7 @@ Skyeye would not be possible without these people and projects, for whom I am de
 * @martinlindhe's [unit](https://github.com/martinlindhe/unit) module provides easy angular, length, speed and frequency unit conversion.
 * @paulmach's [orb](https://github.com/paulmach/orb) module provides a simple, flexible GIS library for analyzing the geometric relationships between aircraft.
 * @proway's [go-igrf](github.com/proway2/go-igrf) module implements the [International Geomagnetic Reference Field](https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html) used to correct for magnetic declination.
-* [Cobra](https://cobra.dev) is used for the CLI frontend, including configuration, help and examples.
+* [Cobra](https://cobra.dev) is used for the CLI frontend, including configuration flags, help and examples. [Viper](https://github.com/spf13/viper) is used to load configuration from a file/environment variables.
 * [MSYS2](https://www.msys2.org/) provides a Windows build environment.
 * [Oto](https://github.com/ebitengine/oto) was helpful for debugging audio format conversion problems.
 * [zerolog](https://github.com/rs/zerolog) is helpful for general logging and printf debugging.
@@ -60,21 +60,7 @@ You can check current progress [here](https://github.com/dharmab/skyeye/mileston
 
 ### What kind of hardware does it require?
 
-CPU: SkyEye's speech recognition is extremely sensitive to CPU latency. It does not run well when sharing a CPU with other intensive software.
-
-* Avoid running SkyEye on the same physical machine as another intensive app like DCS or TacView client. Ideally, run it on a separate computer.
-* If you're running SkyEye on a cloud provider, ensure your virtual machine has dedicated CPU cores instead of shared CPU cores.
-* SkyEye is heavily multi-threaded and benefits from multi-core performance.
-
-Memory: SkyEye uses about 2.5-3.0GB of RAM when using the `ggml-small.en.bin` model.
-
-Disk: SkyEye requires around 1-2GB of disk space depending on the selected Whisper model.
-
-Some examples of the performance you can expect:
-
-* My personal rig: AMD 5900X, 64GB DDR4 RAM. Speech recognition takes 1.5-3.0 seconds.
-* Hetzner CCX23: AMD EPYC Milan (4 dedicated cores), 16GB RAM. Speech recognition takes around 5-6 seconds.
-* Hetzner CCX13: AMD EPYC Milan (2 dedicated cores), 8GB RAM. Speech recognition takes around 13-16 seconds.
+See the [Hardware section of the admin guide](docs/ADMIN.md#hardware).
 
 ### Can I train the speech recognition on my voice/accent?
 
@@ -90,7 +76,7 @@ If this is a critical feature for you, consider using [MOOSE's AWACS module](htt
 
 OverlordBot also optionally supports this feature, although less than 1% of users used it.
 
-### Will this work with DCS's built-in VoIP?
+### Will this work with DCS' built-in VoIP?
 
 Hopefully in the future Eagle Dynamics will add support for external GCI bots. If anyone at ED is reading this, access to any relevant preview builds would be really helpful!
 

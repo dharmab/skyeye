@@ -37,7 +37,7 @@ That is:
 3. A pipe character (`|`)
 3. Your non-callsign username.
 
-Your callsign should be unique within a server. If multiple players have the same callsign, SkyEye will respond but you may receive inconsistent information. Note that callsigns are normalized in capitalization and numbers - "WARDOG 14", "Wardog 14" and "Wardog 1 4" are all considered to be the same callsign. Numbers ar pronounced individually - "Spare 15" is pronounced "Spare One Five", not "Spare Fifteen".
+Your callsign should be unique within a server. If multiple players have the same callsign, SkyEye will respond but you may receive inconsistent information. Note that callsigns are normalized in capitalization and numbers - "WARDOG 14", "Wardog 14" and "Wardog 1 4" are all considered to be the same callsign. Numbers are pronounced individually - "Spare 15" is pronounced "Spare One Five", not "Spare Fifteen".
 
 Avoid:
 
@@ -48,9 +48,7 @@ Avoid:
 
 If your callsign doesn't follow this format, SkyEye makes a best effort to understand it while still applying its parser rules. A bare username like "Jeff" (with no numbers) may still work, but do not expect this to work reliably.
 
-## Using Skyeye
-
-### Using Your Voice
+## Using SkyEye
 
 You can send a request to SkyEye by speaking on any SkyEye frequency in SRS. The format of the request is:
 
@@ -80,13 +78,9 @@ Some types of requests require you to provide numeric arguments.
 Tips:
 
 * Think about what you want to say before you say it.
-* Speak clearly at a measured pace, as if you were recording a vlog or talking to colleages in a meeting room. Speaking too quickly or excessively slowly can confuse the bot.
+* Speak clearly at a measured pace, as if you were recording a vlog or talking to colleagues in a meeting room. Speaking too quickly or excessively slowly can confuse the bot.
 * If you misspeak, release your Push-to-Talk key and start over rather than trying to correct yourself.
 * Avoid excessive chatter on SkyEye frequencies. This may delay responses to actual requests.
-
-### Using the Keyboard and Mouse
-
-🚧 NOT YET IMPLEMENTED 🚧
 
 ## Available Requests
 
@@ -121,6 +115,8 @@ Keyword: `ALPHA`
 
 Function: The GCI will check if they see you on scope and tell you your approximate current location in bullseye format.
 
+Use: You can use this to coarsely check your INS navigation system in an aircraft without GPS. It is accurate to within several miles (accounting for potential lag time between when the bot checks the scope and when the response is sent on the radio).
+
 Examples:
 
 ```
@@ -138,17 +134,17 @@ YELLOW 13: "Goliath Yellow One Three alpha"
 GOLIATH: "Yellow One Three, Goliath, contact, alpha check bullseye 088/5"
 ```
 
-Tips: You can use this to coarsely check your INS navigation system in an aircraft without GPS. It is accurate to within several miles (accounting for potential lag time between when the bot checks the scope and when the response is sent on the radio).
-
 ### BOGEY DOPE
 
 Keyword: `BOGEY`
 
 Function: The GCI will give you the Bearing, Range, Altitude and Aspect from your aircraft to the nearest air-to-air threat.
 
+Use: Get a vector to the nearest hostile aircraft. 
+
 Arguments:
 
-1. Filter (optional)
+1. Filter (optional): Either "airplanes" or "helicopters" to filter by a category of aircraft.
 
 Examples:
 
@@ -167,13 +163,16 @@ YELLOW 13: "Goliath Yellow One Three bogey"
 GOLIATH: "Yellow One Three, group threat BRAA 188/45, 8000, hot, hostile, Eagle"
 ```
 
+Tips:
+* Make this request repeatedly during a BVR timeline to build and maintain situational awareness.
+
 ### DECLARE
 
 Keyword: `DECLARE`
 
-Function: You provide the position of a radar contact on your scope. The GCI will look for contacts in that area and tell you if they are hostile, friendly, a furball (mixed) or clean (nothing on scope).
+Function: You provide the position of a radar contact on your scope. The GCI will look for contacts in that area and tell you if they are hostile, friendly, a furball (mixed) or clean (nothing on scope). You can provide the position using either Bullseye or BRAA format .
 
-You can provide the position using either Bullseye or BRAA format .
+Use: Additional source of Identify Friend or Foe (IFF)
 
 Arguments:
 
@@ -195,6 +194,8 @@ THUNDERHEAD: Mobius One, Group bullseye 273/27, 2200, track east, hostile, Flank
 Keyword: `PICTURE`
 
 Function: The GCI will rank threats by priority, then report the top three. Threats are considered relative to the coalition as a whole, not to an individual.
+
+Use: General situational awareness.
 
 Arguments:
 
@@ -224,6 +225,8 @@ Keyword: `SNAPLOCK`
 
 Function: This is a faster form of DECLARE intended for use during a BVR timeline. You tell the GCI the BRA (bearing, range, altitude) of a threat on your radar scope. The GCI will look for a group in that area and response with information.
 
+Use: IFF during a BVR timeline.
+
 Arguments:
 
 1. Bearing from you to the contact (required)
@@ -242,6 +245,8 @@ THUNDERHEAD: "Mobius 1, threat group BRAA 125/10, 8000, hot, hostile, two contac
 Keyword: `SPIKED`
 
 Function: You tell the GCI the approximate bearing to an airborne threat on your Radar Warning Receiver (RWR). The GCI responds with information about the nearest potential source within a 30 degree cone in that direction.
+
+Use: Can be used to get ranging information to a threat that is visible on the RWR but not the attack radar (or if your aircraft has no attack radar).
 
 Arguments:
 
@@ -278,7 +283,7 @@ If you hear this in the middle of a mission, it probably means the bot crashed a
 
 ### PICTURE
 
-Server operators may optionally configure the GCI controller to automatically broadcast a PICTURE at regualr intervals. The content and format is the same as described in the PICTURE request above.
+Server operators may optionally configure the GCI controller to automatically broadcast a PICTURE at regular intervals. The content and format is the same as described in the PICTURE request above.
 
 Requesting a PICTURE will reset the interval on any automatic broadcast.
 
@@ -286,9 +291,9 @@ Requesting a PICTURE will reset the interval on any automatic broadcast.
 
 The GCI controller monitors for threats which are near or approaching friendly aircraft. Any hostile aircraft within a pre-briefed range (default 25NM) is always considered a threat. At further ranges, the bandit's aircraft capabilities are also considered. Threat calls are broadcast every few minutes for as long as the threat criteria are met.
 
-Threat locations are given in BRAA format if they are relevant to a single friendly aircraft, or Bullseye calls if they are relevant to multiple friendly aircraft.
+Threat locations are given in BRAA format if they are relevant to a single friendly aircraft, or in bullseye format if they are relevant to multiple friendly aircraft.
 
-Your own aircraft must be on a SRS frequency, and using the same name in DCS and in SRS, to receive THREAT monitoring.
+Your own aircraft must be on a SkyEye SRS frequency, and using the same name in DCS and in SRS, to receive THREAT monitoring.
 
 ### FADED
 
