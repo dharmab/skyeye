@@ -45,15 +45,21 @@ SkyEye currently only officially supports the AMD64 (x86-64) CPU architecture; A
 
 It is important that the CPU cores be **dedicated** cores. Shared core virtual machines are **not supported** and will result in **high latency and stuttering audio.**
 
-Some examples of the performance you can expect:
+Non-scientific speech recognition performance:
 
-System|CPU|Speech Recognition Model|Speech Recognition Time
--|-|-|-
-My current PC|AMD 5900X|ggml-small.en.bin|1-3s
-My older PC|AMD 3900XT|ggml-small.en.bin|2-3s
-My older PC|AMD 3900XT|ggml-medium.en.bin|6.5-7.5s
-Hetzner CCX23|AMD EPYC Milan (4 dedicated cores)|ggml-small.en.bin|5-6s
-Hetzner CCX13|AMD EPYC Milan (2 dedicated cores)|ggml-small.en.bin|13-16s
+System|CPU|Speech Recognition Model|Speech Recognition Time (Synthetic benchmark)|Speech Recognition Time (In practice)
+-|-|-|-|-
+My current PC|AMD 5900X|ggml-small.en.bin|1.0-1.5s|1.5-2.0s
+My older PC|AMD 3900XT|ggml-small.en.bin|2-3s|?
+Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (4 dedicated cores)|ggml-small.en.bin|3.0-3.5s|3.0-3.5s
+My current PC|AMD 5900X|ggml-medium.en.bin|3.5-4.5s|4-5s
+Hetzner CCX23|AMD EPYC (4 dedicated cores)|ggml-small.en.bin|5-6s|6-7s
+Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (2 dedicated cores)|ggml-small.en.bin|5-6s|5.5-6.0s
+My older PC|AMD 3900XT|ggml-medium.en.bin|6.5-7.5s|?
+Hetzner CCX13|AMD EPYC (2 dedicated cores)|ggml-small.en.bin|7-8s|12-15s
+Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (4 dedicated cores)|ggml-medium.en.bin|9-10s|9-11s
+Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (2 dedicated cores)|ggml-medium.en.bin|?|17.5-18.0s
+Hetzner CCX23|AMD EPYC (4 dedicated cores)|ggml-medium.en.bin|16-17s|?
 
 SkyEye does not use the disk very much, so a particularly fast disk is not required.
 
@@ -62,6 +68,7 @@ Examples of suitable servers include:
 * [Amazon EC2 Dedicated Instances](https://aws.amazon.com/ec2/pricing/dedicated-instances/)
 * GCP Compute Engine `c2d-highcpu-*`, `c3d-highcpu-*`, `c3-highcpu-*`, `c4-highcpu-*` instances
 * Hetzner CCX instances
+* [Vultr Optimized Cloud Compute (CPU Optmized)](https://www.vultr.com/pricing/#optimized-cloud-compute)
 * [Linode Dedicated CPU Instances](https://www.linode.com/pricing/#compute-dedicated)
 
 I won't provide an endorsement of any particular provider, but I will point out that as of August 2024 Hetzner's CCX23 instance is probably the cheapest way the run SkyEye on public cloud. The cheapest way to run SkyEye overall is probably on a spare computer in your house.
@@ -135,7 +142,7 @@ Advanced users should consider sending their logs to a log aggregator such as [G
 
 ### cloud-init
 
-A sample [cloud-init](https://cloudinit.readthedocs.io/en/latest/) config is provided in `/init/cloud-init` directory in the Git repository. This automates the installation and startup on a new cloud server instance running Ubuntu. It can also be modified to work on other Linux distros with minor tweaks.
+A sample [cloud-init](https://cloudinit.readthedocs.io/en/latest/) config is provided in `/init/cloud-init` directory in the Git repository. This automates the installation and startup on a new cloud server instance running Debian or Ubuntu. It can also be modified to work on other Linux distros with minor tweaks.
 
 ### Manual Installation
 
@@ -157,19 +164,19 @@ sudo pacman -Syu opus soxr openblas
 Download SkyEye and an AI model. Copy them to `/opt/skyeye/`. Create a `skyeye` user to run SkyEye.
 
 ```bash
-useradd -G users skyeye
+sudo useradd -G users skyeye
 curl -sL https://github.com/dharmab/skyeye/releases/latest/download/skyeye-linux-amd64.tar.gz -o /tmp/skyeye-linux-amd64.tar.gz
 tar -xzf /tmp/skyeye-linux-amd64.tar.gz -C /tmp/
-mkdir -p /opt/skyeye/bin
-mv /tmp/skyeye-linux-amd64/skyeye /opt/skyeye/bin/skyeye
-chmod +x /opt/skyeye/bin/skyeye
-mkdir -p /opt/skyeye/models
+sudo mkdir -p /opt/skyeye/bin
+sudo mv /tmp/skyeye-linux-amd64/skyeye /opt/skyeye/bin/skyeye
+sudo chmod +x /opt/skyeye/bin/skyeye
+sudo mkdir -p /opt/skyeye/models
 curl -sL https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin -o /opt/skyeye/models/ggml-small.en.bin
-chown -R skyeye:users /opt/skyeye
-mkdir -p /etc/skyeye
-mv /tmp/skyeye-linux-amd64/config.yaml /etc/skyeye/config.yaml
-chmod 600 /etc/skyeye/config.yaml
-chown -R skyeye:users /etc/skyeye
+sudo chown -R skyeye:users /opt/skyeye
+sudo mkdir -p /etc/skyeye
+sudo mv /tmp/skyeye-linux-amd64/config.yaml /etc/skyeye/config.yaml
+sudo chmod 600 /etc/skyeye/config.yaml
+sudo chown -R skyeye:users /etc/skyeye
 ```
 
 Save this systemd unit to `/etc/systemd/system/skyeye.service`:
