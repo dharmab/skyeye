@@ -48,7 +48,7 @@ It is important that the CPU cores be **dedicated** cores. Shared core virtual m
 Some examples of the performance you can expect:
 
 System|CPU|Speech Recognition Model|Speech Recognition Time
--|-|-|-|-
+-|-|-|-
 My current PC|AMD 5900X|ggml-small.en.bin|1-3s
 My older PC|AMD 3900XT|ggml-small.en.bin|2-3s
 My older PC|AMD 3900XT|ggml-medium.en.bin|6.5-7.5s
