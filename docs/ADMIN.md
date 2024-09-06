@@ -6,9 +6,10 @@ This is a technical article on how to deploy SkyEye, targeted at multiplayer ser
 
 ## Major Known Issues
 
-- **High**: SkyEye does not automatically reconnect to SRS if the connection is lost. It must be restarted if this happens. [Bug tracked here](https://github.com/dharmab/skyeye/issues/221) This guide recommends using systemd or PowerShell to automatically restart SkyEye.
+- **High**: SkyEye does not automatically reconnect to SRS if the connection is lost. It must be restarted if this happens. [Bug tracked here](https://github.com/dharmab/skyeye/issues/221). This guide recommends using systemd or PowerShell to automatically restart SkyEye.
 - **Medium**: SkyEye will not report about hostile contacts below 50 knots. Unfortunately, this includes hostile helicopters that are moving slowly or hovering. [Bug tracked here](https://github.com/dharmab/skyeye/issues/65).
-- See also [this section in the player guide](PLAYER.md#a-word-of-warning) about the bots' limitations.
+- **Low**: If the mission restarts or is changed while SkyEye is running, the GCI will report a FADED call for every airborne contact from the previous mission. [Bug tracked here](https://github.com/dharmab/skyeye/issues/239)
+- See also [this section in the player guide](PLAYER.md#a-word-of-warning) about the bot's limitations.
 
 ## System Architecture
 
@@ -18,20 +19,40 @@ _Recommended Architecture: DCS, TacView and SRS on one Windows server. SkyEye on
 
 ```mermaid
 flowchart LR
-    dcs[Windows\nDCS World Server\nTacView Exporter\nSRS Server] <--> skyeye[Linux\nSkyEye]
+    dcs[Windows<br/>DCS World Server<br/>TacView Exporter<br/>SRS Server] <--> skyeye[Linux<br/>SkyEye]
 ```
 
-If you insist on running SkyEye on the same system as DCS, I cannot offer you any guarantees of performance. I do recommend configuring Process Affinity to pin SkyEye to a set of dedicated CPU cores separate from any other CPU-intensive software. The easiest way to do this on Windows is by using the [CPU Affinities feature in Process Lasso](https://bitsum.com/processlasso-docs/#default_affinities).
+If you insist on running SkyEye on the same system as DCS, I cannot offer you any guarantees of performance. If you choose to try this anyway, I do recommend configuring Process Affinity to pin SkyEye to a set of dedicated CPU cores separate from any other CPU-intensive software. The easiest way to do this on Windows is by using the [CPU Affinities feature in Process Lasso](https://bitsum.com/processlasso-docs/#default_affinities).
 
 SkyEye will automatically reconnect to TacView if the connection is lost. However, if the connection to SRS is lost, SkyEye will exit. The guides for Linux and Windows provided below include scripts to automatically restart SkyEye after a delay.
+
+## Software
+
+SkyEye is officially supported on Windows and Linux. The Windows version bundles all required libraries within skyeye.exe. The Linux version
+requires Opus, SOXR and OpenBLAS to be installed using the OS package manager.
 
 ## Hardware
 
 SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space. The CPU must have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
 
-SkyEye currently only officially supports the x86-64/AMD64 CPU architecture; ARM CPUs are not yet officially supported. I've found that at least 4 dedicated CPU cores are needed for a good experience, but this may differ by the exact CPU being used, so experiment and see what works well for you.
+CPU Series|AVX2 Added In
+-|-
+Intel Core|Haswell (2013)
+AMD|Excavator (2015)
+Intel Pentium/Celeron|Tiger Lake (2020)
+
+SkyEye currently only officially supports the AMD64 (x86-64) CPU architecture; ARM CPUs are not yet officially supported. I've found that at least 4 dedicated CPU cores are needed for a good experience, but this may differ by the exact CPU being used, so experiment and see what works well for you.
 
 It is important that the CPU cores be **dedicated** cores. Shared core virtual machines are **not supported** and will result in **high latency and stuttering audio.**
+
+Some examples of the performance you can expect:
+
+System|CPU|Speech Recognition Model|Speech Recognition Time|Notes
+-|-|-|-|-
+My current PC|AMD 5900X|ggml-small.en.bin|1-3s|Uncannily fast.
+My older PC|AMD 3900XT|ggml-small.en.bin|2-3s|
+Hetzner CCX23|AMD EPYC Milan (4 dedicated cores)|ggml-small.en.bin|5-6s|Very playable.
+Hetzner CCX13|AMD EPYC Milan (2 dedicated cores)|ggml-small.en.bin|13-16s|Unplayable.
 
 SkyEye does not use the disk very much, so a particularly fast disk is not required.
 
@@ -46,7 +67,7 @@ I won't provide an endorsement of any particular provider, but I will point out 
 
 ## Configuration
 
-Skyeye can be configured using a YAML or JSON configuration file, environment variables and/or command-line flags. The order of priority is:
+SkyEye can be configured using a YAML or JSON configuration file, environment variables and/or command-line flags. The order of priority is:
 
 1. CLI flags
 2. Environment variabls
@@ -70,12 +91,10 @@ export SKYEYE_WHISPER_MODEL=models/ggml-small.en.bin
 Or in a config file:
 
 ```yaml
-whisper-model: models/ggml-small.en.bin
+whisper_model: models/ggml-small.en.bin
 ```
 
-```sh
-./skyeye --config-file=config.yaml
-```
+The config file's default location is `/etc/skyeye/config.yaml`. You can override this location by setting `--config-file` or `SKYEYE_CONFIG_FILE`.
 
 It is recommended to use the configuration file as the main source of config. Most users find it the easiest option, and a file is simple to protect using access control policies, unlike a processes' environment or arguments.
 
@@ -202,10 +221,13 @@ View the logs with `journalctl`:
 
 ```bash
 # Stream the logs
-journalctl -fu skyeye.exe
+journalctl -fu skyeye
 
 # Page through recent logs
 journalctl -u skyeye
+
+# Save recent logs to a file (handy for bug reports)
+journalctl -u skyeye > skyeye.log
 ```
 
 ## Windows
@@ -216,6 +238,6 @@ Download the SkyEye release ZIP from the [releases page](https://github.com/dhar
 
 Edit `config.yaml` to configure SkyEye as desired.
 
-Open Powershell, change to the SkyEye directory and run the script with `./run-skyeye.ps1`.  SkyEye will automatically restart if it exits; press Ctrl+C to exit manually.
+Open PowerShell, change to the SkyEye directory and run the script with `./run-skyeye.ps1`.  SkyEye will automatically restart if it exits; press Ctrl+C to exit manually.
 
 Logs will be saved in the `.log` files in the `logs` directory. Remember to regularly compress and/or delete old log files so they don't fill up the disk.
