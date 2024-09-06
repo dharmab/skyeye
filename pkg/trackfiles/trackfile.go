@@ -53,9 +53,9 @@ type Frame struct {
 	Heading unit.Angle
 }
 
-func NewTrackfile(a Labels) *Trackfile {
+func NewTrackfile(labels Labels) *Trackfile {
 	return &Trackfile{
-		Contact: a,
+		Contact: labels,
 		track:   *deque.New[Frame](),
 	}
 }

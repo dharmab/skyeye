@@ -31,13 +31,14 @@ func NewTelemetryClient(
 	clientHostname,
 	password string,
 	coalition coalitions.Coalition,
+	starts chan<- sim.Started,
 	updates chan<- sim.Updated,
 	fades chan<- sim.Faded,
 	updateInterval time.Duration,
 ) (Client, error) {
 	log.Info().Str("protocol", "tcp").Str("address", address).Msg("connecting to telemetry service")
 
-	tacviewClient := newTacviewClient(updates, fades, updateInterval)
+	tacviewClient := newTacviewClient(starts, updates, fades, updateInterval)
 	return &telemetryClient{
 		address:       address,
 		hostname:      clientHostname,

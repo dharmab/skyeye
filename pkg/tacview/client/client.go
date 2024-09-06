@@ -25,6 +25,7 @@ type Client interface {
 }
 
 type tacviewClient struct {
+	starts         chan<- sim.Started
 	updates        chan<- sim.Updated
 	fades          chan<- sim.Faded
 	updateInterval time.Duration
@@ -33,8 +34,9 @@ type tacviewClient struct {
 	missionTime    time.Time
 }
 
-func newTacviewClient(updates chan<- sim.Updated, fades chan<- sim.Faded, updateInterval time.Duration) *tacviewClient {
+func newTacviewClient(starts chan<- sim.Started, updates chan<- sim.Updated, fades chan<- sim.Faded, updateInterval time.Duration) *tacviewClient {
 	return &tacviewClient{
+		starts:         starts,
 		updates:        updates,
 		fades:          fades,
 		updateInterval: updateInterval,
@@ -48,7 +50,7 @@ func (c *tacviewClient) stream(ctx context.Context, wg *sync.WaitGroup, source a
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		source.Stream(sCtx, c.updates, c.fades)
+		source.Stream(sCtx, c.starts, c.updates, c.fades)
 	}()
 
 	wg.Add(1)
