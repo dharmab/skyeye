@@ -30,6 +30,12 @@ type Client interface {
 	Frequencies() []RadioFrequency
 	// ClientsOnFrequency returns the number of peers on the client's frequencies.
 	ClientsOnFrequency() int
+	// HumansOnFrequency returns the number of human peers on the client's frequencies.
+	// A human peer is any client whose name does not end with "[BOT]".
+	HumansOnFrequency() int
+	// BotsOnFrequency returns the number of bot peers on the client's frequencies.
+	// A bot peer is any client whose name ends with "[BOT]".
+	BotsOnFrequency() int
 	// IsOnFrequency checks if the named unit is on any of the client's frequencies.
 	IsOnFrequency(string) bool
 }

@@ -135,6 +135,14 @@ On Windows, the easiest way to retain your logs is to use [redirection](https://
 
 Advanced users should consider sending their logs to a log aggregator such as [Grafana Cloud](https://grafana.com/products/cloud/logs/). If you do this, I also recommend using `--log-format=json` to log in JSON format, which is easier to search and filter when using an aggregator.
 
+## Autoscaling (Experimental)
+
+The included `skyeye-scaler` program is an optional autoscaler tool. It monitors a set of frequencies in SRS, and continually sends POST requests to a custom webhook.
+
+Whenever there is at least one non-bot client on any monitored SRS frequency, the webhook request has the parameter `action` set to the value `run`. When all monitored SRS frequencies are empty, the value is `stop`.
+
+This tool may be useful for people who only need to run SkyEye for a few hours or days out of the month. By implementing a small webservice or serverless function that creates or destroys a SkyEye instance on demand, the cost of running SkyEye can be reduced to a few dollars each month.
+
 # Installation
 
 ## Linux

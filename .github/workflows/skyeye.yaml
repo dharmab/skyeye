@@ -50,14 +50,18 @@ jobs:
         uses: ./.github/actions/setup
       - name: Build whisper.cpp
         uses: ./.github/actions/build-whisper
-      - name: Build
+      - name: Build SkyEye
         run: make skyeye
+      - name: Build SkyEye Scaler
+        run: make skyeye-scaler
       - name: Create dist
         shell: bash
         run: |
           mkdir -p dist/skyeye-linux-amd64/docs/
           cp skyeye dist/skyeye-linux-amd64/skyeye
+          cp skyeye-scaler dist/skyeye-linux-amd64/skyeye-scaler
           chmod +x dist/skyeye-linux-amd64/skyeye
+          chmod +x dist/skyeye-linux-amd64/skyeye-scaler
           cp README.md dist/skyeye-linux-amd64/README.md
           cp LICENSE dist/skyeye-linux-amd64/LICENSE
           cp config.yaml dist/skyeye-linux-amd64/config.yaml
@@ -102,11 +106,15 @@ jobs:
       - name: Build Skyeye
         shell: msys2 {0}
         run: make skyeye.exe
+      - name: Build Skyeye Scaler
+        shell: msys2 {0}
+        run: make skyeye-scaler.exe
       - name: Create dist
         shell: msys2 {0}
         run: |
           mkdir -p dist/skyeye-windows-amd64/docs/
           cp skyeye.exe dist/skyeye-windows-amd64/skyeye.exe
+          cp skyeye-scaler.exe dist/skyeye-windows-amd64/skyeye-scaler.exe
           curl -fsL https://github.com/winsw/winsw/releases/download/v2.12.0/WinSW-x64.exe -o dist/winsw.exe
           cp README.md dist/skyeye-windows-amd64/README.md
           cp LICENSE dist/skyeye-windows-amd64/LICENSE

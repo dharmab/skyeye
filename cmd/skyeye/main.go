@@ -19,16 +19,15 @@ import (
 	"golang.org/x/sys/cpu"
 
 	"github.com/martinlindhe/unit"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"github.com/dharmab/skyeye/internal/application"
+	"github.com/dharmab/skyeye/internal/cli"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
-	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
@@ -64,15 +63,13 @@ var (
 	mandatoryThreatRadiusNM      float64
 )
 
-var envPrefix = "SKYEYE"
-
 func init() {
 	skyeye.Flags().StringVar(&configFile, "config-file", "/etc/skyeye/config.yaml", "Path to config file")
 
 	// Logging
-	logLevelFlag := NewEnum(&logLevel, "Level", "info", "error", "warn", "info", "debug", "trace")
+	logLevelFlag := cli.NewEnum(&logLevel, "Level", "info", "error", "warn", "info", "debug", "trace")
 	skyeye.Flags().Var(logLevelFlag, "log-level", "Log level (error, warn, info, debug, trace)")
-	logFormats := NewEnum(&logFormat, "Format", "pretty", "json")
+	logFormats := cli.NewEnum(&logFormat, "Format", "pretty", "json")
 	skyeye.Flags().Var(logFormats, "log-format", "Log format (pretty, json)")
 	skyeye.Flags().BoolVar(&enableTranscriptionLogging, "enable-transcription-logging", true, "Include transcriptions of SRS transmissions in logs")
 
@@ -94,15 +91,15 @@ func init() {
 	skyeye.Flags().StringVar(&gciCallsign, "callsign", "", "GCI callsign used in radio transmissions. Automatically chosen if not provided")
 	skyeye.Flags().StringSliceVar(&gciCallsigns, "callsigns", []string{}, "A list of GCI callsigns to select from")
 	skyeye.MarkFlagsMutuallyExclusive("callsign", "callsigns")
-	coalitionFlag := NewEnum(&coalitionName, "Coalition", "blue", "red")
+	coalitionFlag := cli.NewEnum(&coalitionName, "Coalition", "blue", "red")
 	skyeye.Flags().Var(coalitionFlag, "coalition", "GCI coalition (blue, red)")
 
 	// AI models
 	skyeye.Flags().StringVar(&whisperModelPath, "whisper-model", "", "Path to whisper.cpp model")
 	_ = skyeye.MarkFlagRequired("whisper-model")
-	voiceFlag := NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
+	voiceFlag := cli.NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine). Automatically chosen if not provided")
-	playbackSpeedFlag := NewEnum(&playbackSpeed, "string", "standard", "veryslow", "slow", "fast", "veryfast")
+	playbackSpeedFlag := cli.NewEnum(&playbackSpeed, "string", "standard", "veryslow", "slow", "fast", "veryfast")
 	skyeye.Flags().Var(playbackSpeedFlag, "voice-playback-speed", "How fast the GCI speaks")
 	skyeye.Flags().DurationVar(&playbackPause, "voice-playback-pause", 200*time.Millisecond, "How long the GCI pauses between sentences")
 	skyeye.Flags().BoolVar(&mute, "mute", false, "Mute all SRS transmissions. Useful for testing without disrupting play")
@@ -143,8 +140,7 @@ func main() {
 	cobra.MousetrapHelpText = "Thanks for trying SkyEye! SkyEye is a command-line application. Please read the documentation on GitHub for instructions on how to run it, or run the program from a terminal to see more help text. "
 	cobra.MousetrapDisplayDuration = 0
 	if err := skyeye.Execute(); err != nil {
-		log.Error().Err(err).Msg("application exited with error")
-		os.Exit(1)
+		log.Fatal().Err(err).Msg("application exited with error")
 	}
 }
 
@@ -159,7 +155,7 @@ func initializeConfig(cmd *cobra.Command) error {
 		}
 	}
 
-	v.SetEnvPrefix(envPrefix)
+	v.SetEnvPrefix("SKYEYE")
 	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	v.AutomaticEnv()
 
@@ -169,40 +165,14 @@ func initializeConfig(cmd *cobra.Command) error {
 
 func bindFlags(cmd *cobra.Command, v *viper.Viper) {
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		configName := f.Name
-
 		// Apply the viper config value to the flag when the flag is not set and viper has a value
-		if !f.Changed && v.IsSet(configName) {
-			val := v.Get(configName)
-			if err := cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val)); err != nil {
+		if !f.Changed && v.IsSet(f.Name) {
+			val := v.Get(f.Name)
+			if err := cmd.Flags().Set(f.Name, fmt.Sprint(val)); err != nil {
 				log.Warn().Str("flag", f.Name).Msg("Failed to set flag")
 			}
 		}
 	})
-}
-
-func setupLogging() {
-	if strings.EqualFold(logFormat, "pretty") {
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	}
-
-	var level zerolog.Level
-	switch strings.ToLower(logLevel) {
-	case "error":
-		level = zerolog.ErrorLevel
-	case "warn":
-		level = zerolog.WarnLevel
-	case "info":
-		level = zerolog.InfoLevel
-	case "debug":
-		level = zerolog.DebugLevel
-	case "trace":
-		level = zerolog.TraceLevel
-	default:
-		level = zerolog.InfoLevel
-	}
-	zerolog.SetGlobalLevel(level)
-	log.Info().Stringer("level", level).Msg("log level set")
 }
 
 func loadCoalition() (coalition coalitions.Coalition) {
@@ -244,7 +214,7 @@ func loadWhisperModel() *whisper.Model {
 	log.Info().Str("path", whisperModelPath).Msg("loading whisper model")
 	whisperModel, err := whisper.New(whisperModelPath)
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to load whisper model")
+		log.Fatal().Err(err).Str("path", whisperModelPath).Err(err).Msg("failed to load whisper model")
 	}
 	log.Info().
 		Bool("multilingual", whisperModel.IsMultilingual()).
@@ -302,19 +272,6 @@ func loadCallsign(rando *rand.Rand) (callsign string) {
 	return
 }
 
-func loadFrequencies() []simpleradio.RadioFrequency {
-	frequencies := make([]simpleradio.RadioFrequency, 0, len(srsFrequencies))
-	for _, s := range srsFrequencies {
-		freq, err := simpleradio.ParseRadioFrequency(s)
-		if err != nil {
-			log.Fatal().Err(err).Str("frequency", s).Msg("failed to parse SRS frequency")
-		}
-		frequencies = append(frequencies, *freq)
-		log.Info().Stringer("frequency", freq).Msg("parsed SRS frequency")
-	}
-	return frequencies
-}
-
 func preRun(cmd *cobra.Command, args []string) error {
 	if err := initializeConfig(cmd); err != nil {
 		return fmt.Errorf("failed to initialize config: %w", err)
@@ -342,7 +299,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	var wg sync.WaitGroup
 
-	setupLogging()
+	cli.SetupZerolog(logLevel, logFormat)
 
 	log.Info().Str("version", Version).Msg("SkyEye GCI Bot")
 
@@ -363,7 +320,7 @@ func run(cmd *cobra.Command, args []string) {
 	rando := randomizer()
 	voice := loadVoice(rando)
 	callsign := loadCallsign(rando)
-	srsFrequencies := loadFrequencies()
+	parsedSRSFrequencies := cli.LoadFrequencies(srsFrequencies)
 	playbackSpeed := loadPlaybackSpeed()
 
 	config := conf.Configuration{
@@ -376,7 +333,7 @@ func run(cmd *cobra.Command, args []string) {
 		SRSConnectionTimeout:         srsConnectionTimeout,
 		SRSClientName:                fmt.Sprintf("GCI %s [BOT]", callsign),
 		SRSExternalAWACSModePassword: srsExternalAWACSModePassword,
-		SRSFrequencies:               srsFrequencies,
+		SRSFrequencies:               parsedSRSFrequencies,
 		EnableTranscriptionLogging:   enableTranscriptionLogging,
 		Callsign:                     callsign,
 		Coalition:                    coalition,
@@ -405,3 +362,4 @@ func run(cmd *cobra.Command, args []string) {
 	}
 	wg.Wait()
 }
+

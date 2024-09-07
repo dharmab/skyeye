@@ -20,6 +20,7 @@ COPY cmd cmd
 COPY internal internal
 COPY pkg pkg
 RUN make skyeye
+RUN make skyeye-scaler
 
 FROM debian:bookworm-slim AS skyeye
 RUN apt-get update && apt-get install -y \
@@ -28,4 +29,5 @@ RUN apt-get update && apt-get install -y \
   libopenblas0-openmp \
   && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /skyeye/skyeye /opt/skyeye/bin/skyeye
+COPY --from=builder /skyeye/skyeye-scaler /opt/skyeye/bin/skyeye-scaler
 ENTRYPOINT ["/opt/skyeye/bin/skyeye"]
