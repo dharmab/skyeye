@@ -48,8 +48,9 @@ type Radar interface {
 		category brevity.ContactCategory,
 	) (int, []brevity.Group)
 	// FindNearbyGroupsWithBRAA returns all groups within the given radius of the given point of interest, within the given
-	// altitude block, filtered by the given coalition and contact category. Each group has BRAA set relative to the
-	// given origin.
+	// altitude block, filtered by the given coalition and contact category. Any given unit IDs are excluded from the search.
+	// Each group has BRAA set relative to the given origin. The groups are ordered by increasing distance from the point
+	// of interest.
 	FindNearbyGroupsWithBRAA(
 		origin,
 		pointOfInterest orb.Point,
@@ -58,10 +59,12 @@ type Radar interface {
 		radius unit.Length,
 		coalition coalitions.Coalition,
 		category brevity.ContactCategory,
+		excludedIDs []uint64,
 	) []brevity.Group
 	// FindNearbyGroupsWithBullseye returns all groups within the given radius of the given point of interest, within the given
-	// altitude block, filtered by the given coalition and contact category. Each group has Bullseye set relative to the
-	// point provided in SetBullseye.
+	// altitude block, filtered by the given coalition and contact category. Any given unit IDs are excluded from the search.
+	// Each group has Bullseye set relative to the point provided in SetBullseye. The groups are ordered by increasing distance
+	// from the point of interest.
 	FindNearbyGroupsWithBullseye(
 		pointOfInterest orb.Point,
 		minAltitude,
@@ -69,6 +72,7 @@ type Radar interface {
 		radius unit.Length,
 		coalition coalitions.Coalition,
 		category brevity.ContactCategory,
+		excludedIDs []uint64,
 	) []brevity.Group
 	// FindNearestGroupWithBRAA returns the nearest group to the given origin (up to the given radius), within the
 	// given altitude block, filtered by the given coalition and contact category. The group has BRAA set relative to

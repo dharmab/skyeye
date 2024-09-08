@@ -30,6 +30,7 @@ func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, f
 		radius,
 		coalition,
 		filter,
+		[]uint64{},
 	)
 
 	// Sort groups from highest to lowest threat
