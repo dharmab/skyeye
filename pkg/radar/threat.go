@@ -24,6 +24,7 @@ func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 			radius,
 			coalition.Opposite(),
 			brevity.Aircraft,
+			[]uint64{},
 		)
 
 		// Populate threats map with hostile-friendly relations that meet threat criteria.

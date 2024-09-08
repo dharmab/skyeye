@@ -47,6 +47,7 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 		radius,
 		c.coalition,
 		brevity.Aircraft,
+		[]uint64{trackfile.Contact.ID},
 	)
 	hostileGroups := c.scope.FindNearbyGroupsWithBRAA(
 		origin,
@@ -56,6 +57,7 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 		radius,
 		c.coalition.Opposite(),
 		brevity.Aircraft,
+		[]uint64{trackfile.Contact.ID},
 	)
 
 	response := brevity.SnaplockResponse{Callsign: foundCallsign}
