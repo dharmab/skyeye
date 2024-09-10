@@ -9,16 +9,25 @@ import (
 // ComposeSunriseCall implements [Composer.ComposeSunriseCall].
 func (c *composer) ComposeSunriseCall(call brevity.SunriseCall) NaturalLanguageResponse {
 	message := NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("All players: GCI %s (bot) sunrise on", c.callsign),
+		Subtitle: fmt.Sprintf("All players: GCI %s (bot) sunrise on ", c.callsign),
 		Speech:   fmt.Sprintf("All players, GCI %s sunrise on ", c.callsign),
 	}
 
-	for i, freq := range call.Frequencies {
-		message.Subtitle += fmt.Sprintf(", %f.3", freq.Megahertz())
-		message.Speech += ", " + PronounceDecimal(freq.Megahertz(), 3, "point")
-		if len(call.Frequencies) > 1 && i == len(call.Frequencies)-2 {
-			message.Subtitle += " and"
-			message.Speech += " and"
+	writeBoth := func(s string) {
+		message.Subtitle += s
+		message.Speech += s
+	}
+
+	for i := range len(call.Frequencies) {
+		frequency := call.Frequencies[i]
+		message.Subtitle += fmt.Sprintf("%.3f", frequency.Megahertz())
+		message.Speech += PronounceDecimal(frequency.Megahertz(), 3, "point")
+		if len(call.Frequencies) > 1 {
+			if i == len(call.Frequencies)-2 {
+				writeBoth(" and ")
+			} else if i < len(call.Frequencies)-2 {
+				writeBoth(", ")
+			}
 		}
 	}
 
