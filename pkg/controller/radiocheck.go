@@ -9,12 +9,15 @@ import (
 func (c *controller) HandleRadioCheck(request *brevity.RadioCheckRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
-	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
-	if trackfile == nil {
+	var response brevity.RadioCheckResponse
+	if foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition); trackfile == nil {
 		logger.Debug().Msg("no trackfile found for requestor")
-		c.out <- brevity.NegativeRadarContactResponse{Callsign: request.Callsign}
+		response.Callsign = request.Callsign
 		return
+	} else {
+		logger.Debug().Msg("found requestor's trackfile")
+		response.Callsign = foundCallsign
+		response.RadarContact = true
 	}
-	logger.Debug().Msg("found requestor's trackfile")
-	c.out <- brevity.RadioCheckResponse{Callsign: foundCallsign}
+	c.out <- response
 }

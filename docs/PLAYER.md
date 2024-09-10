@@ -89,9 +89,9 @@ Tips:
 
 Keyword: `RADIO` or `COMM`
 
-Function: The GCI will respond if they both see you on scope and heard you.
+Function: The GCI will respond if they heard you. They will also inform you if they cannot see you on the radar scope. 
 
-Use: Testing communication with the bot.
+Use: Testing communication with the bot. 
 
 Examples:
 
@@ -109,6 +109,10 @@ GALAXY: "Hitman One One, Lima Charlie" [LIMA CHARLIE meaning LOUD & CLEAR]
 YELLOW 13: "Goliath Yellow One Three radio"
 GOLIATH: "Yellow One Three, loud and clear"
 ```
+
+Tips:
+
+* Note that if your aircraft is still sitting on the ramp, you may not be visible on the radar scope yet.
 
 ### ALPHA CHECK
 
