@@ -11,4 +11,6 @@ type RadioCheckResponse struct {
 	// Callsign of the friendly aircraft requesting the RADIO CHECK.
 	// If the callsign was misheard, this may not be the actual callsign of any actual aircraft.
 	Callsign string
+	// RadarContact indicates whether the callsign was found on the radar scope.
+	RadarContact bool
 }
