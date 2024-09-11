@@ -253,7 +253,10 @@ func loadWhisperModel() *whisper.Model {
 	if err != nil {
 		exitOnErr(fmt.Errorf("failed to load whisper model: %w", err))
 	}
-	log.Info().Msg("whisper model loaded")
+	log.Info().
+		Bool("multilingual", whisperModel.IsMultilingual()).
+		Strs("languages", whisperModel.Languages()).
+		Msg("whisper model loaded")
 	return &whisperModel
 }
 
@@ -335,6 +338,8 @@ func Supervise(cmd *cobra.Command, args []string) {
 
 	// Set up logging
 	setupLogging()
+
+	log.Info().Str("version", Version).Msg("SkyEye GCI Bot")
 
 	log.Info().Msg("setting up interrupt and TERM signal handler")
 	interuptChan := make(chan os.Signal, 1)
