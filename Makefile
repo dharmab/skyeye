@@ -115,7 +115,7 @@ ifneq ($(OS_DISTRIBUTION),macOS)
 WHISPER_CPP_BUILD_ENV = GGML_OPENBLAS=1
 endif
 
-$(LIBWHISPER_PATH) $(WHISPER_H_PATH) -j:
+$(LIBWHISPER_PATH) $(WHISPER_H_PATH):
 	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false "$(WHISPER_CPP_REPO)" "$(WHISPER_CPP_PATH)" && $(WHISPER_CPP_BUILD_ENV) make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
 
 .PHONY: whisper

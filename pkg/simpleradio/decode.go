@@ -1,4 +1,4 @@
-package audio
+package simpleradio
 
 import (
 	"context"
@@ -24,7 +24,7 @@ func decodeVoicePacket(b []byte) (p *voice.VoicePacket, err error) {
 }
 
 // deocdeVoice decodes incoming voice packets from voicePacketsCh into F32LE PCM audio data published to the client's rxChan.
-func (c *audioClient) decodeVoice(ctx context.Context, voicePacketsCh <-chan []voice.VoicePacket) {
+func (c *client) decodeVoice(ctx context.Context, voicePacketsCh <-chan []voice.VoicePacket) {
 	for {
 		select {
 		case voicePackets := <-voicePacketsCh:

@@ -1,9 +1,10 @@
-package audio
+package simpleradio
 
 import (
 	"context"
 	"errors"
 	"io"
+	"net"
 	"sync"
 	"time"
 
@@ -24,6 +25,11 @@ type receiver struct {
 	// packetNumber is the number of the last received voice packet. We only record a packet if its packet number is larger than the last received packet's, and skip any that were dropped or delivered out of order.
 	// If we were more ambitious we would reassemble the packets and use Opus's forward error correction to recover from lost packets... too bad!
 	packetNumber uint64
+}
+
+// Receive implements [Client.Receive].
+func (c *client) Receive() <-chan Audio {
+	return c.rxchan
 }
 
 func (r *receiver) receive(vp *voice.VoicePacket) {
@@ -82,7 +88,7 @@ const maxRxGap = 300 * time.Millisecond
 const minRxDuration = 1 * time.Second // 1s is whisper.cpp's minimum duration, it errors for any samples shorter than this.
 
 // receiveUDP listens for incoming UDP packets and routes them to the appropriate channel.
-func (c *audioClient) receiveUDP(ctx context.Context, pingCh chan<- []byte, voiceCh chan<- []byte) {
+func (c *client) receiveUDP(ctx context.Context, pingCh chan<- []byte, voiceCh chan<- []byte) {
 	for {
 		if ctx.Err() != nil {
 			if ctx.Err() == context.Canceled {
@@ -94,7 +100,11 @@ func (c *audioClient) receiveUDP(ctx context.Context, pingCh chan<- []byte, voic
 		}
 
 		udpPacketBuf := make([]byte, 1500)
-		n, err := c.connection.Read(udpPacketBuf)
+		n, err := c.udpConnection.Read(udpPacketBuf)
+		if errors.Is(err, net.ErrClosed) {
+			log.Error().Err(err).Msg("UDP connection closed")
+			return
+		}
 		udpPacket := make([]byte, n)
 		copy(udpPacket, udpPacketBuf[0:n])
 
@@ -118,7 +128,7 @@ func (c *audioClient) receiveUDP(ctx context.Context, pingCh chan<- []byte, voic
 }
 
 // receivePings listens for incoming UDP ping packets and logs them at DEBUG level.
-func (c *audioClient) receivePings(ctx context.Context, in <-chan []byte) {
+func (c *client) receivePings(ctx context.Context, in <-chan []byte) {
 	for {
 		select {
 		case b := <-in:
@@ -139,7 +149,7 @@ func (c *audioClient) receivePings(ctx context.Context, in <-chan []byte) {
 }
 
 // receiveVoice listens for incoming UDP voice packets, decodes them into VoicePacket structs, and routes them to the out channel for audio decoding.
-func (c *audioClient) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- []voice.VoicePacket) {
+func (c *client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- []voice.VoicePacket) {
 	// t is a ticker which triggers the check for the end of a transmission.
 	t := time.NewTicker(frameLength)
 	for {

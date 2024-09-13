@@ -1,4 +1,4 @@
-package audio
+package simpleradio
 
 import (
 	"context"
@@ -12,9 +12,9 @@ import (
 const opusApplicationVoIP = 2048
 
 // encodeVoice encodes audio from txChan and publishes an entire transmission's worth of voice packets to packetCh.
-func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.VoicePacket) {
-	frequencyList := make([]voice.Frequency, 0, len(c.radios))
-	for _, radio := range c.radios {
+func (c *client) encodeVoice(ctx context.Context, packetCh chan<- []voice.VoicePacket) {
+	frequencyList := make([]voice.Frequency, 0, len(c.clientInfo.RadioInfo.Radios))
+	for _, radio := range c.clientInfo.RadioInfo.Radios {
 		frequencyList = append(frequencyList, voice.Frequency{
 			Frequency:  radio.Frequency,
 			Modulation: byte(radio.Modulation),
@@ -52,14 +52,15 @@ func (c *audioClient) encodeVoice(ctx context.Context, packetCh chan<- []voice.V
 					continue
 				}
 
+				guid := c.clientInfo.GUID
 				vp := voice.NewVoicePacket(
 					audioBytes,
 					frequencyList,
 					100000002,
 					c.packetNumber,
 					0,
-					[]byte(c.guid),
-					[]byte(c.guid),
+					[]byte(guid),
+					[]byte(guid),
 				)
 				c.packetNumber++
 				// TODO transmission struct with attached text and trace id
