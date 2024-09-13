@@ -121,6 +121,19 @@ func (c *client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- 
 				log.Warn().Msg("nil pointer returned from decodeVoicePacket")
 				continue
 			}
+
+			if c.secureCoaltionRadios {
+				client, ok := c.clients[types.GUID(vp.OriginGUID)]
+				if !ok {
+					log.Warn().Str("GUID", string(vp.OriginGUID)).Msg("received voice packet from unknown client")
+					continue
+				}
+				if client.Coalition != c.clientInfo.Coalition {
+					log.Trace().Str("GUID", string(vp.OriginGUID)).Msg("ignoring voice packet from different coalition")
+					continue
+				}
+			}
+
 			for radio, receiver := range c.receivers {
 				for _, packetFrequency := range vp.Frequencies {
 					testRadio := types.Radio{
@@ -133,7 +146,6 @@ func (c *client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- 
 					}
 				}
 			}
-
 		case <-t.C:
 			// Check if everyone has stopped talking.
 			if len(in) == 0 {
