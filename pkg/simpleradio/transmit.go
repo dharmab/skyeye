@@ -1,16 +1,23 @@
-package audio
+package simpleradio
 
 import (
 	"context"
+	"errors"
 	"math/rand/v2"
+	"net"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/voice"
 	"github.com/rs/zerolog/log"
 )
 
+// Transmit implements [Client.Transmit].
+func (c *client) Transmit(sample Audio) {
+	c.txChan <- sample
+}
+
 // transmit the voice packets from queued transmissions to the SRS server.
-func (c *audioClient) transmit(ctx context.Context, packetCh <-chan []voice.VoicePacket) {
+func (c *client) transmit(ctx context.Context, packetCh <-chan []voice.VoicePacket) {
 	for {
 		select {
 		case packets := <-packetCh:
@@ -25,7 +32,7 @@ func (c *audioClient) transmit(ctx context.Context, packetCh <-chan []voice.Voic
 	}
 }
 
-func (c *audioClient) waitForClearChannel() {
+func (c *client) waitForClearChannel() {
 	for {
 		isReceiving := false
 		deadline := time.Now()
@@ -47,7 +54,7 @@ func (c *audioClient) waitForClearChannel() {
 	}
 }
 
-func (c *audioClient) writePackets(packets []voice.VoicePacket) {
+func (c *client) writePackets(packets []voice.VoicePacket) {
 	startTime := time.Now()
 	for i, vp := range packets {
 		b := vp.Encode()
@@ -60,14 +67,18 @@ func (c *audioClient) writePackets(packets []voice.VoicePacket) {
 				Add(-frameLength / 2),
 		)
 		time.Sleep(delay)
-		_, err := c.connection.Write(b)
+		_, err := c.udpConnection.Write(b)
+		if errors.Is(err, net.ErrClosed) {
+			log.Error().Err(err).Msg("UDP connection closed")
+			return
+		}
 		if err != nil {
 			log.Error().Err(err).Msg("failed to transmit voice packet")
 		}
 	}
 }
 
-func (c *audioClient) tx(packets []voice.VoicePacket) {
+func (c *client) tx(packets []voice.VoicePacket) {
 	c.busy.Lock()
 	defer c.busy.Unlock()
 	c.waitForClearChannel()

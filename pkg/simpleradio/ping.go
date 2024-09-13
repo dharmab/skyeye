@@ -1,4 +1,4 @@
-package audio
+package simpleradio
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 const pingInterval = 15 * time.Second
 
 // sendPings is a loop which sends the client GUID to the server at regular intervals to keep our connection alive.
-func (c *audioClient) sendPings(ctx context.Context, wg *sync.WaitGroup) {
+func (c *client) sendPings(ctx context.Context, wg *sync.WaitGroup) {
 	log.Info().Stringer("interval", pingInterval).Msg("starting pings")
 	wg.Add(1)
 	go func() {
@@ -38,10 +38,11 @@ func (c *audioClient) sendPings(ctx context.Context, wg *sync.WaitGroup) {
 
 // SendPing sends a single ping to the SRS server. "One ping only, Vasily."
 // The SRS server won't send us any audio until it receives a ping from us, so this is useful to initialize VoIP.
-func (c *audioClient) SendPing() {
-	logger := log.With().Str("GUID", string(c.guid)).Logger()
+func (c *client) SendPing() {
+	guid := c.clientInfo.GUID
+	logger := log.With().Str("GUID", string(guid)).Logger()
 	logger.Trace().Msg("sending UDP ping")
-	n, err := c.connection.Write([]byte(c.guid))
+	n, err := c.udpConnection.Write([]byte(guid))
 	if errors.Is(err, net.ErrClosed) {
 		logger.Warn().Msg("ping skipped due to closed connection")
 	} else if err != nil {

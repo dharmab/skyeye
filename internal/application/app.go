@@ -18,7 +18,6 @@ import (
 	"github.com/dharmab/skyeye/pkg/recognizer"
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
-	"github.com/dharmab/skyeye/pkg/simpleradio/audio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/synthesizer/speakers"
 	tacview "github.com/dharmab/skyeye/pkg/tacview/client"
@@ -277,7 +276,7 @@ func (a *app) recognize(ctx context.Context, out chan<- string) {
 	}
 }
 
-func (a *app) recognizeSample(ctx context.Context, sample audio.Audio, out chan<- string) {
+func (a *app) recognizeSample(ctx context.Context, sample simpleradio.Audio, out chan<- string) {
 	recogCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 	log.Info().Msg("recognizing audio sample")

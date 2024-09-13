@@ -1,4 +1,4 @@
-package audio
+package simpleradio
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ const (
 var frameSize = channels * frameLength.Milliseconds() * sampleRate / 1000
 
 // decode decodes the given Opus frame(s) into F32LE PCM audio data.
-func (c *audioClient) decode(decoder *opus.Decoder, b []byte) ([]float32, error) {
+func (c *client) decode(decoder *opus.Decoder, b []byte) ([]float32, error) {
 	f32le := make([]float32, frameSize)
 	n, err := decoder.DecodeFloat32(b, f32le)
 	if err != nil {
@@ -34,7 +34,7 @@ func (c *audioClient) decode(decoder *opus.Decoder, b []byte) ([]float32, error)
 }
 
 // encode encodes the given F32LE PCM audio data into an Opus frame.
-func (c *audioClient) encode(encoder *opus.Encoder, f32le []float32) ([]byte, error) {
+func (c *client) encode(encoder *opus.Encoder, f32le []float32) ([]byte, error) {
 	b := make([]byte, encodingBufferSize)
 	n, err := encoder.Encode(pcm.F32toS16LE(f32le), b)
 	if err != nil {

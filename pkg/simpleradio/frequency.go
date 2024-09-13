@@ -76,3 +76,43 @@ func (f RadioFrequency) String() string {
 
 	return fmt.Sprintf("%f.3%s", f.Frequency, suffix)
 }
+
+// Frequencies implements [Client.Frequencies].
+func (c *client) Frequencies() []RadioFrequency {
+	frequencies := make([]RadioFrequency, 0)
+	for _, radio := range c.clientInfo.RadioInfo.Radios {
+		frequency := RadioFrequency{
+			Frequency:  unit.Frequency(radio.Frequency) * unit.Hertz,
+			Modulation: radio.Modulation,
+		}
+		frequencies = append(frequencies, frequency)
+	}
+	return frequencies
+}
+
+// ClientsOnFrequency implements [Client.ClientsOnFrequency].
+func (c *client) ClientsOnFrequency() int {
+	c.clientsLock.RLock()
+	defer c.clientsLock.RUnlock()
+	count := 0
+	for _, client := range c.clients {
+		if ok := c.clientInfo.RadioInfo.IsOnFrequency(client.RadioInfo); ok {
+			count++
+		}
+	}
+	return count
+}
+
+// IsOnFrequency implements [Client.IsOnFrequency].
+func (c *client) IsOnFrequency(name string) bool {
+	c.clientsLock.RLock()
+	defer c.clientsLock.RUnlock()
+	for _, client := range c.clients {
+		if client.Name == name {
+			if ok := c.clientInfo.RadioInfo.IsOnFrequency(client.RadioInfo); ok {
+				return true
+			}
+		}
+	}
+	return false
+}

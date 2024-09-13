@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"reflect"
 	"runtime"
+	"runtime/pprof"
 	"strings"
 	"sync"
 	"syscall"
@@ -331,6 +332,7 @@ func Supervise(cmd *cobra.Command, args []string) {
 		<-ctx.Done()
 		time.Sleep(10 * time.Second)
 		log.Warn().Msg("shutdown took too long, forcing exit")
+		_ = pprof.Lookup("goroutine").WriteTo(os.Stderr, 1)
 		os.Exit(1)
 	}()
 
