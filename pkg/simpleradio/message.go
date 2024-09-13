@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/rs/zerolog/log"
@@ -48,7 +49,7 @@ func (c *client) handleMessage(message types.Message) {
 	case types.MessagePing:
 		logMessageAndIgnore(message)
 	case types.MessageServerSettings:
-		logMessageAndIgnore(message)
+		c.updateServerSettings(message)
 	case types.MessageVersionMismatch:
 		log.Warn().Any("message", message).Msg("received version mismatch message from SRS server")
 	case types.MessageExternalAWACSModeDisconnect:
@@ -70,6 +71,19 @@ func (c *client) handleMessage(message types.Message) {
 		}
 	default:
 		log.Warn().Any("message", message).Msg("received unrecognized message")
+	}
+}
+
+func (c *client) updateServerSettings(message types.Message) {
+	log.Debug().Any("serverSettings", message.ServerSettings).Msg("received server settings")
+	if enabled, ok := message.ServerSettings[string(types.CoalitionAudioSecurity)]; ok {
+		if strings.ToLower(enabled) == "true" {
+			log.Info().Msg("enabling secure coalition radios")
+			c.secureCoaltionRadios = true
+		} else {
+			log.Info().Msg("disabling secure coalition radios")
+			c.secureCoaltionRadios = false
+		}
 	}
 }
 

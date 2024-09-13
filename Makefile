@@ -150,6 +150,10 @@ vet: generate
 lint:
 	$(BUILD_VARS) $(GO) run $(BUILD_FLAGS) github.com/golangci/golangci-lint/cmd/golangci-lint run ./...
 
+.PHONY: format
+format:
+	find . -name '*.go' -exec gofmt -s -w {} ';'
+
 .PHONY: mostlyclean
 mostlyclean:
 	rm -f "$(SKYEYE_EXE)" "$(SKYEYE_ELF)"

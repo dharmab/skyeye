@@ -54,6 +54,9 @@ type client struct {
 	// clientsLock controls access to the clients map.
 	clientsLock sync.RWMutex
 
+	// secureCoaltionRadios indicates if the client should only receive transmissions from the same coalition.
+	secureCoaltionRadios bool
+
 	// rxChan is a channel where received audio is published. A read-only version is available publicly.
 	rxchan chan Audio
 	// txChan is a channel where audio to be transmitted is buffered.
