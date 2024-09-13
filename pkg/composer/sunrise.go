@@ -2,6 +2,7 @@ package composer
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
@@ -20,8 +21,14 @@ func (c *composer) ComposeSunriseCall(call brevity.SunriseCall) NaturalLanguageR
 
 	for i := range len(call.Frequencies) {
 		frequency := call.Frequencies[i]
-		message.Subtitle += fmt.Sprintf("%.3f", frequency.Megahertz())
-		message.Speech += PronounceDecimal(frequency.Megahertz(), 3, "point")
+		decimal := fmt.Sprintf("%.3f", frequency.Megahertz())
+		decimal = strings.TrimRight(decimal, "0")
+		if strings.HasSuffix(decimal, ".") {
+			decimal += "0"
+		}
+		message.Subtitle += decimal
+		splits := strings.Split(decimal, ".")
+		message.Speech += PronounceDecimal(frequency.Megahertz(), len(splits[1]), "point")
 		if len(call.Frequencies) > 1 {
 			if i == len(call.Frequencies)-2 {
 				writeBoth(" and ")
