@@ -71,3 +71,5 @@ dev/
 
 # Defaults for VSCode
 .vscode/settings.json
+
+*.zip

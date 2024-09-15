@@ -2,12 +2,9 @@
 package simpleradio
 
 import (
-	"bufio"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"sync"
 	"time"
@@ -42,8 +39,11 @@ type client struct {
 	// externalAWACSModePassword is the password for authenticating as an external AWACS in the SRS server.
 	externalAWACSModePassword string
 
+	// address is the address of the SRS server, including the port.
+	address string
 	// tcpConnection is the TCP connection to the SRS server used for messages.
 	tcpConnection *net.TCPConn
+	//tcpReader     *bufio.Reader
 	// udpConnection is the UDP connection to the SRS server used for audio and pings.
 	udpConnection *net.UDPConn
 
@@ -69,22 +69,10 @@ type client struct {
 
 	// lastPing tracks the last time a ping was received so we can tell when the server is (probably) restarted or offline.
 	lastPing time.Time
-	// lastDataReceivedAt is the most recent time data was received. If this exceeds a data timeout, we have likely been disconnected from the server.
-	lastDataReceivedAt time.Time
 }
 
 func NewClient(config types.ClientConfiguration) (Client, error) {
 	guid := types.NewGUID()
-
-	log.Info().Str("address", config.Address).Msg("connecting to SRS server")
-	tcpConnection, err := connectTCP(config.Address)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to SRS server: %w", err)
-	}
-	udpConnection, err := connectUDP(config.Address)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to SRS server: %w", err)
-	}
 
 	receivers := make(map[types.Radio]*receiver, len(config.Radios))
 	for _, radio := range config.Radios {
@@ -92,8 +80,7 @@ func NewClient(config types.ClientConfiguration) (Client, error) {
 	}
 
 	client := &client{
-		tcpConnection: tcpConnection,
-		udpConnection: udpConnection,
+		address: config.Address,
 		clientInfo: types.ClientInfo{
 			Name:      config.ClientName,
 			GUID:      guid,
@@ -118,109 +105,74 @@ func NewClient(config types.ClientConfiguration) (Client, error) {
 		lastPing:     time.Now(),
 	}
 
+	err := client.connectTCP()
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to SRS server: %w", err)
+	}
+	err = client.connectUDP()
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to SRS server: %w", err)
+	}
+
 	return client, nil
 }
 
-func connectTCP(address string) (*net.TCPConn, error) {
-	log.Info().Str("address", address).Msg("connecting to SRS server TCP socket")
-	tcpAddress, err := net.ResolveTCPAddr("tcp", address)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve SRS server address %v: %w", address, err)
+func (c *client) initialize() error {
+	log.Info().Msg("syncing with SRS server")
+	if err := c.sync(); err != nil {
+		return fmt.Errorf("sync failed: %w", err)
 	}
-	connection, err := net.DialTCP("tcp", nil, tcpAddress)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to data socket: %w", err)
-	}
-	return connection, nil
-}
 
-func connectUDP(address string) (*net.UDPConn, error) {
-	log.Info().Str("address", address).Msg("connecting to SRS server UDP socket")
-	udpAddress, err := net.ResolveUDPAddr("udp", address)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve SRS server address %v: %w", address, err)
+	log.Info().Msg("reconnecting to external AWACS mode")
+	if err := c.connectExternalAWACSMode(); err != nil {
+		return fmt.Errorf("connecting external AWACS mode failed: %w", err)
 	}
-	connection, err := net.DialUDP("udp", nil, udpAddress)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to UDP socket: %w", err)
+
+	for _, receiver := range c.receivers {
+		receiver.reset()
 	}
-	return connection, nil
+
+	c.SendPing()
+
+	return nil
 }
 
 // Run implements [Client.Run].
 func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	log.Info().Msg("SRS client starting")
 
-	// Ensure connections are closed when the context is canceled.
 	defer func() {
 		if err := c.close(); err != nil {
 			log.Error().Err(err).Msg("error closing SRS client")
 		}
 	}()
 
-	messageChan := make(chan types.Message)
-	errorChan := make(chan error)
-
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		reader := bufio.NewReader(c.tcpConnection)
-		for {
-			if ctx.Err() != nil {
-				log.Info().Msg("stopping SRS client due to context cancellation")
-				return
-			}
-			line, err := reader.ReadBytes(byte('\n'))
-			if errors.Is(err, net.ErrClosed) {
-				log.Error().Err(err).Msg("TCP connection closed")
-				return
-			}
-			switch err {
-			case nil:
-				var message types.Message
-				jsonErr := json.Unmarshal(line, &message)
-				if jsonErr != nil {
-					log.Warn().Str("text", string(line)).Err(jsonErr).Msg("failed to unmarshal message")
-				} else {
-					messageChan <- message
-				}
-			case io.EOF:
-				log.Trace().Msg("EOF received from SRS server")
-			default:
-				log.Error().Err(err).Msg("error reading from SRS server")
-				errorChan <- err
-				return
-			}
-		}
+		c.receiveTCP(ctx)
 	}()
 
-	log.Info().Msg("sending initial sync message")
-	if err := c.sync(); err != nil {
-		errorChan <- fmt.Errorf("initial sync failed: %w", err)
+	if initErr := c.initialize(); initErr != nil {
+		return initErr
 	}
 
-	log.Info().Msg("connecting to external AWACS mode")
-	if err := c.connectExternalAWACSMode(); err != nil {
-		return fmt.Errorf("external AWACS mode failed: %w", err)
-	}
-	// We need to send pings to the server to keep our connection alive. The server won't send us any audio until it receives a ping from us.
+	// We need to send pings to the server to keep our connection alive.
+	// The server won't send us any audio until it receives a ping from us.
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		c.sendPings(ctx, wg)
 	}()
 
-	// udpPingRxChan is a channel for received ping packets.
 	udpPingRxChan := make(chan []byte, 0xF)
 
-	// Handle incoming pings - mostly for debugging. We don't need to echo them back.
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		c.receivePings(ctx, udpPingRxChan)
 	}()
 
-	// receive voice packets and decode them. This is the logic for receiving audio from the SRS server.
 	udpVoiceRxChan := make(chan []byte, 64*0xFFFFF)
 	voiceBytesRxChan := make(chan []voice.VoicePacket, 0xFFFFF)
 	wg.Add(2)
@@ -233,7 +185,6 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 		c.decodeVoice(ctx, voiceBytesRxChan)
 	}()
 
-	// transmit queued audio. This is the logic for sending audio to the SRS server.
 	voicePacketsTxChan := make(chan []voice.VoicePacket, 3)
 	wg.Add(2)
 	go func() {
@@ -245,32 +196,43 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 		c.transmit(ctx, voicePacketsTxChan)
 	}()
 
-	// Start listening for incoming UDP packets and routing them to receivePings and receiveVoice.
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		c.receiveUDP(ctx, udpPingRxChan, udpVoiceRxChan)
 	}()
 
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			log.Info().Msg("stopping SRS client due to context cancelation")
-			return fmt.Errorf("stopping client due to context cancelation: %w", ctx.Err())
-		case m := <-messageChan:
-			c.lastDataReceivedAt = time.Now()
-			c.handleMessage(m)
-		case err := <-errorChan:
-			return fmt.Errorf("client error: %w", err)
-		case <-ticker.C:
-			if time.Since(c.lastPing) > 1*time.Minute {
-				log.Warn().Msg("stopped receiving pings from SRS server")
-				return errors.New("stopped receiving pings from SRS server")
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				if time.Since(c.lastPing) > 1*time.Minute {
+					log.Warn().Msg("stopped receiving traffic from SRS server")
+
+					log.Warn().Msg("attempting to reconnect to SRS server")
+					if reconnectErr := c.reconnect(ctx); reconnectErr != nil {
+						log.Err(reconnectErr).Msg("failed to reconnect to SRS server")
+						continue
+					}
+					if initErr := c.initialize(); initErr != nil {
+						log.Err(initErr).Msg("failed to reinitialize SRS client")
+						continue
+					}
+					c.lastPing = time.Now()
+				}
 			}
 		}
-	}
+	}()
+
+	<-ctx.Done()
+	return nil
 }
 
 func (c *client) close() error {

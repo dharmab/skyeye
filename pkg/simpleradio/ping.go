@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
+	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/rs/zerolog/log"
 )
 
@@ -41,15 +41,15 @@ func (c *client) sendPings(ctx context.Context, wg *sync.WaitGroup) {
 func (c *client) SendPing() {
 	guid := c.clientInfo.GUID
 	logger := log.With().Str("GUID", string(guid)).Logger()
-	logger.Trace().Msg("sending UDP ping")
-	n, err := c.udpConnection.Write([]byte(guid))
+
+	if err := c.Send(c.newMessageWithClient(types.MessagePing)); err != nil {
+		logger.Error().Err(err).Msg("error sending TCP ping")
+	}
+
+	_, err := c.udpConnection.Write([]byte(guid))
 	if errors.Is(err, net.ErrClosed) {
 		logger.Warn().Msg("ping skipped due to closed connection")
 	} else if err != nil {
-		logger.Error().Err(err).Msg("error writing ping")
-	} else if n != srs.GUIDLength {
-		logger.Warn().Int("bytes", n).Int("expectedBytes", srs.GUIDLength).Str("comment", "HOW DID YOU GET HERE").Msg("wrote unexpected number of bytes while sending UDP ping")
-	} else {
-		logger.Trace().Msg("sent UDP ping")
+		logger.Error().Err(err).Msg("error sending UDP ping")
 	}
 }
