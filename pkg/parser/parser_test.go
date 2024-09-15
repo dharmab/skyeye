@@ -73,7 +73,7 @@ func TestParserSadPaths(t *testing.T) {
 	}
 	runParserTestCases(
 		t,
-		New(TestCallsign),
+		New(TestCallsign, true),
 		testCases,
 		func(*testing.T, parserTestCase, any) {},
 	)
@@ -101,7 +101,7 @@ func TestParserAlphaCheck(t *testing.T) {
 			},
 		},
 	}
-	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
+	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
 		expected := test.expected.(*brevity.AlphaCheckRequest)
 		actual := request.(*brevity.AlphaCheckRequest)
@@ -161,7 +161,7 @@ func TestParserRadioCheck(t *testing.T) {
 			},
 		},
 	}
-	runParserTestCases(t, New(TestCallsign), testCases, func(t *testing.T, test parserTestCase, request any) {
+	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
 		expected := test.expected.(*brevity.RadioCheckRequest)
 		actual := request.(*brevity.RadioCheckRequest)

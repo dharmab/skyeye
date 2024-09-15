@@ -81,7 +81,7 @@ func BenchmarkWhisperRecognizer(b *testing.B) {
 	for _, sample := range samples {
 		b.Run(sample.filename, func(b *testing.B) {
 			for range b.N {
-				_, err := recognizer.Recognize(ctx, sample.pcm)
+				_, err := recognizer.Recognize(ctx, sample.pcm, true)
 				require.NoError(b, err)
 			}
 		})

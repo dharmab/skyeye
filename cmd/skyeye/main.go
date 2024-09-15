@@ -38,6 +38,7 @@ var (
 	configFile                   string
 	logLevel                     string
 	logFormat                    string
+	enableTranscriptionLogging   bool
 	acmiFile                     string
 	telemetryAddress             string
 	telemetryConnectionTimeout   time.Duration
@@ -73,6 +74,7 @@ func init() {
 	skyeye.Flags().Var(logLevelFlag, "log-level", "Log level (error, warn, info, debug, trace)")
 	logFormats := NewEnum(&logFormat, "Format", "pretty", "json")
 	skyeye.Flags().Var(logFormats, "log-format", "Log format (pretty, json)")
+	skyeye.Flags().BoolVar(&enableTranscriptionLogging, "enable-transcription-logging", true, "Include transcriptions of SRS transmissions in logs")
 
 	// Telemetry
 	skyeye.Flags().StringVar(&acmiFile, "acmi-file", "", "path to ACMI file")
@@ -374,6 +376,7 @@ func Supervise(cmd *cobra.Command, args []string) {
 		SRSClientName:                fmt.Sprintf("GCI %s [BOT]", callsign),
 		SRSExternalAWACSModePassword: srsExternalAWACSModePassword,
 		SRSFrequencies:               srsFrequencies,
+		EnableTranscriptionLogging:   enableTranscriptionLogging,
 		Callsign:                     callsign,
 		Coalition:                    coalition,
 		RadarSweepInterval:           telemetryUpdateInterval,

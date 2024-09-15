@@ -48,6 +48,8 @@ type app struct {
 	composer composer.Composer
 	// speaker provides text-to-speech synthesis
 	speaker speakers.Speaker
+	// enableTranscriptionLogging controls whether transcriptions are included in logs
+	enableTranscriptionLogging bool
 }
 
 // NewApplication constructs a new Application.
@@ -120,7 +122,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	recognizer := recognizer.NewWhisperRecognizer(config.WhisperModel, config.Callsign)
 
 	log.Info().Msg("constructing text parser")
-	parser := parser.New(config.Callsign)
+	parser := parser.New(config.Callsign, config.EnableTranscriptionLogging)
 
 	log.Info().Msg("constructing radar scope")
 
@@ -281,13 +283,18 @@ func (a *app) recognizeSample(ctx context.Context, sample simpleradio.Audio, out
 	defer cancel()
 	log.Info().Msg("recognizing audio sample")
 	start := time.Now()
-	text, err := a.recognizer.Recognize(recogCtx, sample)
+	text, err := a.recognizer.Recognize(recogCtx, sample, a.enableTranscriptionLogging)
+	logger := log.With().Stringer("clockTime", time.Since(start)).Logger()
+
 	if err != nil {
 		log.Error().Err(err).Msg("error recognizing audio sample")
-	} else if text == "" || text == "[BLANK AUDIO]\n" {
-		log.Info().Str("text", text).Msg("unable to recognize any words in audio sample")
+	} else if a.enableTranscriptionLogging {
+		logger = logger.With().Str("text", text).Logger()
+	}
+	if text == "" {
+		logger.Info().Msg("unable to recognize any words in audio sample")
 	} else {
-		log.Info().Stringer("clockTime", time.Since(start)).Str("text", text).Msg("recognized audio")
+		logger.Info().Msg("recognized audio")
 		out <- text
 	}
 }
@@ -300,7 +307,10 @@ func (a *app) parse(ctx context.Context, in <-chan string, out chan<- any) {
 			log.Info().Msg("stopping text parsing due to context cancellation")
 			return
 		case text := <-in:
-			logger := log.With().Str("text", text).Logger()
+			logger := log.Logger
+			if a.enableTranscriptionLogging {
+				logger = logger.With().Str("text", text).Logger()
+			}
 			logger.Info().Msg("parsing text")
 			request := a.parser.Parse(text)
 			if request != nil {

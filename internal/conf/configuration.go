@@ -32,6 +32,8 @@ type Configuration struct {
 	SRSExternalAWACSModePassword string
 	// SRSFrequencies that the bot simultaneously receives and transmits on
 	SRSFrequencies []simpleradio.RadioFrequency
+	// EnableTranscriptionLogging controls whether transcriptions are included in logs.
+	EnableTranscriptionLogging bool
 	// Callsign is the GCI callsign used on SRS
 	Callsign string
 	// Coalition is the coalition that the bot will act on
