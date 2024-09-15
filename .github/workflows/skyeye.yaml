@@ -107,11 +107,12 @@ jobs:
         run: |
           mkdir -p dist/skyeye-windows-amd64/docs/
           cp skyeye.exe dist/skyeye-windows-amd64/skyeye.exe
+          curl -fsL https://github.com/winsw/winsw/releases/download/v2.12.0/WinSW-x64.exe -o dist/winsw.exe
           cp README.md dist/skyeye-windows-amd64/README.md
           cp LICENSE dist/skyeye-windows-amd64/LICENSE
           cp config.yaml dist/skyeye-windows-amd64/config.yaml
           cp docs/*.md dist/skyeye-windows-amd64/docs/
-          cp init/powershell/run-skyeye.ps1 dist/skyeye-windows-amd64/run-skyeye.ps1
+          cp init/winsw/skyeye-service.yaml dist/skyeye-windows-amd64/skyeye-service.yaml
           cd dist
           zip -r skyeye-windows-amd64.zip skyeye-windows-amd64
       - name: Upload artifact

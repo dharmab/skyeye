@@ -239,12 +239,34 @@ journalctl -u skyeye > skyeye.log
 
 ## Windows
 
-I don't know much about Windows Server administration. If there's a better way to do this please get in touch.
+Download the SkyEye release ZIP from the [releases page](https://github.com/dharmab/skyeye/releases) and extract it.
 
-Download the SkyEye release ZIP from the [releases page](https://github.com/dharmab/skyeye/releases) and extract it. Download the whisper.cpp model from [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main) and move it next to `skyeye.exe`.
+Edit `config.yaml` to configure SkyEye as desired. Note that any provided value of `whisper-model` here is ignored because it is overridden in `skyeye-service.yaml`. If you wish to change the whisper.cpp model, edit `skyeye-service.yaml`.
 
-Edit `config.yaml` to configure SkyEye as desired.
+If you want SkyEye to automatically start on boot, edit `skyeye-service.yaml` and change `startmode` to "Automatic".
 
-Open PowerShell, change to the SkyEye directory and run the script with `./run-skyeye.ps1`. You can stop SkyEye by pressing Ctrl+C.
+Use the bundled `winsw.exe` to install and start SkyEye:
 
-Logs will be saved in the `.log` files in the `logs` directory. Remember to regularly compress and/or delete old log files so they don't fill up the disk.
+```batch
+:: Install SkyEye
+./winsw.exe install skyeye-service.yaml
+
+:: Start SkyEye
+./winsw.exe start skyeye-service.yaml
+
+:: Check if SkyEye is running
+./winsw.exe status skyeye-service.yaml
+
+:: Stop SkyEye
+./WinSW-x6t4.exe stop skyeye-service.yaml
+
+:: Restart SkyEye
+./winsw.exe restart skyeye-service.yaml
+
+:: Uninstall SkyEye
+./winsw.exe uninstall skyeye-service.yaml
+```
+
+Refer to the [WinSW documentation](https://github.com/winsw/winsw/tree/v2) for more information.
+
+Logs will be saved in a `skyeye.log` file in the same directory as `skyeye-service.yaml`
