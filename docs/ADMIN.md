@@ -137,9 +137,14 @@ Advanced users should consider sending their logs to a log aggregator such as [G
 
 ## Autoscaling (Experimental)
 
-The included `skyeye-scaler` program is an optional autoscaler tool. It monitors a set of frequencies in SRS, and continually sends POST requests to a custom webhook.
+The included `skyeye-scaler` program is an optional autoscaler tool. It monitors a set of frequencies in SRS, and continually sends POST requests to a custom webhook. The webhook URL is defined by setting the `--webhook-url` flag or `SKYEYE_SCALER_WEBHOOK_URL` environment variable.
 
-Whenever there is at least one non-bot client on any monitored SRS frequency, the webhook request has the parameter `action` set to the value `run`. When all monitored SRS frequencies are empty, the value is `stop`.
+The body of the POST request is a JSON object with the following fields:
+
+- `action`: Either "run" if there is at least one player on SRS, or "stop" if there are no players on SRS.
+- `players`: The number of players on SRS.
+- `address`: The address and port of the SRS server being monitored, e.g. "srs.example.com:5002"
+- `frequencies`: A list of the SRSs frequencies being monitored. Each element is a float representing the channel's frequency in MHz.
 
 This tool may be useful for people who only need to run SkyEye for a few hours or days out of the month. By implementing a small webservice or serverless function that creates or destroys a SkyEye instance on demand, the cost of running SkyEye can be reduced to a few dollars each month.
 

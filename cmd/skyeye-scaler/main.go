@@ -1,10 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
 	"strings"
@@ -25,6 +26,7 @@ import (
 
 var (
 	webhookURL                   string
+	webhookTimeout               time.Duration
 	logLevel                     string
 	logFormat                    string
 	srsAddress                   string
@@ -66,6 +68,7 @@ func init() {
 
 	scaler.Flags().StringVar(&webhookURL, "webhook-url", "", "URL to call")
 	scaler.MarkFlagRequired("webhook-url")
+	scaler.Flags().DurationVar(&webhookTimeout, "webhook-timeout", 30*time.Second, "Webhook request timeout")
 	scaler.Flags().DurationVar(&scaleInterval, "scale-interval", 5*time.Minute, "Interval at which to check SRS player count")
 
 	scaler.Flags().StringVar(&srsAddress, "srs-server-address", "localhost:5002", "Address of the SRS server")
@@ -134,8 +137,11 @@ func run() error {
 		}
 	}()
 
+	client := &http.Client{Timeout: webhookTimeout}
+
 	ticker := time.NewTicker(scaleInterval)
 	defer ticker.Stop()
+	callWebhook(client, srsClient)
 	for {
 		select {
 		case <-ctx.Done():
@@ -143,13 +149,19 @@ func run() error {
 			wg.Wait()
 			return fmt.Errorf("stopping application due to context cancelation: %w", ctx.Err())
 		case <-ticker.C:
-			log.Info().Msg("wtf")
-			callWebhook(srsClient)
+			callWebhook(client, srsClient)
 		}
 	}
 }
 
-func callWebhook(srsClient simpleradio.Client) {
+type Payload struct {
+	Action      string    `json:"action"`
+	Players     int       `json:"players"`
+	Address     string    `json:"address"`
+	Frequencies []float64 `json:"frequencies"`
+}
+
+func callWebhook(httpClient *http.Client, srsClient simpleradio.Client) {
 	playerCount := srsClient.HumansOnFrequency()
 	action := "run"
 	if playerCount == 0 {
@@ -157,10 +169,32 @@ func callWebhook(srsClient simpleradio.Client) {
 	}
 	logger := log.With().Int("players", playerCount).Str("action", action).Logger()
 
+	frequencies := make([]float64, 0, len(srsClient.Frequencies()))
+	for _, freq := range srsClient.Frequencies() {
+		frequencies = append(frequencies, freq.Frequency.Megahertz())
+	}
+
+	payload := Payload{
+		Action:      action,
+		Players:     playerCount,
+		Address:     srsAddress,
+		Frequencies: frequencies,
+	}
+	body, err := json.Marshal(payload)
+	if err != nil {
+		logger.Error().Err(err).Msg("failed to marshal payload")
+		return
+	}
+
+	req, err := http.NewRequest(http.MethodPost, webhookURL, bytes.NewBuffer(body))
+	if err != nil {
+		logger.Error().Err(err).Msg("failed to create request")
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+
 	logger.Info().Msg("calling webhook")
-	params := make(url.Values)
-	params.Set("action", action)
-	resp, err := http.PostForm(webhookURL, params) // nolint
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Warn().Err(err).Msg("failed to call webhook")
 		return
