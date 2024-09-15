@@ -2,9 +2,6 @@ package simpleradio
 
 import (
 	"context"
-	"errors"
-	"io"
-	"net"
 	"sync"
 	"time"
 
@@ -86,46 +83,6 @@ const maxRxGap = 300 * time.Millisecond
 // minRxDuration is the mimimum duration of a transmission to be considered for speech recognition. This reduces
 // thrashing due to transmissions too short to contain any useful content.
 const minRxDuration = 1 * time.Second // 1s is whisper.cpp's minimum duration, it errors for any samples shorter than this.
-
-// receiveUDP listens for incoming UDP packets and routes them to the appropriate channel.
-func (c *client) receiveUDP(ctx context.Context, pingCh chan<- []byte, voiceCh chan<- []byte) {
-	for {
-		if ctx.Err() != nil {
-			if ctx.Err() == context.Canceled {
-				log.Info().Msg("stopping SRS packet receiver due to context cancellation")
-			} else {
-				log.Error().Err(ctx.Err()).Msg("stopping packet receiver due to context error")
-			}
-			return
-		}
-
-		udpPacketBuf := make([]byte, 1500)
-		n, err := c.udpConnection.Read(udpPacketBuf)
-		if errors.Is(err, net.ErrClosed) {
-			log.Error().Err(err).Msg("UDP connection closed")
-			return
-		}
-		udpPacket := make([]byte, n)
-		copy(udpPacket, udpPacketBuf[0:n])
-
-		switch {
-		case errors.Is(err, io.EOF):
-			log.Error().Err(err).Msg("UDP connection closed")
-		case err != nil:
-			log.Error().Err(err).Msg("UDP connection read error")
-		case n == 0:
-			log.Warn().Err(err).Msg("0 bytes read from UDP connection")
-		case n < types.GUIDLength:
-			log.Debug().Int("bytes", n).Msg("UDP packet smaller than expected")
-		case n == types.GUIDLength:
-			// Ping packet
-			pingCh <- udpPacket
-		case n > types.GUIDLength:
-			// Voice packet
-			voiceCh <- udpPacket
-		}
-	}
-}
 
 // receivePings listens for incoming UDP ping packets and logs them at DEBUG level.
 func (c *client) receivePings(ctx context.Context, in <-chan []byte) {

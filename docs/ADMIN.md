@@ -6,7 +6,6 @@ This is a technical article on how to deploy SkyEye, targeted at multiplayer ser
 
 ## Major Known Issues
 
-- **High**: SkyEye does not automatically reconnect to SRS if the connection is lost. It must be restarted if this happens. [Bug tracked here](https://github.com/dharmab/skyeye/issues/221). This guide recommends using systemd or PowerShell to automatically restart SkyEye.
 - **Medium**: SkyEye will not report about hostile contacts below 50 knots. Unfortunately, this includes hostile helicopters that are moving slowly or hovering. [Bug tracked here](https://github.com/dharmab/skyeye/issues/65).
 - **Low**: If the mission restarts or is changed while SkyEye is running, the GCI will report a FADED call for every airborne contact from the previous mission. [Bug tracked here](https://github.com/dharmab/skyeye/issues/239)
 - See also [this section in the player guide](PLAYER.md#a-word-of-warning) about the bot's limitations.
@@ -246,6 +245,6 @@ Download the SkyEye release ZIP from the [releases page](https://github.com/dhar
 
 Edit `config.yaml` to configure SkyEye as desired.
 
-Open PowerShell, change to the SkyEye directory and run the script with `./run-skyeye.ps1`.  SkyEye will automatically restart if it exits; press Ctrl+C to exit manually.
+Open PowerShell, change to the SkyEye directory and run the script with `./run-skyeye.ps1`. You can stop SkyEye by pressing Ctrl+C.
 
 Logs will be saved in the `.log` files in the `logs` directory. Remember to regularly compress and/or delete old log files so they don't fill up the disk.

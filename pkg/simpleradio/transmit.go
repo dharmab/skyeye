@@ -70,7 +70,7 @@ func (c *client) writePackets(packets []voice.VoicePacket) {
 		_, err := c.udpConnection.Write(b)
 		if errors.Is(err, net.ErrClosed) {
 			log.Error().Err(err).Msg("UDP connection closed")
-			return
+			continue
 		}
 		if err != nil {
 			log.Error().Err(err).Msg("failed to transmit voice packet")
