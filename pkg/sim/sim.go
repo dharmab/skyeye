@@ -21,7 +21,7 @@ type Sim interface {
 	Bullseye(coalitions.Coalition) (orb.Point, error)
 	// Time returns the starting time of the mission.
 	// This is useful for looking up magnetic variation.
-	Time() time.Time
+	Time() (time.Time, error)
 }
 
 // Started is a message sent when a new mission starts.

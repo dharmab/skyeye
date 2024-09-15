@@ -328,8 +328,11 @@ func (s *streamer) Bullseye(coalition coalitions.Coalition) (orb.Point, error) {
 }
 
 // Time implements [ACMI.Time].
-func (s *streamer) Time() time.Time {
-	return s.cursorTime
+func (s *streamer) Time() (time.Time, error) {
+	if s.cursorTime.IsZero() {
+		return time.Time{}, errors.New("time is not set")
+	}
+	return s.cursorTime, nil
 }
 
 // buildUpdate creates an aircraft update from an object.

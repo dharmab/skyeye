@@ -13,6 +13,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/composer"
 	"github.com/dharmab/skyeye/pkg/controller"
+	"github.com/dharmab/skyeye/pkg/grpc"
 	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/recognizer"
@@ -34,8 +35,12 @@ type Application interface {
 type app struct {
 	// srsClient is a SimpleRadio Standalone client
 	srsClient simpleradio.Client
-	// tacviewClient streams ACMI data
+	// tacviewClient streams telemetry data from TacView
 	tacviewClient tacview.Client
+	// grpcStreamer streams telemetry data from DCS gRPC
+	grpcStreamer     *grpc.Streamer
+	useGRPC          bool
+	useGRPCTelemetry bool
 	// recognizer provides speech-to-text recognition
 	recognizer recognizer.Recognizer
 	// parser converts English brevity text to internal representations
@@ -85,29 +90,39 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	}
 
 	var tacviewClient tacview.Client
-	if config.ACMIFile != "" {
-		log.Info().Str("path", config.ACMIFile).Msg("opening ACMI file")
-		tacviewClient, err = tacview.NewFileClient(
-			config.ACMIFile,
-			config.Coalition,
-			starts,
-			updates,
-			fades,
-			config.RadarSweepInterval,
-		)
-	} else {
-		log.Info().
-			Str("address", config.TelemetryAddress).
-			Stringer("timeout", config.TelemetryConnectionTimeout).
-			Msg("constructing telemetry client")
-		tacviewClient, err = tacview.NewTelemetryClient(
-			config.TelemetryAddress,
-			config.Callsign,
-			config.TelemetryPassword,
-			config.Coalition,
-			starts,
-			updates,
-			fades,
+	if !config.UseDCSgRPCTelemetry {
+		if config.ACMIFile != "" {
+			log.Info().Str("path", config.ACMIFile).Msg("opening ACMI file")
+			tacviewClient, err = tacview.NewFileClient(
+				config.ACMIFile,
+				config.Coalition,
+				starts,
+				updates,
+				fades,
+				config.RadarSweepInterval,
+			)
+		} else {
+			log.Info().
+				Str("address", config.TelemetryAddress).
+				Msg("constructing telemetry client")
+			tacviewClient, err = tacview.NewTelemetryClient(
+				config.TelemetryAddress,
+				config.Callsign,
+				config.TelemetryPassword,
+				config.Coalition,
+				starts,
+				updates,
+				fades,
+				config.RadarSweepInterval,
+			)
+		}
+	}
+
+	var grpcStreamer *grpc.Streamer
+	if config.EnableDCSgRPC {
+		log.Info().Str("address", config.DCSgRPCAddress).Msg("constructing telemetry client")
+		grpcStreamer, err = grpc.NewStreamer(
+			config.DCSgRPCAddress,
 			config.RadarSweepInterval,
 		)
 	}
@@ -149,6 +164,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	app := &app{
 		srsClient:     srsClient,
 		tacviewClient: tacviewClient,
+		grpcStreamer:  grpcStreamer,
 		recognizer:    recognizer,
 		parser:        parser,
 		radar:         rdr,
@@ -170,6 +186,7 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitG
 				log.Error().Err(err).Msg("error running telemetry client")
 			}
 		}
+
 	}()
 
 	wg.Add(1)

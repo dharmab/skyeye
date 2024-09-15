@@ -42,6 +42,9 @@ var (
 	telemetryAddress             string
 	telemetryConnectionTimeout   time.Duration
 	telemetryPassword            string
+	dcsgRPCAddress               string
+	enableDCSgRPC                bool
+	useDCSgRPCTelemetry          bool
 	srsAddress                   string
 	srsConnectionTimeout         time.Duration
 	srsExternalAWACSModePassword string
@@ -77,10 +80,16 @@ func init() {
 	// Telemetry
 	skyeye.Flags().StringVar(&acmiFile, "acmi-file", "", "path to ACMI file")
 	skyeye.Flags().StringVar(&telemetryAddress, "telemetry-address", "localhost:42674", "Address of the real-time telemetry service")
-	skyeye.MarkFlagsMutuallyExclusive("acmi-file", "telemetry-address")
+	skyeye.Flags().BoolVar(&useDCSgRPCTelemetry, "use-dcs-grpc-telemetry", false, "Use DCS gRPC telemetry instead of TacView telemetry")
+
+	skyeye.MarkFlagsMutuallyExclusive("acmi-file", "telemetry-address", "use-dcs-grpc-telemetry")
 	skyeye.Flags().DurationVar(&telemetryConnectionTimeout, "telemetry-connection-timeout", 10*time.Second, "Connection timeout for real-time telemetry client")
 	skyeye.Flags().StringVar(&telemetryPassword, "telemetry-password", "", "Password for the real-time telemetry service")
 	skyeye.Flags().DurationVar(&telemetryUpdateInterval, "telemetry-update-interval", 2*time.Second, "Interval at which trackfiles are updated from telemetry data")
+
+	// DCS gRPC
+	skyeye.Flags().BoolVar(&enableDCSgRPC, "enable-dcs-grpc", false, "Enable DCS-gRPC features")
+	skyeye.Flags().StringVar(&dcsgRPCAddress, "dcs-grpc-address", "localhost:50051", "Address of the DCS gRPC server")
 
 	// SRS
 	skyeye.Flags().StringVar(&srsAddress, "srs-server-address", "localhost:5002", "Address of the SRS server")
@@ -366,9 +375,10 @@ func Supervise(cmd *cobra.Command, args []string) {
 	config := conf.Configuration{
 		ACMIFile:                     acmiFile,
 		TelemetryAddress:             telemetryAddress,
-		TelemetryConnectionTimeout:   telemetryConnectionTimeout,
 		TelemetryClientName:          callsign,
 		TelemetryPassword:            telemetryPassword,
+		EnableDCSgRPC:                enableDCSgRPC,
+		DCSgRPCAddress:               dcsgRPCAddress,
 		SRSAddress:                   srsAddress,
 		SRSConnectionTimeout:         srsConnectionTimeout,
 		SRSClientName:                fmt.Sprintf("GCI %s [BOT]", callsign),

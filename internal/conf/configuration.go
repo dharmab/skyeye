@@ -16,12 +16,16 @@ type Configuration struct {
 	ACMIFile string
 	// TelemetryAddress is the network address of the real-time telemetry server (including port)
 	TelemetryAddress string
-	// TelemetryConnectionTimeout is the connection timeout for connecting to the real-time telemetry server
-	TelemetryConnectionTimeout time.Duration
 	// TelemetryClientName is the client hostname used when handshaking with the real-time telemetry server
 	TelemetryClientName string
 	// TelemetryPassword is the password for connecting to the real-time telemetry server
 	TelemetryPassword string
+	// EnableDCSgRPC controls whether the controller will use the DCS gRPC service for additional functionality
+	EnableDCSgRPC bool
+	// DCSgRPCAddress is the network address of the DCS gRPC server (including port)
+	DCSgRPCAddress string
+	// UseDCSgRPCTelemetry controls whether the controller will use the DCS gRPC service for telemetry data instead of TacView
+	UseDCSgRPCTelemetry bool
 	// SRSAddress is the network address of the SimpleRadio Standalone server (including port)
 	SRSAddress string
 	// SRSConnectionTimeout is the connection timeout for connecting to the SimpleRadio Standalone server

@@ -96,7 +96,12 @@ func (c *tacviewClient) stream(ctx context.Context, wg *sync.WaitGroup, source a
 }
 
 func (c *tacviewClient) updateTime(source acmi.ACMI) {
-	c.missionTime = source.Time()
+	t, err := source.Time()
+	if err != nil {
+		log.Warn().Err(err).Msg("error reading time from ACMI source")
+		return
+	}
+	c.missionTime = t
 }
 
 func (c *tacviewClient) updateBullseyes(source acmi.ACMI) error {
