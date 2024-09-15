@@ -1,0 +1,19 @@
+id: skyeye
+name: SkyEye GCI Bot
+description: SkyEye GCI Bot for DCS World
+env:
+  - name: SKYEYE_CONFIG_FILE
+    value: '%BASE%/config.yaml'
+  - name: SKYEYE_WHISPER_MODEL
+    value: '%BASE%/whisper.bin'
+download:
+  - from: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin?download=true"
+    to: '%BASE%/whisper.bin'
+executable: '%BASE%/skyeye.exe'
+startmode: Manual # If you want the service to start automatically on boot, change this to "Automatic"
+onFailure:
+  - action: restart
+    delay: 1 min
+serviceaccount:
+  domain: NT AUTHORITY
+  user: LocalService

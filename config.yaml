@@ -22,9 +22,12 @@
 # Learn more: https://learnxinyminutes.com/docs/yaml/
 
 # SPEECH RECOGNITION
-# You MUST download a whisper.cpp model from
-# https://huggingface.co/ggerganov/whisper.cpp/tree/main and provide the path
-# to the model file here.
+# SkyEye requires a whisper.cpp model from
+# https://huggingface.co/ggerganov/whisper.cpp/tree/main. Note that the 
+# cloud-init and WinSW YAML files provided with the release will download the
+# model on your behalf before starting SkyEye. You probably only need to change
+# the value of whisper-model here if you're manually installing SkyEye or 
+# are running a development build.
 #
 # The small English-only model provides a good balance between performance, RAM
 # usage and quality.
