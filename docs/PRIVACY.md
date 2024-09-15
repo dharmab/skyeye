@@ -62,3 +62,5 @@ whether it sounds okay in multiplayer "
 4:21PM INF no wake word found in text callsign=Magic text="okay good  that s one of the things i was testing today is whether it sounds okay in multiplayer "
 4:21PM INF unable to parse text text="Okay, good. That's one of the things I was testing today is whether it sounds okay in multiplayer.\n"
 ```
+
+The server operator may reduce the content of these logs using the `enable-transcription-logging` option. If this option is disabled, full text transcriptions are not logged. Small fragments of the text may still be logged if they are interpreted as part of a bot command, but transcriptions which do not seem to be directed at the bot will not be logged at all, and the full text of each message be excluded from the logs.

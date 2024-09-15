@@ -26,7 +26,7 @@ func NewWhisperRecognizer(model *whisper.Model, callsign string) Recognizer {
 const maxSize = 256 * 1024
 
 // Recognize implements [Recognizer.Recognize] using whisper.cpp.
-func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32) (string, error) {
+func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32, enableTranscriptionLogging bool) (string, error) {
 	if len(sample) > maxSize {
 		log.Warn().Int("length", len(sample)).Int("maxLength", maxSize).Msg("clamping sample to maximum size")
 		sample = sample[:maxSize]
@@ -46,7 +46,11 @@ func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32) (st
 	err = wCtx.Process(
 		sample,
 		func(segment whisper.Segment) {
-			log.Debug().Str("text", segment.Text).Msg("processing segment")
+			event := log.Debug()
+			if enableTranscriptionLogging {
+				event = event.Str("text", segment.Text)
+			}
+			event.Msg("processing segment")
 		},
 		nil,
 	)

@@ -21,12 +21,14 @@ type Parser interface {
 }
 
 type parser struct {
-	gciCallsign string
+	gciCallsign       string
+	enableTextLogging bool
 }
 
-func New(callsign string) Parser {
+func New(callsign string, enableTextLogging bool) Parser {
 	return &parser{
-		gciCallsign: strings.ReplaceAll(callsign, " ", ""),
+		gciCallsign:       strings.ReplaceAll(callsign, " ", ""),
+		enableTextLogging: enableTextLogging,
 	}
 }
 
@@ -151,12 +153,17 @@ func spaceDigits(tx string) string {
 // Parse implements Parser.Parse.
 func (p *parser) Parse(tx string) any {
 	logger := log.With().Str("gci", p.gciCallsign).Logger()
-	logger.Debug().Str("text", tx).Msg("parsing text")
+	if p.enableTextLogging {
+		logger = logger.With().Str("text", tx).Logger()
+	}
+	logger.Debug().Msg("parsing text")
 	tx = normalize(tx)
 	if tx == "" {
 		return nil
 	}
-	logger = logger.With().Str("text", tx).Logger()
+	if p.enableTextLogging {
+		logger = logger.With().Str("text", tx).Logger()
+	}
 	logger.Debug().Msg("normalized text")
 
 	// Tokenize the text.
@@ -184,10 +191,20 @@ func (p *parser) Parse(tx string) any {
 		logger.Trace().Msg("no GCI callsign found")
 		return nil
 	} else {
+		event := logger.Debug().Str("heard", heardGCICallsign)
+		if p.enableTextLogging {
+			event = event.Str("rest", afterGCICallsign)
+		}
+		event.Msg("found GCI callsign")
 		logger.Debug().Str("heard", heardGCICallsign).Str("after", afterGCICallsign).Msg("found GCI callsign")
 	}
 
-	logger.Debug().Str("rest", afterGCICallsign).Msg("searching for pilot callsign in rest of text")
+	event := logger.Debug()
+	if p.enableTextLogging {
+		event = event.Str("rest", afterGCICallsign)
+	}
+	event.Msg("searching for pilot callsign in rest of text")
+
 	afterGCICallsign = numwords.ParseString(afterGCICallsign)
 	pilotCallsign, foundPilotCallsign := ParsePilotCallsign(afterGCICallsign)
 	if foundPilotCallsign {
@@ -218,7 +235,11 @@ func (p *parser) Parse(tx string) any {
 		return &brevity.TripwireRequest{Callsign: pilotCallsign}
 	}
 
-	logger.Debug().Strs("args", requestArgs).Msg("parsing request arguments")
+	event = logger.Debug()
+	if p.enableTextLogging {
+		event = event.Strs("args", requestArgs)
+	}
+	event.Msg("parsing request arguments")
 	scanner := bufio.NewScanner(strings.NewReader(strings.Join(requestArgs, " ")))
 	scanner.Split(bufio.ScanWords)
 
