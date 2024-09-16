@@ -34,6 +34,7 @@ var (
 	srsExternalAWACSModePassword string
 	srsFrequencies               []string
 	scaleInterval                time.Duration
+	stopDelay                    time.Duration
 )
 
 var scaler = &cobra.Command{
@@ -60,6 +61,8 @@ var scaler = &cobra.Command{
 	},
 }
 
+var playersSeenAt time.Time
+
 func init() {
 	logLevelFlag := cli.NewEnum(&logLevel, "Level", "info", "error", "warn", "info", "debug", "trace")
 	scaler.Flags().Var(logLevelFlag, "log-level", "Log level (error, warn, info, debug, trace)")
@@ -69,7 +72,8 @@ func init() {
 	scaler.Flags().StringVar(&webhookURL, "webhook-url", "", "URL to call")
 	scaler.MarkFlagRequired("webhook-url")
 	scaler.Flags().DurationVar(&webhookTimeout, "webhook-timeout", 30*time.Second, "Webhook request timeout")
-	scaler.Flags().DurationVar(&scaleInterval, "scale-interval", 5*time.Minute, "Interval at which to check SRS player count")
+	scaler.Flags().DurationVar(&scaleInterval, "scale-interval", 1*time.Minute, "Interval at which to check SRS player count")
+	scaler.Flags().DurationVar(&stopDelay, "stop-delay", 10*time.Minute, "Delay before sending stop requests after the SRS player count drops to 0")
 
 	scaler.Flags().StringVar(&srsAddress, "srs-server-address", "localhost:5002", "Address of the SRS server")
 	scaler.Flags().DurationVar(&srsConnectionTimeout, "srs-connection-timeout", 10*time.Second, "Connection timeout for SRS client")
@@ -87,6 +91,10 @@ func main() {
 func run() error {
 	cli.SetupZerolog(logLevel, logFormat)
 	log.Info().Msg("Starting SkyEye Autoscaler")
+
+	if stopDelay > scaleInterval {
+		log.Fatal().Msg("stop-delay must be shorter than scale-interval")
+	}
 
 	parsedFrequencies := cli.LoadFrequencies(srsFrequencies)
 	radios := make([]srstypes.Radio, 0, len(parsedFrequencies))
@@ -163,11 +171,15 @@ type Payload struct {
 
 func callWebhook(httpClient *http.Client, srsClient simpleradio.Client) {
 	playerCount := srsClient.HumansOnFrequency()
+	logger := log.With().Int("players", playerCount).Logger()
 	action := "run"
-	if playerCount == 0 {
+	timeSincePlayersSeen := time.Since(playersSeenAt)
+	if playerCount > 0 {
+		playersSeenAt = time.Now()
+	} else if timeSincePlayersSeen > stopDelay {
 		action = "stop"
 	}
-	logger := log.With().Int("players", playerCount).Str("action", action).Logger()
+	logger = logger.With().Str("action", action).Stringer("timeSincePlayers", timeSincePlayersSeen).Logger()
 
 	frequencies := make([]float64, 0, len(srsClient.Frequencies()))
 	for _, freq := range srsClient.Frequencies() {
