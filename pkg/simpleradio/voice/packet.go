@@ -147,62 +147,69 @@ func NewVoicePacket(audioBytes []byte, frequencies []Frequency, unitID uint32, p
 }
 
 // Encode serializes a VoicePacket into a byte array.
-func (vp *VoicePacket) Encode() []byte {
-	b := make([]byte, vp.PacketLength)
+func (p *VoicePacket) Encode() []byte {
+	b := make([]byte, p.PacketLength)
 
 	/* Header Segment */
-	binary.LittleEndian.PutUint16(b[0:2], vp.PacketLength)
-	binary.LittleEndian.PutUint16(b[2:4], vp.AudioSegmentLength)
-	binary.LittleEndian.PutUint16(b[4:6], vp.FrequenciesSegmentLength)
+	binary.LittleEndian.PutUint16(b[0:2], p.PacketLength)
+	binary.LittleEndian.PutUint16(b[2:4], p.AudioSegmentLength)
+	binary.LittleEndian.PutUint16(b[4:6], p.FrequenciesSegmentLength)
 
 	/* Audio Segment */
-	copy(b[headerSegmentLength:headerSegmentLength+len(vp.AudioBytes)], vp.AudioBytes)
+	copy(b[headerSegmentLength:headerSegmentLength+len(p.AudioBytes)], p.AudioBytes)
 
 	/* Frequencies Segment */
-	for i, f := range vp.Frequencies {
-		offset := headerSegmentLength + int(vp.AudioSegmentLength) + i*frequencyLength
-		binary.LittleEndian.PutUint64(b[offset:offset+8], math.Float64bits(f.Frequency))
-		b[offset+8] = f.Modulation
-		b[offset+9] = f.Encryption
+	for i, frequency := range p.Frequencies {
+		offset := headerSegmentLength + int(p.AudioSegmentLength) + i*frequencyLength
+		binary.LittleEndian.PutUint64(b[offset:offset+8], math.Float64bits(frequency.Frequency))
+		b[offset+8] = frequency.Modulation
+		b[offset+9] = frequency.Encryption
 	}
 
 	/* Fixed Segment */
-	fixedSegmentPtr := vp.PacketLength - fixedSegmentLength + 1
+	fixedSegmentPtr := p.PacketLength - fixedSegmentLength + 1
 	unitIDPtr := fixedSegmentPtr
 	packetIDPtr := unitIDPtr + 4
-	binary.LittleEndian.PutUint32(b[unitIDPtr:packetIDPtr], vp.UnitID)
+	binary.LittleEndian.PutUint32(b[unitIDPtr:packetIDPtr], p.UnitID)
 
 	hopsPtr := packetIDPtr + 8
-	binary.LittleEndian.PutUint64(b[packetIDPtr:hopsPtr], vp.PacketID)
-	b[hopsPtr] = vp.Hops
+	binary.LittleEndian.PutUint64(b[packetIDPtr:hopsPtr], p.PacketID)
+	b[hopsPtr] = p.Hops
 
 	relayIDPtr := hopsPtr + 1
 	originIDPtr := relayIDPtr + types.GUIDLength
-	copy(b[relayIDPtr:originIDPtr], vp.RelayGUID)
-	copy(b[originIDPtr:vp.PacketLength], vp.OriginGUID)
+	copy(b[relayIDPtr:originIDPtr], p.RelayGUID)
+	copy(b[originIDPtr:p.PacketLength], p.OriginGUID)
 
 	return b
 }
 
 var _ fmt.Stringer = &VoicePacket{}
 
-func (vp *VoicePacket) String() string {
+func (p *VoicePacket) String() string {
 	return fmt.Sprintf(
 		"VoicePacket{PacketLength: %d, AudioSegmentLength: %d, FrequenciesSegmentLength: %d, UnitID: %d, PacketID: %d, Hops: %d, RelayGUID: %s, OriginGUID: %s, Frequencies: %v}",
-		vp.PacketLength,
-		vp.AudioSegmentLength,
-		vp.FrequenciesSegmentLength,
-		vp.UnitID,
-		vp.PacketID,
-		vp.Hops,
-		vp.RelayGUID,
-		vp.OriginGUID,
-		vp.Frequencies,
+		p.PacketLength,
+		p.AudioSegmentLength,
+		p.FrequenciesSegmentLength,
+		p.UnitID,
+		p.PacketID,
+		p.Hops,
+		p.RelayGUID,
+		p.OriginGUID,
+		p.Frequencies,
 	)
 }
 
-// newVoicePacketFrom deserializes a voice packet from bytes to struct.
-func NewVoicePacketFrom(b []byte) VoicePacket {
+// Decode deserializes a voice packet from bytes to struct.
+func Decode(b []byte) (packet *VoicePacket, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			packet = nil
+			err = fmt.Errorf("failed to decode VoicePacket: %v", r)
+			return
+		}
+	}()
 	// The packet length is the first 2 bytes of the packet.
 	packetLength := binary.LittleEndian.Uint16(b[0:2])
 
@@ -215,7 +222,7 @@ func NewVoicePacketFrom(b []byte) VoicePacket {
 	unitIDPtr := packetIDPtr - 4
 
 	// Store the packet headers and fixed segment in a VoicePacket struct.
-	packet := VoicePacket{
+	packet = &VoicePacket{
 		/* Headers */
 		PacketLength:             packetLength,
 		AudioSegmentLength:       binary.LittleEndian.Uint16(b[2:4]),
@@ -254,6 +261,5 @@ func NewVoicePacketFrom(b []byte) VoicePacket {
 	}
 
 	// That wasn't so bad, was it?
-
-	return packet
+	return
 }

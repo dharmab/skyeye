@@ -16,12 +16,19 @@ func (c *client) Transmit(sample Audio) {
 	c.txChan <- sample
 }
 
-// transmit the voice packets from queued transmissions to the SRS server.
-func (c *client) transmit(ctx context.Context, packetCh <-chan []voice.VoicePacket) {
+// transmit voice packets from queued transmissions to the SRS server.
+func (c *client) transmit(ctx context.Context, packetChan <-chan []voice.VoicePacket) {
 	for {
 		select {
-		case packets := <-packetCh:
-			c.tx(packets)
+		case packets := <-packetChan:
+			func() {
+				c.txLock.Lock()
+				defer c.txLock.Unlock()
+				c.waitForClearChannel()
+				if !c.mute {
+					c.writePackets(packets)
+				}
+			}()
 			// Pause between transmissions to sound more natural.
 			pause := time.Duration(500+rand.IntN(500)) * time.Millisecond
 			time.Sleep(pause)
@@ -32,6 +39,7 @@ func (c *client) transmit(ctx context.Context, packetCh <-chan []voice.VoicePack
 	}
 }
 
+// waitForClearChannel waits for incoming transmissions to finish.
 func (c *client) waitForClearChannel() {
 	for {
 		isReceiving := false
@@ -54,10 +62,11 @@ func (c *client) waitForClearChannel() {
 	}
 }
 
+// writePackets writes voice packets to the UDP connection.
 func (c *client) writePackets(packets []voice.VoicePacket) {
 	startTime := time.Now()
-	for i, vp := range packets {
-		b := vp.Encode()
+	for i, packet := range packets {
+		b := packet.Encode()
 		// Tight timing is important here - don't write the next packet until halfway through the previous packet's frame.
 		// Write too quickly, and the server will skip audio to play the latest packet.
 		// Write too slowly, and the transmission will stutter.
@@ -69,20 +78,11 @@ func (c *client) writePackets(packets []voice.VoicePacket) {
 		time.Sleep(delay)
 		_, err := c.udpConnection.Write(b)
 		if errors.Is(err, net.ErrClosed) {
-			log.Error().Err(err).Msg("UDP connection closed")
-			continue
+			log.Error().Err(err).Msg("UDP connection closed during transmission")
+			return
 		}
 		if err != nil {
 			log.Error().Err(err).Msg("failed to transmit voice packet")
 		}
-	}
-}
-
-func (c *client) tx(packets []voice.VoicePacket) {
-	c.busy.Lock()
-	defer c.busy.Unlock()
-	c.waitForClearChannel()
-	if !c.mute {
-		c.writePackets(packets)
 	}
 }

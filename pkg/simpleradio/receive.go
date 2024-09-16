@@ -10,8 +10,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// receiver contains the state of the current received transmission on a given radio frequency.
+// receiver buffers incoming transmissions on a single radio frequency.
 type receiver struct {
+	// lock protects the receiver's state.
 	lock sync.RWMutex
 	// buffer of received voice packets.
 	buffer []voice.VoicePacket
@@ -26,33 +27,36 @@ type receiver struct {
 
 // Receive implements [Client.Receive].
 func (c *client) Receive() <-chan Audio {
-	return c.rxchan
+	return c.rxChan
 }
 
-func (r *receiver) receive(vp *voice.VoicePacket) {
+// receive checks if the given packet is part of a new transmission or matches a transmission in progress.
+// If either case is true, the packet is buffered into the receiver.
+func (r *receiver) receive(packet *voice.VoicePacket) {
 	// Accept the packet if it is either:
 	// - the first packet of a new transmission
 	isNewTransmission := r.origin == "" && r.packetNumber == 0
 	// - a newer packet from the same origin
-	isNewerPacket := vp.PacketID > r.packetNumber
-	isSameOrigin := r.origin == types.GUID(vp.OriginGUID)
+	isNewerPacket := packet.PacketID > r.packetNumber
+	isSameOrigin := r.origin == types.GUID(packet.OriginGUID)
 	shouldAcceptPacket := isNewTransmission || (isNewerPacket && isSameOrigin)
 	if !shouldAcceptPacket {
 		return
 	}
 
 	if isNewTransmission {
-		log.Info().Str("origin", string(vp.OriginGUID)).Msg("receiving transmission")
+		log.Info().Str("origin", string(packet.OriginGUID)).Msg("receiving transmission")
 	}
 
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	r.buffer = append(r.buffer, *vp)
-	r.origin = types.GUID(vp.OriginGUID)
+	r.buffer = append(r.buffer, *packet)
+	r.origin = types.GUID(packet.OriginGUID)
 	r.deadline = time.Now().Add(maxRxGap)
-	r.packetNumber = vp.PacketID
+	r.packetNumber = packet.PacketID
 }
 
+// hasTransmission checks if the receiver has a complete transmission buffered.
 func (r *receiver) hasTransmission() bool {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
@@ -61,12 +65,14 @@ func (r *receiver) hasTransmission() bool {
 	return hasPackets && isComplete
 }
 
+// isReceivingTransmission checks if the receiver is currently buffering an in-progress transmission.
 func (r *receiver) isReceivingTransmission() bool {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 	return r.deadline.After(time.Now())
 }
 
+// reset clears the receiver's buffer.
 func (r *receiver) reset() {
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -77,33 +83,11 @@ func (r *receiver) reset() {
 }
 
 // maxRxGap is a duration after which the receiver will assume the end of a transmission if no packets are received.
-// TODO make this configurable.
 const maxRxGap = 300 * time.Millisecond
 
 // minRxDuration is the mimimum duration of a transmission to be considered for speech recognition. This reduces
 // thrashing due to transmissions too short to contain any useful content.
 const minRxDuration = 1 * time.Second // 1s is whisper.cpp's minimum duration, it errors for any samples shorter than this.
-
-// receivePings listens for incoming UDP ping packets and logs them at DEBUG level.
-func (c *client) receivePings(ctx context.Context, in <-chan []byte) {
-	for {
-		select {
-		case b := <-in:
-			n := len(b)
-			if n < types.GUIDLength {
-				log.Debug().Int("bytes", n).Msg("received UDP ping smaller than expected")
-			} else if n > types.GUIDLength {
-				log.Debug().Int("bytes", n).Msg("received UDP ping larger than expected")
-			} else {
-				log.Trace().Str("GUID", string(b[0:types.GUIDLength])).Msg("received UDP ping")
-				c.lastPing = time.Now()
-			}
-		case <-ctx.Done():
-			log.Info().Msg("stopping SRS ping receiver due to context cancellation")
-			return
-		}
-	}
-}
 
 // receiveVoice listens for incoming UDP voice packets, decodes them into VoicePacket structs, and routes them to the out channel for audio decoding.
 func (c *client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- []voice.VoicePacket) {
@@ -112,37 +96,35 @@ func (c *client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- 
 	for {
 		select {
 		case b := <-in:
-			vp, err := decodeVoicePacket(b)
+			packet, err := voice.Decode(b)
 			if err != nil {
 				log.Debug().Err(err).Msg("failed to decode voice packet")
 				continue
 			}
-			if vp == nil {
-				log.Warn().Msg("nil pointer returned from decodeVoicePacket")
-				continue
-			}
 
-			if c.secureCoaltionRadios {
-				client, ok := c.clients[types.GUID(vp.OriginGUID)]
+			logger := log.With().Str("GUID", string(packet.OriginGUID)).Logger()
+
+			if c.secureCoalitionRadios {
+				client, ok := c.clients[types.GUID(packet.OriginGUID)]
 				if !ok {
-					log.Warn().Str("GUID", string(vp.OriginGUID)).Msg("received voice packet from unknown client")
+					logger.Warn().Msg("ignoring voice packet from unknown client")
 					continue
 				}
 				if client.Coalition != c.clientInfo.Coalition {
-					log.Trace().Str("GUID", string(vp.OriginGUID)).Msg("ignoring voice packet from different coalition")
+					logger.Trace().Msg("ignoring voice packet from different coalition")
 					continue
 				}
 			}
 
 			for radio, receiver := range c.receivers {
-				for _, packetFrequency := range vp.Frequencies {
+				for _, frequency := range packet.Frequencies {
 					testRadio := types.Radio{
-						Frequency:   packetFrequency.Frequency,
-						Modulation:  types.Modulation(packetFrequency.Modulation),
-						IsEncrypted: packetFrequency.Encryption != 0,
+						Frequency:   frequency.Frequency,
+						Modulation:  types.Modulation(frequency.Modulation),
+						IsEncrypted: frequency.Encryption != 0,
 					}
 					if testRadio.IsSameFrequency(radio) {
-						receiver.receive(vp)
+						receiver.receive(packet)
 					}
 				}
 			}

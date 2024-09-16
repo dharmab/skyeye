@@ -43,34 +43,37 @@ type client struct {
 	address string
 	// tcpConnection is the TCP connection to the SRS server used for messages.
 	tcpConnection *net.TCPConn
-	//tcpReader     *bufio.Reader
 	// udpConnection is the UDP connection to the SRS server used for audio and pings.
 	udpConnection *net.UDPConn
 
-	// clientInfo is the client information for this client. It is what players will see in the SRS client list, and the in-game overlay when this client transmits.
+	// clientInfo is the client information for this client. It is what players will see in the SRS client list, and in
+	/// the in-game overlay when this client transmits.
 	clientInfo types.ClientInfo
-	// clients is a map of GUIDs to client info, which the bot will use to filter out other clients that are not in the same coalition and frequency.
+	// clients is a map of GUIDs to client info, which the bot will use to filter out other clients that are not in the
+	// same coalition and frequency.
 	clients map[types.GUID]types.ClientInfo
 	// clientsLock controls access to the clients map.
 	clientsLock sync.RWMutex
 
-	// secureCoaltionRadios indicates if the client should only receive transmissions from the same coalition.
-	secureCoaltionRadios bool
+	// secureCoalitionRadios indicates if the client should only receive transmissions from the same coalition.
+	secureCoalitionRadios bool
 
 	// rxChan is a channel where received audio is published. A read-only version is available publicly.
-	rxchan chan Audio
+	rxChan chan Audio
 	// txChan is a channel where audio to be transmitted is buffered.
 	txChan chan Audio
 	// receivers tracks the state of each radio we are listening to.
 	receivers map[types.Radio]*receiver
 	// packetNumber is incremented for each voice packet transmitted.
 	packetNumber uint64
-	// busy indicates if there is a transmission in progress.
-	busy sync.Mutex
+	// txLock prevents multiple outgoing transmissions from occurring simultaneously. It must be acquired before writing
+	// voice packets to the UDP connection.
+	txLock sync.Mutex
 	// mute suppresses audio transmission.
 	mute bool
 
-	// lastPing tracks the last time a ping was received so we can tell when the server is (probably) restarted or offline.
+	// lastPing tracks the last time a ping was received. If no pings are received for a period of time, the client will
+	// attempt to reconnect.
 	lastPing time.Time
 }
 
@@ -101,7 +104,7 @@ func NewClient(config types.ClientConfiguration) (Client, error) {
 		clients:                   make(map[types.GUID]types.ClientInfo),
 
 		txChan:       make(chan Audio),
-		rxchan:       make(chan Audio),
+		rxChan:       make(chan Audio),
 		receivers:    receivers,
 		packetNumber: 1,
 		mute:         config.Mute,
@@ -120,6 +123,7 @@ func NewClient(config types.ClientConfiguration) (Client, error) {
 	return client, nil
 }
 
+// initialize must be called after (re)connecting to the SRS server to synchronize the client and server state.
 func (c *client) initialize() error {
 	log.Info().Msg("syncing with SRS server")
 	if err := c.sync(); err != nil {
@@ -140,15 +144,38 @@ func (c *client) initialize() error {
 	return nil
 }
 
+// autoheal attempts to reconnect and reinitialize the SRS client if it stops receiving traffic from the SRS server.
+func (c *client) autoheal(ctx context.Context) {
+	ticker := time.NewTicker(pingInterval / 3)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if time.Since(c.lastPing) > pingInterval*3 {
+				log.Warn().Msg("stopped receiving traffic from SRS server")
+
+				log.Warn().Msg("attempting to reconnect to SRS server")
+				if reconnectErr := c.reconnect(ctx); reconnectErr != nil {
+					log.Err(reconnectErr).Msg("failed to reconnect to SRS server")
+					continue
+				}
+				if initErr := c.initialize(); initErr != nil {
+					log.Err(initErr).Msg("failed to reinitialize SRS client")
+					continue
+				}
+				c.lastPing = time.Now()
+			}
+		}
+	}
+}
+
 // Run implements [Client.Run].
 func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	log.Info().Msg("SRS client starting")
 
-	defer func() {
-		if err := c.close(); err != nil {
-			log.Error().Err(err).Msg("error closing SRS client")
-		}
-	}()
+	defer c.close()
 
 	wg.Add(1)
 	go func() {
@@ -165,11 +192,10 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		c.sendPings(ctx, wg)
+		c.sendPings(ctx)
 	}()
 
 	udpPingRxChan := make(chan []byte, 0xF)
-
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -189,7 +215,7 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	}()
 
 	voicePacketsTxChan := make(chan []voice.VoicePacket, 3)
-	wg.Add(2)
+	wg.Add(4)
 	go func() {
 		defer wg.Done()
 		c.encodeVoice(ctx, voicePacketsTxChan)
@@ -198,47 +224,21 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 		defer wg.Done()
 		c.transmit(ctx, voicePacketsTxChan)
 	}()
-
-	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		c.receiveUDP(ctx, udpPingRxChan, udpVoiceRxChan)
 	}()
-
-	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		ticker := time.NewTicker(5 * time.Second)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-				if time.Since(c.lastPing) > 1*time.Minute {
-					log.Warn().Msg("stopped receiving traffic from SRS server")
-
-					log.Warn().Msg("attempting to reconnect to SRS server")
-					if reconnectErr := c.reconnect(ctx); reconnectErr != nil {
-						log.Err(reconnectErr).Msg("failed to reconnect to SRS server")
-						continue
-					}
-					if initErr := c.initialize(); initErr != nil {
-						log.Err(initErr).Msg("failed to reinitialize SRS client")
-						continue
-					}
-					c.lastPing = time.Now()
-				}
-			}
-		}
+		c.autoheal(ctx)
 	}()
 
 	<-ctx.Done()
 	return nil
 }
 
-func (c *client) close() error {
+// close the client's connections. Should be called after the autoheal goroutine has completed.
+func (c *client) close() {
 	var err error
 	if tcpErr := c.tcpConnection.Close(); tcpErr != nil {
 		err = errors.Join(err, fmt.Errorf("error closing TCP connection to SRS: %w", tcpErr))
@@ -246,5 +246,7 @@ func (c *client) close() error {
 	if udpErr := c.udpConnection.Close(); udpErr != nil {
 		err = errors.Join(err, fmt.Errorf("error closing UDP connection to SRS: %w", udpErr))
 	}
-	return err
+	if err != nil {
+		log.Error().Err(err).Msg("error closing SRS client connections")
+	}
 }
