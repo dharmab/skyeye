@@ -132,6 +132,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		rdr,
 		srsClient,
 		config.Coalition,
+		config.EnableAutomaticPicture,
 		config.PictureBroadcastInterval,
 		config.EnableThreatMonitoring,
 		config.ThreatMonitoringInterval,

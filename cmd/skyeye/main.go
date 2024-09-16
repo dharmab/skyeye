@@ -135,18 +135,8 @@ var skyeye = &cobra.Command{
 		},
 		"\n  ",
 	),
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if err := initializeConfig(cmd); err != nil {
-			return fmt.Errorf("failed to initialize config: %w", err)
-		}
-
-		if whisperModelPath == "" && !viper.IsSet("whisper-model") {
-			_ = cmd.Help()
-			os.Exit(0)
-		}
-		return nil
-	},
-	Run: Supervise,
+	PreRunE: preRun,
+	Run:     run,
 }
 
 func main() {
@@ -223,7 +213,7 @@ func loadCoalition() (coalition coalitions.Coalition) {
 	case "red":
 		coalition = coalitions.Red
 	default:
-		exitOnErr(errors.New("GCI coalition must be either blue or red"))
+		log.Fatal().Msg("GCI coalition must be either blue or red")
 	}
 	log.Info().Int("id", int(coalition)).Msg("GCI coalition set")
 	return
@@ -254,7 +244,7 @@ func loadWhisperModel() *whisper.Model {
 	log.Info().Str("path", whisperModelPath).Msg("loading whisper model")
 	whisperModel, err := whisper.New(whisperModelPath)
 	if err != nil {
-		exitOnErr(fmt.Errorf("failed to load whisper model: %w", err))
+		log.Fatal().Err(err).Msg("failed to load whisper model")
 	}
 	log.Info().
 		Bool("multilingual", whisperModel.IsMultilingual()).
@@ -317,7 +307,7 @@ func loadFrequencies() []simpleradio.RadioFrequency {
 	for _, s := range srsFrequencies {
 		freq, err := simpleradio.ParseRadioFrequency(s)
 		if err != nil {
-			exitOnErr(fmt.Errorf("failed to parse frequency: %w", err))
+			log.Fatal().Err(err).Str("frequency", s).Msg("failed to parse SRS frequency")
 		}
 		frequencies = append(frequencies, *freq)
 		log.Info().Stringer("frequency", freq).Msg("parsed SRS frequency")
@@ -325,7 +315,19 @@ func loadFrequencies() []simpleradio.RadioFrequency {
 	return frequencies
 }
 
-func Supervise(cmd *cobra.Command, args []string) {
+func preRun(cmd *cobra.Command, args []string) error {
+	if err := initializeConfig(cmd); err != nil {
+		return fmt.Errorf("failed to initialize config: %w", err)
+	}
+
+	if whisperModelPath == "" && !viper.IsSet("whisper-model") {
+		_ = cmd.Help()
+		os.Exit(0)
+	}
+	return nil
+}
+
+func run(cmd *cobra.Command, args []string) {
 	// Set up an application-scoped context and a cancel function to shut down the application.
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -340,7 +342,6 @@ func Supervise(cmd *cobra.Command, args []string) {
 
 	var wg sync.WaitGroup
 
-	// Set up logging
 	setupLogging()
 
 	log.Info().Str("version", Version).Msg("SkyEye GCI Bot")
@@ -385,47 +386,22 @@ func Supervise(cmd *cobra.Command, args []string) {
 		Mute:                         mute,
 		PlaybackSpeed:                playbackSpeed,
 		PlaybackPause:                playbackPause,
+		EnableAutomaticPicture:       enableAutomaticPicture,
+		PictureBroadcastInterval:     automaticPictureInterval,
 		EnableThreatMonitoring:       enableThreatMonitoring,
 		ThreatMonitoringInterval:     threatMonitoringInterval,
 		ThreatMonitoringRequiresSRS:  threatMonitoringRequiresSRS,
 		MandatoryThreatRadius:        unit.Length(mandatoryThreatRadiusNM) * unit.NauticalMile,
 	}
 
-	if enableAutomaticPicture {
-		config.PictureBroadcastInterval = automaticPictureInterval
-		log.Info().Stringer("interval", automaticPictureInterval).Msg("automatic PICTURE broadcasts enabled")
-	} else {
-		config.PictureBroadcastInterval = 117 * time.Hour
-	}
-
 	log.Info().Msg("starting application")
-	err := runApplication(ctx, cancel, &wg, config)
-	exitOnErr(err)
-}
-
-func runApplication(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitGroup, config conf.Configuration) error {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Error().Any("recovered", r).Msg("!!! APPLICATION PANIC RECOVERY !!!")
-		}
-	}()
-	log.Info().Msg("starting new application instance")
 	app, err := application.NewApplication(ctx, config)
 	if err != nil {
-		return err
+		log.Fatal().Err(err).Msg("failed to start application")
 	}
-	err = app.Run(ctx, cancel, wg)
+	err = app.Run(ctx, cancel, &wg)
 	if err != nil {
-		log.Error().Err(err).Msg("application exited with error")
+		log.Fatal().Err(err).Msg("application exited with error")
 	}
 	wg.Wait()
-	return nil
-}
-
-// exitOnErr logs the error and exits the application if the error is not nil.
-func exitOnErr(err error) {
-	if err != nil {
-		log.Error().Err(err).Msg("application exiting with error")
-		os.Exit(1)
-	}
 }
