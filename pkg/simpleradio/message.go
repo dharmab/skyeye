@@ -65,6 +65,7 @@ func (c *client) handleMessage(message types.Message) {
 	case types.MessageExternalAWACSModePassword:
 		if message.Client.Coalition == c.clientInfo.Coalition {
 			log.Debug().Any("remoteClient", message.Client).Msg("received external AWACS mode password message")
+			// TODO is the update necessary?
 			if err := c.updateRadios(); err != nil {
 				log.Error().Err(err).Msg("failed to update radios")
 			}
@@ -74,15 +75,16 @@ func (c *client) handleMessage(message types.Message) {
 	}
 }
 
+// updateServerSettings updates the client's settings to match the server's settings.
 func (c *client) updateServerSettings(message types.Message) {
 	log.Debug().Any("serverSettings", message.ServerSettings).Msg("received server settings")
 	if enabled, ok := message.ServerSettings[string(types.CoalitionAudioSecurity)]; ok {
 		if strings.ToLower(enabled) == "true" {
 			log.Info().Msg("enabling secure coalition radios")
-			c.secureCoaltionRadios = true
+			c.secureCoalitionRadios = true
 		} else {
 			log.Info().Msg("disabling secure coalition radios")
-			c.secureCoaltionRadios = false
+			c.secureCoalitionRadios = false
 		}
 	}
 }

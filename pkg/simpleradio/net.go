@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// connectTCP connects to the SRS server over TCP.
 func (c *client) connectTCP() error {
 	log.Info().Str("address", c.address).Msg("connecting to SRS server TCP socket")
 	tcpAddress, err := net.ResolveTCPAddr("tcp", c.address)
@@ -26,10 +27,10 @@ func (c *client) connectTCP() error {
 		return fmt.Errorf("failed to connect to data socket: %w", err)
 	}
 	c.tcpConnection = connection
-	//c.tcpReader = bufio.NewReader(connection)
 	return nil
 }
 
+// connectUDP connects to the SRS server over UDP.
 func (c *client) connectUDP() error {
 	log.Info().Str("address", c.address).Msg("connecting to SRS server UDP socket")
 	udpAddress, err := net.ResolveUDPAddr("udp", c.address)
@@ -44,7 +45,8 @@ func (c *client) connectUDP() error {
 	return nil
 }
 
-// reconnect attempts to reconnect the TCP and UDP connections indefinitely.
+// reconnect closes the existing connections and attempts to reconnect to the
+// SRS server. It will retry until successful or the context is canceled.
 func (c *client) reconnect(ctx context.Context) error {
 	var err error
 	backoff := frameLength
@@ -78,45 +80,46 @@ func (c *client) reconnect(ctx context.Context) error {
 }
 
 // receiveUDP listens for incoming UDP packets and routes them to the appropriate channel.
-func (c *client) receiveUDP(ctx context.Context, pingCh chan<- []byte, voiceCh chan<- []byte) {
+func (c *client) receiveUDP(ctx context.Context, pingChan chan<- []byte, voiceChan chan<- []byte) {
 	for {
-		if ctx.Err() != nil {
-			if ctx.Err() == context.Canceled {
-				log.Info().Msg("stopping SRS packet receiver due to context cancellation")
-			} else {
-				log.Error().Err(ctx.Err()).Msg("stopping packet receiver due to context error")
-			}
+		select {
+		case <-ctx.Done():
+			log.Info().Msg("stopping SRS packet receiver due to context cancellation")
 			return
-		}
-
-		buf := make([]byte, 1500)
-		n, err := c.udpConnection.Read(buf)
-		switch {
-		case errors.Is(err, net.ErrClosed):
-			log.Error().Err(err).Msg("UDP connection closed")
-		case errors.Is(err, io.EOF):
-			log.Error().Err(err).Msg("UDP connection closed")
-		case err != nil:
-			log.Error().Err(err).Msg("UDP connection read error")
-		case n == 0:
-			log.Warn().Err(err).Msg("0 bytes read from UDP connection")
 		default:
-			packet := make([]byte, n)
-			copy(packet, buf)
+			buf := make([]byte, 1500)
+			n, err := c.udpConnection.Read(buf)
 			switch {
-			case n < types.GUIDLength:
-				log.Debug().Int("bytes", n).Msg("UDP packet smaller than expected")
-			case n == types.GUIDLength:
-				// Ping packet
-				pingCh <- packet
-			case n > types.GUIDLength:
-				// Voice packet
-				voiceCh <- packet
+			case errors.Is(err, net.ErrClosed):
+				if ctx.Err() == nil {
+					log.Error().Err(err).Msg("UDP connection closed")
+					time.Sleep(5 * time.Millisecond)
+				}
+			case errors.Is(err, io.EOF):
+				log.Error().Err(err).Msg("UDP connection returned EOF")
+			case err != nil:
+				log.Error().Err(err).Msg("UDP connection read error")
+			case n == 0:
+				log.Warn().Err(err).Msg("0 bytes read from UDP connection")
+			default:
+				packet := make([]byte, n)
+				copy(packet, buf)
+				switch {
+				case n < types.GUIDLength:
+					log.Debug().Int("bytes", n).Msg("UDP packet smaller than expected")
+				case n == types.GUIDLength:
+					// Ping packet
+					pingChan <- packet
+				case n > types.GUIDLength:
+					// Voice packet
+					voiceChan <- packet
+				}
 			}
 		}
 	}
 }
 
+// receiveTCP listens for incoming TCP messages and routes them to the appropriate handler.
 func (c *client) receiveTCP(ctx context.Context) {
 	reader := bufio.NewReader(c.tcpConnection)
 	for {
@@ -127,9 +130,12 @@ func (c *client) receiveTCP(ctx context.Context) {
 		default:
 			line, err := reader.ReadBytes(byte('\n'))
 			if err != nil {
+				if errors.Is(err, net.ErrClosed) && ctx.Err() != nil {
+					continue
+				}
 				log.Error().Err(err).Msg("error reading from SRS server TCP socket")
 				// Wait and try again in case it recovers by reconnecting
-				time.Sleep(5 * time.Second)
+				time.Sleep(pingInterval)
 				reader = bufio.NewReader(c.tcpConnection)
 				continue
 			}

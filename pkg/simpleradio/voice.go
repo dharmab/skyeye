@@ -11,8 +11,41 @@ import (
 // Mirror of OPUS_APPLICATION_VOIP from the Opus API.
 const opusApplicationVoIP = 2048
 
-// encodeVoice encodes audio from txChan and publishes an entire transmission's worth of voice packets to packetCh.
-func (c *client) encodeVoice(ctx context.Context, packetCh chan<- []voice.VoicePacket) {
+// deocdeVoice decodes incoming voice packets from voicePacketsChan into F32LE PCM audio data published to the client's rxChan.
+func (c *client) decodeVoice(ctx context.Context, voicePacketsChan <-chan []voice.VoicePacket) {
+	for {
+		select {
+		case voicePackets := <-voicePacketsChan:
+			decoder, err := opus.NewDecoder(int(sampleRate.Hertz()), channels)
+			if err != nil {
+				log.Error().Err(err).Msg("failed to create Opus decoder")
+				continue
+			}
+			transmissionPCM := make([]float32, 0)
+			for _, packet := range voicePackets {
+				packetPCM, err := c.decodeFrame(decoder, packet.AudioBytes)
+				if err != nil {
+					log.Error().Err(err).Msg("failed to decode audio")
+				} else {
+					transmissionPCM = append(transmissionPCM, packetPCM...)
+				}
+			}
+
+			if len(transmissionPCM) > 0 {
+				log.Info().Int("len", len(transmissionPCM)).Msg("publishing received audio to receiving channel")
+				c.rxChan <- transmissionPCM
+			} else {
+				log.Debug().Msg("decoded transmission PCM is empty")
+			}
+		case <-ctx.Done():
+			log.Info().Msg("stopping voice decoder due to context cancellation")
+			return
+		}
+	}
+}
+
+// encodeVoice encodes audio from the client's txChan and publishes an entire transmission's worth of voice packets to packetCh.
+func (c *client) encodeVoice(ctx context.Context, packetChan chan<- []voice.VoicePacket) {
 	frequencyList := make([]voice.Frequency, 0, len(c.clientInfo.RadioInfo.Radios))
 	for _, radio := range c.clientInfo.RadioInfo.Radios {
 		frequencyList = append(frequencyList, voice.Frequency{
@@ -25,7 +58,7 @@ func (c *client) encodeVoice(ctx context.Context, packetCh chan<- []voice.VoiceP
 		select {
 		case audio := <-c.txChan:
 			log.Trace().Msg("encoding transmission from PCM data")
-			encoder, err := opus.NewEncoder(sampleRate, channels, opusApplicationVoIP)
+			encoder, err := opus.NewEncoder(int(sampleRate.Hertz()), channels, opusApplicationVoIP)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to create Opus encoder")
 				continue
@@ -46,14 +79,14 @@ func (c *client) encodeVoice(ctx context.Context, packetCh chan<- []voice.VoiceP
 					padding := make([]float32, int(frameSize)-len(frameAudio))
 					frameAudio = append(frameAudio, padding...)
 				}
-				audioBytes, err := c.encode(encoder, frameAudio)
+				audioBytes, err := c.encodeFrame(encoder, frameAudio)
 				if err != nil {
 					logger.Error().Err(err).Msg("failed to encode audio")
 					continue
 				}
 
 				guid := c.clientInfo.GUID
-				vp := voice.NewVoicePacket(
+				voicePacket := voice.NewVoicePacket(
 					audioBytes,
 					frequencyList,
 					100000002,
@@ -64,10 +97,10 @@ func (c *client) encodeVoice(ctx context.Context, packetCh chan<- []voice.VoiceP
 				)
 				c.packetNumber++
 				// TODO transmission struct with attached text and trace id
-				txPackets = append(txPackets, vp)
+				txPackets = append(txPackets, voicePacket)
 			}
 			log.Trace().Int("count", len(txPackets)).Msg("encoded transmission packets")
-			packetCh <- txPackets
+			packetChan <- txPackets
 		case <-ctx.Done():
 			log.Info().Msg("stopping voice encoder due to context cancellation")
 			return
