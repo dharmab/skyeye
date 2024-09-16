@@ -23,10 +23,10 @@
 
 # SPEECH RECOGNITION
 # SkyEye requires a whisper.cpp model from
-# https://huggingface.co/ggerganov/whisper.cpp/tree/main. Note that the 
+# https://huggingface.co/ggerganov/whisper.cpp/tree/main. Note that the
 # cloud-init and WinSW YAML files provided with the release will download the
 # model on your behalf before starting SkyEye. You probably only need to change
-# the value of whisper-model here if you're manually installing SkyEye or 
+# the value of whisper-model here if you're manually installing SkyEye or
 # are running a development build.
 #
 # The small English-only model provides a good balance between performance, RAM
@@ -80,7 +80,7 @@
 # pronounce. Real-world examples include: Baron, Chalice, Darkstar, Disco,
 # Focus, Goliath, Magic, Sentry and Wizard. If you don't provide a callsign, a
 # random callsign is selected from a set of Ace Combat/Project Wingman easter
-# eggs. 
+# eggs.
 #
 # ⚠️ Please do _not_ use the callsign "Overlord" to avoid any possible
 # confusion with OverlordBot. I do not want any confused players to send bug

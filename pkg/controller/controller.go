@@ -58,6 +58,8 @@ type controller struct {
 	// for the radar scope to populate with data.
 	warmupTime time.Time
 
+	// enableAutomaticPicture enables automatic picture broadcasts.
+	enableAutomaticPicture bool
 	// pictureBroadcastInterval is the interval at which the controller broadcasts a tactical air picture.
 	pictureBroadcastInterval time.Duration
 	// pictureBroadcastDeadline is the time at which the controller will broadcast the next tactical air picture.
@@ -86,6 +88,7 @@ func New(
 	rdr radar.Radar,
 	srsClient simpleradio.Client,
 	coalition coalitions.Coalition,
+	enableAutomaticPicture bool,
 	pictureBroadcastInterval time.Duration,
 	enableThreatMonitoring bool,
 	threatMonitoringCooldown time.Duration,
