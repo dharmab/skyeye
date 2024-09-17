@@ -99,6 +99,7 @@ func New(
 		scope:                       rdr,
 		srsClient:                   srsClient,
 		warmupTime:                  time.Now().Add(15 * time.Second),
+		enableAutomaticPicture:      enableAutomaticPicture,
 		pictureBroadcastInterval:    pictureBroadcastInterval,
 		pictureBroadcastDeadline:    time.Now().Add(pictureBroadcastInterval),
 		enableThreatMonitoring:      enableThreatMonitoring,
@@ -151,7 +152,7 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 		case <-ticker.C:
 			c.broadcastMerges()
 			c.broadcastThreats()
-			if time.Now().After(c.pictureBroadcastDeadline) {
+			if c.enableAutomaticPicture && time.Now().After(c.pictureBroadcastDeadline) {
 				logger := log.With().Logger()
 				c.broadcastPicture(&logger, false)
 			}
