@@ -23,7 +23,6 @@ func PronounceBearing(bearing bearings.Bearing) (s string) {
 }
 
 // PronounceInt composes a text representation of a a sequence of digits, using aviation pronunciation.
-// 4 is pronounced "fower", 8 is pronounced "ait", and 9 is pronounced "niner".
 func PronounceInt(d int) string {
 	if d < 0 {
 		return "minus " + PronounceInt(-d)
@@ -41,19 +40,19 @@ func PronounceInt(d int) string {
 	case 2:
 		return "two"
 	case 3:
-		return "tree"
+		return "three"
 	case 4:
-		return "fohwer"
+		return "four"
 	case 5:
-		return "fife"
+		return "five"
 	case 6:
 		return "six"
 	case 7:
 		return "seven"
 	case 8:
-		return "ait"
+		return "eight"
 	case 9:
-		return "niner"
+		return "nine"
 	}
 
 	panic(fmt.Sprintf("unexpected digit: %d", d))
