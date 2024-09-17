@@ -163,10 +163,10 @@ func run() error {
 }
 
 type Payload struct {
-	Action      string    `json:"action"`
-	Players     int       `json:"players"`
-	Address     string    `json:"address"`
-	Frequencies []float64 `json:"frequencies"`
+	Action      string   `json:"action"`
+	Players     int      `json:"players"`
+	Address     string   `json:"address"`
+	Frequencies []string `json:"frequencies"`
 }
 
 func callWebhook(httpClient *http.Client, srsClient simpleradio.Client) {
@@ -190,7 +190,7 @@ func callWebhook(httpClient *http.Client, srsClient simpleradio.Client) {
 		Action:      action,
 		Players:     playerCount,
 		Address:     srsAddress,
-		Frequencies: frequencies,
+		Frequencies: srsFrequencies,
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {

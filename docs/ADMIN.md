@@ -144,7 +144,7 @@ The body of the POST request is a JSON object with the following fields:
 - `action`: Either "run" if there is at least one player on SRS, or "stop" if there are no players on SRS.
 - `players`: The number of players on SRS.
 - `address`: The address and port of the SRS server being monitored, e.g. "srs.example.com:5002"
-- `frequencies`: A list of the SRSs frequencies being monitored. Each element is a float representing the channel's frequency in MHz.
+- `frequencies`: A list of the SRS frequencies being monitored. Each element is a string in the same format accepted by SkyEye's `srs-frequencies` option, e.g. "251.0AM"
 
 This tool may be useful for people who only need to run SkyEye for a few hours or days out of the month. By implementing a small webservice or serverless function that creates or destroys a SkyEye instance on demand, the cost of running SkyEye can be reduced to a few dollars each month.
 
