@@ -10,6 +10,18 @@
 1. Say "Anyface, Callsign 1, picture" to be told about the highest priority threats to your coalition. 
 1. Say "Anyface, Callsign 1, bogey" to get a bearing to the nearest threat to you.
 
+### ⚠️ If the bot doesn't seem to respond to you
+
+* Double check you're saying "Anyface" or the GCI callsign at the start of your message. This is a surprisingly common mistake that players often don't realize they are making!
+* Ask another player for a radio check to ensure you are clearly audible.
+
+### ⚠️ If the bot responds but doesn't seem to see you on scope
+
+* Double check that your in-game name matches the callsign you are providing to the bot.
+* If you joined shortly after the mission started, try returning to spectators and re-slotting, or disconnecting and reconnecting. It seems that joining a mission too soon may sometimes make you invisible in TacView.
+* If you haven't moved your aircraft for a few minutes, try again after moving slightly. Sometimes TacView stops sending position updates for a stationary object to reduce bandwidth usage, and the bot may not consider you to be visible as a result.
+* If your aircraft took slight damage at some point, try returning to spectators and re-slotting. You may have become invisible due to the game marking your plane as destroyed.
+
 ## A Word of Warning
 
 > _"Hello. DCS is full of bugs"_
