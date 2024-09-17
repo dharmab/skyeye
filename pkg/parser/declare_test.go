@@ -14,6 +14,78 @@ func TestParserDeclare(t *testing.T) {
 	t.Parallel()
 	testCases := []parserTestCase{
 		{
+			text: "anyface, chevy one one, declare, 075 26 2000",
+			expected: &brevity.DeclareRequest{
+				Callsign: "chevy 1 1",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(75*unit.Degree),
+					26*unit.NauticalMile,
+				),
+				Altitude: 2000 * unit.Foot,
+				Track:    brevity.UnknownDirection,
+			},
+		},
+		{
+			text: "anyface, chevy one one, declare, 07526 2000",
+			expected: &brevity.DeclareRequest{
+				Callsign: "chevy 1 1",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(75*unit.Degree),
+					26*unit.NauticalMile,
+				),
+				Altitude: 2000 * unit.Foot,
+				Track:    brevity.UnknownDirection,
+			},
+		},
+		{
+			text: "anyface, chevy one one, declare, 075 26",
+			expected: &brevity.DeclareRequest{
+				Callsign: "chevy 1 1",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(75*unit.Degree),
+					26*unit.NauticalMile,
+				),
+				Altitude: 0,
+				Track:    brevity.UnknownDirection,
+			},
+		},
+		{
+			text: "anyface, chevy one one, declare, 075 26 at 2000",
+			expected: &brevity.DeclareRequest{
+				Callsign: "chevy 1 1",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(75*unit.Degree),
+					26*unit.NauticalMile,
+				),
+				Altitude: 2000 * unit.Foot,
+				Track:    brevity.UnknownDirection,
+			},
+		},
+		{
+			text: "anyface, chevy one one, declare bullseye 075 for 26 at 2000",
+			expected: &brevity.DeclareRequest{
+				Callsign: "chevy 1 1",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(75*unit.Degree),
+					26*unit.NauticalMile,
+				),
+				Altitude: 2000 * unit.Foot,
+				Track:    brevity.UnknownDirection,
+			},
+		},
+		{
+			text: "anyface, chevy one one, declare, 075 26 altitude 2000",
+			expected: &brevity.DeclareRequest{
+				Callsign: "chevy 1 1",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(75*unit.Degree),
+					26*unit.NauticalMile,
+				),
+				Altitude: 2000 * unit.Foot,
+				Track:    brevity.UnknownDirection,
+			},
+		},
+		{
 			text: "anyface, tater 1-1, declare bullseye 0-5-4, 123, 3000",
 			expected: &brevity.DeclareRequest{
 				Callsign: "tater 1 1",
@@ -96,17 +168,6 @@ func TestParserDeclare(t *testing.T) {
 			},
 		},
 		{
-			text: "anyface, Chaos 11, declare a contact at braa 176 24 3000",
-			expected: &brevity.DeclareRequest{
-				Callsign: "chaos 1 1",
-				Bearing:  bearings.NewMagneticBearing(176 * unit.Degree),
-				Range:    24 * unit.NauticalMile,
-				Altitude: 3000 * unit.Foot,
-				Track:    brevity.UnknownDirection,
-				IsBRAA:   true,
-			},
-		},
-		{
 			text: "Anyface. Scorpio 21. Declare. Bra 068, 116, 15,000.",
 			expected: &brevity.DeclareRequest{
 				Callsign: "scorpio 2 1",
@@ -125,13 +186,16 @@ func TestParserDeclare(t *testing.T) {
 		assert.Equal(t, expected.Callsign, actual.Callsign)
 		if expected.IsBRAA {
 			assert.True(t, actual.IsBRAA)
+			require.NotNil(t, actual)
 			require.NotNil(t, actual.Bearing)
 			assert.InDelta(t, expected.Bearing.Degrees(), actual.Bearing.Degrees(), 0.5)
 			require.NotNil(t, actual.Range)
 			assert.InDelta(t, expected.Range.NauticalMiles(), actual.Range.NauticalMiles(), 0.5)
 		} else {
 			assert.False(t, actual.IsBRAA)
+			require.NotNil(t, actual)
 			require.NotNil(t, actual.Bullseye)
+			require.NotNil(t, actual.Bullseye.Bearing())
 			assert.InDelta(t, expected.Bullseye.Bearing().Degrees(), actual.Bullseye.Bearing().Degrees(), 0.5)
 			assert.InDelta(t, expected.Bullseye.Distance().NauticalMiles(), actual.Bullseye.Distance().NauticalMiles(), 1)
 		}

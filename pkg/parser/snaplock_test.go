@@ -34,6 +34,17 @@ func TestParserSnaplock(t *testing.T) {
 				),
 			},
 		},
+		{
+			text: "Anyface Fox 1 2 snaplock 058 for 147 at 3000",
+			expected: &brevity.SnaplockRequest{
+				Callsign: "fox 1 2",
+				BRA: brevity.NewBRA(
+					bearings.NewMagneticBearing(58*unit.Degree),
+					147*unit.NauticalMile,
+					3000*unit.Foot,
+				),
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
