@@ -70,7 +70,7 @@ func init() {
 	scaler.Flags().Var(logFormats, "log-format", "Log format (pretty, json)")
 
 	scaler.Flags().StringVar(&webhookURL, "webhook-url", "", "URL to call")
-	scaler.MarkFlagRequired("webhook-url")
+	_ = scaler.MarkFlagRequired("webhook-url")
 	scaler.Flags().DurationVar(&webhookTimeout, "webhook-timeout", 30*time.Second, "Webhook request timeout")
 	scaler.Flags().DurationVar(&scaleInterval, "scale-interval", 1*time.Minute, "Interval at which to check SRS player count")
 	scaler.Flags().DurationVar(&stopDelay, "stop-delay", 10*time.Minute, "Delay before sending stop requests after the SRS player count drops to 0")
@@ -157,7 +157,7 @@ func run() error {
 			wg.Wait()
 			return fmt.Errorf("stopping application due to context cancelation: %w", ctx.Err())
 		case <-ticker.C:
-			callWebhook(client, srsClient)
+			callWebhook(ctx, client, srsClient)
 		}
 	}
 }
@@ -169,7 +169,7 @@ type Payload struct {
 	Frequencies []string `json:"frequencies"`
 }
 
-func callWebhook(httpClient *http.Client, srsClient simpleradio.Client) {
+func callWebhook(ctx context.Context, httpClient *http.Client, srsClient simpleradio.Client) {
 	playerCount := srsClient.HumansOnFrequency()
 	logger := log.With().Int("players", playerCount).Logger()
 	action := "run"
@@ -180,11 +180,6 @@ func callWebhook(httpClient *http.Client, srsClient simpleradio.Client) {
 		action = "stop"
 	}
 	logger = logger.With().Str("action", action).Stringer("timeSincePlayers", timeSincePlayersSeen).Logger()
-
-	frequencies := make([]float64, 0, len(srsClient.Frequencies()))
-	for _, freq := range srsClient.Frequencies() {
-		frequencies = append(frequencies, freq.Frequency.Megahertz())
-	}
 
 	payload := Payload{
 		Action:      action,
@@ -198,7 +193,7 @@ func callWebhook(httpClient *http.Client, srsClient simpleradio.Client) {
 		return
 	}
 
-	req, err := http.NewRequest(http.MethodPost, webhookURL, bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, webhookURL, bytes.NewBuffer(body))
 	if err != nil {
 		logger.Error().Err(err).Msg("failed to create request")
 		return

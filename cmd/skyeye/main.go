@@ -362,4 +362,3 @@ func run(cmd *cobra.Command, args []string) {
 	}
 	wg.Wait()
 }
-
