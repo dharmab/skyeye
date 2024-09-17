@@ -25,7 +25,7 @@ func TestParserPicture(t *testing.T) {
 		{
 			text: "anyface, picture",
 			expected: &brevity.PictureRequest{
-				Callsign: "NULL",
+				Callsign: "",
 			},
 		},
 	}
