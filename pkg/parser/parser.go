@@ -228,10 +228,8 @@ func (p *parser) Parse(tx string) any {
 		logger.Trace().Msg("no request word found")
 		return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
 	}
-	if !foundPilotCallsign && foundRequestWord {
-		if requestWord == picture {
-			return &brevity.PictureRequest{Callsign: nullCallsign}
-		}
+	if !foundPilotCallsign && foundRequestWord && requestWord == picture {
+		return &brevity.PictureRequest{Callsign: nullCallsign}
 	}
 
 	// Try to parse a request from the remaining text.
