@@ -45,6 +45,8 @@ const (
 	tripwire   string = "tripwire"
 )
 
+const nullCallsign string = "NULL"
+
 var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, snaplock, tripwire}
 
 var alternateRequestWords = map[string]string{
@@ -218,6 +220,11 @@ func (p *parser) Parse(tx string) any {
 
 	// Handle cases where we heard our own callsign, but couldn't understand
 	// the request.
+	if !foundPilotCallsign && foundRequestWord {
+	    if requestWord == picture {
+	        return &brevity.PictureRequest{Callsign: nullCallsign}
+	    }
+    }
 	if !foundPilotCallsign {
 		logger.Trace().Msg("no pilot callsign found")
 		return &brevity.UnableToUnderstandRequest{}
