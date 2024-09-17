@@ -80,10 +80,9 @@ func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity
 	}
 
 	altitude, ok := p.parseAltitude(scanner)
-	if !ok {
-		return nil, false
+	if ok {
+		log.Debug().Int("altitude", int(altitude.Feet())).Msg("parsed altitude")
 	}
-	log.Debug().Int("altitude", int(altitude.Feet())).Msg("parsed altitude")
 
 	track := p.parseTrack(scanner)
 	log.Debug().Str("track", string(track)).Msg("parsed track")
