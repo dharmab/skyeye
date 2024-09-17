@@ -218,6 +218,9 @@ func (p *parser) Parse(tx string) any {
 
 	// Handle cases where we heard our own callsign, but couldn't understand
 	// the request.
+	if !foundPilotCallsign && foundRequestWord && requestWord == picture {
+		return &brevity.PictureRequest{Callsign: ""}
+	}
 	if !foundPilotCallsign {
 		logger.Trace().Msg("no pilot callsign found")
 		return &brevity.UnableToUnderstandRequest{}

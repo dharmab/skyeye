@@ -22,6 +22,12 @@ func TestParserPicture(t *testing.T) {
 				Callsign: "intruder 1 1",
 			},
 		},
+		{
+			text: "anyface, picture",
+			expected: &brevity.PictureRequest{
+				Callsign: "",
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
