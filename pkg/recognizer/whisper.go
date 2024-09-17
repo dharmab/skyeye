@@ -36,7 +36,7 @@ func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32, ena
 	if err != nil {
 		return "", fmt.Errorf("error creating whisper context: %w", err)
 	}
-	prompt := fmt.Sprintf("You receive commands in this template: {Either ANYFACE or %s} {PILOT CALLSIGN} {DIGITS} {'RADIO' or 'ALPHA' or 'BOGEY' or 'PICTURE' or 'DECLARE' or 'SNAPLOCK' or 'SPIKED'} {ARGUMENTS}. Parse numbers as digits. Separate numbers if there is silence between them. You may hear keywords in the arguments such as BULLSEYE or BRAA.", r.callsign)
+	prompt := fmt.Sprintf("You receive commands in this template: {Either ANYFACE or %s} {PILOT CALLSIGN} {DIGITS} {'RADIO' or 'ALPHA' or 'BOGEY' or 'PICTURE' or 'DECLARE' or 'SNAPLOCK' or 'SPIKED'} {ARGUMENTS}. Parse numbers less than 1000 as digits. Parse numbers greater than 1000 as words. Separate numbers if there is silence between them. You may hear keywords in the arguments such as BULLSEYE or BRAA.", r.callsign)
 	wCtx.SetInitialPrompt(prompt)
 
 	if wCtx.IsMultilingual() {
