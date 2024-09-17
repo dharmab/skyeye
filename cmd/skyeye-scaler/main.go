@@ -149,7 +149,7 @@ func run() error {
 
 	ticker := time.NewTicker(scaleInterval)
 	defer ticker.Stop()
-	callWebhook(client, srsClient)
+	callWebhook(ctx, client, srsClient)
 	for {
 		select {
 		case <-ctx.Done():
