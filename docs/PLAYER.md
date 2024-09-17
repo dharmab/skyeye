@@ -87,6 +87,7 @@ Some types of requests require you to provide numeric arguments.
 * Do not use ICAO pronunciation; pronounce numbers normally. Say "Three", "Five", "Nine", not "Tree", "Fife", "Niner".
 * When providing bullseye coordinates, you may either say "bullseye" before the coordinates, or omit the word "bullseye". That is, both "Bullseye Zero Six Five, Ninety-Nine" and "Zero Six Five, Ninety-Nine" are acceptable.
 * When providing bullseye coordinates, speak at a steady and measured pace with a slight pause between each number. Not too fast, not too slow. Don't mush your numbers together.
+* If the bot has trouble understanding your bullseye coordinates, you may use the separators "at" or "altitude" between the range and altitude. That is "Bullseye Zero Six Five, Ninety-Nine, at Twelve Thousand"
 
 Tips:
 

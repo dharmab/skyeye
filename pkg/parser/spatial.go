@@ -13,25 +13,13 @@ import (
 var bullseyeWords = []string{"bullseye", "bulls"}
 
 func (p *parser) parseBullseye(scanner *bufio.Scanner) *brevity.Bullseye {
-	for _, word := range bullseyeWords {
-		if IsSimilar(scanner.Text(), word) {
-			ok := scanner.Scan()
-			if !ok {
-				return nil
-			}
-		}
+	if !skipWords(scanner, bullseyeWords...) {
+		return nil
 	}
 
 	b, ok := p.parseBearing(scanner)
 	if !ok {
 		return nil
-	}
-
-	for scanner.Text() == "for" {
-		ok := scanner.Scan()
-		if !ok {
-			return nil
-		}
 	}
 
 	r, ok := p.parseRange(scanner)
@@ -45,15 +33,9 @@ func (p *parser) parseBullseye(scanner *bufio.Scanner) *brevity.Bullseye {
 var braaWords = []string{"bra", "brah", "braa"}
 
 func (p *parser) parseBRA(scanner *bufio.Scanner) (brevity.BRA, bool) {
-	for _, word := range braaWords {
-		if IsSimilar(scanner.Text(), word) {
-			ok := scanner.Scan()
-			if !ok {
-				return nil, false
-			}
-		}
+	if !skipWords(scanner, braaWords...) {
+		return nil, false
 	}
-
 	b, ok := p.parseBearing(scanner)
 	if !ok {
 		return nil, false
@@ -103,17 +85,29 @@ func (p *parser) parseBearing(scanner *bufio.Scanner) (bearings.Bearing, bool) {
 
 // parseRange parses a distance. The number must be pronounced as a whole cardinal number.
 func (p *parser) parseRange(scanner *bufio.Scanner) (unit.Length, bool) {
+	if !scanner.Scan() {
+		return 0, false
+	}
+	if !skipWords(scanner, "for") {
+		return 0, false
+	}
 	d, ok := p.parseNaturalNumber(scanner)
 	if !ok {
-		return 0 * unit.NauticalMile, false
+		return 0, false
 	}
 	return unit.Length(d) * unit.NauticalMile, true
 }
 
 func (p *parser) parseAltitude(scanner *bufio.Scanner) (unit.Length, bool) {
+	if !scanner.Scan() {
+		return 0, false
+	}
+	if !skipWords(scanner, "at", "altitude") {
+		return 0, false
+	}
 	d, ok := p.parseNaturalNumber(scanner)
 	if !ok {
-		return 0 * unit.Foot, false
+		return 0, false
 	}
 	return unit.Length(d) * unit.Foot, true
 }
@@ -149,11 +143,6 @@ func (p *parser) parseTrack(scanner *bufio.Scanner) brevity.Track {
 }
 
 func (p *parser) parseNaturalNumber(scanner *bufio.Scanner) (int, bool) {
-	if !scanner.Scan() {
-		log.Debug().Msg("nothing left to scan")
-		return 0, false
-	}
-
 	s := scanner.Text()
 	d, err := numwords.ParseInt(s)
 	if err != nil {

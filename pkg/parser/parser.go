@@ -299,3 +299,12 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 
 	return callsign, true
 }
+
+func skipWords(scanner *bufio.Scanner, words ...string) bool {
+	for _, word := range words {
+		if IsSimilar(scanner.Text(), word) {
+			return scanner.Scan()
+		}
+	}
+	return true
+}
