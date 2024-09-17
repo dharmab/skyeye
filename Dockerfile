@@ -29,5 +29,12 @@ RUN apt-get update && apt-get install -y \
   libopenblas0-openmp \
   && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /skyeye/skyeye /opt/skyeye/bin/skyeye
-COPY --from=builder /skyeye/skyeye-scaler /opt/skyeye/bin/skyeye-scaler
 ENTRYPOINT ["/opt/skyeye/bin/skyeye"]
+
+FROM debian:bookworm-slim AS skyeye-scaler
+RUN apt-get update && apt-get install -y \
+  libopus0 \
+  libsoxr0 \
+  && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /skyeye/skyeye-scaler /opt/skyeye/bin/skyeye-scaler
+ENTRYPOINT ["/opt/skyeye/bin/skyeye-scaler"]

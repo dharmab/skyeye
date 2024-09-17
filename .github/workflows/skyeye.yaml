@@ -132,17 +132,24 @@ jobs:
           if-no-files-found: error
           overwrite: true
   build-image:
-    name: Build container image
+    name: Build container images
     if: "!startsWith(github.ref, 'refs/tags/')"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Build image
+      - name: Build SkyEye image
         uses: docker/build-push-action@v6
         with:
           build-args: |
             SKYEYE_VERSION: ${{ env.GITHUB_REF_NAME }}
+          target: skyeye
+      - name: Build scaler image
+        uses: docker/build-push-action@v6
+        with:
+          build-args: |
+            SKYEYE_VERSION: ${{ env.GITHUB_REF_NAME }}
+          target: skyeye-scaler
   release:
     name: Upload release assets
     if: startsWith(github.ref, 'refs/tags/')
