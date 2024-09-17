@@ -9,21 +9,20 @@ import (
 	"github.com/dharmab/skyeye/pkg/bearings"
 )
 
-// PronounceBearing composes a text representation ofbearing.
+// PronounceBearing composes a text representation of a bearing.
 func PronounceBearing(bearing bearings.Bearing) (s string) {
 	θ := int(bearing.RoundedDegrees())
 	s = PronounceInt(θ)
 	if θ < 10 {
-		s = "zero " + s
+		s = "0 " + s
 	}
 	if θ < 100 {
-		s = "zero " + s
+		s = "0 " + s
 	}
 	return
 }
 
-// PronounceInt composes a text representation of a a sequence of digits, using aviation pronunciation.
-// 4 is pronounced "fower", 8 is pronounced "ait", and 9 is pronounced "niner".
+// PronounceInt composes a text representation of a sequence of digits.
 func PronounceInt(d int) string {
 	if d < 0 {
 		return "minus " + PronounceInt(-d)
@@ -33,30 +32,7 @@ func PronounceInt(d int) string {
 		return PronounceInt(d/10) + " " + PronounceInt(d%10)
 	}
 
-	switch d {
-	case 0:
-		return "zero"
-	case 1:
-		return "one"
-	case 2:
-		return "two"
-	case 3:
-		return "tree"
-	case 4:
-		return "fohwer"
-	case 5:
-		return "fife"
-	case 6:
-		return "six"
-	case 7:
-		return "seven"
-	case 8:
-		return "ait"
-	case 9:
-		return "niner"
-	}
-
-	panic(fmt.Sprintf("unexpected digit: %d", d))
+	return strconv.Itoa(d)
 }
 
 var defaultDecimalSeparator = "point"
