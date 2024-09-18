@@ -185,7 +185,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Build and push image
-        uses: ./.github/actions/docker
+        uses: ./.github/actions/build-container
         with:
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
@@ -193,7 +193,7 @@ jobs:
           target: skyeye
           skyeye-version: ${{ env.GITHUB_REF_NAME }}
       - name: Build and push scaler image
-        uses: ./.github/actions/docker
+        uses: ./.github/actions/build-container
         with:
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
