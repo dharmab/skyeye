@@ -103,6 +103,36 @@ func (c *client) ClientsOnFrequency() int {
 	return count
 }
 
+func isBot(client types.ClientInfo) bool {
+	return strings.HasSuffix(client.Name, "[BOT]")
+}
+
+// HumansOnFrequency implements [Client.HumansOnFrequency].
+func (c *client) HumansOnFrequency() int {
+	c.clientsLock.RLock()
+	defer c.clientsLock.RUnlock()
+	count := 0
+	for _, client := range c.clients {
+		if ok := c.clientInfo.RadioInfo.IsOnFrequency(client.RadioInfo); ok && !isBot(client) {
+			count++
+		}
+	}
+	return count
+}
+
+// BotsOnFrequency implements [Client.BotsOnFrequency].
+func (c *client) BotsOnFrequency() int {
+	c.clientsLock.RLock()
+	defer c.clientsLock.RUnlock()
+	count := 0
+	for _, client := range c.clients {
+		if ok := c.clientInfo.RadioInfo.IsOnFrequency(client.RadioInfo); ok && isBot(client) {
+			count++
+		}
+	}
+	return count
+}
+
 // IsOnFrequency implements [Client.IsOnFrequency].
 func (c *client) IsOnFrequency(name string) bool {
 	c.clientsLock.RLock()

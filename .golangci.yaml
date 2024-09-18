@@ -26,6 +26,7 @@ linters:
 linters-settings:
   gosec:
     excludes:
+      - G107 # Intentional use of custom webhooks
       - G115 # https://github.com/securego/gosec/issues/1187
       - G404 # We aren't using math/rand/v2 for secure random numbers in this project
 issues:

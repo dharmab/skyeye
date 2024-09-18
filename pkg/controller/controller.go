@@ -121,7 +121,7 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 		}
 		if coalition == c.coalition.Opposite() {
 			group.SetDeclaration(brevity.Hostile)
-			if c.srsClient.ClientsOnFrequency() > 0 {
+			if c.srsClient.HumansOnFrequency() > 0 {
 				log.Info().Stringer("group", group).Msg("broadcasting FADED call")
 				c.out <- brevity.FadedCall{Group: group}
 			} else {

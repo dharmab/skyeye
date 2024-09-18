@@ -16,20 +16,12 @@ else
 OS_DISTRIBUTION := $(shell lsb_release -si)
 endif
 
-# Override Windows Go environment with MSYS2 UCRT64 Go environment
-MSYS2_GOPATH = /ucrt64
-MSYS2_GOROOT = /ucrt64/lib/go
-MSYS2_GO = /ucrt64/bin/go
-ifeq ($(OS_DISTRIBUTION),Windows)
-GO = $(MSYS2_GO)
-endif
-
 # Source code paths
 SKYEYE_PATH = $(shell pwd)
 SKYEYE_SOURCES = $(shell find . -type f -name '*.go')
 SKYEYE_SOURCES += go.mod go.sum
-SKYEYE_EXE = skyeye.exe
-SKYEYE_ELF = skyeye
+SKYEYE_BIN = skyeye
+SKYEYE_SCALER_BIN = skyeye-scaler
 
 WHISPER_CPP_PATH = third_party/whisper.cpp
 LIBWHISPER_PATH = $(WHISPER_CPP_PATH)/libwhisper.a
@@ -38,10 +30,10 @@ WHISPER_CPP_REPO = https://github.com/dharmab/whisper.cpp.git
 WHISPER_CPP_VERSION = v1.6.2-openmp
 
 # Compiler variables and flags
+GOBUILDVARS = GOARCH=$(GOARCH)
 BUILD_VARS = CGO_ENABLED=1 \
   C_INCLUDE_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" \
-  LIBRARY_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" \
-  GOARCH=$(GOARCH)
+  LIBRARY_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)"
 BUILD_FLAGS = -tags nolibopusfile
 
 # Populate --version from Git tag
@@ -50,7 +42,14 @@ SKYEYE_VERSION=$(shell git describe --tags || echo devel)
 endif
 LDFLAGS= -X "main.Version=$(SKYEYE_VERSION)"
 
+# Windows-specific settings
 ifeq ($(OS_DISTRIBUTION),Windows)
+# Compile EXE instead of ELF
+SKYEYE_BIN = skyeye.exe
+SKYEYE_SCALER_BIN = skyeye-scaler.exe
+# Override Windows Go environment with MSYS2 UCRT64 Go environment
+GO = /ucrt64/bin/go
+GOBUILDVARS += GOROOT="/ucrt64/lib/go" GOPATH="/ucrt64"
 # Static linking on Windows to avoid MSYS2 dependency at runtime
 LIBRARIES = opus soxr openblas
 CFLAGS = $(pkg-config $(LIBRARIES) --cflags --static)
@@ -61,13 +60,10 @@ endif
 
 BUILD_VARS += LDFLAGS='$(LDFLAGS)'
 BUILD_FLAGS += -ldflags '$(LDFLAGS)'
+GO := $(GOBUILDVARS) $(GO)
 
 .PHONY: default
-ifeq ($(OS_DISTRIBUTION),Windows)
-default: $(SKYEYE_EXE)
-else
-default: $(SKYEYE_ELF)
-endif
+default: $(SKYEYE_BIN)
 
 .PHONY: install-msys2-dependencies
 install-msys2-dependencies:
@@ -125,11 +121,11 @@ whisper: $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 generate:
 	$(BUILD_VARS) $(GO) generate $(BUILD_FLAGS) ./...
 
-$(SKYEYE_EXE): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
-	GOROOT="$(MSYS2_GOROOT)" GOPATH="$(MSYS2_GOPATH)" $(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
-
-$(SKYEYE_ELF): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
+$(SKYEYE_BIN): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
+
+$(SKYEYE_SCALER_BIN): generate $(SKYEYE_SOURCES)
+	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye-scaler/
 
 .PHONY: test
 test: generate
@@ -156,7 +152,7 @@ format:
 
 .PHONY: mostlyclean
 mostlyclean:
-	rm -f "$(SKYEYE_EXE)" "$(SKYEYE_ELF)"
+	rm -f "$(SKYEYE_BIN)" "$(SKYEYE_SCALER_BIN)"
 	find . -type f -name 'mock_*.go' -delete
 
 .PHONY: clean
