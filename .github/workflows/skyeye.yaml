@@ -97,6 +97,7 @@ jobs:
             mingw-w64-ucrt-x86_64-openblas
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-go
+            mingw-w64-ucrt-x86_64-curl
             zip
       - name: Build whisper.cpp
         uses: ./.github/actions/build-whisper
@@ -115,7 +116,7 @@ jobs:
           mkdir -p dist/skyeye-windows-amd64/docs/
           cp skyeye.exe dist/skyeye-windows-amd64/skyeye.exe
           cp skyeye-scaler.exe dist/skyeye-windows-amd64/skyeye-scaler.exe
-          curl -fsL https://github.com/winsw/winsw/releases/download/v2.12.0/WinSW-x64.exe -o dist/winsw.exe
+          curl -fsL https://github.com/winsw/winsw/releases/download/v2.12.0/WinSW-x64.exe -o dist/skyeye-windows-amd64/winsw.exe
           cp README.md dist/skyeye-windows-amd64/README.md
           cp LICENSE dist/skyeye-windows-amd64/LICENSE
           cp config.yaml dist/skyeye-windows-amd64/config.yaml
