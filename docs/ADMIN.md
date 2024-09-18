@@ -119,7 +119,7 @@ Outbound ports typically required by SkyEye:
 - `5002/UDP`: SRS Audio
 - `42674/TCP`: TacView Real-Time Telemetry
 
-You may also need `443/TCP` outbound during installation to download from GitHub and Hugging Face.
+You may also need `443/TCP` outbound during installation to download from GitHub and Hugging Face. If you use the autoscaler, you'll need to allow outbound connections to your webhook URL.
 
 SkyEye does not require any inbound ports during runtime.
 
@@ -144,9 +144,33 @@ The body of the POST request is a JSON object with the following fields:
 - `action`: Either "run" if there is at least one player on SRS, or "stop" if there are no players on SRS.
 - `players`: The number of players on SRS.
 - `address`: The address and port of the SRS server being monitored, e.g. "srs.example.com:5002"
-- `frequencies`: A list of the SRS frequencies being monitored. Each element is a string in the same format accepted by SkyEye's `srs-frequencies` option, e.g. "251.0AM"
+- `frequencies`: A list of the SRSs frequencies being monitored. Each element is a float representing the channel's frequency in MHz.
 
-This tool may be useful for people who only need to run SkyEye for a few hours or days out of the month. By implementing a small webservice or serverless function that creates or destroys a SkyEye instance on demand, the cost of running SkyEye can be reduced to a few dollars each month.
+By implementing a small webservice or serverless function that creates or destroys a SkyEye instance on demand, the cost of running SkyEye can be significantly reduced. This is particularly useful for servers that are only active for a few hours a week, such as a private squadron server.
+
+An example WinSW service definition is provided in the Windows release archive. You can edit this example file to include your webhook URL and the frequencies you want to monitor, then install and run it it using the included WinSW executable:
+
+```batch
+:: Install SkyEye Scaler
+./winsw.exe install skyeye-service.yaml
+
+:: Start SkyEye Scaler
+./winsw.exe start skyeye-service.yaml
+
+:: Check if SkyEye Scaler is running
+./winsw.exe status skyeye-service.yaml
+
+:: Stop SkyEye Scaler
+./winsw.exe stop skyeye-service.yaml
+
+:: Restart SkyEye Scaler
+./winsw.exe restart skyeye-service.yaml
+
+:: Uninstall SkyEye Scaler
+./winsw.exe uninstall skyeye-service.yaml
+```
+
+The scaler is also available as a container image at `ghcr.io/dharmab/skyeye-scaler`. A Linux binary is also provided in the Linux release archive, although without a service definition.
 
 # Installation
 
@@ -212,9 +236,9 @@ WantedBy=multi-user.target
 
 Edit the config file as required using `sudoedit /etc/skyeye/config.yaml`.
 
-### Container (Experimental)
+### Container
 
-An experimental container image is available at `ghcr.io/dharmab/skyeye`. This image is only functional on Linux; it will not work correctly on Windows or macOS. It is subject to the same dedicated CPU requirements as the native binary.
+A container image is available at `ghcr.io/dharmab/skyeye`. This image is only functional on Linux; it will not work correctly on Windows or macOS. It is subject to the same dedicated CPU requirements as the native binary. The `skyeye` binary is the container entrypoint. You will need to mount a whisper model into the container.
 
 ### Service Management
 
