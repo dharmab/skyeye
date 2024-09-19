@@ -169,7 +169,7 @@ func (s *streamer) handleLine(line string) error {
 		return fmt.Errorf("error parsing object update: %w", err)
 	}
 
-	if update.IsGlobal {
+	if update.ID == types.GlobalObjectID {
 		var updateErr error
 		if _, ok := update.Properties[properties.ReferenceTime]; ok {
 			referenceTime, err := time.Parse(time.RFC3339, update.Properties[properties.ReferenceTime])
@@ -184,11 +184,16 @@ func (s *streamer) handleLine(line string) error {
 				s.started = true
 			}
 		}
+
+		refPointChanged := false
 		if _, ok := update.Properties[properties.ReferenceLongitude]; ok {
 			longitude, err := strconv.ParseFloat(update.Properties[properties.ReferenceLongitude], 64)
 			if err != nil {
 				logger.Error().Err(err).Msg("error parsing reference longitude")
 				updateErr = errors.Join(updateErr, fmt.Errorf("error parsing reference longitude: %w", err))
+			}
+			if s.referencePoint.Lon() != longitude {
+				refPointChanged = true
 			}
 			s.referencePoint = orb.Point{longitude, s.referencePoint.Lat()}
 			logger.Trace().Float64("longitude", longitude).Msg("reference point updated")
@@ -199,8 +204,14 @@ func (s *streamer) handleLine(line string) error {
 				logger.Error().Err(err).Msg("error parsing reference latitude")
 				updateErr = errors.Join(updateErr, fmt.Errorf("error parsing reference latitude: %w", err))
 			}
+			if s.referencePoint.Lat() != latitude {
+				refPointChanged = true
+			}
 			s.referencePoint = orb.Point{s.referencePoint.Lon(), latitude}
 			logger.Trace().Float64("latitude", latitude).Msg("reference point updated")
+		}
+		if refPointChanged {
+			logger.Info().Float64("longitude", s.referencePoint.Lon()).Float64("latitude", s.referencePoint.Lat()).Msg("reference point updated")
 		}
 		if updateErr != nil {
 			return fmt.Errorf("error updating global object: %w", updateErr)
@@ -221,12 +232,38 @@ func (s *streamer) handleLine(line string) error {
 		return nil
 	}
 
-	if _, ok := s.objects[update.ID]; !ok {
+	if o, ok := s.objects[update.ID]; !ok {
 		s.objects[update.ID] = types.NewObject(update.ID)
+	} else {
+		// If ID is being reused for a different object, invalidate the old object.
+		for _, property := range []string{
+			properties.Pilot,
+			properties.Group,
+			properties.Name,
+			properties.Color,
+			properties.Coalition,
+		} {
+			oldValue, ok := o.GetProperty(property)
+			if ok && oldValue != "" {
+				if newValue, ok := update.Properties[property]; ok && newValue != oldValue {
+					logger.Debug().
+						Uint64("ID", update.ID).
+						Str("property", property).
+						Str("old", oldValue).
+						Str("new", newValue).
+						Msg("static property changed (ID reused for new object?)")
+					s.removals <- s.objects[update.ID]
+					s.objects[update.ID] = types.NewObject(update.ID)
+					break
+				}
+			}
+		}
 	}
-	for k, v := range update.Properties {
-		s.objects[update.ID].SetProperty(k, v)
+
+	if err = s.objects[update.ID].Update(update, s.referencePoint); err != nil {
+		return fmt.Errorf("error updating object: %w", err)
 	}
+
 	return nil
 }
 
@@ -367,11 +404,13 @@ func (s *streamer) buildUpdate(object *types.Object) (*sim.Updated, error) {
 		callsign = fmt.Sprintf("Unit %d", object.ID)
 	}
 
-	frame := trackfiles.Frame{
-		Time:     s.cursorTime,
-		Point:    coordinates.Location,
-		Altitude: coordinates.Altitude,
-		Heading:  coordinates.Heading,
+	frame := trackfiles.Frame{Time: s.cursorTime}
+	frame.Point = orb.Point{coordinates.Location.Lon(), coordinates.Location.Lat()}
+	if coordinates.Altitude != nil {
+		frame.Altitude = *coordinates.Altitude
+	}
+	if coordinates.Heading != nil {
+		frame.Heading = *coordinates.Heading
 	}
 
 	return &sim.Updated{

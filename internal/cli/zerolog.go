@@ -9,10 +9,9 @@ import (
 )
 
 func SetupZerolog(levelName, formatName string) {
-	if strings.EqualFold(formatName, "json") {
+	if strings.EqualFold(formatName, "pretty") {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
-
 	var level zerolog.Level
 	switch strings.ToLower(levelName) {
 	case "error":
