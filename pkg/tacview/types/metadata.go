@@ -16,13 +16,12 @@ func ParseTimeFrame(line string) (time.Duration, error) {
 	if err != nil {
 		return 0, fmt.Errorf("error parsing duration: %w", err)
 	}
-	duration := time.Duration(seconds) * time.Second
+	duration := time.Duration(seconds*1000) * time.Millisecond
 	return duration, nil
 }
 
 type ObjectUpdate struct {
 	ID         uint64
-	IsGlobal   bool
 	IsRemoval  bool
 	Properties map[string]string
 }
@@ -38,31 +37,47 @@ func ParseObjectUpdate(line string) (*ObjectUpdate, error) {
 	}
 
 	idStr, propertiesStr, _ := strings.Cut(line, ",")
-	id, err := strconv.ParseUint(idStr, 16, 64)
+
+	id, err := parseID(idStr)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing object ID: %w", err)
-	}
-	if id > math.MaxInt {
-		return nil, fmt.Errorf("object ID is too large: %d", id)
+		return nil, err
 	}
 	update.ID = id
-	if id == GlobalObjectID {
-		update.IsGlobal = true
-	}
 
-	update.Properties = make(map[string]string)
-	if propertiesStr != "" {
-		if strings.Contains(propertiesStr, `\,`) {
-			propertiesStr = strings.ReplaceAll(propertiesStr, `\,`, "?")
-		}
-		for _, prop := range strings.Split(propertiesStr, ",") {
-			key, value, ok := strings.Cut(prop, "=")
-			if !ok {
-				return nil, fmt.Errorf("error parsing property: %s", prop)
-			}
-			update.Properties[key] = strings.TrimSpace(value)
-		}
+	properties, err := parseProperties(propertiesStr)
+	if err != nil {
+		return nil, err
 	}
+	update.Properties = properties
 
 	return update, nil
+}
+
+func parseID(idStr string) (uint64, error) {
+	id, err := strconv.ParseUint(idStr, 16, 64)
+	if err != nil {
+		return 0, fmt.Errorf("error parsing object ID: %w", err)
+	}
+	if id > math.MaxInt {
+		return 0, fmt.Errorf("object ID is too large: %d", id)
+	}
+	return id, nil
+}
+
+func parseProperties(propertiesStr string) (map[string]string, error) {
+	properties := make(map[string]string)
+	if propertiesStr == "" {
+		return properties, nil
+	}
+	if strings.Contains(propertiesStr, `\,`) {
+		propertiesStr = strings.ReplaceAll(propertiesStr, `\,`, "?")
+	}
+	for _, prop := range strings.Split(propertiesStr, ",") {
+		key, value, ok := strings.Cut(prop, "=")
+		if !ok {
+			return nil, fmt.Errorf("error parsing property: %s", prop)
+		}
+		properties[key] = strings.TrimSpace(value)
+	}
+	return properties, nil
 }
