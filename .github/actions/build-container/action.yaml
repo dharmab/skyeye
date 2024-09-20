@@ -41,10 +41,10 @@ runs:
       with:
         build-args: |
           SKYEYE_VERSION: ${{ inputs.skyeye-version }}
-        target: skyeye-scaler
-        push: true
+        target: ${{ inputs.target }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        push: true
     - name: Generate artifact attestation
       uses: actions/attest-build-provenance@v1
       with:
