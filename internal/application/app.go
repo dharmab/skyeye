@@ -8,9 +8,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/DCS-gRPC/go-bindings/dcs/v0/coalition"
+	"github.com/DCS-gRPC/go-bindings/dcs/v0/mission"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/commands"
 	"github.com/dharmab/skyeye/pkg/composer"
 	"github.com/dharmab/skyeye/pkg/controller"
 	"github.com/dharmab/skyeye/pkg/parser"
@@ -22,6 +25,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/synthesizer/speakers"
 	tacview "github.com/dharmab/skyeye/pkg/tacview/client"
 	"github.com/rs/zerolog/log"
+	"google.golang.org/grpc"
 )
 
 // Application is the interface for running the SkyEye application.
@@ -38,6 +42,8 @@ type app struct {
 	tacviewClient tacview.Client
 	// recognizer provides speech-to-text recognition
 	recognizer recognizer.Recognizer
+	// chatListener listens for chat messages
+	chatListener *commands.ChatListener
 	// parser converts English brevity text to internal representations
 	parser parser.Parser
 	// radar tracks contacts and provides geometric computations
@@ -57,6 +63,25 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	starts := make(chan sim.Started)
 	updates := make(chan sim.Updated)
 	fades := make(chan sim.Faded)
+
+	var chatListener *commands.ChatListener
+	if config.EnableGRPC {
+		log.Info().Str("address", config.GRPCAddress).Msg("constructing gRPC clients")
+		grpcClient, err := grpc.NewClient(config.GRPCAddress)
+		if err != nil {
+			return nil, err
+		}
+		missionClient := mission.NewMissionServiceClient(grpcClient)
+		coalitionClient := coalition.NewCoalitionServiceClient(grpcClient)
+
+		log.Info().Msg("constructing chat listener")
+		chatListener = commands.NewChatListener(
+			config.Coalition,
+			config.Callsign,
+			missionClient,
+			coalitionClient,
+		)
+	}
 
 	radios := make([]srs.Radio, 0, len(config.SRSFrequencies))
 	for _, radioFrequency := range config.SRSFrequencies {
@@ -150,6 +175,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 
 	log.Info().Msg("constructing application")
 	app := &app{
+		chatListener:  chatListener,
 		srsClient:     srsClient,
 		tacviewClient: tacviewClient,
 		recognizer:    recognizer,
@@ -262,6 +288,15 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitG
 		defer wg.Done()
 		a.transmit(ctx, txAudioChan)
 	}()
+
+	if a.chatListener != nil {
+		log.Info().Msg("starting chat listener routine")
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			a.chatListener.Run(ctx, rxTextChan)
+		}()
+	}
 
 	return nil
 }
