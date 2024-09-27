@@ -1,5 +1,7 @@
 package brevity
 
+import "fmt"
+
 type ContactCategory int
 
 const (
@@ -17,9 +19,20 @@ type BogeyDopeRequest struct {
 	Filter ContactCategory
 }
 
+func (r BogeyDopeRequest) String() string {
+	return fmt.Sprintf("BOGEY DOPE for %s: filter %v", r.Callsign, r.Filter)
+}
+
 type BogeyDopeResponse struct {
 	// Callsign of the friendly aircraft requesting the BOGEY DOPE.
 	Callsign string
 	// Group which is closest to the fighter. If there are no eligible groups, this may be nil.
 	Group Group
+}
+
+func (r BogeyDopeResponse) String() string {
+	if r.Group == nil {
+		return fmt.Sprintf("BOGEY DOPE for %s: nil", r.Callsign)
+	}
+	return fmt.Sprintf("BOGEY DOPE for %s: group %s", r.Callsign, r.Group)
 }

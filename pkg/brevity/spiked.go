@@ -1,6 +1,8 @@
 package brevity
 
 import (
+	"fmt"
+
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/martinlindhe/unit"
 )
@@ -12,6 +14,10 @@ type SpikedRequest struct {
 	Callsign string
 	// Bearing to the radar spike.
 	Bearing bearings.Bearing
+}
+
+func (r SpikedRequest) String() string {
+	return fmt.Sprintf("SPIKED for %s: bearing %s", r.Callsign, r.Bearing)
 }
 
 // SpikedResponse reports any contacts within ±30 degrees of a reported radar spike.
@@ -35,4 +41,21 @@ type SpikedResponse struct {
 	Contacts int
 	// Reported spike bearing. This is used if the response did not correlate to a group.
 	Bearing bearings.Bearing
+}
+
+func (r SpikedResponse) String() string {
+	if !r.Status {
+		return fmt.Sprintf("SPIKED for %s: bearing %s", r.Callsign, r.Bearing)
+	}
+
+	return fmt.Sprintf(
+		"SPIKED for %s: range %.0f, altitude %.0f, aspect %s, track %s, declaration %s, contacts %d",
+		r.Callsign,
+		r.Range.NauticalMiles(),
+		r.Altitude.Feet(),
+		r.Aspect,
+		r.Track,
+		r.Declaration,
+		r.Contacts,
+	)
 }

@@ -7,9 +7,23 @@ type UnableToUnderstandRequest struct {
 	Callsign string
 }
 
+func (r UnableToUnderstandRequest) String() string {
+	if r.Callsign != "" {
+		return "UNABLE TO UNDERSTAND: callsign " + r.Callsign
+	}
+	return "UNABLE TO UNDERSTAND: unknown callsign"
+}
+
 // SayAgainResponse is a generic response asking the caller to repeat their last transmission.
 type SayAgainResponse struct {
 	// Callsign of the friendly aircraft that made the request.
 	// This may be empty if the GCI is unsure of the caller's identity.
 	Callsign string
+}
+
+func (r SayAgainResponse) String() string {
+	if r.Callsign != "" {
+		return "SAY AGAIN: callsign " + r.Callsign
+	}
+	return "SAY AGAIN: unknown callsign"
 }

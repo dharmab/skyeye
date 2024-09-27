@@ -202,3 +202,24 @@ func TestParserDeclare(t *testing.T) {
 		assert.Equal(t, expected.Track, actual.Track)
 	})
 }
+
+func TestParserDeclareUnable(t *testing.T) {
+	t.Parallel()
+	testCases := []parserTestCase{
+		{
+			text: "anyface, 140, declare BULLSEYE 058146",
+			expected: &brevity.UnableToUnderstandRequest{
+				Callsign: "1 4 0",
+			},
+		},
+	}
+
+	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
+		t.Helper()
+		expected := test.expected.(*brevity.UnableToUnderstandRequest)
+		assert.NotNil(t, expected)
+		actual := request.(*brevity.UnableToUnderstandRequest)
+		assert.NotNil(t, actual)
+		require.Equal(t, expected.Callsign, actual.Callsign)
+	})
+}

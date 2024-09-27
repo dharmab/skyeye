@@ -1,9 +1,18 @@
 package brevity
 
+import "fmt"
+
 // PictureRequest is a request for an updated PICTURE.
 type PictureRequest struct {
 	// Callsign of the friendly aircraft requesting the PICTURE.
 	Callsign string
+}
+
+func (r PictureRequest) String() string {
+	if r.Callsign == "" {
+		return "PICTURE"
+	}
+	return "PICTURE for " + r.Callsign
 }
 
 // PICTURE is a report to establish a tactical air image.
@@ -13,4 +22,8 @@ type PictureResponse struct {
 	Count int
 	// Groups included in the PICTURE. This is a maximum of 3 groups.
 	Groups []Group
+}
+
+func (r PictureResponse) String() string {
+	return fmt.Sprintf("PICTURE: count %d, groups %s", r.Count, r.Groups)
 }

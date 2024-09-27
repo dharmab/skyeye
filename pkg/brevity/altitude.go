@@ -1,6 +1,7 @@
 package brevity
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/dharmab/skyeye/pkg/spatial"
@@ -11,6 +12,10 @@ import (
 type Stack struct {
 	Altitude unit.Length
 	Count    int
+}
+
+func (s Stack) String() string {
+	return fmt.Sprintf("%d %.0f", s.Count, s.Altitude.Feet())
 }
 
 // Stacks creates altitude STACKS from altitudes.

@@ -61,6 +61,9 @@ var (
 	threatMonitoringInterval     time.Duration
 	threatMonitoringRequiresSRS  bool
 	mandatoryThreatRadiusNM      float64
+	enableTracing                bool
+	discordWebhookID             string
+	discordWebhookToken          string
 )
 
 func init() {
@@ -71,7 +74,7 @@ func init() {
 	skyeye.Flags().Var(logLevelFlag, "log-level", "Log level (error, warn, info, debug, trace)")
 	logFormats := cli.NewEnum(&logFormat, "Format", "pretty", "json")
 	skyeye.Flags().Var(logFormats, "log-format", "Log format (pretty, json)")
-	skyeye.Flags().BoolVar(&enableTranscriptionLogging, "enable-transcription-logging", true, "Include transcriptions of SRS transmissions in logs")
+	skyeye.Flags().BoolVar(&enableTranscriptionLogging, "enable-transcription-logging", true, "Include transcriptions of SRS transmissions in logs and traces")
 
 	// Telemetry
 	skyeye.Flags().StringVar(&acmiFile, "acmi-file", "", "path to ACMI file")
@@ -111,6 +114,12 @@ func init() {
 	skyeye.Flags().DurationVar(&threatMonitoringInterval, "threat-monitoring-interval", 3*time.Minute, "How often to broadcast THREAT")
 	skyeye.Flags().Float64Var(&mandatoryThreatRadiusNM, "mandatory-threat-radius", 25, "Briefed radius for mandatory THREAT calls, in nautical miles")
 	skyeye.Flags().BoolVar(&threatMonitoringRequiresSRS, "threat-monitoring-requires-srs", true, "Require aircraft to be on SRS to receive THREAT calls. Only useful to disable when debugging")
+
+	// Tracing
+	skyeye.Flags().BoolVar(&enableTracing, "tracing", false, "Enable tracing")
+	skyeye.Flags().StringVar(&discordWebhookID, "discord-webhook-id", "", "Discord webhook ID for tracing")
+	skyeye.Flags().StringVar(&discordWebhookToken, "discord-webhook-token", "", "Discord webhook token for tracing")
+	skyeye.MarkFlagsRequiredTogether("discord-webhook-id", "discord-webhook-token")
 }
 
 // Top-level CLI command.
@@ -349,6 +358,9 @@ func run(cmd *cobra.Command, args []string) {
 		ThreatMonitoringInterval:     threatMonitoringInterval,
 		ThreatMonitoringRequiresSRS:  threatMonitoringRequiresSRS,
 		MandatoryThreatRadius:        unit.Length(mandatoryThreatRadiusNM) * unit.NauticalMile,
+		EnableTracing:                enableTracing,
+		DiscordWebhookID:             discordWebhookID,
+		DiscorbWebhookToken:          discordWebhookToken,
 	}
 
 	log.Info().Msg("starting application")

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"time"
 
 	"github.com/dharmab/skyeye/internal/conf"
@@ -10,14 +11,14 @@ import (
 )
 
 // HandlePicture implements Controller.HandlePicture.
-func (c *controller) HandlePicture(request *brevity.PictureRequest) {
+func (c *controller) HandlePicture(ctx context.Context, request *brevity.PictureRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 
-	c.broadcastPicture(&logger, true)
+	c.broadcastPicture(ctx, &logger, true)
 }
 
-func (c *controller) broadcastPicture(logger *zerolog.Logger, forceBroadcast bool) {
+func (c *controller) broadcastPicture(ctx context.Context, logger *zerolog.Logger, forceBroadcast bool) {
 	if c.srsClient.ClientsOnFrequency() == 0 && !forceBroadcast {
 		logger.Debug().Msg("skipping PICTURE broadcast because no clients are on frequency")
 		return
@@ -33,7 +34,7 @@ func (c *controller) broadcastPicture(logger *zerolog.Logger, forceBroadcast boo
 		logger.Info().Msg("skipping PICTURE broadcast because situation has not changed since last broadcast")
 	} else {
 		logger.Info().Int("groups", len(groups)).Int("count", count).Msg("broadcasting PICTURE")
-		c.out <- brevity.PictureResponse{Count: count, Groups: groups}
+		c.calls <- NewCall(ctx, brevity.PictureResponse{Count: count, Groups: groups})
 	}
 
 	c.pictureBroadcastDeadline = time.Now().Add(c.pictureBroadcastInterval)

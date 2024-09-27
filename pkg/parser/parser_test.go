@@ -52,6 +52,7 @@ func runParserTestCases(
 	for _, test := range testCases {
 		t.Run(test.text, func(t *testing.T) {
 			t.Parallel()
+			t.Helper()
 			actual := p.Parse(test.text)
 			require.IsType(t, test.expected, actual)
 			fn(t, test, actual)

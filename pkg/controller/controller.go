@@ -9,7 +9,9 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
+	"github.com/dharmab/skyeye/pkg/traces"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
+	"github.com/lithammer/shortuuid/v3"
 	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
@@ -19,29 +21,41 @@ var (
 	highestAltitude = unit.Length(100000) * unit.Foot
 )
 
+type Call struct {
+	Context context.Context
+	Call    any
+}
+
+func NewCall(ctx context.Context, call any) Call {
+	return Call{
+		Context: ctx,
+		Call:    call,
+	}
+}
+
 // Controller handles requests for GCI service.
 type Controller interface {
 	// Run starts the controller's control loops. It should be called exactly once. It blocks until the context is canceled.
 	// The controller publishes responses to the given channel.
-	Run(ctx context.Context, out chan<- any)
+	Run(ctx context.Context, out chan<- Call)
 	// HandleAlphaCheck handles an ALPHA CHECK by reporting the position of the requesting aircraft.
-	HandleAlphaCheck(*brevity.AlphaCheckRequest)
+	HandleAlphaCheck(context.Context, *brevity.AlphaCheckRequest)
 	// HandleBogeyDope handles a BOGEY DOPE by reporting the closest enemy group to the requesting aircraft.
-	HandleBogeyDope(*brevity.BogeyDopeRequest)
+	HandleBogeyDope(context.Context, *brevity.BogeyDopeRequest)
 	// HandleDeclare handles a DECLARE by reporting information about the target group.
-	HandleDeclare(*brevity.DeclareRequest)
+	HandleDeclare(context.Context, *brevity.DeclareRequest)
 	// HandlePicture handles a PICTURE by reporting a tactical air picture.
-	HandlePicture(*brevity.PictureRequest)
+	HandlePicture(context.Context, *brevity.PictureRequest)
 	// HandleRadioCheck handles a RADIO CHECK by responding to the requesting aircraft.
-	HandleRadioCheck(*brevity.RadioCheckRequest)
+	HandleRadioCheck(context.Context, *brevity.RadioCheckRequest)
 	// HandleSnaplock handles a SNAPLOCK by reporting information about the target group.
-	HandleSnaplock(*brevity.SnaplockRequest)
+	HandleSnaplock(context.Context, *brevity.SnaplockRequest)
 	// HandleSpiked handles a SPIKED by reporting any enemy groups in the direction of the radar spike.
-	HandleSpiked(*brevity.SpikedRequest)
+	HandleSpiked(context.Context, *brevity.SpikedRequest)
 	// HandleTripwire handles a TRIPWIRE... by not implementing it LOL
-	HandleTripwire(*brevity.TripwireRequest)
+	HandleTripwire(context.Context, *brevity.TripwireRequest)
 	// HandleUnableToUnderstand handles requests where the wake word was recognized but the request could not be understood, by asking players on the channel to repeat their message.
-	HandleUnableToUnderstand(*brevity.UnableToUnderstandRequest)
+	HandleUnableToUnderstand(context.Context, *brevity.UnableToUnderstandRequest)
 }
 
 type controller struct {
@@ -80,8 +94,8 @@ type controller struct {
 	// merges tracks which contacts are in the merge.
 	merges *mergeTracker
 
-	// out is the channel to publish responses and calls to.
-	out chan<- any
+	// calls is the channel to publish responses and calls to.
+	calls chan<- Call
 }
 
 func New(
@@ -111,8 +125,8 @@ func New(
 }
 
 // Run implements [Controller.Run].
-func (c *controller) Run(ctx context.Context, out chan<- any) {
-	c.out = out
+func (c *controller) Run(ctx context.Context, calls chan<- Call) {
+	c.calls = calls
 
 	log.Info().Msg("attaching callbacks")
 	c.scope.SetFadedCallback(func(group brevity.Group, coalition coalitions.Coalition) {
@@ -123,7 +137,7 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 			group.SetDeclaration(brevity.Hostile)
 			if c.srsClient.HumansOnFrequency() > 0 {
 				log.Info().Stringer("group", group).Msg("broadcasting FADED call")
-				c.out <- brevity.FadedCall{Group: group}
+				c.calls <- NewCall(traces.NewRequestContext(), brevity.FadedCall{Group: group})
 			} else {
 				log.Debug().Msg("skipping FADED call because no clients are on frequency")
 			}
@@ -137,7 +151,7 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 	for _, rf := range c.srsClient.Frequencies() {
 		frequencies = append(frequencies, rf.Frequency)
 	}
-	c.out <- brevity.SunriseCall{Frequencies: frequencies}
+	c.calls <- NewCall(traces.WithTraceID(ctx, shortuuid.New()), brevity.SunriseCall{Frequencies: frequencies})
 
 	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
@@ -150,11 +164,11 @@ func (c *controller) Run(ctx context.Context, out chan<- any) {
 			c.scope.SetRemovedCallback(nil)
 			return
 		case <-ticker.C:
-			c.broadcastMerges()
-			c.broadcastThreats()
+			c.broadcastMerges(traces.WithTraceID(ctx, shortuuid.New()))
+			c.broadcastThreats(traces.WithTraceID(ctx, shortuuid.New()))
 			if c.enableAutomaticPicture && time.Now().After(c.pictureBroadcastDeadline) {
 				logger := log.With().Logger()
-				c.broadcastPicture(&logger, false)
+				c.broadcastPicture(traces.WithTraceID(ctx, shortuuid.New()), &logger, false)
 			}
 		}
 	}

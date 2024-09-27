@@ -1,6 +1,10 @@
 package brevity
 
-import "github.com/martinlindhe/unit"
+import (
+	"fmt"
+
+	"github.com/martinlindhe/unit"
+)
 
 // ThreatCall reports that a fighter will piece the threat range to a friendly aircraft.
 // THREAT is more complicated in the real world, so this bot offers a simplified version.
@@ -10,6 +14,10 @@ type ThreatCall struct {
 	Callsigns []string
 	// Group that is threatening the friendly aircraft.
 	Group Group
+}
+
+func (c ThreatCall) String() string {
+	return fmt.Sprintf("THREAT: %s threatened by %s", c.Callsigns, c.Group)
 }
 
 // MandatoryThreatDistance is the distance at which a contact is considered a threat regardless of aspect.

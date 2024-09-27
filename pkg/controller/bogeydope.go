@@ -1,20 +1,22 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
 
 // HandleBogeyDope implements Controller.HandleBogeyDope.
-func (c *controller) HandleBogeyDope(request *brevity.BogeyDopeRequest) {
+func (c *controller) HandleBogeyDope(ctx context.Context, request *brevity.BogeyDopeRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Any("filter", request.Filter).Logger()
 	logger.Debug().Msg("handling request")
 
 	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
 	if trackfile == nil {
 		logger.Info().Msg("no trackfile found for requestor")
-		c.out <- brevity.NegativeRadarContactResponse{Callsign: request.Callsign}
+		c.calls <- NewCall(ctx, brevity.NegativeRadarContactResponse{Callsign: request.Callsign})
 		return
 	}
 
@@ -34,7 +36,7 @@ func (c *controller) HandleBogeyDope(request *brevity.BogeyDopeRequest) {
 
 	if nearestGroup == nil {
 		logger.Info().Msg("no hostile groups found")
-		c.out <- brevity.BogeyDopeResponse{Callsign: foundCallsign, Group: nil}
+		c.calls <- NewCall(ctx, brevity.BogeyDopeResponse{Callsign: foundCallsign, Group: nil})
 		return
 	}
 
@@ -45,5 +47,5 @@ func (c *controller) HandleBogeyDope(request *brevity.BogeyDopeRequest) {
 		Strs("platforms", nearestGroup.Platforms()).
 		Str("aspect", string(nearestGroup.Aspect())).
 		Msg("found nearest hostile group")
-	c.out <- brevity.BogeyDopeResponse{Callsign: foundCallsign, Group: nearestGroup}
+	c.calls <- NewCall(ctx, brevity.BogeyDopeResponse{Callsign: foundCallsign, Group: nearestGroup})
 }

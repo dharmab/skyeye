@@ -12,8 +12,8 @@ import (
 )
 
 // Transmit implements [Client.Transmit].
-func (c *client) Transmit(sample Audio) {
-	c.txChan <- sample
+func (c *client) Transmit(transmission Transmission) {
+	c.txChan <- transmission
 }
 
 // transmit voice packets from queued transmissions to the SRS server.

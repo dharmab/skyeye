@@ -19,6 +19,7 @@ linters:
     - zerologlint
   disable:
     - asciicheck  # Unicode is fine!
+    - contextcheck  # Neat but doesn't understand request contexts in this project
     - gofumpt  # Neat tool but no editor integration
     - gci  # Bugged? Stdlib imports out of order
     - testpackage  # Test packages only allow blackbox testing

@@ -1,6 +1,7 @@
 package brevity
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
@@ -33,4 +34,8 @@ func (b *Bullseye) Bearing() bearings.Bearing {
 // Distance from the BULLSEYE to the contact, rounded to the nearest nautical mile.
 func (b *Bullseye) Distance() unit.Length {
 	return unit.Length(math.Round(b.distance.NauticalMiles())) * unit.NauticalMile
+}
+
+func (b Bullseye) String() string {
+	return fmt.Sprintf("%s/%.0f", b.bearing, b.distance.NauticalMiles())
 }

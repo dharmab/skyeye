@@ -1,6 +1,8 @@
 package brevity
 
 import (
+	"fmt"
+
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/martinlindhe/unit"
 )
@@ -54,6 +56,20 @@ type DeclareRequest struct {
 	Track Track
 }
 
+func (r DeclareRequest) String() string {
+	s := fmt.Sprintf("DECLARE for %s: ", r.Callsign)
+	if r.IsBRAA {
+		s += fmt.Sprintf("bearing %s, range %.0f", r.Bearing, r.Range.NauticalMiles())
+		if r.Altitude != 0 {
+			s += fmt.Sprintf(", altitude %.0f", r.Altitude.Feet())
+		}
+	} else {
+		s += fmt.Sprintf("bullseye %s", r.Bullseye)
+	}
+	s += fmt.Sprintf(", track %s", r.Track)
+	return s
+}
+
 // DeclareResponse is a response to a DECLARE call.
 // Reference: ATP 3-52.4 Chapter V section 6.
 type DeclareResponse struct {
@@ -64,4 +80,12 @@ type DeclareResponse struct {
 	// Group that was identified, if a specific one was identifiable.
 	// This may be nil if Declaration is Furball, Unable, or Clean.
 	Group Group
+}
+
+func (r DeclareResponse) String() string {
+	s := fmt.Sprintf("DECLARE for %s: declaration %s", r.Callsign, r.Declaration)
+	if r.Group != nil {
+		s += fmt.Sprintf(", group %s", r.Group)
+	}
+	return s
 }

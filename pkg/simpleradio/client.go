@@ -16,6 +16,12 @@ import (
 
 type Audio []float32
 
+type Transmission struct {
+	TraceID    string
+	ClientName string
+	Audio      Audio
+}
+
 // Client is a SimpleRadio-Standalone client.
 type Client interface {
 	// Run starts the SimpleRadio-Standalone client. It should be called exactly once.
@@ -23,9 +29,9 @@ type Client interface {
 	// Send sends a message to the SRS server.
 	Send(types.Message) error
 	// Receive returns a channel that receives transmissions over the radio. Each transmission is F32LE PCM audio data.
-	Receive() <-chan Audio
+	Receive() <-chan Transmission
 	// Transmit queues a transmission to send over the radio. The audio data should be in F32LE PCM format.
-	Transmit(Audio)
+	Transmit(Transmission)
 	// Frequencies returns the frequencies the client is listening on.
 	Frequencies() []RadioFrequency
 	// ClientsOnFrequency returns the number of peers on the client's frequencies.
@@ -64,10 +70,10 @@ type client struct {
 	// secureCoalitionRadios indicates if the client should only receive transmissions from the same coalition.
 	secureCoalitionRadios bool
 
-	// rxChan is a channel where received audio is published. A read-only version is available publicly.
-	rxChan chan Audio
-	// txChan is a channel where audio to be transmitted is buffered.
-	txChan chan Audio
+	// rxChan is a channel where received transmission are published. A read-only version is available publicly.
+	rxChan chan Transmission
+	// txChan is a channel where outgoing transmissions are buffered.
+	txChan chan Transmission
 	// receivers tracks the state of each radio we are listening to.
 	receivers map[types.Radio]*receiver
 	// packetNumber is incremented for each voice packet transmitted.
@@ -109,8 +115,8 @@ func NewClient(config types.ClientConfiguration) (Client, error) {
 		externalAWACSModePassword: config.ExternalAWACSModePassword,
 		clients:                   make(map[types.GUID]types.ClientInfo),
 
-		txChan:       make(chan Audio),
-		rxChan:       make(chan Audio),
+		txChan:       make(chan Transmission),
+		rxChan:       make(chan Transmission),
 		receivers:    receivers,
 		packetNumber: 1,
 		mute:         config.Mute,
@@ -241,6 +247,16 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 
 	<-ctx.Done()
 	return nil
+}
+
+func (c *client) getPeerName(guid types.GUID) (string, bool) {
+	c.clientsLock.RLock()
+	defer c.clientsLock.RUnlock()
+	info, ok := c.clients[guid]
+	if ok {
+		return info.Name, true
+	}
+	return "", false
 }
 
 // close the client's connections. Should be called after the autoheal goroutine has completed.
