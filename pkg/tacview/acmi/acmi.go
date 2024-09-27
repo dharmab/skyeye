@@ -196,7 +196,6 @@ func (s *streamer) handleLine(line string) error {
 				refPointChanged = true
 			}
 			s.referencePoint = orb.Point{longitude, s.referencePoint.Lat()}
-			logger.Trace().Float64("longitude", longitude).Msg("reference point updated")
 		}
 		if _, ok := update.Properties[properties.ReferenceLatitude]; ok {
 			latitude, err := strconv.ParseFloat(update.Properties[properties.ReferenceLatitude], 64)
@@ -208,7 +207,6 @@ func (s *streamer) handleLine(line string) error {
 				refPointChanged = true
 			}
 			s.referencePoint = orb.Point{s.referencePoint.Lon(), latitude}
-			logger.Trace().Float64("latitude", latitude).Msg("reference point updated")
 		}
 		if refPointChanged {
 			logger.Info().Float64("longitude", s.referencePoint.Lon()).Float64("latitude", s.referencePoint.Lat()).Msg("reference point updated")

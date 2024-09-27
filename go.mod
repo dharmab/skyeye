@@ -6,6 +6,7 @@ require (
 	github.com/amitybell/piper-asset v0.0.0-20231030194325-d36a29e3b1fd
 	github.com/amitybell/piper-voice-alan v0.0.0-20231118093148-059963c24dbd
 	github.com/amitybell/piper-voice-jenny v0.0.0-20231118093224-dcf0d49e46b7
+	github.com/bwmarrin/discordgo v0.28.1
 	github.com/gammazero/deque v0.2.1
 	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240727173504-6739eb83c3ca
 	github.com/golangci/golangci-lint v1.60.3
@@ -24,6 +25,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/zaf/resample v1.5.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
+	golang.org/x/net v0.28.0
 	golang.org/x/sys v0.23.0
 	gopkg.in/hraban/opus.v2 v2.0.0-20230925203106-0188a62cb302
 	gotest.tools/gotestsum v1.11.0
@@ -103,6 +105,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gordonklaus/ineffassign v0.1.0 // indirect
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
 	github.com/gostaticanalysis/comment v1.4.2 // indirect
 	github.com/gostaticanalysis/forcetypeassert v0.1.0 // indirect
@@ -203,10 +206,11 @@ require (
 	go.uber.org/automaxprocs v1.5.3 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
+	golang.org/x/crypto v0.26.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20240314144324-c7f7c6466f7f // indirect
 	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/term v0.17.0 // indirect
+	golang.org/x/term v0.23.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect

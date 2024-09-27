@@ -23,10 +23,14 @@ func (c *composer) ComposeCoreInformationFormat(groups ...brevity.Group) Natural
 	}
 
 	response := NaturalLanguageResponse{}
-	for _, group := range groups {
+	for i, group := range groups {
 		groupResponse := c.ComposeGroup(group)
 		response.Speech += groupResponse.Speech
 		response.Subtitle += groupResponse.Subtitle
+		if i < len(groups)-1 {
+			response.Speech += " "
+			response.Subtitle += " "
+		}
 	}
 
 	return response
@@ -115,7 +119,7 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 		writeBoth(", very fast")
 	}
 
-	writeBoth(". ")
+	writeBoth(".")
 
 	return NaturalLanguageResponse{
 		Subtitle: subtitle.String(),

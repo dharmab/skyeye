@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/spatial"
@@ -10,7 +12,7 @@ import (
 )
 
 // HandleDeclare implements Controller.HandleDeclare.
-func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
+func (c *controller) HandleDeclare(ctx context.Context, request *brevity.DeclareRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 
@@ -34,7 +36,7 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
 	if trackfile == nil {
 		logger.Info().Msg("no trackfile found for requestor")
-		c.out <- brevity.NegativeRadarContactResponse{Callsign: request.Callsign}
+		c.calls <- NewCall(ctx, brevity.NegativeRadarContactResponse{Callsign: request.Callsign})
 		return
 	}
 
@@ -106,5 +108,5 @@ func (c *controller) HandleDeclare(request *brevity.DeclareRequest) {
 	}
 
 	logger.Debug().Any("declaration", response.Declaration).Msg("responding to DECLARE request")
-	c.out <- response
+	c.calls <- NewCall(ctx, response)
 }

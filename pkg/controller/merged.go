@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"maps"
 	"slices"
 	"sync"
@@ -101,7 +102,7 @@ func (t *mergeTracker) keep(idsToKeep ...uint64) {
 }
 
 // broadcastMerges updates the merge tracker and broadcasts merged calls for any new merges.
-func (c *controller) broadcastMerges() {
+func (c *controller) broadcastMerges(ctx context.Context) {
 	merges := c.scope.Merges(c.coalition)
 
 	hostileIDs := make([]uint64, 0)
@@ -114,10 +115,10 @@ func (c *controller) broadcastMerges() {
 		newMergedFriendlies := c.updateMergesForGroup(hostileGroup, friendlies)
 
 		logger := log.With().Stringer("group", hostileGroup).Logger()
-		call := c.createMergedCall(hostileGroup, newMergedFriendlies)
-		if len(call.Callsigns) > 0 {
-			logger.Info().Strs("callsigns", call.Callsigns).Msg("broadcasting merged call")
-			c.out <- call
+		mergedCall := c.createMergedCall(hostileGroup, newMergedFriendlies)
+		if len(mergedCall.Callsigns) > 0 {
+			logger.Info().Strs("callsigns", mergedCall.Callsigns).Msg("broadcasting merged call")
+			c.calls <- NewCall(ctx, mergedCall)
 		} else {
 			logger.Debug().Msg("skipping merged call because no relevant clients are on frequency")
 		}

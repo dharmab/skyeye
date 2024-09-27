@@ -26,7 +26,7 @@ type receiver struct {
 }
 
 // Receive implements [Client.Receive].
-func (c *client) Receive() <-chan Audio {
+func (c *client) Receive() <-chan Transmission {
 	return c.rxChan
 }
 

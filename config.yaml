@@ -148,3 +148,13 @@
 # Log format. "pretty" is easier to read in a console, "json" is easier to
 # search/query later.
 #log-format: pretty
+
+# TRACING
+#
+# Enable or diable tracing.
+#enable-tracing: false
+#
+# Send traces to Discord by providing a webhook ID and token.
+# The format of the webhook URL is https://discord.com/api/webhooks/<id>/<token>
+#discord-webhook-id: idgoeshere
+#discord-webhook-token: tokengoeshere

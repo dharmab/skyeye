@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -49,17 +50,17 @@ func (t *cooldownTracker) remove(id uint64) {
 	delete(t.cooldowns, id)
 }
 
-func (c *controller) broadcastThreats() {
+func (c *controller) broadcastThreats(ctx context.Context) {
 	if !c.enableThreatMonitoring {
 		return
 	}
 	threats := c.scope.Threats(c.coalition.Opposite())
 	for hostileGroup, friendIDs := range threats {
-		c.broadcastThreat(hostileGroup, friendIDs)
+		c.broadcastThreat(ctx, hostileGroup, friendIDs)
 	}
 }
 
-func (c *controller) broadcastThreat(hostileGroup brevity.Group, friendIDs []uint64) {
+func (c *controller) broadcastThreat(ctx context.Context, hostileGroup brevity.Group, friendIDs []uint64) {
 	hostileGroup.SetDeclaration(brevity.Hostile)
 	c.fillInMergeDetails(hostileGroup)
 	hostileGroup.SetThreat(true)
@@ -78,7 +79,7 @@ func (c *controller) broadcastThreat(hostileGroup brevity.Group, friendIDs []uin
 		return
 	}
 
-	call := brevity.ThreatCall{
+	threatCall := brevity.ThreatCall{
 		Callsigns: make([]string, 0),
 		Group:     hostileGroup,
 	}
@@ -89,17 +90,17 @@ func (c *controller) broadcastThreat(hostileGroup brevity.Group, friendIDs []uin
 			continue
 		}
 		if friendly := c.scope.FindUnit(friendID); friendly != nil {
-			call.Callsigns = c.addFriendlyToBroadcast(call.Callsigns, friendly)
+			threatCall.Callsigns = c.addFriendlyToBroadcast(threatCall.Callsigns, friendly)
 		}
 	}
 
-	if len(call.Callsigns) == 0 {
+	if len(threatCall.Callsigns) == 0 {
 		logger.Debug().Msg("skipping threat call because no relevant clients are on frequency")
 		return
 	}
 
-	logger.Info().Any("call", call).Msg("broadcasting threat call for group")
-	c.out <- call
+	logger.Info().Any("call", threatCall).Msg("broadcasting threat call for group")
+	c.calls <- NewCall(ctx, threatCall)
 
 	for _, threatID := range hostileGroup.ObjectIDs() {
 		c.threatCooldowns.extendCooldown(threatID)

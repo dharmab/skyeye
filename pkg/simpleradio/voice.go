@@ -3,7 +3,9 @@ package simpleradio
 import (
 	"context"
 
+	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/simpleradio/voice"
+	"github.com/lithammer/shortuuid/v3"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/hraban/opus.v2"
 )
@@ -32,8 +34,14 @@ func (c *client) decodeVoice(ctx context.Context, voicePacketsChan <-chan []voic
 			}
 
 			if len(transmissionPCM) > 0 {
-				log.Info().Int("len", len(transmissionPCM)).Msg("publishing received audio to receiving channel")
-				c.rxChan <- transmissionPCM
+				origin := types.GUID(voicePackets[0].OriginGUID)
+				name, _ := c.getPeerName(origin)
+				log.Info().Str("clientName", name).Int("len", len(transmissionPCM)).Msg("publishing received audio to receiving channel")
+				c.rxChan <- Transmission{
+					TraceID:    shortuuid.New(),
+					ClientName: name,
+					Audio:      transmissionPCM,
+				}
 			} else {
 				log.Debug().Msg("decoded transmission PCM is empty")
 			}
@@ -56,8 +64,8 @@ func (c *client) encodeVoice(ctx context.Context, packetChan chan<- []voice.Voic
 	}
 	for {
 		select {
-		case audio := <-c.txChan:
-			log.Trace().Msg("encoding transmission from PCM data")
+		case transmission := <-c.txChan:
+			log.Debug().Msg("encoding transmission from PCM data")
 			encoder, err := opus.NewEncoder(int(sampleRate.Hertz()), channels, opusApplicationVoIP)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to create Opus encoder")
@@ -65,14 +73,14 @@ func (c *client) encodeVoice(ctx context.Context, packetChan chan<- []voice.Voic
 			}
 
 			txPackets := make([]voice.VoicePacket, 0)
-			for i := 0; i < len(audio); i += int(frameSize) {
+			for i := 0; i < len(transmission.Audio); i += int(frameSize) {
 				logger := log.With().Int("index", i).Logger()
 				var frameAudio []float32
 				// pad frame to frame size
-				if i+int(frameSize) < len(audio) {
-					frameAudio = audio[i : i+int(frameSize)]
+				if i+int(frameSize) < len(transmission.Audio) {
+					frameAudio = transmission.Audio[i : i+int(frameSize)]
 				} else {
-					frameAudio = audio[i:]
+					frameAudio = transmission.Audio[i:]
 				}
 				// Align audio to Opus frame size
 				if len(frameAudio) < int(frameSize) {
@@ -99,7 +107,6 @@ func (c *client) encodeVoice(ctx context.Context, packetChan chan<- []voice.Voic
 				// TODO transmission struct with attached text and trace id
 				txPackets = append(txPackets, voicePacket)
 			}
-			log.Trace().Int("count", len(txPackets)).Msg("encoded transmission packets")
 			packetChan <- txPackets
 		case <-ctx.Done():
 			log.Info().Msg("stopping voice encoder due to context cancellation")

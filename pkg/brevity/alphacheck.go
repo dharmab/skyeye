@@ -1,5 +1,7 @@
 package brevity
 
+import "fmt"
+
 // AlphaCheckRequest is a request for an ALPHA CHECK.
 // An ALPHA CHECK is a request for the friendly aircraft's position.
 // It is used by aircrews to check their position equipment, especially for aircraft without GPS.
@@ -7,6 +9,10 @@ package brevity
 type AlphaCheckRequest struct {
 	// Callsign of the friendly aircraft requesting the ALPHA CHECK.
 	Callsign string
+}
+
+func (r AlphaCheckRequest) String() string {
+	return "ALPHA CHECK for " + r.Callsign
 }
 
 // AlphaCheckResponse is a response to an ALPHA CHECK.
@@ -17,4 +23,11 @@ type AlphaCheckResponse struct {
 	Status bool
 	// Location of the friendly aircraft. If Status is false, this may be nil.
 	Location Bullseye
+}
+
+func (r AlphaCheckResponse) String() string {
+	if r.Status {
+		return fmt.Sprintf("ALPHA CHECK for %s: status %v, location %s", r.Callsign, r.Status, r.Location)
+	}
+	return fmt.Sprintf("ALPHA CHECK for %s: status %v", r.Callsign, r.Status)
 }

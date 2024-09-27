@@ -64,6 +64,9 @@ type Configuration struct {
 	// ThreatMonitoringRequiresSRS controls whether threat calls are issued to aircraft that are not on an SRS frequency. This is mostly
 	// for debugging.
 	ThreatMonitoringRequiresSRS bool
+	EnableTracing               bool
+	DiscordWebhookID            string
+	DiscorbWebhookToken         string
 }
 
 var DefaultCallsigns = []string{"Sky Eye", "Thunderhead", "Eagle Eye", "Ghost Eye", "Sky Keeper", "Bandog", "Long Caster", "Galaxy"}

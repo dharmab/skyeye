@@ -1,13 +1,15 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
 
 // HandleSpiked implements [Controller.HandleSpiked].
-func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
+func (c *controller) HandleSpiked(ctx context.Context, request *brevity.SpikedRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Float64("bearing", request.Bearing.Degrees()).Logger()
 	logger.Debug().Msg("handling request")
 
@@ -18,7 +20,7 @@ func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
 	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
 	if trackfile == nil {
 		logger.Info().Msg("no trackfile found for requestor")
-		c.out <- brevity.NegativeRadarContactResponse{Callsign: request.Callsign}
+		c.calls <- NewCall(ctx, brevity.NegativeRadarContactResponse{Callsign: request.Callsign})
 		return
 	}
 
@@ -38,13 +40,17 @@ func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
 
 	if nearestGroup == nil {
 		logger.Info().Msg("no hostile groups found within spike cone")
-		c.out <- brevity.SpikedResponse{Callsign: foundCallsign, Status: false, Bearing: request.Bearing}
+		c.calls <- NewCall(ctx, brevity.SpikedResponse{
+			Callsign: foundCallsign,
+			Status:   false,
+			Bearing:  request.Bearing,
+		})
 		return
 	}
 
 	logger = logger.With().Stringer("group", nearestGroup).Logger()
 	logger.Debug().Msg("hostile group found within spike cone")
-	c.out <- brevity.SpikedResponse{
+	c.calls <- NewCall(ctx, brevity.SpikedResponse{
 		Callsign:    foundCallsign,
 		Status:      true,
 		Bearing:     request.Bearing,
@@ -54,5 +60,5 @@ func (c *controller) HandleSpiked(request *brevity.SpikedRequest) {
 		Track:       nearestGroup.Track(),
 		Declaration: brevity.Hostile,
 		Contacts:    nearestGroup.Contacts(),
-	}
+	})
 }

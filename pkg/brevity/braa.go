@@ -1,6 +1,7 @@
 package brevity
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
@@ -69,6 +70,14 @@ func (b *bra) Stacks() []Stack {
 	return b.stacks
 }
 
+func (b *bra) String() string {
+	s := fmt.Sprintf("BRA %s/%.0f %.0f", b.Bearing(), b.Range().NauticalMiles(), b.Altitude().Feet())
+	if len(b.Stacks()) > 1 {
+		s += fmt.Sprintf(" (%v)", b.Stacks())
+	}
+	return s
+}
+
 type braa struct {
 	bra    BRA
 	aspect Aspect
@@ -107,4 +116,8 @@ func (b *braa) Stacks() []Stack {
 // Aspect implements [BRAA.Aspect].
 func (b *braa) Aspect() Aspect {
 	return b.aspect
+}
+
+func (b *braa) String() string {
+	return fmt.Sprintf("%s %s", b.bra, b.Aspect())
 }

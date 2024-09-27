@@ -40,6 +40,9 @@ func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity
 			if IsSimilar(scanner.Text(), word) {
 				log.Debug().Str("text", scanner.Text()).Msg("found bullseye token")
 				bullseye = p.parseBullseye(scanner)
+				if bullseye == nil {
+					return nil, false
+				}
 				parsedAsBullseye = true
 				break
 			}

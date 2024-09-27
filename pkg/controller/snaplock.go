@@ -5,10 +5,11 @@ import (
 	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/net/context"
 )
 
 // HandleSnaplock implements Controller.HandleSnaplock.
-func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
+func (c *controller) HandleSnaplock(ctx context.Context, request *brevity.SnaplockRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Any("request", request).Logger()
 
 	logger.
@@ -25,7 +26,7 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
 	if trackfile == nil {
 		logger.Info().Msg("no trackfile found for requestor")
-		c.out <- brevity.NegativeRadarContactResponse{Callsign: request.Callsign}
+		c.calls <- NewCall(ctx, brevity.NegativeRadarContactResponse{Callsign: request.Callsign})
 		return
 	}
 
@@ -86,5 +87,5 @@ func (c *controller) HandleSnaplock(request *brevity.SnaplockRequest) {
 		c.fillInMergeDetails(response.Group)
 	}
 
-	c.out <- response
+	c.calls <- NewCall(ctx, response)
 }

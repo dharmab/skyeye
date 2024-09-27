@@ -93,7 +93,7 @@ func (c *Coordinates) Parse(transform string, ref orb.Point) error {
 
 	logger := log.With().Str("transform", transform).Logger()
 	if len(fields) < 3 {
-		logger.Trace().Msg("unexpected number of fields in coordinate transformation")
+		logger.Warn().Msg("unexpected number of fields in coordinate transformation")
 		return nil
 	}
 
@@ -101,7 +101,7 @@ func (c *Coordinates) Parse(transform string, ref orb.Point) error {
 	if fields[0] != "" {
 		offset, err := strconv.ParseFloat(fields[0], 64)
 		if err != nil {
-			logger.Trace().Err(err).Msg("error parsing longitude")
+			logger.Warn().Err(err).Msg("error parsing longitude")
 		}
 		longitude = ref.Lon() + offset
 		c.ValidLon = true
@@ -109,7 +109,7 @@ func (c *Coordinates) Parse(transform string, ref orb.Point) error {
 	if fields[1] != "" {
 		offset, err := strconv.ParseFloat(fields[1], 64)
 		if err != nil {
-			logger.Trace().Err(err).Msg("error parsing latitude")
+			logger.Warn().Err(err).Msg("error parsing latitude")
 		}
 		latitude = ref.Lat() + offset
 		c.ValidLat = true
