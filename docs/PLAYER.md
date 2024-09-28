@@ -49,7 +49,7 @@ That is:
 3. A pipe character (`|`)
 3. Your non-callsign username.
 
-Your callsign should be unique within a server. If multiple players have the same callsign, SkyEye will respond but you may receive inconsistent information. Note that callsigns are normalized in capitalization and numbers - "WARDOG 14", "Wardog 14" and "Wardog 1 4" are all considered to be the same callsign. Numbers are pronounced individually - "Spare 15" is pronounced "Spare One Five", not "Spare Fifteen".
+Your callsign should be unique within a server. If multiple players have the same callsign, SkyEye will respond but you may receive inconsistent information. Note that callsigns are normalized in capitalization, numbers, and separation - "WARDOG 14", "Wardog 14", "wardog14" and "Wardog 1 4" are all considered to be the same callsign. Numbers are pronounced individually - "Spare 15" is pronounced "Spare One Five", not "Spare Fifteen".
 
 Avoid:
 
