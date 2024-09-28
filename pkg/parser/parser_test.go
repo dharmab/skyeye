@@ -27,6 +27,8 @@ func TestParsePilotCallsign(t *testing.T) {
 		{"Wardog 1 4", "wardog 1 4"},
 		{"Wardog 14", "wardog 1 4"},
 		{"Wardog 1-4", "wardog 1 4"},
+		{"WARDOG 14", "wardog 1 4"},
+		{"WARDOG14", "wardog 1 4"},
 		{"Mobius 1", "mobius 1"},
 		{"Red 243", "red 2 4 3"},
 		{"Red 054", "red 0 5 4"},
