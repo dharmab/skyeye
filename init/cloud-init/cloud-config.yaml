@@ -3,15 +3,10 @@ users:
   - name: skyeye
     groups: users
 packages:
-  - libopus0
-  - libsoxr0
-  - libopenblas0-openmp
+  - podman
 package_update: true
 package_upgrade: true
 write_files:
-  - path: /tmp/skyeye-linux-amd64.tar.gz
-    source:
-      uri: https://github.com/dharmab/skyeye/releases/latest/download/skyeye-linux-amd64.tar.gz
   - path: /opt/skyeye/models/whisper.bin
     permissions: "0644"
     owner: skyeye:users
@@ -33,24 +28,41 @@ write_files:
     content: |
       [Unit]
       Description=SkyEye GCI Bot
+      Wants=network-online.target
       After=network-online.target
+      RequiresMountsFor=/var/run/container/storage
 
       [Service]
-      Type=simple
-      User=skyeye
-      WorkingDirectory=/opt/skyeye
-      ExecStart=/opt/skyeye/bin/skyeye --whisper-model /opt/skyeye/models/whisper.bin
+      Environment=PODMAN_SYSTEMD_UNIT=%n
       Restart=always
       RestartSec=60
+      
+      ExecStartPre=/bin/rm -f %t/%n-pid %t/%n-cid
+      ExecStart=/usr/local/bin/podman run \
+        --conmon-pidfile %t/%n-pid \
+        --cidfile %t/%n-cid \
+        --cgroups=no-conmon \
+        -d \
+        -dit \
+        --user skyeye \
+        --volume /etc/skyeye:/etc/skyeye:ro \
+        --volume /opt/skyeye/:/opt/skyeye/:ro \
+        ghcr.io/dharmab/skyeye:latest \
+        --whisper-model /opt/skyeye/models/whisper.bin
+      ExecStop=/usr/local/bin/podman stop \
+        --ignore \
+        --cidfile %t/%n-cid -t 10
+      ExecStopPost=/usr/local/bin/podman rm \
+        --ignore \
+        -f \
+        --cidfile %t/%n-cid
+      PIDFile=%t/%n-pid
+      KillMode=none
+      Type=forking
 
       [Install]
-      WantedBy=multi-user.target
+      WantedBy=default.target
 runcmd:
-  - tar -xzf /tmp/skyeye-linux-amd64.tar.gz -C /tmp/
-  - mkdir -p /opt/skyeye/bin
-  - mv /tmp/skyeye-linux-amd64/skyeye /opt/skyeye/bin/skyeye
-  - chmod +x /opt/skyeye/bin/skyeye
-  - chown -R skyeye:users /opt/skyeye
   - systemctl daemon-reload
   - systemctl enable skyeye
   - reboot
