@@ -1,0 +1,77 @@
+#cloud-config
+users:
+  - name: skyeye
+    groups: users
+packages:
+  - podman
+package_update: true
+package_upgrade: true
+write_files:
+  - path: /opt/skyeye/models/whisper.bin
+    permissions: "0644"
+    owner: skyeye:users
+    source:
+      uri: https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin
+    defer: true
+  - path: /etc/skyeye/config.yaml
+    permissions: "0600"
+    owner: skyeye:users
+    content: |
+      callsign: Focus
+      telemetry-address: your-tacview-address:42674
+      telemetry-password: your-telemetry-password
+      srs-server-address: your-srs-server:5002
+      srs-eam-password: your-srs-password
+      srs-frequencies: "132.1,245.6,32.1"
+      exit-after: "72h"
+    defer: true
+  - path: /etc/skyeye/image.env
+    permissions: "0644"
+    owner: skyeye:users
+    content: |
+      CONTAINER_IMAGE=ghcr.io/dharmab/skyeye:latest
+    defer: true
+  - path: /etc/systemd/system/skyeye.service
+    permissions: "0644"
+    owner: root:root
+    content: |
+      [Unit]
+      Description=SkyEye GCI Bot
+      Wants=network-online.target
+      After=network-online.target
+      RequiresMountsFor=/var/run/container/storage
+
+      [Service]
+      Environment=PODMAN_SYSTEMD_UNIT=%n
+      EnvironmentFile=-/etc/skyeye/image.env
+      Restart=always
+      RestartSec=60
+      
+      ExecStartPre=/bin/rm -f %t/%n-pid %t/%n-cid
+      ExecStart=/usr/bin/podman run \
+        --conmon-pidfile %t/%n-pid \
+        --cidfile %t/%n-cid \
+        --cgroups=no-conmon \
+        -d \
+        --volume /etc/skyeye:/etc/skyeye:ro \
+        --volume /opt/skyeye/models:/opt/skyeye/models:ro \
+        --name %n \
+        ${CONTAINER_IMAGE} \
+        --whisper-model /opt/skyeye/models/whisper.bin
+      ExecStop=/usr/bin/podman stop \
+        --ignore \
+        --cidfile %t/%n-cid -t 10
+      ExecStopPost=/usr/bin/podman rm \
+        --ignore \
+        -f \
+        --cidfile %t/%n-cid
+      PIDFile=%t/%n-pid
+      KillMode=none
+      Type=forking
+
+      [Install]
+      WantedBy=default.target
+runcmd:
+  - systemctl daemon-reload
+  - systemctl enable skyeye
+  - reboot

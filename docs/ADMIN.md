@@ -117,8 +117,7 @@ Outbound ports typically required by SkyEye:
 - `5002/TCP`: SRS Data
 - `5002/UDP`: SRS Audio
 - `42674/TCP`: TacView Real-Time Telemetry
-
-You may also need `443/TCP` outbound during installation to download from GitHub and Hugging Face. If you use the autoscaler, you'll need to allow outbound connections to your webhook URL.
+- `443/TCP`: Discord webhook
 
 SkyEye does not require any inbound ports during runtime.
 
@@ -183,7 +182,37 @@ The scaler is also available as a container image at `ghcr.io/dharmab/skyeye-sca
 
 ### cloud-init
 
-A sample [cloud-init](https://cloudinit.readthedocs.io/en/latest/) config is provided in `/init/cloud-init` directory in the Git repository. This automates the installation and startup on a new cloud server instance running Debian or Ubuntu. It can also be modified to work on other Linux distros with minor tweaks.
+A sample [cloud-init](https://cloudinit.readthedocs.io/en/latest/) config is provided in `/init/cloud-init` directory in the Git repository. This automates the installation and startup on a new cloud server instance. It should be compatible with most Linux distributions including Debian, Ubuntu, Fedora, Arch Linux and OpenSUSE.
+
+See documentation on cloud-init:
+
+- [Official documentation](https://cloudinit.readthedocs.io/en/latest/index.html)
+- [AWS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html#user-data-cloud-init)
+- [GCP](https://cloud.google.com/container-optimized-os/docs/how-to/create-configure-instance#using_cloud-init_with_the_cloud_config_format)
+- [Hetzer](https://docs.hetzner.cloud/#servers-create-a-server)
+- [Linode](https://techdocs.akamai.com/cloud-computing/docs/overview-of-the-metadata-service#add-user-data-when-deploying-a-compute-instance)
+- [Vultr](https://docs.vultr.com/how-to-deploy-a-vultr-server-with-cloudinit-userdata)
+
+To customize this cloud-init file:
+
+1. Edit the `content` field of the `/etc/skyeye/config.yaml` file with your desired configuration.
+1. If you want to pin to a specific version of SkyEye, replace `ghcr.io/dharmab/skyeye:latest` with the desired version. I strongly recommend you pin the version in case of any breaking changes in the future.
+
+If you wish to change the version of SkyEye in the future:
+
+```sh
+# Stop SkyEye
+sudo systemctl stop skyeye
+# Edit the systemd service to change the image version
+sudoedit /etc/systemd/system/skyeye.service
+sudo systemctl daemon-reload
+# Make any required changes to the configuration
+sudoedit /etc/skyeye/config.yaml
+# Restart SkyEye
+sudo systemctl start skyeye
+# Check the logs and check if it seems to be working
+journalctl -fu skyeye
+```
 
 ### Manual Installation
 
