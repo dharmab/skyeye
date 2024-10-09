@@ -140,7 +140,13 @@ func (c *controller) updateMergesForGroup(hostileGroup brevity.Group, friendlies
 				c.merges.separate(hostileID, oldMergedFriendly)
 			}
 		}
+
 		hostile := c.scope.FindUnit(hostileID)
+		if hostile == nil {
+			c.merges.remove(hostileID)
+			continue
+		}
+
 		for _, friendly := range friendlies {
 			isNewMerge := c.updateMergesForContact(hostile, friendly)
 			if isNewMerge {
