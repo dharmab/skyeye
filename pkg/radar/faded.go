@@ -80,10 +80,10 @@ func (s *scope) handleFaded(fades []sim.Faded) {
 		s.contacts.delete(fade.ID)
 	}
 
-	// call the faded callback for each group
+	// call the faded callback for each group whi
 	for _, grp := range groups {
 		if s.fadedCallback != nil {
-			s.fadedCallback(&grp, grp.contacts[0].Contact.Coalition)
+			s.fadedCallback(grp.point(), &grp, grp.contacts[0].Contact.Coalition)
 		}
 	}
 }
