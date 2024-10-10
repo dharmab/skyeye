@@ -91,7 +91,7 @@ func (c *Coordinates) Update(next *Coordinates) {
 func (c *Coordinates) Parse(transform string, ref orb.Point) error {
 	fields := strings.Split(transform, "|")
 
-	logger := log.With().Str("transform", transform).Logger()
+	logger := log.With().Str("transform", transform).Strs("fields", fields).Logger()
 	if len(fields) < 3 {
 		logger.Warn().Msg("unexpected number of fields in coordinate transformation")
 		return nil

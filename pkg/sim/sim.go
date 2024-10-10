@@ -26,10 +26,6 @@ type Sim interface {
 
 // Started is a message sent when a new mission starts.
 type Started struct {
-	// Real-time timestamp when the mission start was observed.
-	Timestamp time.Time
-	// Mission time when the mission started.
-	MissionTimestamp time.Time
 }
 
 // Updated is a message sent when an aircraft is updated.
@@ -42,10 +38,6 @@ type Updated struct {
 
 // Faded is a message sent when an aircraft disappears.
 type Faded struct {
-	// Real-time timestamp when the aircraft disappeared.
-	Timestamp time.Time
-	// Mission time when the aircraft disappeared.
-	MissionTimestamp time.Time
 	// ID of the aircraft that disappeared.
 	ID uint64
 }

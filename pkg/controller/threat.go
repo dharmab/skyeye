@@ -44,6 +44,12 @@ func (t *cooldownTracker) isOnCooldown(id uint64) bool {
 	return time.Now().Before(cooldown)
 }
 
+func (t *cooldownTracker) reset() {
+	t.lock.Lock()
+	defer t.lock.Unlock()
+	t.cooldowns = make(map[uint64]time.Time)
+}
+
 func (t *cooldownTracker) remove(id uint64) {
 	t.lock.Lock()
 	defer t.lock.Unlock()

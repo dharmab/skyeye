@@ -9,7 +9,7 @@ import (
 )
 
 func (c *controller) addFriendlyToBroadcast(callsigns []string, friendly *trackfiles.Trackfile) []string {
-	logger := log.With().Str("name", friendly.Contact.Name).Logger()
+	logger := log.With().Str("callsign", friendly.Contact.Name).Logger()
 	isOnFrequency := c.srsClient.IsOnFrequency(friendly.Contact.Name)
 	if isOnFrequency {
 		logger.Debug().Bool("isOnFrequency", isOnFrequency).Msg("friendly contact is on frequency")

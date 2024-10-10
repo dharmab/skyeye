@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -11,36 +12,36 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dharmab/skyeye/pkg/coalitions"
-	"github.com/dharmab/skyeye/pkg/sim"
-	"github.com/dharmab/skyeye/pkg/tacview/acmi"
 	"github.com/rs/zerolog/log"
 )
 
-type fileClient struct {
-	file io.ReadCloser
-	*tacviewClient
+type FileReader struct {
+	client
+	filePath string
 }
 
-var _ Client = &fileClient{}
-
 func NewFileClient(
-	path string,
-	coalition coalitions.Coalition,
-	starts chan<- sim.Started,
-	updates chan<- sim.Updated,
-	fades chan<- sim.Faded,
+	filePath string,
 	updateInterval time.Duration,
-) (Client, error) {
-	f, err := openFile(path)
-	if err != nil {
-		return nil, err
+) *FileReader {
+	return &FileReader{
+		client:   *NewClient(updateInterval),
+		filePath: filePath,
 	}
-	tacviewClient := newTacviewClient(starts, updates, fades, updateInterval)
-	return &fileClient{
-		file:          f,
-		tacviewClient: tacviewClient,
-	}, nil
+}
+
+func (r *FileReader) Run(ctx context.Context, wg *sync.WaitGroup) error {
+	f, err := openFile(r.filePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	reader := bufio.NewReader(f)
+
+	if err := r.handleLines(ctx, reader); err != nil {
+		return fmt.Errorf("error reading data: %w", err)
+	}
+	return nil
 }
 
 func openFile(path string) (io.ReadCloser, error) {
@@ -74,20 +75,6 @@ func openFile(path string) (io.ReadCloser, error) {
 		return nil, err
 	}
 	return acmi, nil
-}
-
-func (c *fileClient) Run(ctx context.Context, wg *sync.WaitGroup) error {
-	reader := bufio.NewReader(c.file)
-	acmi := acmi.New(reader, c.updateInterval)
-	return c.tacviewClient.stream(ctx, wg, acmi)
-}
-
-func (c *fileClient) Time() time.Time {
-	return c.tacviewClient.missionTime
-}
-
-func (c *fileClient) Close() error {
-	return c.file.Close()
 }
 
 func isZipped(path string) (bool, error) {

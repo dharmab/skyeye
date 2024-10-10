@@ -1248,7 +1248,7 @@ func init() {
 func GetAircraftData(name string) (Aircraft, bool) {
 	data, ok := aircraftDataLUT[name]
 	if !ok {
-		log.Warn().Str("name", name).Msg("Aircraft missing from encyclopedia")
+		log.Warn().Str("aircraft", name).Msg("Aircraft missing from encyclopedia")
 	}
 	return data, ok
 }

@@ -68,10 +68,6 @@ type controller struct {
 	// srsClient is used to to check if relevant friendly aircraft are on frequency before broadcasting calls.
 	srsClient simpleradio.Client
 
-	// warmupTime is when the controller is ready to broadcast tactical information. This provides time
-	// for the radar scope to populate with data.
-	warmupTime time.Time
-
 	// enableAutomaticPicture enables automatic picture broadcasts.
 	enableAutomaticPicture bool
 	// pictureBroadcastInterval is the interval at which the controller broadcasts a tactical air picture.
@@ -112,7 +108,6 @@ func New(
 		coalition:                   coalition,
 		scope:                       rdr,
 		srsClient:                   srsClient,
-		warmupTime:                  time.Now().Add(15 * time.Second),
 		enableAutomaticPicture:      enableAutomaticPicture,
 		pictureBroadcastInterval:    pictureBroadcastInterval,
 		pictureBroadcastDeadline:    time.Now().Add(pictureBroadcastInterval),
@@ -143,6 +138,7 @@ func (c *controller) Run(ctx context.Context, calls chan<- Call) {
 			log.Info().Msg("detaching callbacks")
 			c.scope.SetFadedCallback(nil)
 			c.scope.SetRemovedCallback(nil)
+			c.scope.SetStartedCallback(nil)
 			return
 		case <-ticker.C:
 			c.broadcastMerges(traces.WithTraceID(ctx, shortuuid.New()))
@@ -185,4 +181,9 @@ func (c *controller) remove(id uint64) {
 	log.Debug().Uint64("id", id).Msg("removing ID from controller state tracking")
 	c.threatCooldowns.remove(id)
 	c.merges.remove(id)
+}
+
+func (c *controller) reset() {
+	c.threatCooldowns.reset()
+	c.merges.reset()
 }

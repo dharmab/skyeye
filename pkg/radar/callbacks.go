@@ -7,6 +7,12 @@ import (
 	"github.com/paulmach/orb"
 )
 
+type StartedCallback func()
+
+func (s *scope) SetStartedCallback(callback StartedCallback) {
+	s.startedCallback = callback
+}
+
 // FadedCallback is a callback function that is called when a group has not been updated by sensors for a timeout period.
 // The group and its coalition are provided.
 type FadedCallback func(location orb.Point, group brevity.Group, coalition coalitions.Coalition)

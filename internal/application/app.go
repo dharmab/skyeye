@@ -54,6 +54,10 @@ type app struct {
 	enableTranscriptionLogging bool
 	// tracers are destinations where traces are sent when tracing is enabled
 	tracers []traces.Tracer
+
+	starts  chan sim.Started
+	updates chan sim.Updated
+	fades   chan sim.Faded
 }
 
 // NewApplication constructs a new Application.
@@ -92,34 +96,16 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 
 	var tacviewClient tacview.Client
 	if config.ACMIFile != "" {
-		log.Info().Str("path", config.ACMIFile).Msg("opening ACMI file")
-		tacviewClient, err = tacview.NewFileClient(
-			config.ACMIFile,
-			config.Coalition,
-			starts,
-			updates,
-			fades,
-			config.RadarSweepInterval,
-		)
+		log.Info().Str("file", config.ACMIFile).Msg("constructing ACMI file reader")
+		tacviewClient = tacview.NewFileClient(config.ACMIFile, config.RadarSweepInterval)
 	} else {
-		log.Info().
-			Str("address", config.TelemetryAddress).
-			Stringer("timeout", config.TelemetryConnectionTimeout).
-			Msg("constructing telemetry client")
-		tacviewClient, err = tacview.NewTelemetryClient(
+		log.Info().Str("address", config.TelemetryAddress).Msg("constructing telemetry client")
+		tacviewClient = tacview.NewTelemetryClient(
 			config.TelemetryAddress,
 			config.Callsign,
 			config.TelemetryPassword,
-			config.Coalition,
-			starts,
-			updates,
-			fades,
 			config.RadarSweepInterval,
 		)
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to construct application: %w", err)
 	}
 
 	log.Info().Msg("constructing speech-to-text recognizer")
@@ -178,6 +164,9 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		composer:                   composer,
 		speaker:                    synthesizer,
 		tracers:                    tracers,
+		starts:                     starts,
+		updates:                    updates,
+		fades:                      fades,
 	}
 	return app, nil
 }
@@ -191,6 +180,7 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitG
 		if err := a.tacviewClient.Run(ctx, wg); err != nil {
 			if !errors.Is(err, context.Canceled) {
 				log.Error().Err(err).Msg("error running telemetry client")
+				cancel()
 			}
 		}
 	}()
@@ -198,8 +188,15 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitG
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		log.Info().Msg("streaming telemetry data to radar")
+		a.tacviewClient.Stream(ctx, a.starts, a.updates, a.fades)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 		log.Info().Msg("updating mission time and bullseye")
-		ticker := time.NewTicker(1 * time.Second)
+		ticker := time.NewTicker(2*time.Second + 100*time.Millisecond)
 		defer ticker.Stop()
 		for {
 			select {
