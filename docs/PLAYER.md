@@ -321,7 +321,7 @@ Your own aircraft must be on the SRS frequency, and using the same name in DCS a
 
 ### FADED
 
-When the GCI controller sees a contact disappear from the radar scope for at least 30 seconds, it will announce the contact is FADED.
+When the GCI controller sees a hostile contact within weapons range of a friendly aircraft disappear from the radar scope for at least 30 seconds, it will announce the hostile contact is FADED.
 
 **This is not a confirmation that the contact has been destroyed!** In DCS, it is possible for aircraft to be marked dead while they are still alive and dangerous.
 

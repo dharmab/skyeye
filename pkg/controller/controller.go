@@ -10,7 +10,6 @@ import (
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/traces"
-	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/lithammer/shortuuid/v3"
 	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
@@ -129,29 +128,10 @@ func (c *controller) Run(ctx context.Context, calls chan<- Call) {
 	c.calls = calls
 
 	log.Info().Msg("attaching callbacks")
-	c.scope.SetFadedCallback(func(group brevity.Group, coalition coalitions.Coalition) {
-		for _, id := range group.ObjectIDs() {
-			c.remove(id)
-		}
-		if coalition == c.coalition.Opposite() {
-			group.SetDeclaration(brevity.Hostile)
-			if c.srsClient.HumansOnFrequency() > 0 {
-				log.Info().Stringer("group", group).Msg("broadcasting FADED call")
-				c.calls <- NewCall(traces.NewRequestContext(), brevity.FadedCall{Group: group})
-			} else {
-				log.Debug().Msg("skipping FADED call because no clients are on frequency")
-			}
-		}
-	})
-	c.scope.SetRemovedCallback(func(trackfile trackfiles.Trackfile) {
-		c.remove(trackfile.Contact.ID)
-	})
+	c.scope.SetFadedCallback(c.handleFaded)
+	c.scope.SetRemovedCallback(c.handleRemoved)
 
-	frequencies := make([]unit.Frequency, 0)
-	for _, rf := range c.srsClient.Frequencies() {
-		frequencies = append(frequencies, rf.Frequency)
-	}
-	c.calls <- NewCall(traces.WithTraceID(ctx, shortuuid.New()), brevity.SunriseCall{Frequencies: frequencies})
+	c.broadcastSunrise(ctx)
 
 	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
@@ -167,11 +147,18 @@ func (c *controller) Run(ctx context.Context, calls chan<- Call) {
 			c.broadcastMerges(traces.WithTraceID(ctx, shortuuid.New()))
 			c.broadcastThreats(traces.WithTraceID(ctx, shortuuid.New()))
 			if c.enableAutomaticPicture && time.Now().After(c.pictureBroadcastDeadline) {
-				logger := log.With().Logger()
-				c.broadcastPicture(traces.WithTraceID(ctx, shortuuid.New()), &logger, false)
+				c.broadcastPicture(traces.WithTraceID(ctx, shortuuid.New()), &log.Logger, false)
 			}
 		}
 	}
+}
+
+func (c *controller) broadcastSunrise(ctx context.Context) {
+	frequencies := make([]unit.Frequency, 0)
+	for _, rf := range c.srsClient.Frequencies() {
+		frequencies = append(frequencies, rf.Frequency)
+	}
+	c.calls <- NewCall(traces.WithTraceID(ctx, shortuuid.New()), brevity.SunriseCall{Frequencies: frequencies})
 }
 
 func (c *controller) remove(id uint64) {
