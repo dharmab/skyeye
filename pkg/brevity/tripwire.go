@@ -13,7 +13,3 @@ func (r TripwireRequest) String() string {
 type TripwireResponse struct {
 	Callsign string
 }
-
-func (r TripwireResponse) String() string {
-	return "TRIPWIRE: callsign " + r.Callsign
-}

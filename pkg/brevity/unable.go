@@ -20,10 +20,3 @@ type SayAgainResponse struct {
 	// This may be empty if the GCI is unsure of the caller's identity.
 	Callsign string
 }
-
-func (r SayAgainResponse) String() string {
-	if r.Callsign != "" {
-		return "SAY AGAIN: callsign " + r.Callsign
-	}
-	return "SAY AGAIN: unknown callsign"
-}

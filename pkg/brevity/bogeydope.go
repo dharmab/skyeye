@@ -29,10 +29,3 @@ type BogeyDopeResponse struct {
 	// Group which is closest to the fighter. If there are no eligible groups, this may be nil.
 	Group Group
 }
-
-func (r BogeyDopeResponse) String() string {
-	if r.Group == nil {
-		return fmt.Sprintf("BOGEY DOPE for %s: nil", r.Callsign)
-	}
-	return fmt.Sprintf("BOGEY DOPE for %s: group %s", r.Callsign, r.Group)
-}

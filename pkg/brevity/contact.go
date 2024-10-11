@@ -5,7 +5,3 @@ type NegativeRadarContactResponse struct {
 	// Callsign of the friendly aircraft that made the request.
 	Callsign string
 }
-
-func (r NegativeRadarContactResponse) String() string {
-	return "NEGATIVE RADAR CONTACT: callsign " + r.Callsign
-}

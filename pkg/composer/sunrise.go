@@ -40,10 +40,3 @@ func (c *composer) ComposeSunriseCall(call brevity.SunriseCall) NaturalLanguageR
 
 	return message
 }
-
-func (c *composer) ComposeMidnightCall(call brevity.MidnightCall) NaturalLanguageResponse {
-	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("All players: GCI %s midnight. See ya!", c.callsign),
-		Speech:   fmt.Sprintf("All players, GCI %s midnight. sssssssseeeeya!", c.callsign),
-	}
-}
