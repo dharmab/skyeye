@@ -66,6 +66,7 @@ scripts/
 dev/
 
 # ACMI files
+*.acmi
 *.txt.acmi
 *.acmi.zip
 
