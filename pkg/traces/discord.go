@@ -66,10 +66,6 @@ func createReport(ctx context.Context) string {
 	if timings := formatTimings(ctx); timings != "" {
 		content += fmt.Sprintf("Timings: %s\n", timings)
 	}
-
-	if call := GetCall(ctx); call != nil {
-		content += fmt.Sprintf("Internal Response: `%s`\n", call)
-	}
 	return content
 }
 

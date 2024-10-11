@@ -81,11 +81,3 @@ type DeclareResponse struct {
 	// This may be nil if Declaration is Furball, Unable, or Clean.
 	Group Group
 }
-
-func (r DeclareResponse) String() string {
-	s := fmt.Sprintf("DECLARE for %s: declaration %s", r.Callsign, r.Declaration)
-	if r.Group != nil {
-		s += fmt.Sprintf(", group %s", r.Group)
-	}
-	return s
-}

@@ -34,8 +34,5 @@ func (t *LogTracer) Trace(ctx context.Context) {
 	if text := GetCallText(ctx); text != "" {
 		loggerCtx = loggerCtx.Str("callText", text)
 	}
-	if call := GetCall(ctx); call != nil {
-		loggerCtx = loggerCtx.Type("callType", call).Any("call", call)
-	}
 	loggerCtx.Msg("workflow trace")
 }

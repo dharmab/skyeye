@@ -1,7 +1,5 @@
 package brevity
 
-import "fmt"
-
 // RadioCheckRequest is a request for a RADIO CHECK.
 type RadioCheckRequest struct {
 	// Callsign of the friendly aircraft requesting the RADIO CHECK.
@@ -19,8 +17,4 @@ type RadioCheckResponse struct {
 	Callsign string
 	// RadarContact indicates whether the callsign was found on the radar scope.
 	RadarContact bool
-}
-
-func (r RadioCheckResponse) String() string {
-	return fmt.Sprintf("RADIO CHECK for %s: contact %v", r.Callsign, r.RadarContact)
 }

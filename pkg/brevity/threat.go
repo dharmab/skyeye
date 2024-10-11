@@ -1,8 +1,6 @@
 package brevity
 
 import (
-	"fmt"
-
 	"github.com/martinlindhe/unit"
 )
 
@@ -14,10 +12,6 @@ type ThreatCall struct {
 	Callsigns []string
 	// Group that is threatening the friendly aircraft.
 	Group Group
-}
-
-func (c ThreatCall) String() string {
-	return fmt.Sprintf("THREAT: %s threatened by %s", c.Callsigns, c.Group)
 }
 
 // MandatoryThreatDistance is the distance at which a contact is considered a threat regardless of aspect.

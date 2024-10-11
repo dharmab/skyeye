@@ -93,14 +93,6 @@ func WithoutRequestText(ctx context.Context) context.Context {
 	return context.WithValue(ctx, requestTextKey, nil)
 }
 
-func WithCall(ctx context.Context, call any) context.Context {
-	return context.WithValue(ctx, callKey, call)
-}
-
-func GetCall(ctx context.Context) any {
-	return getValue[any](ctx, callKey)
-}
-
 func WithCallText(ctx context.Context, text string) context.Context {
 	return context.WithValue(ctx, callTextKey, text)
 }

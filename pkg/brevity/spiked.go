@@ -42,20 +42,3 @@ type SpikedResponse struct {
 	// Reported spike bearing. This is used if the response did not correlate to a group.
 	Bearing bearings.Bearing
 }
-
-func (r SpikedResponse) String() string {
-	if !r.Status {
-		return fmt.Sprintf("SPIKED for %s: bearing %s", r.Callsign, r.Bearing)
-	}
-
-	return fmt.Sprintf(
-		"SPIKED for %s: range %.0f, altitude %.0f, aspect %s, track %s, declaration %s, contacts %d",
-		r.Callsign,
-		r.Range.NauticalMiles(),
-		r.Altitude.Feet(),
-		r.Aspect,
-		r.Track,
-		r.Declaration,
-		r.Contacts,
-	)
-}

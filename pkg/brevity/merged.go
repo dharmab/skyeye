@@ -1,8 +1,6 @@
 package brevity
 
 import (
-	"fmt"
-
 	"github.com/martinlindhe/unit"
 )
 
@@ -11,10 +9,6 @@ type MergedCall struct {
 	Callsigns []string
 	// Hostile contacts that are merging with the friendly aircraft.
 	Group Group
-}
-
-func (c MergedCall) String() string {
-	return fmt.Sprintf("MERGED: callsigns %s, group %s", c.Callsigns, c.Group)
 }
 
 const (

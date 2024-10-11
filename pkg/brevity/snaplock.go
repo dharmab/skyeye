@@ -26,11 +26,3 @@ type SnaplockResponse struct {
 	// Group that was identified. If Declaration is Unable or Furball, this may be nil.
 	Group Group
 }
-
-func (r SnaplockResponse) String() string {
-	s := fmt.Sprintf("SNAPLOCK for %s: declaration %s", r.Callsign, r.Declaration)
-	if r.Group != nil {
-		s += fmt.Sprintf(", group %s", r.Group)
-	}
-	return s
-}
