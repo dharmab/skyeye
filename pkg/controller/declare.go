@@ -33,9 +33,8 @@ func (c *controller) HandleDeclare(ctx context.Context, request *brevity.Declare
 		Logger()
 	logger.Info().Msg("handling DECLARE request")
 
-	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
-	if trackfile == nil {
-		logger.Info().Msg("no trackfile found for requestor")
+	foundCallsign, trackfile, ok := c.findCallsign(request.Callsign)
+	if !ok {
 		c.calls <- NewCall(ctx, brevity.NegativeRadarContactResponse{Callsign: request.Callsign})
 		return
 	}

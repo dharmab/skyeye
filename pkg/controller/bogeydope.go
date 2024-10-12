@@ -13,15 +13,12 @@ func (c *controller) HandleBogeyDope(ctx context.Context, request *brevity.Bogey
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Any("filter", request.Filter).Logger()
 	logger.Debug().Msg("handling request")
 
-	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
-	if trackfile == nil {
-		logger.Info().Msg("no trackfile found for requestor")
+	foundCallsign, trackfile, ok := c.findCallsign(request.Callsign)
+	if !ok {
 		c.calls <- NewCall(ctx, brevity.NegativeRadarContactResponse{Callsign: request.Callsign})
 		return
 	}
-
 	logger = logger.With().Str("callsign", foundCallsign).Logger()
-	logger.Info().Stringer("trackfile", trackfile).Msg("found requestor's trackfile")
 
 	origin := trackfile.LastKnown().Point
 	radius := 300 * unit.NauticalMile

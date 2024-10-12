@@ -12,12 +12,11 @@ func (c *controller) HandleRadioCheck(ctx context.Context, request *brevity.Radi
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 	var response brevity.RadioCheckResponse
-	if foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition); trackfile == nil {
-		logger.Debug().Msg("no trackfile found for requestor")
+	foundCallsign, _, ok := c.findCallsign(request.Callsign)
+	if !ok {
 		response.Callsign = request.Callsign
 		response.RadarContact = false
 	} else {
-		logger.Debug().Msg("found requestor's trackfile")
 		response.Callsign = foundCallsign
 		response.RadarContact = true
 	}

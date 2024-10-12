@@ -104,6 +104,10 @@ func (t *Trackfile) LastKnown() Frame {
 	return t.track.Front()
 }
 
+func (t *Trackfile) IsLastKnownPointZero() bool {
+	return spatial.IsZero(t.LastKnown().Point)
+}
+
 func (t *Trackfile) bestAvailableDeclination() unit.Angle {
 	declincation, err := bearings.Declination(t.LastKnown().Point, t.LastKnown().Time)
 	if err != nil {
