@@ -17,9 +17,8 @@ func (c *controller) HandleSpiked(ctx context.Context, request *brevity.SpikedRe
 		logger.Error().Stringer("bearing", request.Bearing).Msg("bearing provided to HandleSpiked should be magnetic")
 	}
 
-	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
-	if trackfile == nil {
-		logger.Info().Msg("no trackfile found for requestor")
+	foundCallsign, trackfile, ok := c.findCallsign(request.Callsign)
+	if !ok {
 		c.calls <- NewCall(ctx, brevity.NegativeRadarContactResponse{Callsign: request.Callsign})
 		return
 	}

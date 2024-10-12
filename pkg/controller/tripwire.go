@@ -9,9 +9,8 @@ import (
 
 func (c *controller) HandleTripwire(ctx context.Context, request *brevity.TripwireRequest) {
 	log.Debug().Str("callsign", request.Callsign).Type("type", request).Msg("handling request")
-	foundCallsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition)
-	if trackfile == nil {
-		log.Debug().Msg("no trackfile found for requestor")
+	foundCallsign, _, ok := c.findCallsign(request.Callsign)
+	if !ok {
 		c.calls <- NewCall(ctx, brevity.NegativeRadarContactResponse{Callsign: request.Callsign})
 		return
 	}
