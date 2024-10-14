@@ -16,12 +16,10 @@ type contextKey int
 const (
 	traceIDKey contextKey = iota
 	errorKey
-	callsignKey
 	radioFrequencyKey
 	clientNameKey
 	requestKey
 	requestTextKey
-	callKey
 	callTextKey
 	receivedAtKey
 	recognizedAtKey
@@ -55,14 +53,6 @@ func WithRequestError(ctx context.Context, err error) context.Context {
 
 func GetRequestError(ctx context.Context) error {
 	return getValue[error](ctx, errorKey)
-}
-
-func WithCallsign(ctx context.Context, callsign string) context.Context {
-	return context.WithValue(ctx, callsignKey, callsign)
-}
-
-func GetCallsign(ctx context.Context) string {
-	return getValue[string](ctx, callsignKey)
 }
 
 func WithClientName(ctx context.Context, name string) context.Context {

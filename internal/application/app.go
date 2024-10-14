@@ -298,7 +298,6 @@ func (a *app) updateBullseyes() {
 
 // trace the given request context using all configured tracers.
 func (a *app) trace(ctx context.Context) {
-	ctx = traces.WithCallsign(ctx, a.callsign)
 	if !a.enableTranscriptionLogging {
 		ctx = traces.WithoutRequestText(ctx)
 	}
