@@ -8,7 +8,7 @@ inputs:
   whisper-cpp-version:
     description: 'The version of whisper.cpp to use'
     required: true
-    default: 'v1.6.2-openmp'
+    default: 'v1.7.1'
   os:
     description: 'The operating system to build for'
     required: true
@@ -28,8 +28,7 @@ runs:
           third_party/whisper.cpp/libwhisper.a
           third_party/whisper.cpp/*.h
         # Increment the number after the version if the cache must be invalidated within a version
-        # v1.6.2-openmp-1: OpenBLAS support on Windows/Linux, OpenMP support on all platforms
-        key: whisper-${{ inputs.whisper-cpp-version }}-1-${{ inputs.os }}-amd64-cache
+        key: whisper-${{ inputs.whisper-cpp-version }}-0-${{ inputs.os }}-amd64-cache
     - name: Checkout whisper.cpp
       if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
       uses: actions/checkout@v4

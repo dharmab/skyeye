@@ -54,6 +54,8 @@ $RECYCLE.BIN/
 
 # whisper.cpp project
 third_party/whisper.cpp
+*.a
+include/*.h
 
 # whisper.cpp models
 *.bin

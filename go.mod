@@ -8,7 +8,7 @@ require (
 	github.com/amitybell/piper-voice-jenny v0.0.0-20231118093224-dcf0d49e46b7
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/gammazero/deque v0.2.1
-	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240727173504-6739eb83c3ca
+	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20241007100648-ebca09a3d103
 	github.com/golangci/golangci-lint v1.60.3
 	github.com/gopxl/beep/v2 v2.0.3
 	github.com/hbollon/go-edlib v1.6.0
