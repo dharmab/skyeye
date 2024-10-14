@@ -63,7 +63,7 @@ func (s *scope) FindNearestGroupWithBRAA(
 	filter brevity.ContactCategory,
 ) brevity.Group {
 	trackfile := s.FindNearestTrackfile(origin, minAltitude, maxAltitude, radius, coalition, filter)
-	if trackfile == nil {
+	if trackfile == nil || trackfile.IsLastKnownPointZero() {
 		return nil
 	}
 

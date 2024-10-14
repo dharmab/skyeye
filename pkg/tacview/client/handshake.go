@@ -1,4 +1,4 @@
-package types
+package client
 
 import (
 	"errors"
@@ -35,14 +35,14 @@ func (h *HostHandshake) Encode() (packet string) {
 func DecodeHostHandshake(packet string) (HostHandshake, error) {
 	handshake := HostHandshake{}
 	for _, line := range strings.Split(packet, "\n") {
-		if line == "" {
+		if line == "" || line == string(rune(0)) {
 			continue
 		} else if strings.HasPrefix(line, LowLevelProtocol) {
-			handshake.LowLevelProtocolVersion = strings.Split(line, ".")[1]
+			handshake.LowLevelProtocolVersion = strings.SplitAfter(line, LowLevelProtocol+".")[1]
 		} else if strings.HasPrefix(line, HighLevelProtocol) {
-			handshake.HighLevelProtocolVersion = strings.Split(line, ".")[1]
-		} else {
-			handshake.Hostname = strings.Split(line, " ")[0]
+			handshake.HighLevelProtocolVersion = strings.SplitAfter(line, HighLevelProtocol+".")[1]
+		} else if strings.HasPrefix(line, "Host ") || strings.HasPrefix(line, "Server ") {
+			handshake.Hostname = strings.Split(line, " ")[1]
 		}
 	}
 	return handshake, nil
@@ -76,7 +76,7 @@ func NewClientHandshake(hostname string, password string) (handshake *ClientHand
 func (h *ClientHandshake) Encode() (packet string) {
 	packet += fmt.Sprintf("%s.%s\n", LowLevelProtocol, LowLevelProtocolVersion)
 	packet += fmt.Sprintf("%s.%s\n", HighLevelProtocol, HighLevelProtocolVersion)
-	packet += h.Hostname + "\n"
+	packet += fmt.Sprintf("Client %s\n", h.Hostname)
 	packet += h.PasswordHash
 	packet += string(rune(0))
 	return

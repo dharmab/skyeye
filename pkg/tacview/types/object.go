@@ -35,6 +35,9 @@ func (o *Object) Update(update *ObjectUpdate, ref orb.Point) error {
 		}
 	}
 
+	if newTransform == "" {
+		return nil
+	}
 	currentCoordinates, err := o.GetCoordinates(ref)
 	if err != nil {
 		o.SetProperty(properties.Transform, newTransform)

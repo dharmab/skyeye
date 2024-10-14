@@ -53,7 +53,9 @@ func (s *scope) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {
 		declaration: brevity.Unable,
 	}
 	grp.contacts = append(grp.contacts, trackfile)
-	s.addNearbyAircraftToGroup(trackfile, grp)
+	if !trackfile.IsLastKnownPointZero() {
+		s.addNearbyAircraftToGroup(trackfile, grp)
+	}
 	return grp
 }
 

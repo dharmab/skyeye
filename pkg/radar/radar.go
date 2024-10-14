@@ -110,6 +110,7 @@ type Radar interface {
 		coalition coalitions.Coalition,
 		category brevity.ContactCategory,
 	) brevity.Group
+	SetStartedCallback(StartedCallback)
 	// SetFadedCallback sets the callback function to be called when a trackfile fades.
 	SetFadedCallback(FadedCallback)
 	// SetRemovedCallback sets the callback function to be called when a trackfile is aged out.
@@ -129,6 +130,7 @@ type scope struct {
 	missionTime           time.Time
 	bullseyes             sync.Map
 	contacts              contactDatabase
+	startedCallback       StartedCallback
 	fadedCallback         FadedCallback
 	removalCallback       RemovedCallback
 	center                orb.Point
@@ -185,9 +187,9 @@ func (s *scope) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer recenterTicker.Stop()
 	for {
 		select {
-		case start := <-s.starts:
-			log.Info().Time("missionTime", start.MissionTimestamp).Msg("clearing all trackfiles due to mission (re)start")
-			s.contacts.reset()
+		case <-s.starts:
+
+			s.handleStarted()
 		case update := <-s.updates:
 			s.handleUpdate(update)
 		case <-gcTicker.C:
@@ -203,9 +205,10 @@ func (s *scope) Run(ctx context.Context, wg *sync.WaitGroup) {
 // handleUpdate updates the database using the provided update.
 func (s *scope) handleUpdate(update sim.Updated) {
 	logger := log.With().
-		Str("name", update.Labels.Name).
+		Str("callsign", update.Labels.Name).
 		Str("aircraft", update.Labels.ACMIName).
 		Uint64("id", update.Labels.ID).
+		Stringer("coalition", update.Labels.Coalition).
 		Logger()
 
 	trackfile, ok := s.contacts.getByID(update.Labels.ID)
@@ -223,18 +226,21 @@ func (s *scope) handleGarbageCollection() {
 	for trackfile := range s.contacts.values() {
 		logger := log.With().
 			Uint64("id", trackfile.Contact.ID).
-			Str("name", trackfile.Contact.Name).
+			Str("callsign", trackfile.Contact.Name).
 			Str("aircraft", trackfile.Contact.ACMIName).
+			Stringer("coalition", trackfile.Contact.Coalition).
 			Logger()
 
 		lastSeen := trackfile.LastKnown().Time
 		isOld := lastSeen.Before(s.missionTime.Add(-1 * time.Minute))
-		isNotZero := !lastSeen.IsZero()
-		if isNotZero && isOld {
+		if !lastSeen.IsZero() && isOld {
 			s.contacts.delete(trackfile.Contact.ID)
 			logger.Info().
 				Stringer("age", s.missionTime.Sub(lastSeen)).
-				Msg("removed aged out trackfile")
+				Msg("expired trackfile")
+			if s.removalCallback != nil {
+				s.removalCallback(*trackfile)
+			}
 		}
 	}
 }

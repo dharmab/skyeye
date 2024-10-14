@@ -101,6 +101,12 @@ func (t *mergeTracker) keep(idsToKeep ...uint64) {
 	}
 }
 
+func (t *mergeTracker) reset() {
+	t.lock.Lock()
+	defer t.lock.Unlock()
+	t.merged = make(map[uint64]map[uint64]struct{})
+}
+
 // broadcastMerges updates the merge tracker and broadcasts merged calls for any new merges.
 func (c *controller) broadcastMerges(ctx context.Context) {
 	merges := c.scope.Merges(c.coalition)

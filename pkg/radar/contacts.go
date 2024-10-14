@@ -83,10 +83,7 @@ func (d *database) getByID(id uint64) (*trackfiles.Trackfile, bool) {
 	defer d.lock.RUnlock()
 
 	contact, ok := d.contacts[id]
-	if !ok {
-		return nil, false
-	}
-	return contact, true
+	return contact, ok
 }
 
 // set implements [contactDatabase.set].

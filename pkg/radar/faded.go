@@ -6,6 +6,7 @@ import (
 
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
+	"github.com/rs/zerolog/log"
 )
 
 func isTrackfileInGroup(trackfile *trackfiles.Trackfile, grp *group) bool {
@@ -57,6 +58,13 @@ func (s *scope) handleFaded(fades []sim.Faded) {
 		if !ok {
 			continue
 		}
+
+		log.Info().
+			Uint64("id", fade.ID).
+			Str("callsign", trackfile.Contact.Name).
+			Str("aircraft", trackfile.Contact.ACMIName).
+			Stringer("coalition", trackfile.Contact.Coalition).
+			Msg("removing trackfile")
 
 		// Check if the trackfile is already collected into a group
 		isGrouped := false
