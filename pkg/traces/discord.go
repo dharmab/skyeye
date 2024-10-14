@@ -37,9 +37,6 @@ func createReport(ctx context.Context) string {
 		content += fmt.Sprintf(" (Trace ID: `%s`)", traceID)
 	}
 	content += "\n"
-	if callsign := GetCallsign(ctx); callsign != "" {
-		content += fmt.Sprintf("GCI Callsign: %s\n", callsign)
-	}
 	if clientName := GetClientName(ctx); clientName != "" {
 		clientName = strings.ReplaceAll(clientName, "`", "\\`")
 		content += fmt.Sprintf("SRS Client Name: `%s`\n", clientName)
