@@ -25,6 +25,10 @@ func (s *scope) Merges(coalition coalitions.Coalition) map[brevity.Group][]*trac
 			continue
 		}
 
+		if contact.IsLastKnownPointZero() {
+			continue
+		}
+
 		// Exclude hostile helicopters
 		if data, ok := encyclopedia.GetAircraftData(contact.Contact.ACMIName); ok && data.Category() == brevity.RotaryWing {
 			continue
