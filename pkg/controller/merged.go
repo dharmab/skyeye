@@ -175,6 +175,10 @@ func (c *controller) updateMergesForContact(hostile, friendly *trackfiles.Trackf
 		Logger()
 
 	isMerged := c.merges.isMerged(hostile.Contact.ID, friendly.Contact.ID)
+	if friendly.IsLastKnownPointZero() || hostile.IsLastKnownPointZero() {
+		c.merges.separate(hostile.Contact.ID, friendly.Contact.ID)
+		return false
+	}
 	distance := spatial.Distance(friendly.LastKnown().Point, hostile.LastKnown().Point)
 	enteredMerge := distance < brevity.MergeEntryDistance
 	exitedMerge := distance > brevity.MergeExitDistance
