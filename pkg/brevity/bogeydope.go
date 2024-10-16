@@ -1,6 +1,9 @@
 package brevity
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type ContactCategory int
 
@@ -9,6 +12,18 @@ const (
 	FixedWing
 	RotaryWing
 )
+
+func (c ContactCategory) String() string {
+	switch c {
+	case Aircraft:
+		return "Aircraft"
+	case FixedWing:
+		return "Fixed Wing"
+	case RotaryWing:
+		return "Rotary Wing"
+	}
+	return strconv.Itoa(int(c))
+}
 
 // BogeyDopeRequest is a request for a BOGEY DOPE.
 // Reference: ATP 3-52.4 Chapter V section 11.
