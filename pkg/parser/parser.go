@@ -284,6 +284,7 @@ func (p *parser) Parse(tx string) any {
 func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	tx = normalize(tx)
 	tx = spaceDigits(tx)
+	tx = strings.ReplaceAll(tx, "request", "")
 
 	var builder strings.Builder
 	numDigits := 0
