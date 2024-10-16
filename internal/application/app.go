@@ -104,6 +104,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 			config.TelemetryAddress,
 			config.Callsign,
 			config.TelemetryPassword,
+			config.TelemetryConnectionTimeout,
 			config.RadarSweepInterval,
 		)
 	}
