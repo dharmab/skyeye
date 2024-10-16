@@ -31,39 +31,63 @@ func NewDiscordWebhook(webhookID, token string) (*DiscordWebhook, error) {
 	return webhook, nil
 }
 
-func createReport(ctx context.Context) string {
-	content := "GCI Workflow Report"
-	if traceID := GetTraceID(ctx); traceID != "" {
-		content += fmt.Sprintf(" (Trace ID: `%s`)", traceID)
-	}
-	content += "\n"
+func sanitize(text string) string {
+	text = strings.ReplaceAll(text, "`", "\\`")
+	return fmt.Sprintf("`%s`", text)
+}
+
+func createReport(ctx context.Context) (string, []*discord.MessageEmbedField) {
+	header := "GCI Workflow Report"
+	fields := make([]*discord.MessageEmbedField, 0)
 	if clientName := GetClientName(ctx); clientName != "" {
 		clientName = strings.ReplaceAll(clientName, "`", "\\`")
-		content += fmt.Sprintf("SRS Client Name: `%s`\n", clientName)
+		field := &discord.MessageEmbedField{
+			Name:  "SRS Client Name",
+			Value: sanitize(clientName),
+		}
+		fields = append(fields, field)
 	}
 	if text := GetRequestText(ctx); text != "" {
-		content += fmt.Sprintf("Recognized: %q\n", text)
+		text = strings.ReplaceAll(text, "`", "\\`")
+		field := &discord.MessageEmbedField{
+			Name:  "Request",
+			Value: fmt.Sprintf("%q", text),
+		}
+		fields = append(fields, field)
 	}
 	request := GetRequest(ctx)
 	if request != nil {
-		content += fmt.Sprintf("Parsed: `%s`\n", request)
-	}
-	if text := GetCallText(ctx); text != "" {
-		if request != nil {
-			content += "Responded: "
-		} else {
-			content += "Broadcast: "
+		field := &discord.MessageEmbedField{
+			Name:  "Parsed",
+			Value: sanitize(fmt.Sprint(request)),
 		}
-		content += fmt.Sprintf("%q\n", text)
+		fields = append(fields, field)
 	}
 	if err := GetRequestError(ctx); err != nil {
-		content += fmt.Sprintf("Error: `%v`\n", err)
+		field := &discord.MessageEmbedField{
+			Name:  "Error",
+			Value: fmt.Sprintf("`%v`", err),
+		}
+		fields = append(fields, field)
 	}
-
-	if timings := formatTimings(ctx); timings != "" {
-		content += fmt.Sprintf("Timings: %s\n", timings)
+	if text := GetCallText(ctx); text != "" {
+		fieldName := "Broadcast"
+		if request != nil {
+			fieldName = "Response"
+		}
+		field := &discord.MessageEmbedField{
+			Name:  fieldName,
+			Value: fmt.Sprintf("%q", text),
+		}
+		fields = append(fields, field)
 	}
-	return content
+	if traceID := GetTraceID(ctx); traceID != "" {
+		header += " " + sanitize(traceID)
+	}
+	if timings := formatTimings(ctx); len(timings) > 0 {
+		fields = append(fields, timings...)
+	}
+	return header, fields
 }
 
 type timing struct {
@@ -71,7 +95,7 @@ type timing struct {
 	duration time.Duration
 }
 
-func formatTimings(ctx context.Context) string {
+func formatTimings(ctx context.Context) []*discord.MessageEmbedField {
 	timings := make([]timing, 0)
 
 	addTiming := func(stage string, start time.Time, end time.Time) {
@@ -97,21 +121,36 @@ func formatTimings(ctx context.Context) string {
 	addTiming("Composition", handledAt, composedAt)
 	addTiming("Synthesis", composedAt, synthesizedAt)
 	addTiming("Submission", synthesizedAt, submittedAt)
-	var s string
+	fields := make([]*discord.MessageEmbedField, 0)
 	if len(timings) > 0 {
 		var totalDuration time.Duration
 		for _, timing := range timings {
-			s += fmt.Sprintf("%s: %s, ", timing.stage, timing.duration)
+			field := &discord.MessageEmbedField{
+				Name:   timing.stage,
+				Value:  timing.duration.String(),
+				Inline: true,
+			}
+			fields = append(fields, field)
 			totalDuration += timing.duration
 		}
-		s += fmt.Sprintf("Total: %s", totalDuration)
+		fields = append(fields, &discord.MessageEmbedField{
+			Name:   "Total",
+			Value:  totalDuration.String(),
+			Inline: true,
+		})
 	}
-	return s
+	return fields
 }
 
 func (w *DiscordWebhook) Trace(ctx context.Context) {
+	title, fields := createReport(ctx)
 	params := &discord.WebhookParams{
-		Content:         createReport(ctx),
+		Embeds: []*discord.MessageEmbed{
+			{
+				Title:  title,
+				Fields: fields,
+			},
+		},
 		AllowedMentions: &discord.MessageAllowedMentions{},
 	}
 	_, err := w.session.WebhookExecute(w.id, w.token, false, params)
