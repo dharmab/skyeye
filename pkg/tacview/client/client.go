@@ -30,6 +30,8 @@ type client struct {
 
 	// updateInterval is how often to send updates to the channels passed to Stream().
 	updateInterval time.Duration
+	// lastUpdateTime is the time that the last update was read.
+	lastUpdateTime time.Time
 
 	// referenceTime is the reference point provided in the ACMI data.
 	referenceTime time.Time
@@ -68,6 +70,7 @@ func (c *client) Stream(ctx context.Context, starts chan<- sim.Started, updates 
 		case <-ctx.Done():
 			return
 		case <-c.starts:
+			log.Info().Msg("dispatching mission start event")
 			starts <- sim.Started{}
 		case removed := <-c.removals:
 			fades <- sim.Faded{ID: removed.ID}
@@ -165,12 +168,22 @@ func (c *client) sendUpdates(updates chan<- sim.Updated) {
 }
 
 func (c *client) handleLines(ctx context.Context, reader *bufio.Reader) error {
+	log.Info().Msg("resetting ACMI client state")
 	c.reset()
+	log.Info().Msg("sending mission start message")
 	c.starts <- struct{}{}
+
+	ticker := time.NewTicker(1 * time.Minute)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
+		case <-ticker.C:
+			gracePeriod := 10 * time.Minute
+			if time.Since(c.lastUpdateTime) > gracePeriod {
+				log.Warn().Time("lastUpdate", c.lastUpdateTime).Msg("stopped receiving updates")
+				return errors.New("no updates received within grace period")
+			}
 		default:
 			if err := c.handleUpdate(reader); err != nil {
 				return fmt.Errorf("error reading ACMI stream: %w", err)
@@ -231,13 +244,13 @@ func (c *client) handleUpdate(reader *bufio.Reader) error {
 		if err := c.updateGlobalObject(update); err != nil {
 			return fmt.Errorf("error updating global object: %w", err)
 		}
-		return nil
+	} else {
+		if err := c.updateObject(update); err != nil {
+			return fmt.Errorf("error updating object: %w", err)
+		}
 	}
 
-	if err := c.updateObject(update); err != nil {
-		return fmt.Errorf("error updating object: %w", err)
-	}
-
+	c.lastUpdateTime = time.Now()
 	return nil
 }
 
