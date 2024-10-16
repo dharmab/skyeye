@@ -20,19 +20,23 @@ type TelemetryClient struct {
 	hostname string
 	// password to use during handshake
 	password string
+	// connectionTimeout is the maximum time to wait for a connection to be established.
+	connectionTimeout time.Duration
 }
 
 func NewTelemetryClient(
 	address,
 	clientHostname,
 	password string,
+	connectionTimeout time.Duration,
 	updateInterval time.Duration,
 ) *TelemetryClient {
 	return &TelemetryClient{
-		client:   *NewClient(updateInterval),
-		address:  address,
-		hostname: clientHostname,
-		password: password,
+		client:            *NewClient(updateInterval),
+		address:           address,
+		hostname:          clientHostname,
+		password:          password,
+		connectionTimeout: connectionTimeout,
 	}
 }
 
@@ -75,19 +79,16 @@ func (c *TelemetryClient) read(ctx context.Context) error {
 	return nil
 }
 
-func (c *TelemetryClient) connect() (*net.TCPConn, error) {
-	addr, err := net.ResolveTCPAddr("tcp", c.address)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve address %v: %w", c.address, err)
-	}
-	connection, err := net.DialTCP("tcp", nil, addr)
+func (c *TelemetryClient) connect() (net.Conn, error) {
+	dialer := &net.Dialer{Timeout: c.connectionTimeout}
+	connection, err := dialer.Dial("tcp", c.address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to %v: %w", c.address, err)
 	}
 	return connection, nil
 }
 
-func (c *TelemetryClient) handshake(reader *bufio.Reader, connection *net.TCPConn) error {
+func (c *TelemetryClient) handshake(reader *bufio.Reader, connection net.Conn) error {
 	hostHandshakePacket, err := reader.ReadString('\x00')
 	if err != nil {
 		return fmt.Errorf("error reading host handshake: %w", err)
