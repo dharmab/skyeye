@@ -21,7 +21,7 @@ func (a *app) parse(ctx context.Context, in <-chan Message[string], out chan<- M
 	}
 }
 
-// parseText parses a single transcribed transmission, publisgubg any successfully parsed requests to the output channel.
+// parseText parses a single transcribed transmission, publishing any successfully parsed requests to the output channel.
 func (a *app) parseText(ctx context.Context, text string, out chan<- Message[any]) {
 	logger := log.Logger
 	if a.enableTranscriptionLogging {
