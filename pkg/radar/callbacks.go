@@ -10,6 +10,8 @@ import (
 type StartedCallback func()
 
 func (s *scope) SetStartedCallback(callback StartedCallback) {
+	s.callbackLock.Lock()
+	defer s.callbackLock.Unlock()
 	s.startedCallback = callback
 }
 
@@ -18,13 +20,17 @@ func (s *scope) SetStartedCallback(callback StartedCallback) {
 type FadedCallback func(location orb.Point, group brevity.Group, coalition coalitions.Coalition)
 
 func (s *scope) SetFadedCallback(callback FadedCallback) {
+	s.callbackLock.Lock()
+	defer s.callbackLock.Unlock()
 	s.fadedCallback = callback
 }
 
 // RemovedCallback is a callback function that is called when a trackfile is aged out and removed.
 // A copy of the trackfile is provided.
-type RemovedCallback func(trackfile trackfiles.Trackfile)
+type RemovedCallback func(trackfile *trackfiles.Trackfile)
 
 func (s *scope) SetRemovedCallback(callback RemovedCallback) {
+	s.callbackLock.Lock()
+	defer s.callbackLock.Unlock()
 	s.removalCallback = callback
 }

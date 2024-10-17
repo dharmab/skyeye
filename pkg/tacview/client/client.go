@@ -23,10 +23,8 @@ import (
 )
 
 type client struct {
-	// starts should be sent to when the real-time telemetry server changes missions.
-	starts chan struct{}
-	// removals should be sent to when an object is removed in the ACMI data.
-	removals chan *types.Object
+	starts chan sim.Started
+	fades  chan sim.Faded
 
 	// updateInterval is how often to send updates to the channels passed to Stream().
 	updateInterval time.Duration
@@ -44,45 +42,70 @@ type client struct {
 	state map[uint64]*types.Object
 	// bullseyesIdx maps coalitions to bullseye object IDs.
 	bullseyesIdx map[coalitions.Coalition]uint64
-	// stateLock protects state and bullseyesIdx.
-	stateLock sync.RWMutex
+	// lock protects state and bullseyesIdx.
+	lock sync.RWMutex
 }
-
-var _ sim.Sim = &client{}
 
 func NewClient(
 	updateInterval time.Duration,
 ) *client {
 	c := &client{
-		starts:         make(chan struct{}),
-		removals:       make(chan *types.Object),
+		starts:         make(chan sim.Started),
+		fades:          make(chan sim.Faded),
 		updateInterval: updateInterval,
 	}
 	c.reset()
 	return c
 }
 
-func (c *client) Stream(ctx context.Context, starts chan<- sim.Started, updates chan<- sim.Updated, fades chan<- sim.Faded) {
+func (c *client) Stream(ctx context.Context, wg *sync.WaitGroup, starts chan<- sim.Started, updates chan<- sim.Updated, fades chan<- sim.Faded) {
 	ticker := time.NewTicker(c.updateInterval)
 	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-c.starts:
-			log.Info().Msg("dispatching mission start event")
-			starts <- sim.Started{}
-		case removed := <-c.removals:
-			fades <- sim.Faded{ID: removed.ID}
-		case <-ticker.C:
-			c.sendUpdates(updates)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case start := <-c.starts:
+				starts <- start
+			}
 		}
-	}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case fade := <-c.fades:
+				fades <- fade
+			}
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				c.sendUpdates(updates)
+			}
+		}
+	}()
+
+	<-ctx.Done()
 }
 
 func (c *client) Bullseye(coalition coalitions.Coalition) (orb.Point, error) {
-	c.stateLock.RLock()
-	defer c.stateLock.RUnlock()
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 
 	if id, ok := c.bullseyesIdx[coalition]; ok {
 		if bullseye, ok := c.state[id]; ok {
@@ -95,14 +118,14 @@ func (c *client) Bullseye(coalition coalitions.Coalition) (orb.Point, error) {
 }
 
 func (c *client) Time() time.Time {
-	c.stateLock.RLock()
-	defer c.stateLock.RUnlock()
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 	return c.cursorTime
 }
 
 func (c *client) sendUpdates(updates chan<- sim.Updated) {
-	c.stateLock.RLock()
-	defer c.stateLock.RUnlock()
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 
 	for _, object := range c.state {
 		logger := log.With().Uint64("id", object.ID).Logger()
@@ -171,7 +194,7 @@ func (c *client) handleLines(ctx context.Context, reader *bufio.Reader) error {
 	log.Info().Msg("resetting ACMI client state")
 	c.reset()
 	log.Info().Msg("sending mission start message")
-	c.starts <- struct{}{}
+	c.starts <- sim.Started{}
 
 	ticker := time.NewTicker(1 * time.Minute)
 	for {
@@ -255,6 +278,8 @@ func (c *client) handleUpdate(reader *bufio.Reader) error {
 }
 
 func (c *client) handleTimeFrame(line string) error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
 	if !strings.HasPrefix(line, "#") {
 		return nil
 	}
@@ -270,6 +295,8 @@ func (c *client) handleTimeFrame(line string) error {
 }
 
 func (c *client) updateGlobalObject(update *types.ObjectUpdate) error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
 	if update.ID != types.GlobalObjectID {
 		return nil
 	}
@@ -304,8 +331,8 @@ func (c *client) updateGlobalObject(update *types.ObjectUpdate) error {
 }
 
 func (c *client) updateObject(update *types.ObjectUpdate) error {
-	c.stateLock.Lock()
-	defer c.stateLock.Unlock()
+	c.lock.Lock()
+	defer c.lock.Unlock()
 	var isNewObject bool
 	logger := log.With().Uint64("id", update.ID).Logger()
 
@@ -352,7 +379,7 @@ func (c *client) updateObject(update *types.ObjectUpdate) error {
 
 	if update.IsRemoval {
 		delete(c.state, object.ID)
-		c.removals <- object
+		c.fades <- sim.Faded{ID: object.ID}
 		if IsRelevantObject(taglist) {
 			logger.Info().Msg("recording object removal")
 		}
@@ -362,8 +389,8 @@ func (c *client) updateObject(update *types.ObjectUpdate) error {
 }
 
 func (c *client) reset() {
-	c.stateLock.Lock()
-	defer c.stateLock.Unlock()
+	c.lock.Lock()
+	defer c.lock.Unlock()
 
 	c.referenceTime = time.Time{}
 	c.referencePoint = orb.Point{}

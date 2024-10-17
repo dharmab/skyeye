@@ -89,6 +89,8 @@ func (s *scope) handleFaded(fades []sim.Faded) {
 	}
 
 	// call the faded callback for each group
+	s.callbackLock.RLock()
+	defer s.callbackLock.RUnlock()
 	for _, grp := range groups {
 		if s.fadedCallback != nil {
 			s.fadedCallback(grp.point(), &grp, grp.contacts[0].Contact.Coalition)

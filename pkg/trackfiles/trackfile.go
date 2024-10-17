@@ -4,6 +4,7 @@ package trackfiles
 import (
 	"fmt"
 	"math"
+	"sync"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
@@ -36,6 +37,7 @@ type Trackfile struct {
 	Contact Labels
 	// track is a collection of frames, ordered from most recent to least recent.
 	track deque.Deque[Frame]
+	lock  sync.RWMutex
 }
 
 const maxLength = 4
@@ -76,6 +78,8 @@ func (t *Trackfile) String() string {
 
 // Update the trackfile with a new frame. Frames older than the most recent one are discarded.
 func (t *Trackfile) Update(f Frame) {
+	t.lock.Lock()
+	defer t.lock.Unlock()
 	if t.track.Len() > 0 && f.Time.Before(t.track.Front().Time) {
 		return
 	}
@@ -98,6 +102,8 @@ func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 // LastKnown returns the most recent frame in the trackfile.
 // If the trackfile is empty, a stub frame with a zero-value time is returned.
 func (t *Trackfile) LastKnown() Frame {
+	t.lock.RLock()
+	defer t.lock.RUnlock()
 	if t.track.Len() == 0 {
 		return Frame{}
 	}
@@ -120,6 +126,8 @@ func (t *Trackfile) bestAvailableDeclination() unit.Angle {
 // If the track has not moved very far, the course may be unreliable.
 // You can check for this condition by checking if [Trackfile.Direction] returns [brevity.UnknownDirection].
 func (t *Trackfile) Course() bearings.Bearing {
+	t.lock.RLock()
+	defer t.lock.RUnlock()
 	if t.track.Len() < 2 {
 		return bearings.NewTrueBearing(
 			unit.Angle(
@@ -138,6 +146,8 @@ func (t *Trackfile) Course() bearings.Bearing {
 
 // Direction returns the cardinal direction that the track is moving in, or [brevity.UnknownDirection] if the track is not moving faster than 1 m/s.
 func (t *Trackfile) Direction() brevity.Track {
+	t.lock.RLock()
+	defer t.lock.RUnlock()
 	if t.track.Len() < 2 {
 		return brevity.UnknownDirection
 	}
@@ -151,6 +161,8 @@ func (t *Trackfile) Direction() brevity.Track {
 
 // groundSpeed returns the approxmiate speed of the track along the ground (i.e. in two dimensions).
 func (t *Trackfile) groundSpeed() unit.Speed {
+	t.lock.RLock()
+	defer t.lock.RUnlock()
 	if t.track.Len() < 2 {
 		return 0
 	}
@@ -171,6 +183,8 @@ func (t *Trackfile) groundSpeed() unit.Speed {
 
 // Speed returns either the ground speed or the true 3D speed of the track, whichever is greater.
 func (t *Trackfile) Speed() unit.Speed {
+	t.lock.RLock()
+	defer t.lock.RUnlock()
 	if t.track.Len() < 2 {
 		return 0
 	}

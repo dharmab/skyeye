@@ -127,6 +127,10 @@ $(SKYEYE_BIN): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 $(SKYEYE_SCALER_BIN): generate $(SKYEYE_SOURCES)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye-scaler/
 
+.PHONY: run
+run:
+	$(BUILD_VARS) $(GO) run -race $(BUILD_FLAGS) ./cmd/skyeye/ $(ARGS)
+
 .PHONY: test
 test: generate
 	$(BUILD_VARS) $(GO) run gotest.tools/gotestsum -- $(BUILD_FLAGS) ./...

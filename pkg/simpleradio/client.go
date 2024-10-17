@@ -86,7 +86,8 @@ type client struct {
 
 	// lastPing tracks the last time a ping was received. If no pings are received for a period of time, the client will
 	// attempt to reconnect.
-	lastPing time.Time
+	lastPing     time.Time
+	lastPingLock sync.RWMutex
 }
 
 func NewClient(config types.ClientConfiguration) (Client, error) {
@@ -165,20 +166,24 @@ func (c *client) autoheal(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if time.Since(c.lastPing) > pingInterval*3 {
-				log.Warn().Msg("stopped receiving traffic from SRS server")
+			func() {
+				c.lastPingLock.Lock()
+				defer c.lastPingLock.Unlock()
+				if time.Since(c.lastPing) > pingInterval*3 {
+					log.Warn().Msg("stopped receiving traffic from SRS server")
 
-				log.Warn().Msg("attempting to reconnect to SRS server")
-				if reconnectErr := c.reconnect(ctx); reconnectErr != nil {
-					log.Err(reconnectErr).Msg("failed to reconnect to SRS server")
-					continue
+					log.Warn().Msg("attempting to reconnect to SRS server")
+					if reconnectErr := c.reconnect(ctx); reconnectErr != nil {
+						log.Err(reconnectErr).Msg("failed to reconnect to SRS server")
+						return
+					}
+					if initErr := c.initialize(); initErr != nil {
+						log.Err(initErr).Msg("failed to reinitialize SRS client")
+						return
+					}
+					c.lastPing = time.Now()
 				}
-				if initErr := c.initialize(); initErr != nil {
-					log.Err(initErr).Msg("failed to reinitialize SRS client")
-					continue
-				}
-				c.lastPing = time.Now()
-			}
+			}()
 		}
 	}
 }

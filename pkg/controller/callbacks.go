@@ -48,6 +48,6 @@ func (c *controller) handleFaded(location orb.Point, group brevity.Group, coalit
 	}
 }
 
-func (c *controller) handleRemoved(trackfile trackfiles.Trackfile) {
+func (c *controller) handleRemoved(trackfile *trackfiles.Trackfile) {
 	c.remove(trackfile.Contact.ID)
 }
