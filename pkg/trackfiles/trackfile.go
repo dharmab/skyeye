@@ -63,14 +63,14 @@ func NewTrackfile(labels Labels) *Trackfile {
 }
 
 func (t *Trackfile) String() string {
-	point := t.LastKnown().Point
+	frame := t.LastKnown()
 	return fmt.Sprintf(
 		"%d %s (%f.3, %f.3) %f.0 ft %f.0 kts %q",
 		t.Contact.ID,
 		t.Contact.ACMIName,
-		point.Lon(),
-		point.Lat(),
-		t.LastKnown().Altitude.Feet(),
+		frame.Point.Lon(),
+		frame.Point.Lat(),
+		frame.Altitude.Feet(),
 		t.Speed().Knots(),
 		t.Contact.Name,
 	)
@@ -115,7 +115,8 @@ func (t *Trackfile) IsLastKnownPointZero() bool {
 }
 
 func (t *Trackfile) bestAvailableDeclination() unit.Angle {
-	declincation, err := bearings.Declination(t.LastKnown().Point, t.LastKnown().Time)
+	latest := t.LastKnown()
+	declincation, err := bearings.Declination(latest.Point, latest.Time)
 	if err != nil {
 		return 0
 	}
@@ -128,10 +129,10 @@ func (t *Trackfile) bestAvailableDeclination() unit.Angle {
 func (t *Trackfile) Course() bearings.Bearing {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
-	if t.track.Len() < 2 {
+	if t.track.Len() == 1 {
 		return bearings.NewTrueBearing(
 			unit.Angle(
-				t.LastKnown().Heading,
+				t.track.Front().Heading,
 			) * unit.Degree,
 		).Magnetic(t.bestAvailableDeclination())
 	}
