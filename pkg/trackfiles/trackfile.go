@@ -162,8 +162,6 @@ func (t *Trackfile) Direction() brevity.Track {
 
 // groundSpeed returns the approxmiate speed of the track along the ground (i.e. in two dimensions).
 func (t *Trackfile) groundSpeed() unit.Speed {
-	t.lock.RLock()
-	defer t.lock.RUnlock()
 	if t.track.Len() < 2 {
 		return 0
 	}
