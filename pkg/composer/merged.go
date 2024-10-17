@@ -10,7 +10,7 @@ import (
 func (c *composer) ComposeMergedCall(call brevity.MergedCall) NaturalLanguageResponse {
 	callsignList := strings.Join(call.Callsigns, ", ")
 	group := c.ComposeMergedWithGroup(call.Group)
-	template := "%s, merged. %s"
+	template := "%s, merged, %s."
 
 	return NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf(template, callsignList, group.Subtitle),

@@ -132,8 +132,8 @@ func (c *composer) ComposeMergedWithGroup(group brevity.Group) NaturalLanguageRe
 	var speech, subtitle strings.Builder
 	if group.Contacts() > 1 {
 		contacts := c.ComposeContacts(group.Contacts())
-		speech.WriteString(contacts.Speech + ", ")
-		subtitle.WriteString(contacts.Subtitle + ", ")
+		speech.WriteString(contacts.Speech)
+		subtitle.WriteString(contacts.Subtitle)
 	}
 
 	if group.MergedWith() > 0 {
