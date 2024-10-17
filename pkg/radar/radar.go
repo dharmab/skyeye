@@ -133,6 +133,7 @@ type scope struct {
 	startedCallback       StartedCallback
 	fadedCallback         FadedCallback
 	removalCallback       RemovedCallback
+	callbackLock          sync.RWMutex
 	center                orb.Point
 	mandatoryThreatRadius unit.Length
 }
@@ -239,7 +240,7 @@ func (s *scope) handleGarbageCollection() {
 				Stringer("age", s.missionTime.Sub(lastSeen)).
 				Msg("expired trackfile")
 			if s.removalCallback != nil {
-				s.removalCallback(*trackfile)
+				s.removalCallback(trackfile)
 			}
 		}
 	}

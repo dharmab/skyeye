@@ -1,28 +1,8 @@
-// package sim provides an inteface for receiving telemetry data from DCS World
 package sim
 
 import (
-	"context"
-	"time"
-
-	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
-	"github.com/paulmach/orb"
 )
-
-// Sim is the interface for receiving telemetry data from the flight simulator.
-type Sim interface {
-	// Stream aircraft updates from the sim to the provided channels.
-	// The first channel receives updates for active aircraft.
-	// The second channel receives messages when an aircraft disappears.
-	// This function blocks until the context is cancelled.
-	Stream(context.Context, chan<- Started, chan<- Updated, chan<- Faded)
-	// Bullseye returns the coalition's bullseye center.
-	Bullseye(coalitions.Coalition) (orb.Point, error)
-	// Time returns the starting time of the mission.
-	// This is useful for looking up magnetic variation.
-	Time() time.Time
-}
 
 // Started is a message sent when a new mission starts.
 type Started struct {

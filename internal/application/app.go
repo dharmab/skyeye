@@ -190,7 +190,7 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitG
 	go func() {
 		defer wg.Done()
 		log.Info().Msg("streaming telemetry data to radar")
-		a.tacviewClient.Stream(ctx, a.starts, a.updates, a.fades)
+		a.tacviewClient.Stream(ctx, wg, a.starts, a.updates, a.fades)
 	}()
 
 	wg.Add(1)
