@@ -7,8 +7,6 @@ import (
 type MergedCall struct {
 	// Callsigns of the friendly aircraft in the merge.
 	Callsigns []string
-	// Hostile contacts that are merging with the friendly aircraft.
-	Group Group
 }
 
 const (
