@@ -18,6 +18,8 @@ func shiftPointTowards(a orb.Point, b orb.Point) orb.Point {
 }
 
 func (s *scope) updateCenterPoint() {
+	s.centerLock.Lock()
+	defer s.centerLock.Unlock()
 	blue := orb.Point{}
 	red := orb.Point{}
 	for contact := range s.contacts.values() {

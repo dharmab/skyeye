@@ -14,6 +14,8 @@ import (
 // GetPicture implements [Radar.GetPicture].
 func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) (int, []brevity.Group) {
 	// Find groups near the center point
+	s.centerLock.RLock()
+	defer s.centerLock.RUnlock()
 	origin := s.center
 	if spatial.IsZero(origin) {
 		log.Warn().Msg("center point is not set yet, using bullseye")
@@ -45,6 +47,7 @@ func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, f
 	for i := range capacity {
 		result[i] = groups[i]
 	}
+	log.Info().Float64("centerLat", origin.Lat()).Float64("centerLon", origin.Lon()).Int("groups", len(groups)).Msg("generating PICTURE")
 	return len(groups), result
 }
 
