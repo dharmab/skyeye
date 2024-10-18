@@ -53,8 +53,8 @@ var (
 	whisperModelPath             string
 	voiceName                    string
 	mute                         bool
-	playbackSpeed                string
-	playbackPause                time.Duration
+	voiceSpeed                   float64
+	voicePauseLength             time.Duration
 	enableAutomaticPicture       bool
 	automaticPictureInterval     time.Duration
 	enableThreatMonitoring       bool
@@ -102,9 +102,8 @@ func init() {
 	_ = skyeye.MarkFlagRequired("whisper-model")
 	voiceFlag := cli.NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine). Automatically chosen if not provided")
-	playbackSpeedFlag := cli.NewEnum(&playbackSpeed, "string", "standard", "veryslow", "slow", "fast", "veryfast")
-	skyeye.Flags().Var(playbackSpeedFlag, "voice-playback-speed", "How fast the GCI speaks")
-	skyeye.Flags().DurationVar(&playbackPause, "voice-playback-pause", 200*time.Millisecond, "How long the GCI pauses between sentences")
+	skyeye.Flags().Float64Var(&voiceSpeed, "voice-playback-speed", 1.0, "How quickly the GCI speaks (values below 1.0 are faster and above are slower)")
+	skyeye.Flags().DurationVar(&voicePauseLength, "voice-playback-pause", 200*time.Millisecond, "How long the GCI pauses between sentences")
 	skyeye.Flags().BoolVar(&mute, "mute", false, "Mute all SRS transmissions. Useful for testing without disrupting play")
 
 	// Controller behavior
@@ -196,23 +195,6 @@ func loadCoalition() (coalition coalitions.Coalition) {
 	}
 	log.Info().Int("id", int(coalition)).Msg("GCI coalition set")
 	return
-}
-
-func loadPlaybackSpeed() float32 {
-	speedMap := map[string]float32{
-		"veryslow": 1.3,
-		"slow":     1.15,
-		"standard": 1.0,
-		"fast":     0.85,
-		"veryfast": 0.7,
-	}
-	if speed, ok := speedMap[playbackSpeed]; ok {
-		log.Info().Float32("speed", speed).Msg("setting playback speed")
-		return speed
-	} else {
-		log.Info().Float32("speed", speed).Msg("Unknown playback speed, revert to default (standard)")
-		return 1.0
-	}
 }
 
 func loadWhisperModel() *whisper.Model {
@@ -330,7 +312,6 @@ func run(cmd *cobra.Command, args []string) {
 	voice := loadVoice(rando)
 	callsign := loadCallsign(rando)
 	parsedSRSFrequencies := cli.LoadFrequencies(srsFrequencies)
-	playbackSpeed := loadPlaybackSpeed()
 
 	config := conf.Configuration{
 		ACMIFile:                     acmiFile,
@@ -350,8 +331,8 @@ func run(cmd *cobra.Command, args []string) {
 		WhisperModel:                 whisperModel,
 		Voice:                        voice,
 		Mute:                         mute,
-		PlaybackSpeed:                playbackSpeed,
-		PlaybackPause:                playbackPause,
+		VoiceSpeed:                   voiceSpeed,
+		VoicePauseLength:             voicePauseLength,
 		EnableAutomaticPicture:       enableAutomaticPicture,
 		PictureBroadcastInterval:     automaticPictureInterval,
 		EnableThreatMonitoring:       enableThreatMonitoring,

@@ -98,8 +98,13 @@
 # is selected for you.
 #voice: feminine
 #
-# See --help for further customization if the GCI speaks too fast for you to
-# understand.
+# Set the playback speed of the voice. Values below 1.0 slow down the voice,
+# while values above 1.0 speed it up.
+#voice-playback-speed: 1.0
+#
+# Customize the length of the pause between sentences. This can be useful if
+# the GCI is speaking too quickly for your taste.
+#voice-playback-pause: 0.3s
 
 # BEHAVIOR
 # By default, the GCI broadcasts an updated PICTURE if a PICTURE has not been
