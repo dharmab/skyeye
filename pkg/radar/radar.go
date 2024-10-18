@@ -146,10 +146,14 @@ type scope struct {
 	callbackLock sync.RWMutex
 	// center is a point used to center PICTURE calls.
 	center orb.Point
+	// centerLock protects center.
+	centerLock sync.RWMutex
 	// mandatoryThreatRadius is the radius within which a hostile aircraft is always considered a threat.
 	mandatoryThreatRadius unit.Length
-	pendingFades          []sim.Faded
-	pendingFadesLock      sync.RWMutex
+	// pendingFades collects faded contacts for grouping.
+	pendingFades []sim.Faded
+	// pendingFadesLock protects pendingFades.
+	pendingFadesLock sync.RWMutex
 }
 
 func New(coalition coalitions.Coalition, starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length) Radar {
