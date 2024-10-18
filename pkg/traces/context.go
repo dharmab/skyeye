@@ -18,6 +18,7 @@ const (
 	errorKey
 	radioFrequencyKey
 	clientNameKey
+	playerNameKey
 	requestKey
 	requestTextKey
 	callTextKey
@@ -61,6 +62,14 @@ func WithClientName(ctx context.Context, name string) context.Context {
 
 func GetClientName(ctx context.Context) string {
 	return getValue[string](ctx, clientNameKey)
+}
+
+func WithPlayerName(ctx context.Context, name string) context.Context {
+	return context.WithValue(ctx, playerNameKey, name)
+}
+
+func GetPlayerName(ctx context.Context) string {
+	return getValue[string](ctx, playerNameKey)
 }
 
 func WithRequest(ctx context.Context, request any) context.Context {
