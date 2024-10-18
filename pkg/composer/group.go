@@ -178,7 +178,7 @@ func (c *composer) ComposeAltitudeStacks(stacks []brevity.Stack, declaration bre
 	for i := 1; i < len(stacks)-1; i++ {
 		s += ", " + c.ComposeAltitude(stacks[i].Altitude, declaration)
 	}
-	s += ", and " + c.ComposeAltitude(stacks[len(stacks)-1].Altitude, declaration)
+	s += " and " + c.ComposeAltitude(stacks[len(stacks)-1].Altitude, declaration)
 	return s
 }
 
