@@ -46,6 +46,8 @@ var (
 	srsConnectionTimeout         time.Duration
 	srsExternalAWACSModePassword string
 	srsFrequencies               []string
+	enableGRPC                   bool
+	grpcAddress                  string
 	gciCallsign                  string
 	gciCallsigns                 []string
 	coalitionName                string
@@ -90,6 +92,10 @@ func init() {
 	skyeye.Flags().DurationVar(&srsConnectionTimeout, "srs-connection-timeout", 10*time.Second, "Connection timeout for SRS client")
 	skyeye.Flags().StringVar(&srsExternalAWACSModePassword, "srs-eam-password", "", "SRS external AWACS mode password")
 	skyeye.Flags().StringSliceVar(&srsFrequencies, "srs-frequencies", []string{"251.0AM", "133.0AM", "30.0FM"}, "List of SRS frequencies to use")
+
+	// DCS-gRPC
+	skyeye.Flags().BoolVar(&enableGRPC, "enable-grpc", false, "Enable DCS-gRPC features")
+	skyeye.Flags().StringVar(&grpcAddress, "grpc-address", "localhost:50051", "Address of the DCS-gRPC server")
 
 	// Identity
 	skyeye.Flags().StringVar(&gciCallsign, "callsign", "", "GCI callsign used in radio transmissions. Automatically chosen if not provided")
