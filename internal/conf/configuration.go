@@ -48,9 +48,9 @@ type Configuration struct {
 	// Mute disables SRS transmissions
 	Mute bool
 	// Piper playback speed (default is 1.0) - The higher the value the slower it is.
-	PlaybackSpeed float32
+	VoiceSpeed float64
 	// Piper playback pause after every sentence in seconds (default is 0.2)
-	PlaybackPause time.Duration
+	VoicePauseLength time.Duration
 	// EnableAutomaticPicture controls whether the controller will automatically broadcast a PICTURE at regular intervals.
 	EnableAutomaticPicture bool
 	// PictureBroadcastInterval is the interval at which the controller will automatically broadcast a PICTURE.
