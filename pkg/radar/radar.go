@@ -124,18 +124,32 @@ type Radar interface {
 var _ Radar = &scope{}
 
 type scope struct {
-	starts                <-chan sim.Started
-	updates               <-chan sim.Updated
-	fades                 <-chan sim.Faded
-	missionTime           time.Time
-	bullseyes             sync.Map
-	contacts              contactDatabase
-	startedCallback       StartedCallback
-	fadedCallback         FadedCallback
-	removalCallback       RemovedCallback
-	callbackLock          sync.RWMutex
-	center                orb.Point
+	// starts receives an event whenever a mission (re)starts.
+	starts <-chan sim.Started
+	// updates receives frames updating the position of aircraft.
+	updates <-chan sim.Updated
+	// fades receives events when aircraft are marked as removed.
+	fades <-chan sim.Faded
+	// missionTime should be continually updated to the current mission time.
+	missionTime time.Time
+	// bullsyses maps coalitions to their respective bullseye points.
+	bullseyes sync.Map
+	// contacts contains trackfiles for each aircraft.
+	contacts contactDatabase
+	// startedCallback is called when a start event is received.
+	startedCallback StartedCallback
+	// fadedCallback is called when a fade event is received.
+	fadedCallback FadedCallback
+	// removalCallback is called when a trackfile is removed for a reason other than a fade event.
+	removalCallback RemovedCallback
+	// callbackLock protects startedCallback, fadedCallback, and removalCallback.
+	callbackLock sync.RWMutex
+	// center is a point used to center PICTURE calls.
+	center orb.Point
+	// mandatoryThreatRadius is the radius within which a hostile aircraft is always considered a threat.
 	mandatoryThreatRadius unit.Length
+	pendingFades          []sim.Faded
+	pendingFadesLock      sync.RWMutex
 }
 
 func New(coalition coalitions.Coalition, starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length) Radar {
@@ -177,30 +191,64 @@ func (s *scope) Run(ctx context.Context, wg *sync.WaitGroup) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		for {
+			ticker := time.NewTicker(5 * time.Second)
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				s.updateCenterPoint()
+			}
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-s.starts:
+				s.handleStarted()
+			}
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case update := <-s.updates:
+				s.handleUpdate(update)
+			}
+		}
+	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 		s.collectFaded(ctx)
 	}()
 
-	s.updateCenterPoint()
-
-	gcTicker := time.NewTicker(1 * time.Minute)
-	defer gcTicker.Stop()
-	recenterTicker := time.NewTicker(5 * time.Second)
-	defer recenterTicker.Stop()
-	for {
-		select {
-		case <-s.starts:
-
-			s.handleStarted()
-		case update := <-s.updates:
-			s.handleUpdate(update)
-		case <-gcTicker.C:
-			s.handleGarbageCollection()
-		case <-recenterTicker.C:
-			s.updateCenterPoint()
-		case <-ctx.Done():
-			return
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				s.handleGarbageCollection()
+			}
 		}
-	}
+	}()
+
+	<-ctx.Done()
 }
 
 // handleUpdate updates the database using the provided update.
@@ -224,6 +272,12 @@ func (s *scope) handleUpdate(update sim.Updated) {
 
 // handleGarbageCollection removes trackfiles that have not been updated in a long time.
 func (s *scope) handleGarbageCollection() {
+	s.pendingFadesLock.RLock()
+	defer s.pendingFadesLock.RUnlock()
+	if len(s.pendingFades) > 0 {
+		return
+	}
+
 	for trackfile := range s.contacts.values() {
 		logger := log.With().
 			Uint64("id", trackfile.Contact.ID).
@@ -235,12 +289,18 @@ func (s *scope) handleGarbageCollection() {
 		lastSeen := trackfile.LastKnown().Time
 		isOld := lastSeen.Before(s.missionTime.Add(-1 * time.Minute))
 		if !lastSeen.IsZero() && isOld {
-			s.contacts.delete(trackfile.Contact.ID)
-			logger.Info().
-				Stringer("age", s.missionTime.Sub(lastSeen)).
-				Msg("expired trackfile")
-			if s.removalCallback != nil {
-				s.removalCallback(trackfile)
+			ok := s.contacts.delete(trackfile.Contact.ID)
+			if ok {
+				logger.Info().
+					Stringer("age", s.missionTime.Sub(lastSeen)).
+					Msg("expired trackfile")
+				go func() {
+					s.callbackLock.RLock()
+					defer s.callbackLock.RUnlock()
+					if s.removalCallback != nil {
+						s.removalCallback(trackfile)
+					}
+				}()
 			}
 		}
 	}
