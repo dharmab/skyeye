@@ -21,8 +21,6 @@ func isTrackfileInGroup(trackfile *trackfiles.Trackfile, grp *group) bool {
 // collectFaded continuously collects faded contacts. When there is no new faded contact for 10 seconds,
 // it collects all faded contacts into groups, removes the contacts from the database, and calls the fadedCallback.
 func (s *scope) collectFaded(ctx context.Context) {
-	collectedFades := []sim.Faded{}
-
 	// Whenenver we pass the deadline, we collect the faded contacts into groups and call the fadedCallback.
 	var deadline time.Time
 
@@ -38,13 +36,21 @@ func (s *scope) collectFaded(ctx context.Context) {
 			// When we receive a faded contact, we wait a little in case it's wingman is also fading.
 			// This is common if the flight lands or is being engaged by a coordinated flight.
 			deadline = time.Now().Add(15 * time.Second)
-			collectedFades = append(collectedFades, fade)
+			go func() {
+				s.pendingFadesLock.Lock()
+				defer s.pendingFadesLock.Unlock()
+				s.pendingFades = append(s.pendingFades, fade)
+			}()
 		case <-ticker.C:
-			if len(collectedFades) > 0 && time.Now().After(deadline) {
-				// The fade events have settled down now
-				s.handleFaded(collectedFades)
-				collectedFades = []sim.Faded{}
-			}
+			go func() {
+				s.pendingFadesLock.Lock()
+				defer s.pendingFadesLock.Unlock()
+				if len(s.pendingFades) > 0 && time.Now().After(deadline) {
+					// The fade events have settled down now
+					s.handleFaded(s.pendingFades)
+					s.pendingFades = []sim.Faded{}
+				}
+			}()
 		}
 	}
 }
