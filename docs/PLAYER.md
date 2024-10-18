@@ -63,7 +63,11 @@ If your callsign doesn't follow this format, SkyEye makes a best effort to under
 
 ## Using SkyEye
 
-You can send a request to SkyEye by speaking on any SkyEye frequency in SRS. The format of the request is:
+You can send a request to SkyEye by speaking on any SkyEye frequency in SRS. If the server operator has enabled DCS-gRPC integration, you may alternatively type the request into the in-game chat.[^f10]
+
+[^f10]: Why not using F10 commands, you may ask? Sadly, the F10 command menu only provides the code with your coalition and mission editor group, and not your specific aircraft/callsign/name. For most requests, SkyEye needs to identify the specific player, not just the mission editor group.
+
+The format of the request is:
 
 `GCI_CALLSIGN YOUR_CALLSIGN (...) REQUEST_TYPE (...) (REQUEST_ARGUMENTS...) (...)`
 
