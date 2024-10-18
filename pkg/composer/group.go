@@ -127,30 +127,6 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 	}
 }
 
-// ComposeMergedWithGroup is a short form of describing a group for use in merge calls.
-func (c *composer) ComposeMergedWithGroup(group brevity.Group) NaturalLanguageResponse {
-	var speech, subtitle strings.Builder
-	if group.Contacts() > 1 {
-		contacts := c.ComposeContacts(group.Contacts())
-		speech.WriteString(contacts.Speech)
-		subtitle.WriteString(contacts.Subtitle)
-	}
-
-	if group.MergedWith() > 0 {
-		mergedWith := " merged with 1 other friendly"
-		if group.MergedWith() > 1 {
-			mergedWith = fmt.Sprintf(" merged with %d other friendlies", group.MergedWith())
-		}
-		speech.WriteString(mergedWith)
-		subtitle.WriteString(mergedWith)
-	}
-
-	return NaturalLanguageResponse{
-		Subtitle: subtitle.String(),
-		Speech:   speech.String(),
-	}
-}
-
 // ComposeContacts communicates the number of contacts in a group.
 // Reference: ATP 3-52.4 chapter IV section 2.
 func (c *composer) ComposeContacts(n int) NaturalLanguageResponse {

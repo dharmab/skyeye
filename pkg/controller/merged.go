@@ -121,7 +121,7 @@ func (c *controller) broadcastMerges(ctx context.Context) {
 		newMergedFriendlies := c.updateMergesForGroup(hostileGroup, friendlies)
 
 		logger := log.With().Stringer("group", hostileGroup).Logger()
-		mergedCall := c.createMergedCall(hostileGroup, newMergedFriendlies)
+		mergedCall := c.createMergedCall(newMergedFriendlies)
 		if len(mergedCall.Callsigns) > 0 {
 			logger.Info().Strs("callsigns", mergedCall.Callsigns).Msg("broadcasting merged call")
 			c.calls <- NewCall(ctx, mergedCall)
@@ -196,9 +196,8 @@ func (c *controller) updateMergesForContact(hostile, friendly *trackfiles.Trackf
 	return false
 }
 
-func (c *controller) createMergedCall(hostileGroup brevity.Group, friendlies []*trackfiles.Trackfile) brevity.MergedCall {
+func (c *controller) createMergedCall(friendlies []*trackfiles.Trackfile) brevity.MergedCall {
 	call := brevity.MergedCall{
-		Group:     hostileGroup,
 		Callsigns: make([]string, 0),
 	}
 	for _, friendly := range friendlies {
