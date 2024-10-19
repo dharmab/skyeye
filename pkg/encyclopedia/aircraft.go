@@ -2,8 +2,11 @@
 package encyclopedia
 
 import (
+	"time"
+
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/martinlindhe/unit"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -208,8 +211,9 @@ func f86Variants() []Aircraft {
 	return variants(
 		f86Data,
 		map[string]string{
-			"F":    "F",
-			"F FC": "F",
+			"F":       "F",
+			"F FC":    "F",
+			"F Sabre": "F",
 		},
 	)
 }
@@ -1242,13 +1246,18 @@ func init() {
 	}
 }
 
+var missingDataLogger = log.Sample(&zerolog.BurstSampler{
+	Burst:  5,
+	Period: 1 * time.Second,
+})
+
 // GetAircraftData returns the aircraft data for the given name, if it exists.
 // The name should be the Name property of an ACMI object.
 // The second return value is false if the data does not exist.
 func GetAircraftData(name string) (Aircraft, bool) {
 	data, ok := aircraftDataLUT[name]
 	if !ok {
-		log.Warn().Str("aircraft", name).Msg("Aircraft missing from encyclopedia")
+		missingDataLogger.Warn().Str("aircraft", name).Msg("Aircraft missing from encyclopedia")
 	}
 	return data, ok
 }
