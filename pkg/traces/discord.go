@@ -47,6 +47,14 @@ func createReport(ctx context.Context) (string, []*discord.MessageEmbedField) {
 		}
 		fields = append(fields, field)
 	}
+	if playerName := GetPlayerName(ctx); playerName != "" {
+		playerName = strings.ReplaceAll(playerName, "`", "\\`")
+		field := &discord.MessageEmbedField{
+			Name:  "DCS Player Name",
+			Value: sanitize(playerName),
+		}
+		fields = append(fields, field)
+	}
 	if text := GetRequestText(ctx); text != "" {
 		text = strings.ReplaceAll(text, "`", "\\`")
 		field := &discord.MessageEmbedField{
