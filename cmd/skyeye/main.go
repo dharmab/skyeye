@@ -64,6 +64,7 @@ var (
 	enableTracing                bool
 	discordWebhookID             string
 	discordWebhookToken          string
+	exitAfter                    time.Duration
 )
 
 func init() {
@@ -119,6 +120,9 @@ func init() {
 	skyeye.Flags().StringVar(&discordWebhookID, "discord-webhook-id", "", "Discord webhook ID for tracing")
 	skyeye.Flags().StringVar(&discordWebhookToken, "discord-webhook-token", "", "Discord webhook token for tracing")
 	skyeye.MarkFlagsRequiredTogether("discord-webhook-id", "discord-webhook-token")
+
+	// Runtime
+	skyeye.Flags().DurationVar(&exitAfter, "exit-after", time.Hour*24*365*20, "Exit after running for the specified duration")
 }
 
 // Top-level CLI command.
@@ -342,6 +346,7 @@ func run(cmd *cobra.Command, args []string) {
 		EnableTracing:                enableTracing,
 		DiscordWebhookID:             discordWebhookID,
 		DiscorbWebhookToken:          discordWebhookToken,
+		ExitAfter:                    exitAfter,
 	}
 
 	log.Info().Msg("starting application")

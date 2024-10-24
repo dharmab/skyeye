@@ -163,3 +163,13 @@
 # The format of the webhook URL is https://discord.com/api/webhooks/<id>/<token>
 #discord-webhook-id: idgoeshere
 #discord-webhook-token: tokengoeshere
+
+# RUNTIME
+#
+# Limit the maximum bot runtime. This is useful in combination with systemd or 
+# WinSW to restart the bot periodically. I've made a best effort to ensure the bot
+# is stable over long periods of time, but it's always possible that a resource
+# leak or other issue could cause the bot to break after running for a very long
+# time. It may be prudent to restart the bot every few days. The bot won't exit
+# if there are humans on any configured SRS channels, until they leave.
+#exit-after: 72h

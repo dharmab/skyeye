@@ -26,7 +26,8 @@ write_files:
       telemetry-password: your-telemetry-password
       srs-server-address: your-srs-server:5002
       srs-eam-password: your-srs-password
-      srs-frequencies: 132.1,245.6,32.1
+      srs-frequencies: "132.1,245.6,32.1"
+      exit-after: "72h"
   - path: /etc/systemd/system/skyeye.service
     permissions: "0644"
     owner: root:root

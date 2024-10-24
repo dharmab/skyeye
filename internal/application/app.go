@@ -58,6 +58,9 @@ type app struct {
 	starts  chan sim.Started
 	updates chan sim.Updated
 	fades   chan sim.Faded
+
+	// exitAfter is the duration after which the application should exit
+	exitAfter time.Duration
 }
 
 // NewApplication constructs a new Application.
@@ -168,6 +171,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		starts:                     starts,
 		updates:                    updates,
 		fades:                      fades,
+		exitAfter:                  config.ExitAfter,
 	}
 	return app, nil
 }
@@ -271,6 +275,34 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitG
 	go func() {
 		defer wg.Done()
 		a.transmit(ctx, txAudioChan)
+	}()
+
+	log.Info().Dur("duration", a.exitAfter).Msg("starting exit timer routine")
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		timer := time.NewTimer(a.exitAfter)
+		defer timer.Stop()
+		select {
+		case <-ctx.Done():
+			return
+		case <-timer.C:
+			ticker := time.NewTicker(5 * time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-ticker.C:
+					if a.srsClient.HumansOnFrequency() == 0 {
+						log.Info().Msg("reached exit time and no clients are connected - exiting")
+						cancel()
+					} else {
+						log.Warn().Msg("reached exit time but clients are still connected")
+					}
+				}
+			}
+		}
 	}()
 
 	return nil
