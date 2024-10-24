@@ -33,6 +33,7 @@ func TestParsePilotCallsign(t *testing.T) {
 		{"Red 243", "red 2 4 3"},
 		{"Red 054", "red 0 5 4"},
 		{"Gunfighter request", "gunfighter"},
+		{"This is Red 7", "red 7"},
 	}
 
 	for _, test := range testCases {
