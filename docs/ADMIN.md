@@ -7,7 +7,6 @@ This is a technical article on how to deploy SkyEye, targeted at multiplayer ser
 ## Major Known Issues
 
 - **Medium**: SkyEye will not report about hostile contacts below 50 knots. Unfortunately, this includes hostile helicopters that are moving slowly or hovering. [Bug tracked here](https://github.com/dharmab/skyeye/issues/65).
-- **Low**: If the mission restarts or is changed while SkyEye is running, the GCI will report a FADED call for every airborne contact from the previous mission. [Bug tracked here](https://github.com/dharmab/skyeye/issues/239)
 - See also [this section in the player guide](PLAYER.md#a-word-of-warning) about the bot's limitations.
 
 ## System Architecture
