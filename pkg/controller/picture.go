@@ -19,9 +19,12 @@ func (c *controller) HandlePicture(ctx context.Context, request *brevity.Picture
 }
 
 func (c *controller) broadcastPicture(ctx context.Context, logger *zerolog.Logger, forceBroadcast bool) {
-	if c.srsClient.ClientsOnFrequency() == 0 && !forceBroadcast {
-		logger.Debug().Msg("skipping PICTURE broadcast because no clients are on frequency")
-		return
+	if !forceBroadcast {
+		if c.srsClient.ClientsOnFrequency() == 0 {
+			logger.Debug().Msg("skipping PICTURE broadcast because no clients are on frequency")
+			return
+		}
+		c.scope.WaitUntilFadesResolve(ctx)
 	}
 	count, groups := c.scope.GetPicture(conf.DefaultPictureRadius, c.coalition.Opposite(), brevity.FixedWing)
 	isPictureClean := count == 0
