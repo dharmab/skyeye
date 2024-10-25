@@ -6,6 +6,7 @@ import (
 
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -100,6 +101,32 @@ func (s *scope) handleFaded(fades []sim.Faded) {
 	for _, grp := range groups {
 		if s.fadedCallback != nil {
 			s.fadedCallback(grp.point(), &grp, grp.contacts[0].Contact.Coalition)
+		}
+	}
+}
+
+func (s *scope) areFadesPending() bool {
+	s.pendingFadesLock.RLock()
+	defer s.pendingFadesLock.RUnlock()
+	return len(s.pendingFades) > 0
+}
+
+func (s *scope) WaitUntilFadesResolve(ctx context.Context) {
+	if !s.areFadesPending() {
+		return
+	}
+	logger := log.Sample(zerolog.Rarely)
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if !s.areFadesPending() {
+				return
+			}
+			logger.Debug().Msg("waiting for pending fades to resolve")
 		}
 	}
 }

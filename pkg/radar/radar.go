@@ -119,6 +119,8 @@ type Radar interface {
 	Threats(coalitions.Coalition) map[brevity.Group][]uint64
 	// Merges returns a map of hostile groups of the given coalition to friendly trackfiles.
 	Merges(coalitions.Coalition) map[brevity.Group][]*trackfiles.Trackfile
+	// WaitUntilFadesResolve blocks until all fade events have been processed, or the context is cancelled.
+	WaitUntilFadesResolve(context.Context)
 }
 
 var _ Radar = &scope{}
