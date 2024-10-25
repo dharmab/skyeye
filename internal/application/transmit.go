@@ -24,12 +24,13 @@ func (a *app) transmit(ctx context.Context, in <-chan Message[simpleradio.Audio]
 
 // transmitMessage submits a single audio sample to SRS.
 func (a *app) transmitMessage(rCtx context.Context, audio simpleradio.Audio) {
-	log.Info().Msg("transmitting audio")
 	transmission := simpleradio.Transmission{
 		TraceID:    traces.GetTraceID(rCtx),
 		ClientName: traces.GetClientName(rCtx),
 		Audio:      audio,
 	}
+
+	log.Info().Str("traceID", transmission.TraceID).Msg("transmitting audio")
 	a.srsClient.Transmit(transmission)
 	a.trace(traces.WithSubmittedAt(rCtx, time.Now()))
 }

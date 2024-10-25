@@ -65,7 +65,6 @@ func (c *client) encodeVoice(ctx context.Context, packetChan chan<- []voice.Voic
 	for {
 		select {
 		case transmission := <-c.txChan:
-			log.Debug().Msg("encoding transmission from PCM data")
 			encoder, err := opus.NewEncoder(int(sampleRate.Hertz()), channels, opusApplicationVoIP)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to create Opus encoder")
@@ -104,7 +103,6 @@ func (c *client) encodeVoice(ctx context.Context, packetChan chan<- []voice.Voic
 					[]byte(guid),
 				)
 				c.packetNumber++
-				// TODO transmission struct with attached text and trace id
 				txPackets = append(txPackets, voicePacket)
 			}
 			packetChan <- txPackets
