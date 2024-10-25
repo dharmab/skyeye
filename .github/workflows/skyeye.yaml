@@ -193,6 +193,7 @@ jobs:
       - test
       - build-linux-amd64
       - build-windows-amd64
+      - build-macos-arm64
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
