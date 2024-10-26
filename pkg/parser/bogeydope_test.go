@@ -31,6 +31,13 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.RotaryWing,
 			},
 		},
+		{
+			text: "Anyface_hogger41, boogie dope",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "hogger 4 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
