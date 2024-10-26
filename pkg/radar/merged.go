@@ -57,8 +57,14 @@ func (s *scope) Merges(coalition coalitions.Coalition) map[brevity.Group][]*trac
 // mergesForContact returns the opposing trackfiles that the given trackfile is merged with.
 func (s *scope) mergesForContact(trackfile *trackfiles.Trackfile) []*trackfiles.Trackfile {
 	mergedWith := make([]*trackfiles.Trackfile, 0)
+	if trackfile.IsLastKnownPointZero() {
+		return mergedWith
+	}
 	for other := range s.contacts.values() {
 		if trackfile.Contact.Coalition == other.Contact.Coalition {
+			continue
+		}
+		if other.IsLastKnownPointZero() {
 			continue
 		}
 		distance := spatial.Distance(trackfile.LastKnown().Point, other.LastKnown().Point)
