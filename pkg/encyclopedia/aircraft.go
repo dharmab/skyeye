@@ -670,6 +670,25 @@ func tornadoVariants() []Aircraft {
 	)
 }
 
+var mq9Data = Aircraft{
+	tags: map[AircraftTag]bool{
+		FixedWing: true,
+		Unarmed:   true,
+	},
+	PlatformDesignation: "MQ-9",
+	OfficialName:        "Reaper",
+}
+
+func mq9Variants() []Aircraft {
+	return variants(
+		mq9Data,
+		map[string]string{
+			"":        "",
+			" Reaper": "",
+		},
+	)
+}
+
 var aircraftData = []Aircraft{
 	{
 		ACMIShortName: "A-4E-C",
@@ -1065,16 +1084,6 @@ var aircraftData = []Aircraft{
 		OfficialName:        "Predator",
 	},
 	{
-		ACMIShortName: "MQ-9",
-		tags: map[AircraftTag]bool{
-			FixedWing: true,
-			Unarmed:   true,
-		},
-		PlatformDesignation: "MQ-9",
-		TypeDesignation:     "MQ-9",
-		OfficialName:        "Reaper",
-	},
-	{
 		ACMIShortName:       "OH-58D",
 		tags:                oh58Data.tags,
 		PlatformDesignation: oh58Data.PlatformDesignation,
@@ -1239,6 +1248,7 @@ func init() {
 		mb339Variants(),
 		s3Variants(),
 		tornadoVariants(),
+		mq9Variants(),
 	} {
 		for _, data := range vars {
 			aircraftDataLUT[data.ACMIShortName] = data
