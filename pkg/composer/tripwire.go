@@ -3,6 +3,7 @@ package composer
 import (
 	"fmt"
 	"math/rand/v2"
+	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
@@ -42,7 +43,7 @@ func (c *composer) ComposeTripwireResponse(response brevity.TripwireResponse) Na
 
 	reply := fmt.Sprintf(
 		fmt.Sprintf("%s %s", variation1, variation2),
-		response.Callsign,
+		strings.ToUpper(response.Callsign),
 	)
 	return NaturalLanguageResponse{
 		Subtitle: reply,

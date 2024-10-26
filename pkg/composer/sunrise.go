@@ -10,8 +10,8 @@ import (
 // ComposeSunriseCall implements [Composer.ComposeSunriseCall].
 func (c *composer) ComposeSunriseCall(call brevity.SunriseCall) NaturalLanguageResponse {
 	message := NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("All players: GCI %s (bot) sunrise on ", c.callsign),
-		Speech:   fmt.Sprintf("All players, GCI %s sunrise on ", c.callsign),
+		Subtitle: fmt.Sprintf("All players: GCI %s (bot) sunrise on ", strings.ToUpper(c.callsign)),
+		Speech:   fmt.Sprintf("All players, GCI %s sunrise on ", strings.ToUpper(c.callsign)),
 	}
 
 	writeBoth := func(s string) {
