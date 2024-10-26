@@ -83,6 +83,7 @@ func normalize(tx string) string {
 	tx, _, _ = strings.Cut(tx, "|")
 	tx = strings.ToLower(tx)
 	tx = strings.ReplaceAll(tx, "-", " ")
+	tx = strings.ReplaceAll(tx, "_", " ")
 	for _, r := range tx {
 		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && !unicode.IsSpace(r) {
 			tx = strings.ReplaceAll(tx, string(r), "")
