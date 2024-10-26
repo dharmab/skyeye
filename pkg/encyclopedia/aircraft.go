@@ -1247,8 +1247,8 @@ func init() {
 }
 
 var missingDataLogger = log.Sample(&zerolog.BurstSampler{
-	Burst:  5,
-	Period: 1 * time.Second,
+	Burst:  1,
+	Period: time.Minute,
 })
 
 // GetAircraftData returns the aircraft data for the given name, if it exists.
