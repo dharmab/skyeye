@@ -7,9 +7,10 @@ import (
 )
 
 func (c *composer) ComposeMergedCall(call brevity.MergedCall) NaturalLanguageResponse {
-	s := strings.Join(call.Callsigns, ", ") + ", merged."
+	callsignList := strings.ToUpper(strings.Join(call.Callsigns, ", "))
+	reply := callsignList + ", merged."
 	return NaturalLanguageResponse{
-		Subtitle: s,
-		Speech:   s,
+		Subtitle: reply,
+		Speech:   reply,
 	}
 }

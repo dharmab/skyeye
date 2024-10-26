@@ -10,7 +10,7 @@ import (
 // ComposeThreatCall implements [Composer.ComposeThreatCall].
 func (c *composer) ComposeThreatCall(call brevity.ThreatCall) NaturalLanguageResponse {
 	group := c.ComposeGroup(call.Group)
-	callsignList := strings.Join(call.Callsigns, ", ")
+	callsignList := strings.ToUpper(strings.Join(call.Callsigns, ", "))
 
 	return NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf("%s, %s", callsignList, group.Subtitle),

@@ -12,8 +12,8 @@ func (c *composer) ComposePictureResponse(response brevity.PictureResponse) Natu
 	info := c.ComposeCoreInformationFormat(response.Groups...)
 	if response.Count == 0 {
 		return NaturalLanguageResponse{
-			Subtitle: fmt.Sprintf("%s, %s.", c.callsign, brevity.Clean),
-			Speech:   fmt.Sprintf("%s, %s", c.callsign, brevity.Clean),
+			Subtitle: fmt.Sprintf("%s, %s.", strings.ToUpper(c.callsign), brevity.Clean),
+			Speech:   fmt.Sprintf("%s, %s", strings.ToUpper(c.callsign), brevity.Clean),
 		}
 	}
 
@@ -26,7 +26,7 @@ func (c *composer) ComposePictureResponse(response brevity.PictureResponse) Natu
 	info.Subtitle = strings.TrimSpace(info.Subtitle)
 
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s %s", c.callsign, groupCountFillIn, info.Subtitle),
-		Speech:   fmt.Sprintf("%s, %s %s", c.callsign, groupCountFillIn, info.Speech),
+		Subtitle: fmt.Sprintf("%s, %s %s", strings.ToUpper(c.callsign), groupCountFillIn, info.Subtitle),
+		Speech:   fmt.Sprintf("%s, %s %s", strings.ToUpper(c.callsign), groupCountFillIn, info.Speech),
 	}
 }

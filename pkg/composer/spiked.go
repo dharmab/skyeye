@@ -3,6 +3,7 @@ package composer
 import (
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
@@ -12,7 +13,7 @@ func (c *composer) ComposeSpikedResponse(response brevity.SpikedResponse) Natura
 	if response.Status {
 		reply := fmt.Sprintf(
 			"%s, spike range %d, %s, %s",
-			response.Callsign,
+			strings.ToUpper(response.Callsign),
 			int(response.Range.NauticalMiles()),
 			c.ComposeAltitude(response.Altitude, brevity.Bogey),
 			response.Aspect)
@@ -33,14 +34,14 @@ func (c *composer) ComposeSpikedResponse(response brevity.SpikedResponse) Natura
 		}
 	}
 	if response.Bearing == nil {
-		message := fmt.Sprintf("%s, %s", response.Callsign, brevity.Unable)
+		message := fmt.Sprintf("%s, %s", strings.ToUpper(response.Callsign), brevity.Unable)
 		return NaturalLanguageResponse{
 			Subtitle: message,
 			Speech:   message,
 		}
 	}
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s clean %d.", response.Callsign, c.callsign, int(response.Bearing.Degrees())),
-		Speech:   fmt.Sprintf("%s, %s, clean - %s", response.Callsign, c.callsign, PronounceBearing(response.Bearing)),
+		Subtitle: fmt.Sprintf("%s, %s clean %d.", strings.ToUpper(response.Callsign), strings.ToUpper(c.callsign), int(response.Bearing.Degrees())),
+		Speech:   fmt.Sprintf("%s, %s, clean - %s", strings.ToUpper(response.Callsign), strings.ToUpper(c.callsign), PronounceBearing(response.Bearing)),
 	}
 }
