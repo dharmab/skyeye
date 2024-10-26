@@ -353,6 +353,8 @@ func run(cmd *cobra.Command, args []string) {
 		DiscordWebhookID:             discordWebhookID,
 		DiscorbWebhookToken:          discordWebhookToken,
 		ExitAfter:                    exitAfter,
+		EnableGRPC:                   enableGRPC,
+		GRPCAddress:                  grpcAddress,
 	}
 
 	log.Info().Msg("starting application")

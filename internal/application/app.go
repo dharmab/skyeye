@@ -10,6 +10,7 @@ import (
 
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/coalition"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/mission"
+	"github.com/DCS-gRPC/go-bindings/dcs/v0/net"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/commands"
@@ -26,6 +27,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/traces"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // Application is the interface for running the SkyEye application.
@@ -78,12 +80,13 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	var chatListener *commands.ChatListener
 	if config.EnableGRPC {
 		log.Info().Str("address", config.GRPCAddress).Msg("constructing gRPC clients")
-		grpcClient, err := grpc.NewClient(config.GRPCAddress)
+		grpcClient, err := grpc.NewClient(config.GRPCAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			return nil, err
 		}
 		missionClient := mission.NewMissionServiceClient(grpcClient)
 		coalitionClient := coalition.NewCoalitionServiceClient(grpcClient)
+		netClient := net.NewNetServiceClient(grpcClient)
 
 		log.Info().Msg("constructing chat listener")
 		chatListener = commands.NewChatListener(
@@ -91,6 +94,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 			config.Callsign,
 			missionClient,
 			coalitionClient,
+			netClient,
 		)
 	}
 
