@@ -1,4 +1,4 @@
-package client
+package telemetry
 
 import (
 	"bufio"
@@ -12,11 +12,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dharmab/goacmi/objects"
+	"github.com/dharmab/goacmi/parsing"
+	"github.com/dharmab/goacmi/properties"
+	"github.com/dharmab/goacmi/tags"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/sim"
-	"github.com/dharmab/skyeye/pkg/tacview/properties"
-	"github.com/dharmab/skyeye/pkg/tacview/tags"
-	"github.com/dharmab/skyeye/pkg/tacview/types"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
@@ -39,7 +40,7 @@ type client struct {
 	cursorTime time.Time
 
 	// state maps object IDs to statuses.
-	state map[uint64]*types.Object
+	state map[uint64]*objects.Object
 	// bullseyesIdx maps coalitions to bullseye object IDs.
 	bullseyesIdx map[coalitions.Coalition]uint64
 	// lock protects state and bullseyesIdx.
@@ -109,8 +110,8 @@ func (c *client) Bullseye(coalition coalitions.Coalition) (orb.Point, error) {
 
 	if id, ok := c.bullseyesIdx[coalition]; ok {
 		if bullseye, ok := c.state[id]; ok {
-			if coordinates, err := bullseye.GetCoordinates(c.referencePoint); err == nil {
-				return coordinates.Location, nil
+			if coordinates, err := bullseye.GetCoordinates(c.referencePoint.Lon(), c.referencePoint.Lat()); err == nil {
+				return orb.Point{*coordinates.Longitude, *coordinates.Latitude}, nil
 			}
 		}
 	}
@@ -147,7 +148,7 @@ func (c *client) sendUpdates(updates chan<- sim.Updated) {
 		}
 		logger = logger.With().Str("callsign", name).Logger()
 
-		coordinates, err := object.GetCoordinates(c.referencePoint)
+		coordinates, err := object.GetCoordinates(c.referencePoint.Lon(), c.referencePoint.Lat())
 		if err != nil {
 			logger.Error().Err(err).Msg("error getting object coordinates")
 			continue
@@ -165,11 +166,14 @@ func (c *client) sendUpdates(updates chan<- sim.Updated) {
 			logger.Error().Msg("object missing coalition property")
 			continue
 		}
-		coalition := properties.PropertyToCoalition(acmiCoalition)
+		coalition := propertyToCoalition(acmiCoalition)
 
 		frame := trackfiles.Frame{
-			Time:  c.cursorTime,
-			Point: coordinates.Location,
+			Time: c.cursorTime,
+			Point: orb.Point{
+				*coordinates.Longitude,
+				*coordinates.Latitude,
+			},
 		}
 		if coordinates.Altitude != nil {
 			frame.Altitude = *coordinates.Altitude
@@ -244,10 +248,10 @@ func (c *client) handleUpdate(reader *bufio.Reader) error {
 	if strings.HasPrefix(line, "//") {
 		return nil
 	}
-	if line == fmt.Sprintf("%s=%s", properties.FileType, properties.FileTypeTacView) {
+	if line == fmt.Sprintf("%s=%s", properties.FileType, properties.ACMITacviewFileType) {
 		return nil
 	}
-	if line == fmt.Sprintf("%s=%s", properties.FileVersion, properties.FileVersion2_2) {
+	if strings.HasPrefix(line, properties.FileVersion+"=") {
 		return nil
 	}
 
@@ -258,12 +262,12 @@ func (c *client) handleUpdate(reader *bufio.Reader) error {
 		return nil
 	}
 
-	update, err := types.ParseObjectUpdate(line)
+	update, err := parsing.ParseObjectUpdate(line)
 	if err != nil {
 		return fmt.Errorf("error parsing object update: %w", err)
 	}
 
-	if update.ID == types.GlobalObjectID {
+	if update.ID == properties.GlobalObjectID {
 		if err := c.updateGlobalObject(update); err != nil {
 			return fmt.Errorf("error updating global object: %w", err)
 		}
@@ -283,7 +287,7 @@ func (c *client) handleTimeFrame(line string) error {
 	if !strings.HasPrefix(line, "#") {
 		return nil
 	}
-	offset, err := types.ParseTimeFrame(line)
+	offset, err := parsing.ParseTimeFrame(line)
 	if err != nil {
 		return fmt.Errorf("error parsing time frame: %w", err)
 	}
@@ -294,10 +298,10 @@ func (c *client) handleTimeFrame(line string) error {
 	return nil
 }
 
-func (c *client) updateGlobalObject(update *types.ObjectUpdate) error {
+func (c *client) updateGlobalObject(update *objects.Update) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	if update.ID != types.GlobalObjectID {
+	if update.ID != properties.GlobalObjectID {
 		return nil
 	}
 
@@ -330,7 +334,7 @@ func (c *client) updateGlobalObject(update *types.ObjectUpdate) error {
 	return nil
 }
 
-func (c *client) updateObject(update *types.ObjectUpdate) error {
+func (c *client) updateObject(update *objects.Update) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	var isNewObject bool
@@ -339,11 +343,11 @@ func (c *client) updateObject(update *types.ObjectUpdate) error {
 	object, ok := c.state[update.ID]
 	if !ok {
 		isNewObject = true
-		object = types.NewObject(update.ID)
+		object = objects.New(update.ID)
 		c.state[update.ID] = object
 	}
 
-	if err := object.Update(update, c.referencePoint); err != nil {
+	if err := object.Update(update, c.referencePoint.Lon(), c.referencePoint.Lat()); err != nil {
 		return fmt.Errorf("error updating object: %w", err)
 	}
 
@@ -360,7 +364,7 @@ func (c *client) updateObject(update *types.ObjectUpdate) error {
 		logger = logger.With().Str("aircraft", name).Logger()
 	}
 	if coalition, ok := object.GetProperty(properties.Coalition); ok {
-		logger = logger.With().Stringer("coalition", properties.PropertyToCoalition(coalition)).Logger()
+		logger = logger.With().Stringer("coalition", propertyToCoalition(coalition)).Logger()
 	}
 
 	if isNewObject && IsRelevantObject(taglist) {
@@ -373,7 +377,7 @@ func (c *client) updateObject(update *types.ObjectUpdate) error {
 		if !ok {
 			return errors.New("bullseye object missing coalition property")
 		}
-		coalition := properties.PropertyToCoalition(property)
+		coalition := propertyToCoalition(property)
 		c.bullseyesIdx[coalition] = object.ID
 	}
 
@@ -395,7 +399,7 @@ func (c *client) reset() {
 	c.referenceTime = time.Time{}
 	c.referencePoint = orb.Point{}
 	c.cursorTime = time.Time{}
-	c.state = map[uint64]*types.Object{}
+	c.state = map[uint64]*objects.Object{}
 	c.bullseyesIdx = map[coalitions.Coalition]uint64{}
 }
 

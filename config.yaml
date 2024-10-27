@@ -41,7 +41,7 @@
 # speech recognition quality.
 #whisper-model: ggml-tiny.en.bin
 
-# TACVIEW
+# TELEMETRY
 # Telemetry service address. Set this to the host and port of the TacView
 # real-time telemetry service for your DCS World installation.
 # DCS running on the same computer:
@@ -49,8 +49,8 @@
 # DCS running remotely:
 #telemetry-address: dcs.example.com:42674
 #
-# If your TacView telemetry is password-protected, set the password here.
-#telemetry-password: tacviewpasswordgoeshere
+# If your telemetry is password-protected, set the password here.
+#telemetry-password: passwordgoeshere
 
 # SIMPLERADIO-STANDALONE
 # SRS server address. Set this to the host and port of the SRS server.
