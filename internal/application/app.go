@@ -23,7 +23,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/synthesizer/speakers"
-	tacview "github.com/dharmab/skyeye/pkg/tacview/client"
+	"github.com/dharmab/skyeye/pkg/telemetry"
 	"github.com/dharmab/skyeye/pkg/traces"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
@@ -42,8 +42,8 @@ type app struct {
 	callsign string
 	// srsClient is a SimpleRadio Standalone client
 	srsClient simpleradio.Client
-	// tacviewClient streams ACMI data
-	tacviewClient tacview.Client
+	// telemetryClient streams ACMI data
+	telemetryClient telemetry.Client
 	// recognizer provides speech-to-text recognition
 	recognizer recognizer.Recognizer
 	// chatListener listens for chat messages
@@ -126,13 +126,13 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		return nil, fmt.Errorf("failed to construct application: %w", err)
 	}
 
-	var tacviewClient tacview.Client
+	var telemetryClient telemetry.Client
 	if config.ACMIFile != "" {
 		log.Info().Str("file", config.ACMIFile).Msg("constructing ACMI file reader")
-		tacviewClient = tacview.NewFileClient(config.ACMIFile, config.RadarSweepInterval)
+		telemetryClient = telemetry.NewFileClient(config.ACMIFile, config.RadarSweepInterval)
 	} else {
 		log.Info().Str("address", config.TelemetryAddress).Msg("constructing telemetry client")
-		tacviewClient = tacview.NewTelemetryClient(
+		telemetryClient = telemetry.NewTelemetryClient(
 			config.TelemetryAddress,
 			config.Callsign,
 			config.TelemetryPassword,
@@ -190,7 +190,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		enableTranscriptionLogging: config.EnableTranscriptionLogging,
 		chatListener:               chatListener,
 		srsClient:                  srsClient,
-		tacviewClient:              tacviewClient,
+		telemetryClient:            telemetryClient,
 		recognizer:                 recognizer,
 		parser:                     parser,
 		radar:                      rdr,
@@ -212,7 +212,7 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitG
 	go func() {
 		defer wg.Done()
 		log.Info().Msg("running telemetry client")
-		if err := a.tacviewClient.Run(ctx, wg); err != nil {
+		if err := a.telemetryClient.Run(ctx, wg); err != nil {
 			if !errors.Is(err, context.Canceled) {
 				log.Error().Err(err).Msg("error running telemetry client")
 				cancel()
@@ -224,7 +224,7 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitG
 	go func() {
 		defer wg.Done()
 		log.Info().Msg("streaming telemetry data to radar")
-		a.tacviewClient.Stream(ctx, wg, a.starts, a.updates, a.fades)
+		a.telemetryClient.Stream(ctx, wg, a.starts, a.updates, a.fades)
 	}()
 
 	wg.Add(1)
@@ -368,14 +368,14 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitG
 
 // updateMissionTime updates the mission time on the radar.
 func (a *app) updateMissionTime() {
-	missionTime := a.tacviewClient.Time()
+	missionTime := a.telemetryClient.Time()
 	a.radar.SetMissionTime(missionTime)
 }
 
 // updateBullseyes updates the positions of the bullseyes on the radar.
 func (a *app) updateBullseyes() {
 	for _, coalition := range []coalitions.Coalition{coalitions.Red, coalitions.Blue} {
-		bullseye, err := a.tacviewClient.Bullseye(coalition)
+		bullseye, err := a.telemetryClient.Bullseye(coalition)
 		if err != nil {
 			log.Warn().Err(err).Msg("error reading bullseye")
 		} else {
