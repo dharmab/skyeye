@@ -46,6 +46,8 @@ func (a *app) composeCall(ctx context.Context, call any, out chan<- Message[comp
 		response = a.composer.ComposePictureResponse(c)
 	case brevity.RadioCheckResponse:
 		response = a.composer.ComposeRadioCheckResponse(c)
+	case brevity.ShoppingResponse:
+		response = a.composer.ComposeShoppingResponse(c)
 	case brevity.SnaplockResponse:
 		response = a.composer.ComposeSnaplockResponse(c)
 	case brevity.SpikedResponse:

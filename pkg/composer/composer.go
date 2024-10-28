@@ -22,6 +22,8 @@ type Composer interface {
 	ComposePictureResponse(brevity.PictureResponse) NaturalLanguageResponse
 	// ComposeRaygunResponse constructs natural language brevity for responding to a RADIO CHECK.
 	ComposeRadioCheckResponse(brevity.RadioCheckResponse) NaturalLanguageResponse
+	// ComposeShoppingResponse constructs natural language brevity for educating a caller about SHOPPING brevity.
+	ComposeShoppingResponse(brevity.ShoppingResponse) NaturalLanguageResponse
 	// ComposeSnaplockResponse constructs natural language brevity for responding to a SNAPLOCK call.
 	ComposeSnaplockResponse(brevity.SnaplockResponse) NaturalLanguageResponse
 	// ComposeSpikedResponse constructs natural language brevity for responding to a SPIKED call.
