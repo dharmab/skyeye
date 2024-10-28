@@ -134,6 +134,8 @@ type scope struct {
 	fades <-chan sim.Faded
 	// missionTime should be continually updated to the current mission time.
 	missionTime time.Time
+	// missionTimeLock protects missionTime.
+	missionTimeLock sync.RWMutex
 	// bullsyses maps coalitions to their respective bullseye points.
 	bullseyes sync.Map
 	// contacts contains trackfiles for each aircraft.
@@ -169,6 +171,8 @@ func New(coalition coalitions.Coalition, starts <-chan sim.Started, updates <-ch
 }
 
 func (s *scope) SetMissionTime(t time.Time) {
+	s.missionTimeLock.Lock()
+	defer s.missionTimeLock.Unlock()
 	s.missionTime = t
 }
 
@@ -280,6 +284,8 @@ func (s *scope) handleUpdate(update sim.Updated) {
 func (s *scope) handleGarbageCollection() {
 	s.pendingFadesLock.RLock()
 	defer s.pendingFadesLock.RUnlock()
+	s.missionTimeLock.RLock()
+	defer s.missionTimeLock.RUnlock()
 	if len(s.pendingFades) > 0 {
 		return
 	}
@@ -340,6 +346,8 @@ func (s *scope) isMatch(trackfile *trackfiles.Trackfile, coalition coalitions.Co
 }
 
 func (s *scope) Declination(p orb.Point) unit.Angle {
+	s.missionTimeLock.RLock()
+	defer s.missionTimeLock.RUnlock()
 	declination, err := bearings.Declination(p, s.missionTime)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get declination")
