@@ -43,9 +43,10 @@ const (
 	spiked     string = "spiked"
 	snaplock   string = "snaplock"
 	tripwire   string = "tripwire"
+	shopping   string = "shopping"
 )
 
-var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, snaplock, tripwire}
+var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, snaplock, tripwire, shopping}
 
 func IsSimilar(a, b string) bool {
 	v, err := fuzz.StringsSimilarity(strings.ToLower(a), strings.ToLower(b), fuzz.Levenshtein)
@@ -195,6 +196,8 @@ func (p *parser) Parse(tx string) any {
 		return &brevity.PictureRequest{Callsign: pilotCallsign}
 	case tripwire:
 		return &brevity.TripwireRequest{Callsign: pilotCallsign}
+	case shopping:
+		return &brevity.ShoppingRequest{Callsign: pilotCallsign}
 	}
 
 	event = logger.Debug()

@@ -45,6 +45,8 @@ func (a *app) handleRequest(ctx context.Context, r any) {
 		a.controller.HandlePicture(ctx, request)
 	case *brevity.RadioCheckRequest:
 		a.controller.HandleRadioCheck(ctx, request)
+	case *brevity.ShoppingRequest:
+		a.controller.HandleShopping(ctx, request)
 	case *brevity.SnaplockRequest:
 		a.controller.HandleSnaplock(ctx, request)
 	case *brevity.SpikedRequest:

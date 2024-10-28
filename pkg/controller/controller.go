@@ -48,6 +48,8 @@ type Controller interface {
 	HandlePicture(context.Context, *brevity.PictureRequest)
 	// HandleRadioCheck handles a RADIO CHECK by responding to the requesting aircraft.
 	HandleRadioCheck(context.Context, *brevity.RadioCheckRequest)
+	// HandleShopping handles a SHOPPING request... by not implementing it, since it's not an air-to-air call!
+	HandleShopping(context.Context, *brevity.ShoppingRequest)
 	// HandleSnaplock handles a SNAPLOCK by reporting information about the target group.
 	HandleSnaplock(context.Context, *brevity.SnaplockRequest)
 	// HandleSpiked handles a SPIKED by reporting any enemy groups in the direction of the radar spike.
