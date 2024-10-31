@@ -1,4 +1,4 @@
-package recognizer
+package recognizers
 
 import (
 	"context"
@@ -11,22 +11,23 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type whisperRecognizer struct {
+type localRecognizer struct {
 	model    whisper.Model
 	callsign string
 }
 
-var _ Recognizer = &whisperRecognizer{}
+var _ Recognizer = &localRecognizer{}
 
-// NewWhisperRecognizer creates a new recognizer using OpenAI Whisper.
-func NewWhisperRecognizer(model *whisper.Model, callsign string) Recognizer {
-	return &whisperRecognizer{model: *model}
+// NewLocalRecognizer creates a new recognizer using a locally hosted OpenAI Whisper model.
+func NewLocalRecognizer(model *whisper.Model, callsign string) Recognizer {
+	return &localRecognizer{model: *model, callsign: callsign}
 }
 
 const maxSize = 256 * 1024
+const promptTemplate = "You receive commands in this template: {Either ANYFACE or %s} {PILOT CALLSIGN} {DIGITS} {'RADIO' or 'ALPHA' or 'BOGEY' or 'PICTURE' or 'DECLARE' or 'SNAPLOCK' or 'SPIKED'} {ARGUMENTS}. Parse numbers as digits. Separate numbers if there is silence between them. You may hear keywords in the arguments such as BULLSEYE or BRAA."
 
 // Recognize implements [Recognizer.Recognize] using whisper.cpp.
-func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32, enableTranscriptionLogging bool) (string, error) {
+func (r *localRecognizer) Recognize(ctx context.Context, sample []float32, enableTranscriptionLogging bool) (string, error) {
 	if len(sample) > maxSize {
 		log.Warn().Int("length", len(sample)).Int("maxLength", maxSize).Msg("clamping sample to maximum size")
 		sample = sample[:maxSize]
@@ -36,7 +37,7 @@ func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32, ena
 	if err != nil {
 		return "", fmt.Errorf("error creating whisper context: %w", err)
 	}
-	prompt := fmt.Sprintf("You receive commands in this template: {Either ANYFACE or %s} {PILOT CALLSIGN} {DIGITS} {'RADIO' or 'ALPHA' or 'BOGEY' or 'PICTURE' or 'DECLARE' or 'SNAPLOCK' or 'SPIKED'} {ARGUMENTS}. Parse numbers as digits. Separate numbers if there is silence between them. You may hear keywords in the arguments such as BULLSEYE or BRAA.", r.callsign)
+	prompt := fmt.Sprintf(promptTemplate, r.callsign)
 	wCtx.SetInitialPrompt(prompt)
 
 	if wCtx.IsMultilingual() {

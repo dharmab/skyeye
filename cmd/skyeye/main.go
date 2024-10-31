@@ -53,6 +53,9 @@ var (
 	coalitionName                string
 	telemetryUpdateInterval      time.Duration
 	whisperModelPath             string
+	useCloudflareWhisperModel    bool
+	cloudflareAccountID          string
+	cloudflareAPIToken           string
 	voiceName                    string
 	mute                         bool
 	voiceSpeed                   float64
@@ -73,14 +76,14 @@ func init() {
 	skyeye.Flags().StringVar(&configFile, "config-file", "/etc/skyeye/config.yaml", "Path to config file")
 
 	// Logging
-	logLevelFlag := cli.NewEnum(&logLevel, "Level", "info", "error", "warn", "info", "debug", "trace")
-	skyeye.Flags().Var(logLevelFlag, "log-level", "Log level (error, warn, info, debug, trace)")
+	loglevels := cli.NewEnum(&logLevel, "Level", "info", "error", "warn", "info", "debug", "trace")
+	skyeye.Flags().Var(loglevels, "log-level", "Log level (error, warn, info, debug, trace)")
 	logFormats := cli.NewEnum(&logFormat, "Format", "pretty", "json")
 	skyeye.Flags().Var(logFormats, "log-format", "Log format (pretty, json)")
 	skyeye.Flags().BoolVar(&enableTranscriptionLogging, "enable-transcription-logging", true, "Include transcriptions of SRS transmissions in logs and traces")
 
 	// Telemetry
-	skyeye.Flags().StringVar(&acmiFile, "acmi-file", "", "path to ACMI file")
+	skyeye.Flags().StringVar(&acmiFile, "acmi-file", "", "Path to ACMI file")
 	skyeye.Flags().StringVar(&telemetryAddress, "telemetry-address", "localhost:42674", "Address of the real-time telemetry service")
 	skyeye.MarkFlagsMutuallyExclusive("acmi-file", "telemetry-address")
 	skyeye.Flags().DurationVar(&telemetryConnectionTimeout, "telemetry-connection-timeout", 10*time.Second, "Connection timeout for real-time telemetry client")
@@ -104,9 +107,16 @@ func init() {
 	coalitionFlag := cli.NewEnum(&coalitionName, "Coalition", "blue", "red")
 	skyeye.Flags().Var(coalitionFlag, "coalition", "GCI coalition (blue, red)")
 
-	// AI models
+	// Speech Recognition
 	skyeye.Flags().StringVar(&whisperModelPath, "whisper-model", "", "Path to whisper.cpp model")
-	_ = skyeye.MarkFlagRequired("whisper-model")
+	skyeye.Flags().BoolVar(&useCloudflareWhisperModel, "use-cloudflare-whisper-model", false, "Use Cloudflare Workers AI instead of local whisper model")
+	skyeye.MarkFlagsOneRequired("whisper-model", "use-cloudflare-whisper-model")
+	skyeye.MarkFlagsMutuallyExclusive("whisper-model", "use-cloudflare-whisper-model")
+	skyeye.Flags().StringVar(&cloudflareAccountID, "cloudflare-account-id", "", "Cloudflare account ID")
+	skyeye.Flags().StringVar(&cloudflareAPIToken, "cloudflare-api-token", "", "Cloudflare API token")
+	skyeye.MarkFlagsRequiredTogether("cloudflare-account-id", "cloudflare-api-token")
+
+	// Speech Synthesis
 	voiceFlag := cli.NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine). Automatically chosen if not provided")
 	skyeye.Flags().Float64Var(&voiceSpeed, "voice-playback-speed", 1.0, "How quickly the GCI speaks (values below 1.0 are faster and above are slower)")
@@ -278,10 +288,13 @@ func preRun(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to initialize config: %w", err)
 	}
 
-	if whisperModelPath == "" && !viper.IsSet("whisper-model") {
-		_ = cmd.Help()
-		os.Exit(0)
-	}
+	// isLocalWhisperModelConfigured := whisperModelPath == "" && !viper.IsSet("whisper-model")
+	// isCloudflareWhisperModelConfigured := !useCloudflareWhisperModel && !viper.IsSet("use-cloudflare-whisper-model")
+	// isWhisperConfigured := isLocalWhisperModelConfigured && isCloudflareWhisperModelConfigured
+	// if !isWhisperConfigured {
+	// 	_ = cmd.Help()
+	// 	os.Exit(0)
+	// }
 	return nil
 }
 
@@ -317,7 +330,11 @@ func run(cmd *cobra.Command, args []string) {
 
 	log.Info().Msg("loading configuration")
 	coalition := loadCoalition()
-	whisperModel := loadWhisperModel()
+	var whisperModel *whisper.Model
+	if !useCloudflareWhisperModel {
+		whisperModel = loadWhisperModel()
+	}
+
 	rando := randomizer()
 	voice := loadVoice(rando)
 	callsign := loadCallsign(rando)
@@ -339,6 +356,9 @@ func run(cmd *cobra.Command, args []string) {
 		Coalition:                    coalition,
 		RadarSweepInterval:           telemetryUpdateInterval,
 		WhisperModel:                 whisperModel,
+		UseCloudflareWhisperModel:    useCloudflareWhisperModel,
+		CloudflareAccountID:          cloudflareAccountID,
+		CloudflareAPIToken:           cloudflareAPIToken,
 		Voice:                        voice,
 		Mute:                         mute,
 		VoiceSpeed:                   voiceSpeed,

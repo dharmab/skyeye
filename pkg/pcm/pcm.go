@@ -8,6 +8,8 @@ import (
 	"math"
 )
 
+// F32ToU8 converts a float32 in range -1, 1 to a uint8 in range 0, 255.
+
 // F32ToS16 converts a float32 in range -1, 1 to an int16 in range -32768, 32767.
 func F32ToS16(f float32) int16 {
 	return int16(f * math.MaxInt16)

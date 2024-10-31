@@ -1,4 +1,4 @@
-package recognizer
+package recognizers
 
 import (
 	"context"
@@ -75,7 +75,7 @@ func BenchmarkWhisperRecognizer(b *testing.B) {
 	samples := loadSamples(b)
 	model, err := whisper.New(modelPath)
 	require.NoError(b, err)
-	recognizer := NewWhisperRecognizer(&model, "Thunderhead")
+	recognizer := NewLocalRecognizer(&model, "Thunderhead")
 	ctx := context.Background()
 	b.ResetTimer()
 	for _, sample := range samples {

@@ -45,8 +45,14 @@ type Configuration struct {
 	// RadarSweepInterval is the rate at which the radar will update. This does not impact performance - ACMI data is still streamed at the same rate.
 	// It only impacts the update rate of the GCI radar picture.
 	RadarSweepInterval time.Duration
-	// WhisperModel is a whisper.cpp model used for Speech To Text
+	// WhisperModel is a whisper.cpp model used for Speech To Text. This is nil if local speech recognition is not selected.
 	WhisperModel *whisper.Model
+	// UseCloudflareWhisperModel enables Cloudflare Workers AI instead of local speech recognition
+	UseCloudflareWhisperModel bool
+	// CloudflareAccountID is the account ID for using Cloudflare Workers AI
+	CloudflareAccountID string
+	// CloudflareAPIToken is the API token for using Cloudflare Workers AI
+	CloudflareAPIToken string
 	// Voice is the voice used for SRS transmissions
 	Voice voices.Voice
 	// Mute disables SRS transmissions

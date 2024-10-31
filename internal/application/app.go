@@ -18,7 +18,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/controller"
 	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/radar"
-	"github.com/dharmab/skyeye/pkg/recognizer"
+	"github.com/dharmab/skyeye/pkg/recognizers"
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
@@ -45,7 +45,7 @@ type app struct {
 	// telemetryClient streams ACMI data
 	telemetryClient telemetry.Client
 	// recognizer provides speech-to-text recognition
-	recognizer recognizer.Recognizer
+	recognizer recognizers.Recognizer
 	// chatListener listens for chat messages
 	chatListener *commands.ChatListener
 	// parser converts English brevity text to internal representations
@@ -142,7 +142,15 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	}
 
 	log.Info().Msg("constructing speech-to-text recognizer")
-	recognizer := recognizer.NewWhisperRecognizer(config.WhisperModel, config.Callsign)
+	var recognizer recognizers.Recognizer
+	if config.UseCloudflareWhisperModel {
+		recognizer, err = recognizers.NewCloudflareRecognizer(config.CloudflareAccountID, config.CloudflareAPIToken, config.Callsign)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct application: %w", err)
+		}
+	} else {
+		recognizer = recognizers.NewLocalRecognizer(config.WhisperModel, config.Callsign)
+	}
 
 	log.Info().Msg("constructing text parser")
 	parser := parser.New(config.Callsign, config.EnableTranscriptionLogging)
