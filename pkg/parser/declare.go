@@ -17,7 +17,10 @@ func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity
 	var IsBRAA bool
 	for {
 		if scanner.Text() == "" {
-			scanner.Scan()
+			ok := scanner.Scan()
+			if !ok {
+				return nil, false
+			}
 			continue
 		}
 
@@ -77,7 +80,6 @@ func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity
 		}
 
 		if ok := scanner.Scan(); !ok {
-			log.Debug().Msg("end of input")
 			return nil, false
 		}
 	}
