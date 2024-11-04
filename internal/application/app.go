@@ -28,6 +28,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
 
 // Application is the interface for running the SkyEye application.
@@ -80,7 +81,16 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	var chatListener *commands.ChatListener
 	if config.EnableGRPC {
 		log.Info().Str("address", config.GRPCAddress).Msg("constructing gRPC clients")
-		grpcClient, err := grpc.NewClient(config.GRPCAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+		if config.GRPCAPIKey != "" {
+			log.Info().Msg("configuring gRPC client connection with provided API key")
+			opts = append(opts, grpc.WithUnaryInterceptor(func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+				m := metadata.Pairs("X-API-Key", config.GRPCAPIKey)
+				ctx = metadata.NewOutgoingContext(ctx, m)
+				return invoker(ctx, method, req, reply, cc, opts...)
+			}))
+		}
+		grpcClient, err := grpc.NewClient(config.GRPCAddress, opts...)
 		if err != nil {
 			return nil, err
 		}

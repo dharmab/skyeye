@@ -74,6 +74,21 @@
 # 108.000-151.975 on COM2.
 #srs-frequencies: 251.0AM,133.0AM,30.0FM
 
+# DCS-gRPC (optional)
+# Enable DCS-gRPC features (requires https://github.com/DCS-gRPC/rust-server)
+# This enables using in-game chat to communicate with the GCI.
+#enable-grpc: true
+# Address of the DCS-gRPC server (usually port 50051 on the DCS World server)
+# DCS running on the same computer:
+#grpc-address: localhost:50051
+# DCS running remotely:
+#grpc-address: dcs.example.com:50051
+#
+# If authentication is enabled on the DCS-gRPC server, set the API key here.
+# Authenication is STORNGLY RECOMMENDED if the DCS-gRPC server is exposed over
+# a network, as it allows powerful control over the DCS World server and mission.
+#grpc-password: passwordgoeshere
+
 # IDENTITY
 # Set the callsign to whatever you want the GCI to use as the callsign. Good
 # callsigns should be in English, two or three syllables, and easy to

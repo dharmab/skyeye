@@ -48,6 +48,7 @@ var (
 	srsFrequencies               []string
 	enableGRPC                   bool
 	grpcAddress                  string
+	grpcAPIKey                   string
 	gciCallsign                  string
 	gciCallsigns                 []string
 	coalitionName                string
@@ -96,6 +97,7 @@ func init() {
 	// DCS-gRPC
 	skyeye.Flags().BoolVar(&enableGRPC, "enable-grpc", false, "Enable DCS-gRPC features")
 	skyeye.Flags().StringVar(&grpcAddress, "grpc-address", "localhost:50051", "Address of the DCS-gRPC server")
+	skyeye.Flags().StringVar(&grpcAPIKey, "grpc-api-key", "", "API key for DCS-gRPC authentication")
 
 	// Identity
 	skyeye.Flags().StringVar(&gciCallsign, "callsign", "", "GCI callsign used in radio transmissions. Automatically chosen if not provided")
@@ -355,6 +357,7 @@ func run(cmd *cobra.Command, args []string) {
 		ExitAfter:                    exitAfter,
 		EnableGRPC:                   enableGRPC,
 		GRPCAddress:                  grpcAddress,
+		GRPCAPIKey:                   grpcAPIKey,
 	}
 
 	log.Info().Msg("starting application")
