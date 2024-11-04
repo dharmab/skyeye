@@ -22,7 +22,7 @@ func (c *composer) ComposeBogeyDopeResponse(response brevity.BogeyDopeResponse) 
 	}
 	info := c.ComposeCoreInformationFormat(response.Group)
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", strings.ToUpper(response.Callsign), info.Subtitle),
+		Subtitle: fmt.Sprintf("%s, %s", strings.ToUpper(response.Callsign), strings.ToLower(info.Subtitle[:1])+info.Subtitle[1:]),
 		Speech:   fmt.Sprintf("%s, %s", strings.ToUpper(response.Callsign), info.Speech),
 	}
 }
