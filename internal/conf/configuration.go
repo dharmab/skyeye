@@ -36,6 +36,8 @@ type Configuration struct {
 	EnableGRPC bool
 	// GRPCAddress is the network address of the DCS-gRPC server (including port)
 	GRPCAddress string
+	// GRPCAPIKey is the API key for authenticating with the DCS-gRPC server
+	GRPCAPIKey string
 	// EnableTranscriptionLogging controls whether transcriptions are included in logs.
 	EnableTranscriptionLogging bool
 	// Callsign is the GCI callsign used on SRS
