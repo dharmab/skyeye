@@ -25,6 +25,7 @@ var alternateRequestWords = map[string]string{
 	"bovido":        bogeyDope,
 	"bubby dope":    bogeyDope,
 	"bug it":        bogeyDope,
+	"bugadope":      bogeyDope,
 	"buggettope":    bogeyDope,
 	"buggy dog":     bogeyDope,
 	"buggy dope":    bogeyDope,
