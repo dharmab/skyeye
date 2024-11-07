@@ -96,7 +96,7 @@ func (g *group) altitudes() []unit.Length {
 
 // Track implements [brevity.Group.Track].
 func (g *group) Track() brevity.Track {
-	if len(g.contacts) == 0 {
+	if len(g.contacts) == 0 || g.Declaration() == brevity.Furball {
 		return brevity.UnknownDirection
 	}
 	// TODO interpolate from all members
@@ -110,7 +110,7 @@ func (g *group) course() bearings.Bearing {
 
 // Aspect implements [brevity.Group.Aspect].
 func (g *group) Aspect() brevity.Aspect {
-	if g.aspect == nil {
+	if g.aspect == nil || g.Declaration() == brevity.Furball {
 		return brevity.UnknownAspect
 	}
 	return *g.aspect

@@ -56,12 +56,13 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 
 	// Group location, altitude, and track direction or specific aspect
 	stacks := group.Stacks()
-	if bullseye := group.Bullseye(); bullseye != nil {
-		bullseye := c.ComposeBullseye(*bullseye)
+	isTrackKnown := group.Track() != brevity.UnknownDirection
+	if group.Bullseye() != nil {
+		bullseye := c.ComposeBullseye(*group.Bullseye())
 		altitude := c.ComposeAltitudeStacks(stacks, group.Declaration())
 		speech.WriteString(fmt.Sprintf("%s %s, %s", label, bullseye.Speech, altitude))
 		subtitle.WriteString(fmt.Sprintf("%s %s, %s", label, bullseye.Subtitle, altitude))
-		if group.Track() != brevity.UnknownDirection {
+		if isTrackKnown {
 			writeBoth(fmt.Sprintf(", track %s", group.Track()))
 		}
 	} else if group.BRAA() != nil {
@@ -69,9 +70,7 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 		speech.WriteString(fmt.Sprintf("%s %s", label, braa.Speech))
 		subtitle.WriteString(fmt.Sprintf("%s %s", label, braa.Subtitle))
 		isCardinalAspect := slices.Contains([]brevity.Aspect{brevity.Flank, brevity.Beam, brevity.Drag}, group.BRAA().Aspect())
-		isTrackKnown := group.Track() != brevity.UnknownDirection
-		isFurball := group.Declaration() == brevity.Furball
-		if isCardinalAspect && isTrackKnown && !isFurball {
+		if isCardinalAspect && isTrackKnown {
 			writeBoth(fmt.Sprintf(" %s", group.Track()))
 		}
 	}

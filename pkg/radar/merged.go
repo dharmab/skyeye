@@ -47,7 +47,7 @@ func (s *scope) Merges(coalition coalitions.Coalition) map[brevity.Group][]*trac
 		}
 		grp.isThreat = true
 		grp.bullseye = &bullseye
-		grp.declaration = brevity.Furball
+		grp.SetDeclaration(brevity.Furball)
 
 		merges[grp] = slices.Collect(maps.Values(mergedWith))
 	}
