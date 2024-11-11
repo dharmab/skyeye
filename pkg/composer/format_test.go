@@ -44,7 +44,7 @@ func TestPronounceInt(t *testing.T) {
 		t.Run(strconv.Itoa(test.arg), func(t *testing.T) {
 			t.Parallel()
 			actual := PronounceInt(test.arg)
-			require.Equal(t, test.expect, actual, fmt.Sprintf("got %v, expected %v", actual, test.expect))
+			require.Equal(t, test.expect, actual)
 		})
 	}
 }
@@ -67,7 +67,7 @@ func TestPronounceDecimal(t *testing.T) {
 		t.Run(fmt.Sprintf("%v %v %v", test.arg, test.precision, test.separator), func(t *testing.T) {
 			t.Parallel()
 			actual := PronounceDecimal(test.arg, test.precision, test.separator)
-			require.Equal(t, test.expect, actual, fmt.Sprintf("got %v, expected %v", actual, test.expect))
+			require.Equal(t, test.expect, actual)
 		})
 	}
 }

@@ -36,6 +36,6 @@ func (b *Bullseye) Distance() unit.Length {
 	return unit.Length(math.Round(b.distance.NauticalMiles())) * unit.NauticalMile
 }
 
-func (b Bullseye) String() string {
+func (b *Bullseye) String() string {
 	return fmt.Sprintf("%s/%.0f", b.bearing, b.distance.NauticalMiles())
 }
