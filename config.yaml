@@ -113,8 +113,8 @@
 # is selected for you.
 #voice: feminine
 #
-# Set the playback speed of the voice. Values below 1.0 slow down the voice,
-# while values above 1.0 speed it up.
+# Set the playback speed of the voice. Values below 1.0 speed up the voice,
+# while values below 1.0 speed it up.
 #voice-playback-speed: 1.0
 #
 # Customize the length of the pause between sentences. This can be useful if
