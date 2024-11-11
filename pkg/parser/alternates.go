@@ -32,6 +32,7 @@ var alternateRequestWords = map[string]string{
 	"buggy dope":    bogeyDope,
 	"com check":     radioCheck,
 	"comcheck":      radioCheck,
+	"comes check":   radioCheck,
 	"comm":          radioCheck,
 	"comms":         radioCheck,
 	"commscheck":    radioCheck,
