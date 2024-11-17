@@ -14,5 +14,5 @@ func (c *controller) HandleShopping(ctx context.Context, request *brevity.Shoppi
 		c.calls <- NewCall(ctx, brevity.NegativeRadarContactResponse{Callsign: request.Callsign})
 		return
 	}
-	c.calls <- NewCall(ctx, brevity.ShoppingRequest{Callsign: foundCallsign})
+	c.calls <- NewCall(ctx, brevity.ShoppingResponse{Callsign: foundCallsign})
 }
