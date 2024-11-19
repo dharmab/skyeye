@@ -3,7 +3,6 @@ package composer
 import (
 	"fmt"
 	"math/rand/v2"
-	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
@@ -42,7 +41,7 @@ func (c *composer) ComposeRadioCheckResponse(response brevity.RadioCheckResponse
 		}
 		reply = fmt.Sprintf("%s, %s", replies1[rand.IntN(len(replies1))], replies2[rand.IntN(len(replies2))])
 	}
-	reply = fmt.Sprintf(reply, strings.ToUpper(response.Callsign))
+	reply = fmt.Sprintf(reply, c.ComposeCallsigns(response.Callsign))
 	return NaturalLanguageResponse{
 		Subtitle: reply,
 		Speech:   reply,

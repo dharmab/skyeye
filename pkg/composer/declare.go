@@ -3,7 +3,6 @@ package composer
 import (
 	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
@@ -11,7 +10,7 @@ import (
 // ComposeDeclareResponse implements [Composer.ComposeDeclareResponse].
 func (c *composer) ComposeDeclareResponse(response brevity.DeclareResponse) NaturalLanguageResponse {
 	if slices.Contains([]brevity.Declaration{brevity.Furball, brevity.Unable, brevity.Clean}, response.Declaration) {
-		reply := fmt.Sprintf("%s, %s.", strings.ToUpper(response.Callsign), response.Declaration)
+		reply := fmt.Sprintf("%s, %s.", c.ComposeCallsigns(response.Callsign), response.Declaration)
 		return NaturalLanguageResponse{
 			Subtitle: reply,
 			Speech:   reply,
@@ -19,7 +18,7 @@ func (c *composer) ComposeDeclareResponse(response brevity.DeclareResponse) Natu
 	}
 	info := c.ComposeCoreInformationFormat(response.Group)
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", strings.ToUpper(response.Callsign), info.Subtitle),
-		Speech:   fmt.Sprintf("%s, %s", strings.ToUpper(response.Callsign), info.Speech),
+		Subtitle: fmt.Sprintf("%s, %s", c.ComposeCallsigns(response.Callsign), info.Subtitle),
+		Speech:   fmt.Sprintf("%s, %s", c.ComposeCallsigns(response.Callsign), info.Speech),
 	}
 }
