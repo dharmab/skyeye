@@ -15,7 +15,7 @@ func (c *composer) ComposeFadedCall(call brevity.FadedCall) NaturalLanguageRespo
 		speech.WriteString(s)
 	}
 
-	writeBoth(strings.ToUpper(c.callsign) + ", ")
+	writeBoth(c.ComposeCallsigns(c.callsign) + ", ")
 	if call.Group.Contacts() == 1 {
 		writeBoth("single contact faded,")
 	} else {

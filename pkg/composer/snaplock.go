@@ -2,7 +2,6 @@ package composer
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
@@ -12,12 +11,12 @@ func (c *composer) ComposeSnaplockResponse(response brevity.SnaplockResponse) Na
 	if response.Declaration == brevity.Hostile || response.Declaration == brevity.Friendly {
 		info := c.ComposeCoreInformationFormat(response.Group)
 		return NaturalLanguageResponse{
-			Subtitle: fmt.Sprintf("%s, %s", strings.ToUpper(response.Callsign), info.Subtitle),
-			Speech:   fmt.Sprintf("%s, %s", strings.ToUpper(response.Callsign), info.Speech),
+			Subtitle: fmt.Sprintf("%s, %s", c.ComposeCallsigns(response.Callsign), info.Subtitle),
+			Speech:   fmt.Sprintf("%s, %s", c.ComposeCallsigns(response.Callsign), info.Speech),
 		}
 	}
 
-	reply := fmt.Sprintf("%s, %s", strings.ToUpper(response.Callsign), response.Declaration)
+	reply := fmt.Sprintf("%s, %s", c.ComposeCallsigns(response.Callsign), response.Declaration)
 	return NaturalLanguageResponse{
 		Subtitle: reply,
 		Speech:   reply,

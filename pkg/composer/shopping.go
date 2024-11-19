@@ -3,7 +3,6 @@ package composer
 import (
 	"fmt"
 	"math/rand/v2"
-	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
@@ -29,7 +28,7 @@ func (c *composer) ComposeShoppingResponse(r brevity.ShoppingResponse) NaturalLa
 
 	reply := fmt.Sprintf(
 		fmt.Sprintf("%s %s", variation1, variation2),
-		strings.ToUpper(r.Callsign),
+		c.ComposeCallsigns(r.Callsign),
 	)
 	return NaturalLanguageResponse{
 		Subtitle: reply,
