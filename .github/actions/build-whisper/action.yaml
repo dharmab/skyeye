@@ -8,7 +8,7 @@ inputs:
   whisper-cpp-version:
     description: 'The version of whisper.cpp to use'
     required: true
-    default: 'v1.6.2-openmp'
+    default: 'v1.7.2-windows-fix'
   os:
     description: 'The operating system to build for'
     required: true
@@ -21,46 +21,9 @@ inputs:
     description: 'The shell to use'
     required: true
     default: 'bash'
-  cc:
-    description: 'The C compiler to use'
-    required: true
-    default: 'gcc'
 runs:
   using: composite
   steps:
-    - name: Restore whisper.cpp artifacts
-      id: cache-whisper-restore
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          third_party/whisper.cpp/libwhisper.a
-          third_party/whisper.cpp/*.h
-        key: whisper-${{ inputs.whisper-cpp-version }}-${{ inputs.os }}-{{ inputs.arch }}-cache
-    - name: Checkout whisper.cpp
-      if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
-      uses: actions/checkout@v4
-      with:
-        repository: ${{ inputs.whisper-cpp-repo }}
-        path: third_party/whisper.cpp
-        ref: ${{ inputs.whisper-cpp-version }}
     - name: Build whisper.cpp
-      if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
-      env:
-        CC: ${{ inputs.cc }}
       shell: ${{ inputs.shell }}
       run: make whisper
-    - name: Set whisper paths
-      shell: ${{ inputs.shell }}
-      run: |
-        echo "C_INCLUDE_PATH=${{ github.workspace }}/third_party/whisper.cpp/" >> $GITHUB_ENV
-        echo "LIBRARY_PATH=${{ github.workspace }}/third_party/whisper.cpp/" >> $GITHUB_ENV
-        echo "GOARCH=${{ inputs.arch }}" >> $GITHUB_ENV
-    - name: Save whisper.cpp artifacts
-      if: steps.cache-whisper-restore.outputs.cache-hit != 'true'
-      id: cache-whisper-save
-      uses: actions/cache/save@v4
-      with:
-        path: |
-          third_party/whisper.cpp/libwhisper.a
-          third_party/whisper.cpp/*.h
-        key: ${{ steps.cache-whisper-restore.outputs.cache-primary-key }}

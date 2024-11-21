@@ -10,7 +10,7 @@ require (
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/dharmab/goacmi v1.0.3
 	github.com/gammazero/deque v0.2.1
-	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240727173504-6739eb83c3ca
+	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20241121150429-8c6a9b8bb6a0
 	github.com/go-audio/aiff v1.1.0
 	github.com/gofrs/flock v0.12.1
 	github.com/gopxl/beep/v2 v2.0.3

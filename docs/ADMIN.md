@@ -45,11 +45,11 @@ On the other hand, cloud speech recognition has a separate set of tradeoffs:
 
 When using local speech recognition, SkyEye works best when run on a dedicated system, separate from the DCS World and SRS servers.
 
-_Recommended Architecture: DCS, TacView and SRS on one Windows server. SkyEye on another Linux server._
+_Recommended Architecture: DCS, TacView and SRS on one Windows server. SkyEye on another Linux or macOS server._
 
 ```mermaid
 flowchart LR
-    dcs[Windows<br/>DCS World Server<br/>TacView Exporter<br/>SRS Server] <--> skyeye[Linux<br/>SkyEye]
+    dcs[Windows<br/>DCS World Server<br/>TacView Exporter<br/>SRS Server] <--> skyeye[Linux/macOS<br/>SkyEye]
 ```
 
 #### Caution: Running SkyEye and DCS World on One Computer
@@ -69,8 +69,7 @@ flowchart TD
 
 ## Software
 
-SkyEye is officially supported on Windows and Linux. The Windows version bundles all required libraries within skyeye.exe. The Linux version
-requires Opus, SOXR and OpenBLAS to be installed using the OS package manager.
+SkyEye is officially supported on Windows AMD64, Linux AMD64 and Apple Silicon. The Windows version bundles all required libraries within skyeye.exe. The Linux version requires Opus and SOXR to be installed using the OS package manager. The macOS version requires Opus and SOXR to be installed using Homebrew.
 
 ## Hardware
 
@@ -80,7 +79,9 @@ When using cloud speech recognition, SkyEye has relatively modest requirements: 
 
 ### Local Speech Recognition
 
-When using local speech recognition, SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space. The CPU must have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
+#### Windows and Linux
+
+When running on Windows and Linux, local speech recognition runs on the CPU. In this configuration, SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space. The CPU must either have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
 
 CPU Series|AVX2 Added In
 -|-
@@ -88,14 +89,24 @@ Intel Core|Haswell (2013)
 AMD|Excavator (2015)
 Intel Pentium/Celeron|Tiger Lake (2020)
 
-SkyEye currently only officially supports the AMD64 (x86-64) CPU architecture; ARM CPUs are not yet officially supported. I've found that at least 4 dedicated CPU cores are needed for a good experience, but this may differ by the exact CPU being used, so experiment and see what works well for you.
+SkyEye currently only officially supports the AMD64 (x86-64) CPU architecure on Windows and Linux. ARM CPUs are not yet officially supported on these operating systems.
 
-It is important that the CPU cores be **dedicated** cores. Shared core virtual machines are **not supported** and will result in **high latency and stuttering audio.**
+I've found that at least 4 dedicated CPU cores are needed for a good experience, but this may differ by the exact CPU being used, so experiment and see what works well for you. It is important that the CPU cores be **dedicated** cores. Shared core virtual machines are **not supported** and will result in **high latency and stuttering audio.**
+
+#### macOS
+
+When running on macOS, local speech recognition uses the GPU/Neural Engine. Therefore, SkyEye does not use much CPU and should run very well on any Apple Silicon Mac. SkyEye requires around 3GB of RAM and about 2GB of disk space.
+
+Intel Macs are not supported due to lack of available hardware for testing.
+
+#### Benchmarks
 
 Non-scientific local speech recognition performance:
 
 System|CPU|Speech Recognition Model|Speech Recognition Time (Synthetic benchmark)|Speech Recognition Time (In practice)
 -|-|-|-|-
+M4 Mac Mini|Apple M4|ggml-small.en.bin|0.25-0.5s|?
+M4 Mac Mini|Apple M4|ggml-medium.en.bin|0.9-1.0s|?
 My current PC|AMD 5900X|ggml-small.en.bin|1.0-1.5s|1.5-2.0s
 My older PC|AMD 3900XT|ggml-small.en.bin|2-3s|?
 Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (4 dedicated cores)|ggml-small.en.bin|3.0-3.5s|3.0-3.5s
@@ -198,7 +209,9 @@ I recommend you retain your logs so that you can include them in any bug reports
 
 On Linux, the easiest way to retain your logs is to run SkyEye as a systemd-managed service. This will automatically retain your logs in the system journal, and you'll be able to query and search the logs using `journalctl -u skyeye`.
 
-On Windows, the easiest way to retain your logs is to use [redirection](https://learn.microsoft.com/en-us/troubleshoot/developer/visualstudio/cpp/language-compilers/redirecting-error-command-prompt).
+On macOS, the easiest way to retain your logs is to pipe the output of SkyEye to a file using `tee`.
+
+On Windows, SkyEye is bundled with WinSW and a service configuration file which will log to a file.
 
 Advanced users should consider sending their logs to a log aggregator such as [Grafana Cloud](https://grafana.com/products/cloud/logs/). If you do this, I also recommend using `--log-format=json` to log in JSON format, which is easier to search and filter when using an aggregator.
 
@@ -445,6 +458,22 @@ journalctl -u skyeye
 
 # Save recent logs to a file (handy for bug reports)
 journalctl -u skyeye > skyeye.log
+```
+
+## macOS
+
+_Work in Progress_
+
+Download the SkyEye release ZIP from the [releases page](https://github.com/dharmab/skyeye/releases) and extract it.
+
+Download an AI model.
+
+Edit `config.yaml` as required.
+
+Open Terminal and run:
+
+```sh
+./skyeye --config-file=config.yaml | tee skyeye.log
 ```
 
 ## Windows

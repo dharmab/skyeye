@@ -16,8 +16,8 @@ else
 OS_DISTRIBUTION := $(shell lsb_release -si)
 endif
 
+
 # Source code paths
-SKYEYE_PATH = $(shell pwd)
 SKYEYE_SOURCES = $(shell find . -type f -name '*.go')
 SKYEYE_SOURCES += go.mod go.sum
 SKYEYE_BIN = skyeye
@@ -25,22 +25,34 @@ SKYEYE_SCALER_BIN = skyeye-scaler
 
 WHISPER_CPP_PATH = third_party/whisper.cpp
 LIBWHISPER_PATH = $(WHISPER_CPP_PATH)/libwhisper.a
-WHISPER_H_PATH = $(WHISPER_CPP_PATH)/whisper.h
+WHISPER_H_PATH = $(WHISPER_CPP_PATH)/include/whisper.h
 WHISPER_CPP_REPO = https://github.com/dharmab/whisper.cpp.git
-WHISPER_CPP_VERSION = v1.6.2-openmp
+WHISPER_CPP_VERSION = v1.7.2-windows-fix
+WHISPER_CPP_BUILD_ENV =
 
 # Compiler variables and flags
 GOBUILDVARS = GOARCH=$(GOARCH)
+ABS_WHISPER_CPP_PATH = $(abspath $(WHISPER_CPP_PATH))
 BUILD_VARS = CGO_ENABLED=1 \
-  C_INCLUDE_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)" \
-  LIBRARY_PATH="$(SKYEYE_PATH)/$(WHISPER_CPP_PATH)"
+  C_INCLUDE_PATH="$(ABS_WHISPER_CPP_PATH)/ggml/include:$(ABS_WHISPER_CPP_PATH)/include" \
+  LIBRARY_PATH="$(ABS_WHISPER_CPP_PATH)"
 BUILD_FLAGS = -tags nolibopusfile
 
 # Populate --version from Git tag
 ifeq ($(SKYEYE_VERSION),)
 SKYEYE_VERSION=$(shell git describe --tags || echo devel)
 endif
-LDFLAGS= -X "main.Version=$(SKYEYE_VERSION)"
+LDFLAGS= -X "main.Version=$(SKYEYE_VERSION) -fopenmp"
+
+# macOS-specific settings
+ifeq ($(OS_DISTRIBUTION),macOS)
+# Use Homebrew LLVM/Clang for OpenMP support
+CC=$(shell brew --prefix llvm)/bin/clang
+CXX=$(shell brew --prefix llvm)/bin/clang++
+BUILD_VARS += CC=$(CC) CXX=$(CXX)
+# Enable GPU acceleration
+WHISPER_CPP_BUILD_ENV = GGML_METAL=1
+endif
 
 # Windows-specific settings
 ifeq ($(OS_DISTRIBUTION),Windows)
@@ -51,11 +63,11 @@ SKYEYE_SCALER_BIN = skyeye-scaler.exe
 GO = /ucrt64/bin/go
 GOBUILDVARS += GOROOT="/ucrt64/lib/go" GOPATH="/ucrt64"
 # Static linking on Windows to avoid MSYS2 dependency at runtime
-LIBRARIES = opus soxr openblas
+LIBRARIES = opus soxr
 CFLAGS = $(pkg-config $(LIBRARIES) --cflags --static)
 BUILD_VARS += CFLAGS=$(CFLAGS)
 EXTLDFLAGS = $(pkg-config $(LIBRARIES) --libs --static)
-LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS) -static -fopenmp"
+LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS) -static"
 endif
 
 BUILD_VARS += LDFLAGS='$(LDFLAGS)'
@@ -73,8 +85,7 @@ install-msys2-dependencies:
 	  $(MINGW_PACKAGE_PREFIX)-toolchain \
 	  $(MINGW_PACKAGE_PREFIX)-go \
 	  $(MINGW_PACKAGE_PREFIX)-opus \
-	  $(MINGW_PACKAGE_PREFIX)-libsoxr \
-	  $(MINGW_PACKAGE_PREFIX)-openblas
+	  $(MINGW_PACKAGE_PREFIX)-libsoxr
 
 .PHONY: install-arch-linux-dependencies
 install-arch-linux-dependencies:
@@ -83,8 +94,7 @@ install-arch-linux-dependencies:
 	  base-devel \
 	  go \
 	  opus \
-	  libsoxr \
-	  openblas
+	  libsoxr
 
 .PHONY: install-debian-dependencies
 install-debian-dependencies:
@@ -95,25 +105,22 @@ install-debian-dependencies:
 	  libopus-dev \
 	  libopus0 \
 	  libsoxr-dev \
-	  libsoxr0 \
-	  libopenblas0-openmp \
-	  libopenblas-openmp-dev \
+	  libsoxr0
 
 .PHONY: install-macos-dependencies
 install-macos-dependencies:
+	xcode-select --install || true
 	brew install \
 	  git \
 	  go \
-	  opus \
-	  libsoxr
-
-WHISPER_CPP_BUILD_ENV =
-ifneq ($(OS_DISTRIBUTION),macOS)
-WHISPER_CPP_BUILD_ENV = GGML_OPENBLAS=1
-endif
+	  libomp \
+	  libsoxr \
+	  llvm \
+	  opus
 
 $(LIBWHISPER_PATH) $(WHISPER_H_PATH):
 	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false "$(WHISPER_CPP_REPO)" "$(WHISPER_CPP_PATH)" && $(WHISPER_CPP_BUILD_ENV) make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
+	if [ -f third_party/whisper.cpp/whisper.a ] && [ ! -f third_party/whisper.cpp/libwhisper.a ]; then cp third_party/whisper.cpp/whisper.a third_party/whisper.cpp/libwhisper.a; fi
 
 .PHONY: whisper
 whisper: $(LIBWHISPER_PATH) $(WHISPER_H_PATH)

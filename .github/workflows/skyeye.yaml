@@ -38,8 +38,7 @@ jobs:
       - name: Build whisper.cpp
         uses: ./.github/actions/build-whisper
       - name: Test
-        run: |
-          go tool gotest.tools/gotestsum -- -tags nolibopusfile ./...
+        run: make test
   build-linux-amd64:
     name: Build on Linux AMD64
     runs-on: ubuntu-latest
@@ -89,7 +88,6 @@ jobs:
         with:
           os: macos
           arch: arm64
-          cc: clang
       - name: Build SkyEye
         run: make skyeye
       - name: Build SkyEye Scaler
@@ -134,7 +132,6 @@ jobs:
             mingw-w64-ucrt-x86_64-toolchain
             mingw-w64-ucrt-x86_64-opus
             mingw-w64-ucrt-x86_64-libsoxr
-            mingw-w64-ucrt-x86_64-openblas
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-go
             mingw-w64-ucrt-x86_64-curl
