@@ -56,3 +56,10 @@ type composer struct {
 func New(callsign string) Composer {
 	return &composer{callsign: callsign}
 }
+
+func applyToFirstCharacter(s string, f func(string) string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return f(s[:1]) + s[1:]
+}
