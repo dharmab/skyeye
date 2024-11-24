@@ -15,7 +15,7 @@ func (c *composer) ComposeBRAA(braa brevity.BRAA, declaration brevity.Declaratio
 	}
 	bearing := PronounceBearing(braa.Bearing())
 	_range := int(braa.Range().NauticalMiles())
-	altitude := c.ComposeAltitude(braa.Altitude(), declaration)
+	altitude := c.ComposeAltitudeStacks(braa.Stacks(), declaration)
 	resp := NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf("BRAA %s/%d, %s", braa.Bearing().String(), _range, altitude),
 		Speech:   fmt.Sprintf("BRAA %s, %d, %s", bearing, _range, altitude),
