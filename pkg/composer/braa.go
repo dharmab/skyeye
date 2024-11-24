@@ -2,6 +2,7 @@ package composer
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/rs/zerolog/log"
@@ -13,14 +14,24 @@ func (c *composer) ComposeBRAA(braa brevity.BRAA, declaration brevity.Declaratio
 		log.Error().Stringer("bearing", braa.Bearing()).Msg("bearing provided to ComposeBRAA should be magnetic")
 	}
 	bearing := PronounceBearing(braa.Bearing())
-	var aspect string
-	if braa.Aspect() != brevity.UnknownAspect {
-		aspect = string(braa.Aspect())
-	}
 	_range := int(braa.Range().NauticalMiles())
 	altitude := c.ComposeAltitude(braa.Altitude(), declaration)
-	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("BRAA %s/%d, %s, %s", braa.Bearing().String(), _range, altitude, aspect),
-		Speech:   fmt.Sprintf("BRAA %s, %d, %s, %s", bearing, _range, altitude, aspect),
+	resp := NaturalLanguageResponse{
+		Subtitle: fmt.Sprintf("BRAA %s/%d, %s", braa.Bearing().String(), _range, altitude),
+		Speech:   fmt.Sprintf("BRAA %s, %d, %s", bearing, _range, altitude),
 	}
+
+	isAspectKnown :=
+		braa.Aspect() != brevity.UnknownAspect && !slices.Contains([]brevity.Declaration{
+			brevity.Furball,
+			brevity.Unable,
+			brevity.Clean,
+		}, declaration)
+	if isAspectKnown {
+		aspect := fmt.Sprintf(", aspect %s", braa.Aspect())
+		resp.Speech += aspect
+		resp.Subtitle += aspect
+	}
+
+	return resp
 }
