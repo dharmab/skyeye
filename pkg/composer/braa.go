@@ -28,7 +28,7 @@ func (c *composer) ComposeBRAA(braa brevity.BRAA, declaration brevity.Declaratio
 			brevity.Clean,
 		}, declaration)
 	if isAspectKnown {
-		aspect := fmt.Sprintf(", aspect %s", braa.Aspect())
+		aspect := fmt.Sprintf(", %s", braa.Aspect())
 		resp.Speech += aspect
 		resp.Subtitle += aspect
 	}
