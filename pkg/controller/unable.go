@@ -9,7 +9,7 @@ import (
 
 func (c *controller) HandleUnableToUnderstand(ctx context.Context, request *brevity.UnableToUnderstandRequest) {
 	log.Debug().Str("callsign", request.Callsign).Type("type", request).Msg("handling request")
-	response := brevity.SayAgainResponse{Callsign: "last caller"}
+	response := brevity.SayAgainResponse{Callsign: brevity.LastCaller}
 	if callsign, trackfile := c.scope.FindCallsign(request.Callsign, c.coalition); trackfile != nil {
 		response.Callsign = callsign
 	}
