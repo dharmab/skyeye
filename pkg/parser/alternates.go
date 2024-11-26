@@ -46,6 +46,7 @@ var alternateRequestWords = map[string]string{
 	"buggy do":           bogeyDope,
 	"buggy dog":          bogeyDope,
 	"buggy dope":         bogeyDope,
+	"checking in":        checkIn,
 	"com check":          radioCheck,
 	"comcheck":           radioCheck,
 	"comes check":        radioCheck,

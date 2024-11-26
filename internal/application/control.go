@@ -39,6 +39,8 @@ func (a *app) handleRequest(ctx context.Context, r any) {
 		a.controller.HandleAlphaCheck(ctx, request)
 	case *brevity.BogeyDopeRequest:
 		a.controller.HandleBogeyDope(ctx, request)
+	case *brevity.CheckInRequest:
+		a.controller.HandleCheckIn(ctx, request)
 	case *brevity.DeclareRequest:
 		a.controller.HandleDeclare(ctx, request)
 	case *brevity.PictureRequest:

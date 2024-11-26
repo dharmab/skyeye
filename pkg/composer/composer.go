@@ -12,6 +12,8 @@ type Composer interface {
 	ComposeAlphaCheckResponse(brevity.AlphaCheckResponse) NaturalLanguageResponse
 	// ComposeBogeyDopeResponse constructs natural language brevity for responding to a BOGEY DOPE call.
 	ComposeBogeyDopeResponse(brevity.BogeyDopeResponse) NaturalLanguageResponse
+	// ComposeCheckInResponse constructs natural language brevity for responding to an ambiguous CHECK IN call.
+	ComposeCheckInResponse(brevity.CheckInResponse) NaturalLanguageResponse
 	// ComposeDeclareResponse constructs natural language brevity for responding to a DECLARE call.
 	ComposeDeclareResponse(brevity.DeclareResponse) NaturalLanguageResponse
 	// ComposeFadedCall constructs natural language brevity for announcing a contact has faded.
