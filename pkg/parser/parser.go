@@ -37,13 +37,14 @@ const Anyface string = "anyface"
 const (
 	alphaCheck string = "alpha"
 	bogeyDope  string = "bogey"
+	checkIn    string = "check in"
 	declare    string = "declare"
 	picture    string = "picture"
 	radioCheck string = "radio"
-	spiked     string = "spiked"
-	snaplock   string = "snaplock"
-	tripwire   string = "tripwire"
 	shopping   string = "shopping"
+	snaplock   string = "snaplock"
+	spiked     string = "spiked"
+	tripwire   string = "tripwire"
 )
 
 var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, snaplock, tripwire, shopping}
@@ -122,7 +123,7 @@ func (p *parser) Parse(tx string) any {
 		return nil
 	}
 	if p.enableTextLogging {
-		logger = logger.With().Str("text", tx).Logger()
+		logger = logger.With().Str("normalized", tx).Logger()
 	}
 	logger.Debug().Msg("normalized text")
 
@@ -182,6 +183,11 @@ func (p *parser) Parse(tx string) any {
 		return &brevity.UnableToUnderstandRequest{}
 	}
 	if !foundRequestWord {
+		// Fallback: Possibly an ambiguous check-in request.
+		if strings.Contains(tx, checkIn) {
+			return &brevity.CheckInRequest{Callsign: pilotCallsign}
+		}
+
 		logger.Trace().Msg("no request word found")
 		return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
 	}
@@ -226,6 +232,7 @@ func (p *parser) Parse(tx string) any {
 			return request
 		}
 	}
+
 	logger.Debug().Msg("unrecognized request")
 	return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
 }

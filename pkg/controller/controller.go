@@ -42,6 +42,8 @@ type Controller interface {
 	HandleAlphaCheck(context.Context, *brevity.AlphaCheckRequest)
 	// HandleBogeyDope handles a BOGEY DOPE by reporting the closest enemy group to the requesting aircraft.
 	HandleBogeyDope(context.Context, *brevity.BogeyDopeRequest)
+	// HandleCheckIn handles an ambiguous CHECK IN by asking the player to clarify their call.
+	HandleCheckIn(context.Context, *brevity.CheckInRequest)
 	// HandleDeclare handles a DECLARE by reporting information about the target group.
 	HandleDeclare(context.Context, *brevity.DeclareRequest)
 	// HandlePicture handles a PICTURE by reporting a tactical air picture.

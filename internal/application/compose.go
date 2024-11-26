@@ -36,6 +36,8 @@ func (a *app) composeCall(ctx context.Context, call any, out chan<- Message[comp
 		response = a.composer.ComposeAlphaCheckResponse(c)
 	case brevity.BogeyDopeResponse:
 		response = a.composer.ComposeBogeyDopeResponse(c)
+	case brevity.CheckInResponse:
+		response = a.composer.ComposeCheckInResponse(c)
 	case brevity.DeclareResponse:
 		response = a.composer.ComposeDeclareResponse(c)
 	case brevity.FadedCall:
