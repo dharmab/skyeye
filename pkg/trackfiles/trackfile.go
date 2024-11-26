@@ -51,6 +51,8 @@ type Frame struct {
 	Point orb.Point
 	// Altitude above sea level.
 	Altitude unit.Length
+	// Altitude above ground level, if available.
+	AGL *unit.Length
 	// Heading is the direction the contact is moving. This is not necessarily the direction the nose is poining.
 	Heading unit.Angle
 }

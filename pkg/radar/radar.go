@@ -324,8 +324,13 @@ func (s *scope) handleGarbageCollection() {
 func isValidTrack(trackfile *trackfiles.Trackfile) bool {
 	isValidPosition := !spatial.IsZero(trackfile.LastKnown().Point)
 	isAboveSpeedFilter := trackfile.Speed() > 50*unit.Knot
-	isValid := isValidPosition && isAboveSpeedFilter
-	return isValid
+	agl := trackfile.LastKnown().AGL
+	isAboveTerrainFilter := agl != nil && *agl > 10*unit.Meter
+	if agl != nil {
+		return isValidPosition && isAboveTerrainFilter
+	} else {
+		return isValidPosition && isAboveSpeedFilter
+	}
 }
 
 // isMatch checks:
