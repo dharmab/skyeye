@@ -111,6 +111,18 @@ func spaceDigits(tx string) string {
 	return normalize(tx)
 }
 
+// uncrushCallsign corrects a corner case where the GCI callsign and the
+// following token have no space between them, e.g. "anyfaceeagle 1".
+func (p *parser) uncrushCallsign(s string) string {
+	for _, callsign := range []string{p.gciCallsign, Anyface} {
+		lc := strings.ToLower(callsign)
+		if strings.HasPrefix(s, lc) {
+			return lc + " " + s[len(lc):]
+		}
+	}
+	return s
+}
+
 // Parse implements Parser.Parse.
 func (p *parser) Parse(tx string) any {
 	logger := log.With().Str("gci", p.gciCallsign).Logger()
@@ -122,6 +134,8 @@ func (p *parser) Parse(tx string) any {
 	if tx == "" {
 		return nil
 	}
+	tx = p.uncrushCallsign(tx)
+
 	if p.enableTextLogging {
 		logger = logger.With().Str("normalized", tx).Logger()
 	}
