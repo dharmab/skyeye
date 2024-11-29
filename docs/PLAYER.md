@@ -2,7 +2,7 @@
 
 ## Quickstart for Multiplayer
 
-1. Set your in-game callsign to a simple callsign in the format `Callsign 1 | yourname`.
+1. Set your in-game callsign to a simple callsign in the format `Callsign 1 | yourname`. (Note: That's a vertical bar (`|`), not the letter I.)
 1. Join a server that uses SRS and SkyEye.
 1. Get airborne.
 1. Tune to any of the server's SkyEye frequencies in SRS.
