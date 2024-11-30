@@ -186,7 +186,10 @@ GOLIATH: "Yellow One Three, group threat BRAA 188/45, 8000, hot, hostile, Eagle"
 ```
 
 Tips:
+
 * Make this request repeatedly during a BVR timeline to build and maintain situational awareness.
+* Note: Specific filters such as "MiG-29" or "Flanker" do **not** work. You can only filter to airplanes or helicopters.
+* If you are a fixed-wing aircraft, hostile fixed-wing aircraft are prioritized over hostile helicopters, regardless of range. 
 
 ### DECLARE
 
@@ -207,9 +210,23 @@ Providing the optional arguments can help the GCI distinguish between contacts. 
 Examples:
 
 ```
-MOBUIS 1: Thunderhead, Mobius One, declare two three zero, twelve, twelve thousands.
-THUNDERHEAD: Mobius One, Group bullseye 273/27, 2200, track east, hostile, Flanker.
+HITMAN 1: Galaxy, Hitman One, declare one two four, five.
+GALAXY: Hitman One, bullseye 122/51, 7000, track west, hostile, 2 contacts, Fitter.
 ```
+
+```
+MOBUIS 1: Thunderhead, Mobius One, declare two three zero, twelve, twelve thousand.
+THUNDERHEAD: Mobius One, group bullseye 273/27, 2200, track east, hostile, Flanker.
+```
+
+```
+EAGLE 12: Disco, Eagle One Two, declare BRAA 090/25.
+DISCO: Eagle One Two, group bullseye 072/52, 8000, track north, hostile, Flogger.
+```
+
+Tips:
+
+* You **must** provide either bullseye or BRAA coordinates. Due to limitations within DCS, the bot cannot receive your locked/bugged target via datalink.
 
 ### PICTURE
 
