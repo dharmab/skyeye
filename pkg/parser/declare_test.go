@@ -177,13 +177,22 @@ func TestParserDeclare(t *testing.T) {
 				IsBRAA:   true,
 			},
 		},
+		{
+			text: "anyface, Eagle 12, declare",
+			expected: &brevity.DeclareRequest{
+				Callsign: "eagle 1 2",
+				Sour:     true,
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
 		expected := test.expected.(*brevity.DeclareRequest)
 		actual := request.(*brevity.DeclareRequest)
 		assert.Equal(t, expected.Callsign, actual.Callsign)
-		if expected.IsBRAA {
+		if expected.Sour {
+			assert.True(t, actual.Sour)
+		} else if expected.IsBRAA {
 			assert.True(t, actual.IsBRAA)
 			require.NotNil(t, actual)
 			require.NotNil(t, actual.Bearing)
@@ -208,6 +217,12 @@ func TestParserDeclareUnable(t *testing.T) {
 	testCases := []parserTestCase{
 		{
 			text: "anyface, 140, declare BULLSEYE 058146",
+			expected: &brevity.UnableToUnderstandRequest{
+				Callsign: "1 4 0",
+			},
+		},
+		{
+			text: "anyface, 140, declare 058",
 			expected: &brevity.UnableToUnderstandRequest{
 				Callsign: "1 4 0",
 			},

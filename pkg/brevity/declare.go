@@ -26,7 +26,7 @@ const (
 	// Hostile indicates the contact is a identified as an enemy upon which clearance to fire is authorized in accordance with theater rules of engagement.
 	// Reference: ATP 1-02.1 Chapter I Table 2.
 	Hostile Declaration = "hostile"
-	// DeclarationFurball indicates that non-friendly and friendly aircraft are inside of 5 nauctical miles of each other.
+	// Furball indicates that non-friendly and friendly aircraft are inside of 5 nauctical miles of each other.
 	// Reference: ATP 1-02.1 Chapter I Table 2.
 	Furball Declaration = "furball"
 	// Unable indications that the responder is unable to provide a declaration as requested.
@@ -42,6 +42,9 @@ const (
 type DeclareRequest struct {
 	// Callsign of the friendly aircraft requesting DECLARE.
 	Callsign string
+	// Sour indicates if the player attempted a DECLARE request without
+	// providing coordinates for the contact.
+	Sour bool
 	// IsBRAA indicates if the contact is provided using Bullseye (false) or BRAA (true).
 	IsBRAA bool
 	// Bullseye of the contact, if provided using Bullseye.
@@ -75,6 +78,10 @@ func (r DeclareRequest) String() string {
 type DeclareResponse struct {
 	// Callsign of the friendly aircraft requesting DECLARE.
 	Callsign string
+	// Sour indicates if the controller is unable to provide a declaration
+	// because the friendly aircraft did not provide coordinates for the
+	// contact.
+	Sour bool
 	// Declaration of the contact.
 	Declaration Declaration
 	// Group that was identified, if a specific one was identifiable.

@@ -16,6 +16,22 @@ func (c *controller) HandleDeclare(ctx context.Context, request *brevity.Declare
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 
+	foundCallsign, trackfile, ok := c.findCallsign(request.Callsign)
+	if !ok {
+		c.calls <- NewCall(ctx, brevity.NegativeRadarContactResponse{Callsign: request.Callsign})
+		return
+	}
+
+	if request.Sour {
+		response := brevity.DeclareResponse{
+			Callsign:    foundCallsign,
+			Sour:        true,
+			Declaration: brevity.Unable,
+		}
+		c.calls <- NewCall(ctx, response)
+		return
+	}
+
 	if request.IsBRAA {
 		logger = logger.With().
 			Float64("bearingDegrees", request.Bearing.Degrees()).
@@ -32,12 +48,6 @@ func (c *controller) HandleDeclare(ctx context.Context, request *brevity.Declare
 		Float64("altitudeFeet", request.Altitude.Feet()).
 		Logger()
 	logger.Info().Msg("handling DECLARE request")
-
-	foundCallsign, trackfile, ok := c.findCallsign(request.Callsign)
-	if !ok {
-		c.calls <- NewCall(ctx, brevity.NegativeRadarContactResponse{Callsign: request.Callsign})
-		return
-	}
 
 	var origin orb.Point
 	var bearing bearings.Bearing

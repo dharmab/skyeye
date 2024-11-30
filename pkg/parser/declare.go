@@ -11,6 +11,7 @@ import (
 )
 
 func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity.DeclareRequest, bool) {
+	var foundCoordinate bool
 	var bullseye *brevity.Bullseye
 	var bearing bearings.Bearing
 	var _range unit.Length
@@ -19,7 +20,14 @@ func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity
 		if scanner.Text() == "" {
 			ok := scanner.Scan()
 			if !ok {
-				return nil, false
+				if foundCoordinate {
+					return nil, false
+				} else {
+					return &brevity.DeclareRequest{
+						Callsign: callsign,
+						Sour:     true,
+					}, true
+				}
 			}
 			continue
 		}
@@ -34,6 +42,7 @@ func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity
 		}
 		if isNumeric {
 			log.Debug().Str("text", scanner.Text()).Msg("found numeric token, assuming format bullseye")
+			foundCoordinate = true
 			bullseye = p.parseBullseye(scanner)
 			break
 		}
@@ -76,6 +85,7 @@ func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity
 
 		if IsBRAA {
 			log.Debug().Float64("bearing", bearing.Degrees()).Float64("range", _range.NauticalMiles()).Msg("parsed bearing and range")
+			foundCoordinate = true
 			break
 		}
 
