@@ -181,7 +181,7 @@ func (c *client) sendUpdates(updates chan<- sim.Updated) {
 		if coordinates.Heading != nil {
 			frame.Heading = *coordinates.Heading
 		}
-		if agl, err := object.GetLength(properties.AGL); err != nil {
+		if agl, err := object.GetLength(properties.AGL); err == nil {
 			frame.AGL = &agl
 		}
 

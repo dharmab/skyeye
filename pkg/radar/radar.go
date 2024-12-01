@@ -320,17 +320,19 @@ func (s *scope) handleGarbageCollection() {
 
 // isValidTrack checks if the trackfile is valid. This means the following conditions are met:
 //   - Last known position is not (0, 0)
-//   - Speed is above 50 knots
+//   - If AGL is known, AGL is above 10 meters
+//   - If AGL is unknown, speed is above 50 knots
 func isValidTrack(trackfile *trackfiles.Trackfile) bool {
-	isValidPosition := !spatial.IsZero(trackfile.LastKnown().Point)
-	isAboveSpeedFilter := trackfile.Speed() > 50*unit.Knot
-	agl := trackfile.LastKnown().AGL
-	isAboveTerrainFilter := agl != nil && *agl > 10*unit.Meter
-	if agl != nil {
-		return isValidPosition && isAboveTerrainFilter
-	} else {
-		return isValidPosition && isAboveSpeedFilter
+	if spatial.IsZero(trackfile.LastKnown().Point) {
+		return false
 	}
+
+	agl := trackfile.LastKnown().AGL
+	if agl != nil {
+		return *agl > 10*unit.Meter
+	}
+
+	return trackfile.Speed() > 50*unit.Knot
 }
 
 // isMatch checks:
