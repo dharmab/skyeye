@@ -184,6 +184,16 @@ func TestParserDeclare(t *testing.T) {
 				Sour:     true,
 			},
 		},
+		{
+			text: "anyface CAT11 declare BRA060 17",
+			expected: &brevity.DeclareRequest{
+				Callsign: "cat 1 1",
+				Bearing:  bearings.NewMagneticBearing(60 * unit.Degree),
+				Range:    17 * unit.NauticalMile,
+				Track:    brevity.UnknownDirection,
+				IsBRAA:   true,
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()

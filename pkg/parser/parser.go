@@ -81,16 +81,21 @@ func findRequestWord(fields []string) (string, int, bool) {
 	return "", 0, false
 }
 
+// normalize the given string by applying the following transformations:
+//
+//   - Split on any "|" character and discard the tail.
+//   - Convert to lowercase.
+//   - Replace hyphens and underscores with spaces. Remove any other characters
+//     that are not letters, digits, or spaces.
+//   - Insert a space between any letter immediately followed by a digit.
+//   - Trim leading and trailing whitespace.
+//   - Substitute alternate forms of request words with canonical forms.
+//   - Remove extra spaces.
 func normalize(tx string) string {
 	tx, _, _ = strings.Cut(tx, "|")
 	tx = strings.ToLower(tx)
-	tx = strings.ReplaceAll(tx, "-", " ")
-	tx = strings.ReplaceAll(tx, "_", " ")
-	for _, r := range tx {
-		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && !unicode.IsSpace(r) {
-			tx = strings.ReplaceAll(tx, string(r), "")
-		}
-	}
+	tx = removeSymbols(tx)
+	tx = spaceNumbers(tx)
 	tx = strings.TrimSpace(tx)
 	for alt, word := range alternateRequestWords {
 		tx = strings.ReplaceAll(tx, alt, word)
@@ -99,15 +104,42 @@ func normalize(tx string) string {
 	return tx
 }
 
+// removeSymbols removes any characters that are not letters, digits, or spaces.
+// Hyphens and underscores are replaced with spaces. Other symbols are removed.
+func removeSymbols(tx string) string {
+	var builder strings.Builder
+	for _, r := range tx {
+		if r == '-' || r == '_' {
+			builder.WriteRune(' ')
+		} else if unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsSpace(r) {
+			builder.WriteRune(r)
+		}
+	}
+	return builder.String()
+}
+
+// spaceNumbers inserts spaces between letters and numbers, e.g. "BRAA090" -> "BRAA 090".
+func spaceNumbers(tx string) string {
+	builder := strings.Builder{}
+	for i, char := range tx {
+		builder.WriteRune(char)
+		if i+1 < len(tx) && unicode.IsLetter(char) && unicode.IsDigit(rune(tx[i+1])) {
+			builder.WriteRune(' ')
+		}
+	}
+	return builder.String()
+}
+
+// spaceDigits inserts a space before each digit, e.g. "Eagle11" -> "Eagle 1 1".
 func spaceDigits(tx string) string {
-	txBuilder := strings.Builder{}
+	builder := strings.Builder{}
 	for _, char := range tx {
 		if unicode.IsDigit(char) {
-			txBuilder.WriteRune(' ')
+			builder.WriteRune(' ')
 		}
-		txBuilder.WriteRune(char)
+		builder.WriteRune(char)
 	}
-	tx = txBuilder.String()
+	tx = builder.String()
 	return normalize(tx)
 }
 
