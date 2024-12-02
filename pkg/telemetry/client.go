@@ -270,7 +270,7 @@ func (c *client) handleUpdate(reader *bufio.Reader) error {
 		return fmt.Errorf("error parsing object update: %w", err)
 	}
 
-	if update.ID == properties.GlobalObjectID {
+	if update.ID == objects.GlobalObjectID {
 		if err := c.updateGlobalObject(update); err != nil {
 			return fmt.Errorf("error updating global object: %w", err)
 		}
@@ -304,7 +304,7 @@ func (c *client) handleTimeFrame(line string) error {
 func (c *client) updateGlobalObject(update *objects.Update) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	if update.ID != properties.GlobalObjectID {
+	if update.ID != objects.GlobalObjectID {
 		return nil
 	}
 
