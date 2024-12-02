@@ -65,7 +65,7 @@ type Configuration struct {
 	EnableThreatMonitoring bool
 	// ThreatMonitoringInterval is the cooldown period between THREAT calls.
 	ThreatMonitoringInterval time.Duration
-	// MandatoryThreatRadius is the brief range at which a THREAT call is mandatory.
+	// MandatoryThreatRadius is the briefed range at which a THREAT call is mandatory.
 	MandatoryThreatRadius unit.Length
 	// ThreatMonitoringRequiresSRS controls whether threat calls are issued to aircraft that are not on an SRS frequency. This is mostly
 	// for debugging.
