@@ -5,6 +5,7 @@ package parser
 var alternateRequestWords = map[string]string{
 	"alphacheck":         alphaCheck,
 	"bobbiedope":         bogeyDope,
+	"bobido":             bogeyDope,
 	"bog it":             bogeyDope,
 	"bogado":             bogeyDope,
 	"bogeido":            bogeyDope,
@@ -69,6 +70,7 @@ var alternateRequestWords = map[string]string{
 	"foggydope":          bogeyDope,
 	"fogy dope":          bogeyDope,
 	"fogy":               bogeyDope,
+	"go be dope":         bogeyDope,
 	"lucky dope":         bogeyDope,
 	"mogito":             bogeyDope,
 	"ogi doke":           bogeyDope,
