@@ -14,16 +14,23 @@ import (
 // https://github.com/Quaggles/dcs-lua-datamine/tree/master/_G/db/Units/Planes/Plane
 // https://github.com/Quaggles/dcs-lua-datamine/tree/master/_G/db/Units/Helicopters/Helicopter
 
+// AircraftTag categorizes aircraft.
 type AircraftTag int
 
 const (
+	// FixedWing indicates a fixed-wing aircraft.
 	FixedWing AircraftTag = iota
+	// RotaryWing indicates a rotary-wing aircraft.
 	RotaryWing
+	// Unarmed indicates an aircraft not armed with ait-to-air missiles.
 	Unarmed
+	// Fighter indicates a fighter aircraft with air-to-air missiles.
 	Fighter
+	// Attack indicates an attack aircraft with self-defense air-to-air missiles.
 	Attack
 )
 
+// Aircraft describes a specific aircraft type.
 type Aircraft struct {
 	// ACMIShortName is the Name proeprty used in ACMI telemetry.
 	ACMIShortName string
@@ -42,16 +49,21 @@ type Aircraft struct {
 	OfficialName string
 	// Nickname is a common nickname for the aircraft. Not all aircraft have a nickname.
 	// e.g. Warthog, Viper, Mudhen
-	Nickname     string
+	Nickname string
+	// threatRadius is the distance at which the aircraft is considered a threat.
 	threatRadius unit.Length
 }
 
 var (
-	SAR1IRThreat   = 15 * unit.NauticalMile
-	SAR2AR1Threat  = 25 * unit.NauticalMile
+	// SAR1IRThreat is the threat radius for aircraft with older SARH missiles or any generation of IR missiles.
+	SAR1IRThreat = 15 * unit.NauticalMile
+	// SAR2AR1Threat is the threat radius for aircraft with newer SARH missiles or any generation of ARH missiles.
+	SAR2AR1Threat = 25 * unit.NauticalMile
+	// ExtendedThreat is the threat radius for fast fighters and interceptors with newer SARH or ARH missiles.
 	ExtendedThreat = 35 * unit.NauticalMile
 )
 
+// Category returns the ContactCategory of the aircraft based on its tags.
 func (a Aircraft) Category() brevity.ContactCategory {
 	if _, ok := a.tags[FixedWing]; ok {
 		return brevity.FixedWing
@@ -61,6 +73,7 @@ func (a Aircraft) Category() brevity.ContactCategory {
 	return brevity.Aircraft
 }
 
+// Tags of the aircraft.
 func (a Aircraft) Tags() []AircraftTag {
 	tags := []AircraftTag{}
 	for t := range a.tags {
@@ -69,11 +82,13 @@ func (a Aircraft) Tags() []AircraftTag {
 	return tags
 }
 
+// HasTag returns true if the aircraft has the specified tag.
 func (a Aircraft) HasTag(tag AircraftTag) bool {
 	_, ok := a.tags[tag]
 	return ok
 }
 
+// HasAnyTag returns true if the aircraft has any of the specified tags.
 func (a Aircraft) HasAnyTag(tags ...AircraftTag) bool {
 	for _, tag := range tags {
 		if a.HasTag(tag) {
@@ -83,6 +98,7 @@ func (a Aircraft) HasAnyTag(tags ...AircraftTag) bool {
 	return false
 }
 
+// ThreatRadius returns the aircraft's threat radius.
 func (a Aircraft) ThreatRadius() unit.Length {
 	if a.threatRadius != 0 || a.HasTag(Unarmed) {
 		return a.threatRadius
@@ -576,20 +592,13 @@ var kc135Data = Aircraft{
 }
 
 func kc135Variants() []Aircraft {
-	return []Aircraft{
-		{
-			ACMIShortName:       "KC-135",
-			tags:                kc135Data.tags,
-			PlatformDesignation: kc135Data.PlatformDesignation,
-			OfficialName:        kc135Data.OfficialName,
+	return variants(
+		kc135Data,
+		map[string]string{
+			"":     "",
+			"MPRS": "MPRS",
 		},
-		{
-			ACMIShortName:       "KC135MPRS",
-			tags:                kc135Data.tags,
-			PlatformDesignation: kc135Data.PlatformDesignation,
-			OfficialName:        kc135Data.OfficialName,
-		},
-	}
+	)
 }
 
 var l39Data = Aircraft{
