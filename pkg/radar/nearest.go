@@ -84,7 +84,7 @@ func (s *scope) FindNearestGroupWithBRAA(
 	)
 	grp.bullseye = nil
 	grp.aspect = &aspect
-	grp.isThreat = _range < brevity.MandatoryThreatDistance
+	grp.isThreat = _range < s.mandatoryThreatRadius
 
 	return grp
 }
@@ -99,7 +99,7 @@ func (s *scope) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxA
 
 	grp.aspect = &aspect
 	_range := spatial.Distance(origin, grp.point())
-	grp.isThreat = _range < brevity.MandatoryThreatDistance
+	grp.isThreat = _range < s.mandatoryThreatRadius
 	log.Debug().Any("origin", origin).Stringer("group", grp).Msg("determined nearest group")
 	return grp
 }
