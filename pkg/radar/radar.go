@@ -40,8 +40,8 @@ type Radar interface {
 	FindUnit(uint64) *trackfiles.Trackfile
 	// GetPicture returns a picture of the radar scope anchored at the center point, within the given radius,
 	// filtered by the given coalition and contact category. The first return value is the total number of groups
-	// and the second is a slice of up to to 3 high priority groups. Each group has Bullseye set relative to the
-	// the point provided in SetBullseye.
+	// and the second is a slice of up to 3 high priority groups. Each group has Bullseye set relative to the
+	// point provided in SetBullseye.
 	GetPicture(
 		radius unit.Length,
 		coalition coalitions.Coalition,

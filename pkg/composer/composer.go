@@ -6,7 +6,7 @@ import (
 )
 
 // Composer converts brevity responses from structured forms into natural language.
-// It is nondeterministic; the same input may randomly produce different output, to add variety and personality to the bot's respones.
+// It is nondeterministic; the same input may randomly produce different output, to add variety and personality to the bot's responses.
 type Composer interface {
 	// ComposeAlphaCheckResponse constructs natural language brevity for responding to an ALPHA CHECK.
 	ComposeAlphaCheckResponse(brevity.AlphaCheckResponse) NaturalLanguageResponse

@@ -23,7 +23,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type client struct {
+type streamingClient struct {
 	starts chan sim.Started
 	fades  chan sim.Faded
 
@@ -47,10 +47,10 @@ type client struct {
 	lock sync.RWMutex
 }
 
-func NewClient(
+func newStreamingClient(
 	updateInterval time.Duration,
-) *client {
-	c := &client{
+) *streamingClient {
+	c := &streamingClient{
 		starts:         make(chan sim.Started),
 		fades:          make(chan sim.Faded),
 		updateInterval: updateInterval,
@@ -59,7 +59,7 @@ func NewClient(
 	return c
 }
 
-func (c *client) Stream(ctx context.Context, wg *sync.WaitGroup, starts chan<- sim.Started, updates chan<- sim.Updated, fades chan<- sim.Faded) {
+func (c *streamingClient) Stream(ctx context.Context, wg *sync.WaitGroup, starts chan<- sim.Started, updates chan<- sim.Updated, fades chan<- sim.Faded) {
 	ticker := time.NewTicker(c.updateInterval)
 	defer ticker.Stop()
 	wg.Add(1)
@@ -104,7 +104,7 @@ func (c *client) Stream(ctx context.Context, wg *sync.WaitGroup, starts chan<- s
 	<-ctx.Done()
 }
 
-func (c *client) Bullseye(coalition coalitions.Coalition) (orb.Point, error) {
+func (c *streamingClient) Bullseye(coalition coalitions.Coalition) (orb.Point, error) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 
@@ -118,13 +118,13 @@ func (c *client) Bullseye(coalition coalitions.Coalition) (orb.Point, error) {
 	return orb.Point{}, errors.New("bullseye not found")
 }
 
-func (c *client) Time() time.Time {
+func (c *streamingClient) Time() time.Time {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.cursorTime
 }
 
-func (c *client) sendUpdates(updates chan<- sim.Updated) {
+func (c *streamingClient) sendUpdates(updates chan<- sim.Updated) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 
@@ -197,7 +197,7 @@ func (c *client) sendUpdates(updates chan<- sim.Updated) {
 	}
 }
 
-func (c *client) handleLines(ctx context.Context, reader *bufio.Reader) error {
+func (c *streamingClient) handleLines(ctx context.Context, reader *bufio.Reader) error {
 	log.Info().Msg("resetting ACMI client state")
 	c.reset()
 	log.Info().Msg("sending mission start message")
@@ -222,7 +222,7 @@ func (c *client) handleLines(ctx context.Context, reader *bufio.Reader) error {
 	}
 }
 
-func (c *client) handleUpdate(reader *bufio.Reader) error {
+func (c *streamingClient) handleUpdate(reader *bufio.Reader) error {
 	line, err := reader.ReadString('\n')
 	if err != nil {
 		if errors.Is(err, io.EOF) {
@@ -284,7 +284,7 @@ func (c *client) handleUpdate(reader *bufio.Reader) error {
 	return nil
 }
 
-func (c *client) handleTimeFrame(line string) error {
+func (c *streamingClient) handleTimeFrame(line string) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if !strings.HasPrefix(line, "#") {
@@ -301,7 +301,7 @@ func (c *client) handleTimeFrame(line string) error {
 	return nil
 }
 
-func (c *client) updateGlobalObject(update *objects.Update) error {
+func (c *streamingClient) updateGlobalObject(update *objects.Update) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if update.ID != objects.GlobalObjectID {
@@ -337,7 +337,7 @@ func (c *client) updateGlobalObject(update *objects.Update) error {
 	return nil
 }
 
-func (c *client) updateObject(update *objects.Update) error {
+func (c *streamingClient) updateObject(update *objects.Update) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	var isNewObject bool
@@ -395,7 +395,7 @@ func (c *client) updateObject(update *objects.Update) error {
 	return nil
 }
 
-func (c *client) reset() {
+func (c *streamingClient) reset() {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 

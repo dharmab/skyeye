@@ -69,7 +69,7 @@ type controller struct {
 	// scope provides information about the airspace.
 	scope radar.Radar
 
-	// srsClient is used to to check if relevant friendly aircraft are on frequency before broadcasting calls.
+	// srsClient is used to check if relevant friendly aircraft are on frequency before broadcasting calls.
 	srsClient simpleradio.Client
 
 	// enableAutomaticPicture enables automatic picture broadcasts.

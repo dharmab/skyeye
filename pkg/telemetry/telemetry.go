@@ -13,7 +13,7 @@ import (
 
 // nolint: revive // "Client" name conflicts with interface.
 type TelemetryClient struct {
-	client
+	streamingClient
 	// address of the telemetry service, including port
 	address string
 	// hostname of the client to use during handshake
@@ -32,7 +32,7 @@ func NewTelemetryClient(
 	updateInterval time.Duration,
 ) *TelemetryClient {
 	return &TelemetryClient{
-		client:            *NewClient(updateInterval),
+		streamingClient:   *newStreamingClient(updateInterval),
 		address:           address,
 		hostname:          clientHostname,
 		password:          password,

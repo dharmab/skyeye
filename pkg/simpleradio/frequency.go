@@ -19,7 +19,7 @@ type RadioFrequency struct {
 }
 
 // ParseRadioFrequency parses a string into a RadioFrequency.
-// The string should be a postive decimal number optionally followed by either "AM" or "FM".
+// The string should be a positive decimal number optionally followed by either "AM" or "FM".
 // If the modulation is not recognized, it defaults to AM.
 func ParseRadioFrequency(s string) (*RadioFrequency, error) {
 	pos := strings.IndexFunc(s, func(r rune) bool {
@@ -39,7 +39,7 @@ func ParseRadioFrequency(s string) (*RadioFrequency, error) {
 		return nil, fmt.Errorf("failed to parse frequency: %w", err)
 	}
 	if math.IsNaN(mhz) || math.IsInf(mhz, 0) || mhz <= 0 {
-		return nil, errors.New("frequency must be a real postive number")
+		return nil, errors.New("frequency must be a real positive number")
 	}
 	frequency := unit.Frequency(mhz) * unit.Megahertz
 

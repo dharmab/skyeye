@@ -121,7 +121,7 @@ func (c *composer) ComposeGroup(group brevity.Group) (response NaturalLanguageRe
 
 // ComposeContacts communicates the number of contacts in a group.
 // Reference: ATP 3-52.4 chapter IV section 2.
-func (_ *composer) ComposeContacts(n int) NaturalLanguageResponse {
+func (*composer) ComposeContacts(n int) NaturalLanguageResponse {
 	// single contact is assumed if unspecified
 	s := ""
 	if n > 1 {
@@ -150,7 +150,7 @@ func (c *composer) ComposeAltitudeStacks(stacks []brevity.Stack, declaration bre
 	return s
 }
 
-func (_ *composer) ComposeAltitudeFillIns(stacks []brevity.Stack) string {
+func (*composer) ComposeAltitudeFillIns(stacks []brevity.Stack) string {
 	if len(stacks) == 2 {
 		return fmt.Sprintf("%d high, %d low", stacks[0].Count, stacks[1].Count)
 	}
@@ -161,7 +161,7 @@ func (_ *composer) ComposeAltitudeFillIns(stacks []brevity.Stack) string {
 	return ""
 }
 
-func (_ *composer) ComposeAltitude(altitude unit.Length, declaration brevity.Declaration) string {
+func (*composer) ComposeAltitude(altitude unit.Length, declaration brevity.Declaration) string {
 	hundreds := int(math.Round(altitude.Feet() / 100))
 	thousands := int(math.Round(altitude.Feet() / 1000))
 	if hundreds == 0 {

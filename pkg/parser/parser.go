@@ -1,4 +1,4 @@
-// parser converts converts brevity requests from natural language into structured forms.
+// Package parser converts brevity requests from natural language into structured forms.
 package parser
 
 import (
