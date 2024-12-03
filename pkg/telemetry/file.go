@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -30,7 +29,7 @@ func NewFileClient(
 	}
 }
 
-func (r *FileReader) Run(ctx context.Context, wg *sync.WaitGroup) error {
+func (r *FileReader) Run(ctx context.Context) error {
 	f, err := openFile(r.filePath)
 	if err != nil {
 		return err

@@ -14,7 +14,7 @@ import (
 const opusApplicationVoIP = 2048
 
 // deocdeVoice decodes incoming voice packets from voicePacketsChan into F32LE PCM audio data published to the client's rxChan.
-func (c *client) decodeVoice(ctx context.Context, voicePacketsChan <-chan []voice.VoicePacket) {
+func (c *client) decodeVoice(ctx context.Context, voicePacketsChan <-chan []voice.Packet) {
 	for {
 		select {
 		case voicePackets := <-voicePacketsChan:
@@ -25,7 +25,7 @@ func (c *client) decodeVoice(ctx context.Context, voicePacketsChan <-chan []voic
 			}
 			transmissionPCM := make([]float32, 0)
 			for _, packet := range voicePackets {
-				packetPCM, err := c.decodeFrame(decoder, packet.AudioBytes)
+				packetPCM, err := decodeFrame(decoder, packet.AudioBytes)
 				if err != nil {
 					log.Error().Err(err).Msg("failed to decode audio")
 				} else {
@@ -53,7 +53,7 @@ func (c *client) decodeVoice(ctx context.Context, voicePacketsChan <-chan []voic
 }
 
 // encodeVoice encodes audio from the client's txChan and publishes an entire transmission's worth of voice packets to packetCh.
-func (c *client) encodeVoice(ctx context.Context, packetChan chan<- []voice.VoicePacket) {
+func (c *client) encodeVoice(ctx context.Context, packetChan chan<- []voice.Packet) {
 	frequencyList := make([]voice.Frequency, 0, len(c.clientInfo.RadioInfo.Radios))
 	for _, radio := range c.clientInfo.RadioInfo.Radios {
 		frequencyList = append(frequencyList, voice.Frequency{
@@ -71,7 +71,7 @@ func (c *client) encodeVoice(ctx context.Context, packetChan chan<- []voice.Voic
 				continue
 			}
 
-			txPackets := make([]voice.VoicePacket, 0)
+			txPackets := make([]voice.Packet, 0)
 			for i := 0; i < len(transmission.Audio); i += int(frameSize) {
 				logger := log.With().Int("index", i).Logger()
 				var frameAudio []float32
@@ -86,7 +86,7 @@ func (c *client) encodeVoice(ctx context.Context, packetChan chan<- []voice.Voic
 					padding := make([]float32, int(frameSize)-len(frameAudio))
 					frameAudio = append(frameAudio, padding...)
 				}
-				audioBytes, err := c.encodeFrame(encoder, frameAudio)
+				audioBytes, err := encodeFrame(encoder, frameAudio)
 				if err != nil {
 					logger.Error().Err(err).Msg("failed to encode audio")
 					continue

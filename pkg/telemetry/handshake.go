@@ -90,19 +90,18 @@ func DecodeClientHandshake(packet string) (*ClientHandshake, error) {
 	handshake := &ClientHandshake{}
 	if !strings.HasPrefix(lines[0], LowLevelProtocol+".") {
 		return nil, errors.New("unexpected low level protocol version")
-	} else {
-		handshake.LowLevelProtocolVersion = strings.Split(lines[0], ".")[1]
 	}
+	handshake.LowLevelProtocolVersion = strings.Split(lines[0], ".")[1]
 	if !strings.HasPrefix(lines[1], HighLevelProtocol+".") {
 		return nil, errors.New("unexpected high level protocol version")
-	} else {
-		handshake.HighLevelProtocolVersion = strings.Split(lines[1], ".")[1]
 	}
+	handshake.HighLevelProtocolVersion = strings.Split(lines[1], ".")[1]
+
 	if !strings.HasPrefix(lines[2], "Client ") {
 		return nil, errors.New("unexpected client hostname")
-	} else {
-		handshake.Hostname = strings.Split(lines[2], " ")[1]
 	}
+	handshake.Hostname = strings.Split(lines[2], " ")[1]
+
 	hash, _, ok := strings.Cut(lines[3], string(rune(0)))
 	if !ok {
 		return nil, errors.New("unable to decode password hash")

@@ -9,14 +9,14 @@ import (
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 )
 
-// VoicePacket is a network packet containing:
+// Packet is a network packet containing:
 // A header segment with packet and segment length headers
 // An audio segment containing Opus audio
 // A frequency segment containing each frequency the audio is transmitted on
 // A fixed segment containing metadata
 //
 // See SRS source code for packet encoding: https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/master/DCS-SR-Common/Network/UDPVoicePacket.cs
-type VoicePacket struct {
+type Packet struct {
 	/* Headers */
 
 	// PacketLength is the total packet length in bytes.
@@ -90,7 +90,7 @@ type VoicePacket struct {
 	OriginGUID []byte
 }
 
-// Frequency describes an audio transmission channel. This struct is only for use in [VoicePacket]. For client information, use [types.Radio] instead.
+// Frequency describes an audio transmission channel. This struct is only for use in [Packet]. For client information, use [types.Radio] instead.
 // Length: 10 bytes.
 type Frequency struct {
 	// Frequency is the transmission frequency in Hz.
@@ -117,7 +117,7 @@ const (
 	frequencyLength = 10
 )
 
-func NewVoicePacket(audioBytes []byte, frequencies []Frequency, unitID uint32, packetID uint64, hops byte, relay []byte, origin []byte) VoicePacket {
+func NewVoicePacket(audioBytes []byte, frequencies []Frequency, unitID uint32, packetID uint64, hops byte, relay []byte, origin []byte) Packet {
 	var audioSegmentLength uint16
 	if len(audioBytes) > math.MaxUint16 {
 		audioSegmentLength = math.MaxUint16
@@ -132,7 +132,7 @@ func NewVoicePacket(audioBytes []byte, frequencies []Frequency, unitID uint32, p
 		frequenciesSegmentLength = uint16(len(frequencies) * frequencyLength)
 	}
 
-	return VoicePacket{
+	return Packet{
 		PacketLength:             headerSegmentLength + audioSegmentLength + frequenciesSegmentLength + fixedSegmentLength,
 		AudioSegmentLength:       audioSegmentLength,
 		FrequenciesSegmentLength: frequenciesSegmentLength,
@@ -147,7 +147,7 @@ func NewVoicePacket(audioBytes []byte, frequencies []Frequency, unitID uint32, p
 }
 
 // Encode serializes a VoicePacket into a byte array.
-func (p *VoicePacket) Encode() []byte {
+func (p *Packet) Encode() []byte {
 	b := make([]byte, p.PacketLength)
 
 	/* Header Segment */
@@ -184,9 +184,9 @@ func (p *VoicePacket) Encode() []byte {
 	return b
 }
 
-var _ fmt.Stringer = &VoicePacket{}
+var _ fmt.Stringer = &Packet{}
 
-func (p *VoicePacket) String() string {
+func (p *Packet) String() string {
 	return fmt.Sprintf(
 		"VoicePacket{PacketLength: %d, AudioSegmentLength: %d, FrequenciesSegmentLength: %d, UnitID: %d, PacketID: %d, Hops: %d, RelayGUID: %s, OriginGUID: %s, Frequencies: %v}",
 		p.PacketLength,
@@ -202,7 +202,7 @@ func (p *VoicePacket) String() string {
 }
 
 // Decode deserializes a voice packet from bytes to struct.
-func Decode(b []byte) (packet *VoicePacket, err error) {
+func Decode(b []byte) (packet *Packet, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			packet = nil
@@ -222,7 +222,7 @@ func Decode(b []byte) (packet *VoicePacket, err error) {
 	unitIDPtr := packetIDPtr - 4
 
 	// Store the packet headers and fixed segment in a VoicePacket struct.
-	packet = &VoicePacket{
+	packet = &Packet{
 		/* Headers */
 		PacketLength:             packetLength,
 		AudioSegmentLength:       binary.LittleEndian.Uint16(b[2:4]),

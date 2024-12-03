@@ -160,7 +160,7 @@ type scope struct {
 	pendingFadesLock sync.RWMutex
 }
 
-func New(coalition coalitions.Coalition, starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length) Radar {
+func New(starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length) Radar {
 	return &scope{
 		starts:                starts,
 		updates:               updates,
@@ -339,7 +339,7 @@ func isValidTrack(trackfile *trackfiles.Trackfile) bool {
 //   - if the trackfile is of the given coalition
 //   - if the trackfile is of the given contact category (or if the aircraft is not in the encyclopedia)
 //   - if the trackfile is valid
-func (s *scope) isMatch(trackfile *trackfiles.Trackfile, coalition coalitions.Coalition, filter brevity.ContactCategory) bool {
+func isMatch(trackfile *trackfiles.Trackfile, coalition coalitions.Coalition, filter brevity.ContactCategory) bool {
 	if trackfile.Contact.Coalition != coalition {
 		return false
 	}

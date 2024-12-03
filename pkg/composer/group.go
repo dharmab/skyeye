@@ -36,19 +36,13 @@ func (c *composer) ComposeCoreInformationFormat(groups ...brevity.Group) Natural
 	return response
 }
 
-func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
+func (c *composer) ComposeGroup(group brevity.Group) (response NaturalLanguageResponse) {
 	if group.BRAA() != nil && !group.BRAA().Bearing().IsMagnetic() {
 		log.Error().Stringer("bearing", group.BRAA().Bearing()).Msg("bearing provided to ComposeGroup should be magnetic")
 	}
 	if group.Bullseye() != nil && !group.Bullseye().Bearing().IsMagnetic() {
 		log.Error().Stringer("bearing", group.Bullseye().Bearing()).Msg("bearing provided to ComposeGroup should be magnetic")
 	}
-	var speech, subtitle strings.Builder
-	writeBoth := func(s string) {
-		speech.WriteString(s)
-		subtitle.WriteString(s)
-	}
-
 	label := "Group"
 	if group.Threat() {
 		label = "Group threat"
@@ -60,75 +54,74 @@ func (c *composer) ComposeGroup(group brevity.Group) NaturalLanguageResponse {
 	if group.Bullseye() != nil {
 		bullseye := c.ComposeBullseye(*group.Bullseye())
 		altitude := c.ComposeAltitudeStacks(stacks, group.Declaration())
-		speech.WriteString(fmt.Sprintf("%s %s, %s", label, bullseye.Speech, altitude))
-		subtitle.WriteString(fmt.Sprintf("%s %s, %s", label, bullseye.Subtitle, altitude))
+		response.Write(
+			fmt.Sprintf("%s %s, %s", label, bullseye.Speech, altitude),
+			fmt.Sprintf("%s %s, %s", label, bullseye.Subtitle, altitude),
+		)
 		if isTrackKnown {
-			writeBoth(fmt.Sprintf(", track %s", group.Track()))
+			response.WriteBoth(fmt.Sprintf(", track %s", group.Track()))
 		}
 	} else if group.BRAA() != nil {
 		braa := c.ComposeBRAA(group.BRAA(), group.Declaration())
-		speech.WriteString(fmt.Sprintf("%s %s", label, braa.Speech))
-		subtitle.WriteString(fmt.Sprintf("%s %s", label, braa.Subtitle))
+		response.Write(
+			fmt.Sprintf("%s %s", label, braa.Speech),
+			fmt.Sprintf("%s %s", label, braa.Subtitle),
+		)
 		isCardinalAspect := slices.Contains([]brevity.Aspect{brevity.Flank, brevity.Beam, brevity.Drag}, group.BRAA().Aspect())
 		if isCardinalAspect && isTrackKnown {
-			writeBoth(fmt.Sprintf(" %s", group.Track()))
+			response.WriteBoth(fmt.Sprintf(" %s", group.Track()))
 		}
 	}
 
 	// Declaration
-	writeBoth(fmt.Sprintf(", %s", group.Declaration()))
+	response.WriteBoth(fmt.Sprintf(", %s", group.Declaration()))
 	if group.MergedWith() == 1 {
-		writeBoth(", merged with 1 friendly")
+		response.WriteBoth(", merged with 1 friendly")
 	}
 	if group.MergedWith() > 1 {
-		writeBoth(fmt.Sprintf(", merged with %d friendlies", group.MergedWith()))
+		response.WriteBoth(fmt.Sprintf(", merged with %d friendlies", group.MergedWith()))
 	}
 
 	// Fill-in information
 
 	// Heavy and number of contacts
 	if group.Heavy() {
-		writeBoth(", heavy")
+		response.WriteBoth(", heavy")
 	}
 	contacts := c.ComposeContacts(group.Contacts())
-	subtitle.WriteString(contacts.Subtitle)
-	speech.WriteString(contacts.Speech)
+	response.WriteResponse(contacts)
 
 	if !group.High() {
 		if len(stacks) > 1 {
-			writeBoth(", " + c.ComposeAltitudeFillIns(stacks))
+			response.WriteBoth(", " + c.ComposeAltitudeFillIns(stacks))
 		}
 	}
 
 	// Platform
 	if len(group.Platforms()) > 0 {
-		writeBoth(", ")
-		writeBoth(strings.Join(group.Platforms(), ", "))
+		response.WriteBoth(", ")
+		response.WriteBoth(strings.Join(group.Platforms(), ", "))
 	}
 
 	// High
 	if group.High() {
-		writeBoth(", high")
+		response.WriteBoth(", high")
 	}
 
 	// Fast or very fast
 	if group.Fast() {
-		writeBoth(", fast")
+		response.WriteBoth(", fast")
 	} else if group.VeryFast() {
-		writeBoth(", very fast")
+		response.WriteBoth(", very fast")
 	}
 
-	writeBoth(".")
-
-	return NaturalLanguageResponse{
-		Subtitle: subtitle.String(),
-		Speech:   speech.String(),
-	}
+	response.WriteBoth(".")
+	return
 }
 
 // ComposeContacts communicates the number of contacts in a group.
 // Reference: ATP 3-52.4 chapter IV section 2.
-func (c *composer) ComposeContacts(n int) NaturalLanguageResponse {
+func (_ *composer) ComposeContacts(n int) NaturalLanguageResponse {
 	// single contact is assumed if unspecified
 	s := ""
 	if n > 1 {
@@ -157,7 +150,7 @@ func (c *composer) ComposeAltitudeStacks(stacks []brevity.Stack, declaration bre
 	return s
 }
 
-func (c *composer) ComposeAltitudeFillIns(stacks []brevity.Stack) string {
+func (_ *composer) ComposeAltitudeFillIns(stacks []brevity.Stack) string {
 	if len(stacks) == 2 {
 		return fmt.Sprintf("%d high, %d low", stacks[0].Count, stacks[1].Count)
 	}
@@ -168,7 +161,7 @@ func (c *composer) ComposeAltitudeFillIns(stacks []brevity.Stack) string {
 	return ""
 }
 
-func (c *composer) ComposeAltitude(altitude unit.Length, declaration brevity.Declaration) string {
+func (_ *composer) ComposeAltitude(altitude unit.Length, declaration brevity.Declaration) string {
 	hundreds := int(math.Round(altitude.Feet() / 100))
 	thousands := int(math.Round(altitude.Feet() / 1000))
 	if hundreds == 0 {

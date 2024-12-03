@@ -34,7 +34,7 @@ func (c *client) SendPing() {
 	guid := c.clientInfo.GUID
 	logger := log.With().Str("GUID", string(guid)).Logger()
 
-	if err := c.Send(c.newMessageWithClient(types.MessagePing)); err != nil {
+	if err := c.Send(c.newMessage(types.MessagePing)); err != nil {
 		logger.Error().Err(err).Msg("error sending TCP ping")
 	}
 

@@ -41,7 +41,7 @@ var scaler = &cobra.Command{
 	Use:   "skyeye-scaler",
 	Short: "SkyEye Autoscaler",
 	Long:  "skyeye-scaler calls a webhook which can be used to create or destroy a SkyEye instance on demand.",
-	PreRunE: func(cmd *cobra.Command, args []string) error {
+	PreRunE: func(cmd *cobra.Command, _ []string) error {
 		v := viper.New()
 		v.SetEnvPrefix("SKYEYE_SCALER")
 		v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
@@ -56,7 +56,7 @@ var scaler = &cobra.Command{
 		})
 		return nil
 	},
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		return run()
 	},
 }

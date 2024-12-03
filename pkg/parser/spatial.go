@@ -12,17 +12,17 @@ import (
 
 var bullseyeWords = []string{"bullseye", "bulls"}
 
-func (p *parser) parseBullseye(scanner *bufio.Scanner) *brevity.Bullseye {
+func parseBullseye(scanner *bufio.Scanner) *brevity.Bullseye {
 	if !skipWords(scanner, bullseyeWords...) {
 		return nil
 	}
 
-	b, ok := p.parseBearing(scanner)
+	b, ok := parseBearing(scanner)
 	if !ok {
 		return nil
 	}
 
-	r, ok := p.parseRange(scanner)
+	r, ok := parseRange(scanner)
 	if !ok {
 		return nil
 	}
@@ -32,11 +32,11 @@ func (p *parser) parseBullseye(scanner *bufio.Scanner) *brevity.Bullseye {
 
 var braaWords = []string{"bra", "brah", "braa"}
 
-func (p *parser) parseBRA(scanner *bufio.Scanner) (brevity.BRA, bool) {
+func parseBRA(scanner *bufio.Scanner) (brevity.BRA, bool) {
 	if !skipWords(scanner, braaWords...) {
 		return nil, false
 	}
-	b, ok := p.parseBearing(scanner)
+	b, ok := parseBearing(scanner)
 	if !ok {
 		return nil, false
 	}
@@ -48,12 +48,12 @@ func (p *parser) parseBRA(scanner *bufio.Scanner) (brevity.BRA, bool) {
 		}
 	}
 
-	r, ok := p.parseRange(scanner)
+	r, ok := parseRange(scanner)
 	if !ok {
 		return nil, false
 	}
 
-	a, ok := p.parseAltitude(scanner)
+	a, ok := parseAltitude(scanner)
 	if !ok {
 		return nil, false
 	}
@@ -62,7 +62,7 @@ func (p *parser) parseBRA(scanner *bufio.Scanner) (brevity.BRA, bool) {
 }
 
 // parseBearing parses a 3 digit magnetic bearing. Each digit must be individually pronounced. Zeroes must be prefixed to values below 100.
-func (p *parser) parseBearing(scanner *bufio.Scanner) (bearings.Bearing, bool) {
+func parseBearing(scanner *bufio.Scanner) (bearings.Bearing, bool) {
 	bearing := 0 * unit.Degree
 	digitsParsed := 0
 	for digitsParsed < 3 {
@@ -84,35 +84,35 @@ func (p *parser) parseBearing(scanner *bufio.Scanner) (bearings.Bearing, bool) {
 }
 
 // parseRange parses a distance. The number must be pronounced as a whole cardinal number.
-func (p *parser) parseRange(scanner *bufio.Scanner) (unit.Length, bool) {
+func parseRange(scanner *bufio.Scanner) (unit.Length, bool) {
 	if !scanner.Scan() {
 		return 0, false
 	}
 	if !skipWords(scanner, "for") {
 		return 0, false
 	}
-	d, ok := p.parseNaturalNumber(scanner)
+	d, ok := parseNaturalNumber(scanner)
 	if !ok {
 		return 0, false
 	}
 	return unit.Length(d) * unit.NauticalMile, true
 }
 
-func (p *parser) parseAltitude(scanner *bufio.Scanner) (unit.Length, bool) {
+func parseAltitude(scanner *bufio.Scanner) (unit.Length, bool) {
 	if !scanner.Scan() {
 		return 0, false
 	}
 	if !skipWords(scanner, "at", "altitude") {
 		return 0, false
 	}
-	d, ok := p.parseNaturalNumber(scanner)
+	d, ok := parseNaturalNumber(scanner)
 	if !ok {
 		return 0, false
 	}
 	return unit.Length(d) * unit.Foot, true
 }
 
-func (p *parser) parseTrack(scanner *bufio.Scanner) brevity.Track {
+func parseTrack(scanner *bufio.Scanner) brevity.Track {
 	for scanner.Text() == "track" {
 		ok := scanner.Scan()
 		if !ok {
@@ -142,7 +142,7 @@ func (p *parser) parseTrack(scanner *bufio.Scanner) brevity.Track {
 	}
 }
 
-func (p *parser) parseNaturalNumber(scanner *bufio.Scanner) (int, bool) {
+func parseNaturalNumber(scanner *bufio.Scanner) (int, bool) {
 	s := scanner.Text()
 	d, err := numwords.ParseInt(s)
 	if err != nil {

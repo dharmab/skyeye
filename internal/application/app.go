@@ -8,11 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/DCS-gRPC/go-bindings/dcs/v0/coalition"
+	grpccoalition "github.com/DCS-gRPC/go-bindings/dcs/v0/coalition"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/mission"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/net"
 	"github.com/dharmab/skyeye/internal/conf"
-	"github.com/dharmab/skyeye/pkg/coalitions"
+	secoalition "github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/commands"
 	"github.com/dharmab/skyeye/pkg/composer"
 	"github.com/dharmab/skyeye/pkg/controller"
@@ -73,7 +73,7 @@ type app struct {
 }
 
 // NewApplication constructs a new Application.
-func NewApplication(ctx context.Context, config conf.Configuration) (Application, error) {
+func NewApplication(config conf.Configuration) (Application, error) {
 	starts := make(chan sim.Started)
 	updates := make(chan sim.Updated)
 	fades := make(chan sim.Faded)
@@ -95,7 +95,7 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 			return nil, err
 		}
 		missionClient := mission.NewMissionServiceClient(grpcClient)
-		coalitionClient := coalition.NewCoalitionServiceClient(grpcClient)
+		coalitionClient := grpccoalition.NewCoalitionServiceClient(grpcClient)
 		netClient := net.NewNetServiceClient(grpcClient)
 
 		log.Info().Msg("constructing chat listener")
@@ -152,16 +152,16 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 	}
 
 	log.Info().Msg("constructing speech-to-text recognizer")
-	recognizer := recognizer.NewWhisperRecognizer(config.WhisperModel, config.Callsign)
+	speechRecognizer := recognizer.NewWhisperRecognizer(config.WhisperModel, config.Callsign)
 
-	log.Info().Msg("constructing text parser")
-	parser := parser.New(config.Callsign, config.EnableTranscriptionLogging)
+	log.Info().Msg("constructing request parser")
+	requestParser := parser.New(config.Callsign, config.EnableTranscriptionLogging)
 
 	log.Info().Msg("constructing radar scope")
 
-	rdr := radar.New(config.Coalition, starts, updates, fades, config.MandatoryThreatRadius)
+	rdr := radar.New(starts, updates, fades, config.MandatoryThreatRadius)
 	log.Info().Msg("constructing GCI controller")
-	controller := controller.New(
+	gciController := controller.New(
 		rdr,
 		srsClient,
 		config.Coalition,
@@ -172,8 +172,8 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		config.ThreatMonitoringRequiresSRS,
 	)
 
-	log.Info().Msg("constructing text composer")
-	composer := composer.New(config.Callsign)
+	log.Info().Msg("constructing response composer")
+	responseComposer := composer.New(config.Callsign)
 
 	log.Info().Msg("constructing text-to-speech synthesizer")
 	synthesizer, err := speakers.NewPiperSpeaker(config.Voice, config.VoiceSpeed, config.VoicePauseLength)
@@ -201,11 +201,11 @@ func NewApplication(ctx context.Context, config conf.Configuration) (Application
 		chatListener:               chatListener,
 		srsClient:                  srsClient,
 		telemetryClient:            telemetryClient,
-		recognizer:                 recognizer,
-		parser:                     parser,
+		recognizer:                 speechRecognizer,
+		parser:                     requestParser,
 		radar:                      rdr,
-		controller:                 controller,
-		composer:                   composer,
+		controller:                 gciController,
+		composer:                   responseComposer,
 		speaker:                    synthesizer,
 		tracers:                    tracers,
 		starts:                     starts,
@@ -222,7 +222,7 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitG
 	go func() {
 		defer wg.Done()
 		log.Info().Msg("running telemetry client")
-		if err := a.telemetryClient.Run(ctx, wg); err != nil {
+		if err := a.telemetryClient.Run(ctx); err != nil {
 			if !errors.Is(err, context.Canceled) {
 				log.Error().Err(err).Msg("error running telemetry client")
 				cancel()
@@ -384,7 +384,7 @@ func (a *app) updateMissionTime() {
 
 // updateBullseyes updates the positions of the bullseyes on the radar.
 func (a *app) updateBullseyes() {
-	for _, coalition := range []coalitions.Coalition{coalitions.Red, coalitions.Blue} {
+	for _, coalition := range []secoalition.Coalition{secoalition.Red, secoalition.Blue} {
 		bullseye, err := a.telemetryClient.Bullseye(coalition)
 		if err != nil {
 			log.Warn().Err(err).Msg("error reading bullseye")

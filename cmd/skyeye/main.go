@@ -275,7 +275,7 @@ func loadCallsign(rando *rand.Rand) (callsign string) {
 	return
 }
 
-func preRun(cmd *cobra.Command, args []string) error {
+func preRun(cmd *cobra.Command, _ []string) error {
 	if err := initializeConfig(cmd); err != nil {
 		return fmt.Errorf("failed to initialize config: %w", err)
 	}
@@ -287,7 +287,7 @@ func preRun(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func run(cmd *cobra.Command, args []string) {
+func run(_ *cobra.Command, _ []string) {
 	// Set up an application-scoped context and a cancel function to shut down the application.
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -361,7 +361,7 @@ func run(cmd *cobra.Command, args []string) {
 	}
 
 	log.Info().Msg("starting application")
-	app, err := application.NewApplication(ctx, config)
+	app, err := application.NewApplication(config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to start application")
 	}

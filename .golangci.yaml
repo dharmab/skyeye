@@ -11,6 +11,7 @@ linters:
     - copyloopvar
     - goconst
     - godot
+    - revive
     - intrange
     - predeclared
     - unconvert
@@ -30,5 +31,75 @@ linters-settings:
       - G107 # Intentional use of custom webhooks
       - G115 # https://github.com/securego/gosec/issues/1187
       - G404 # We aren't using math/rand/v2 for secure random numbers in this project
+  revive:
+    rules:
+      - name: bool-literal-in-expr
+        enabled: true
+      - name: confusing-naming
+        enabled: true
+      - name: confusing-results
+        enabled: true
+      - name: constant-logical-expr
+        enabled: true
+      - name: context-as-argument
+        enabled: true
+      - name: context-keys-type
+        enabled: true
+      - name: defer
+        enabled: true
+      - name: early-return
+        enabled: true
+      - name: empty-block
+        enabled: true
+      - name: error-naming
+        enabled: true
+      - name: error-return
+        enabled: true
+      - name: error-strings
+        enabled: true
+      - name: errorf
+        enabled: true
+      - name: exported
+        enabled: true
+      - name: identical-branches
+        enabled: true
+      - name: if-return
+        enabled: true
+      - name: increment-decrement
+        enabled: true
+      - name: indent-error-flow
+        enabled: true
+      - name: import-shadowing
+        enabled: true
+      - name: modifies-value-receiver
+        enabled: true
+      - name: package-comments
+        enabled: true
+      - name: range
+        enabled: true
+      - name: redefines-builtin-id
+        enabled: true
+      - name: string-of-int
+        enabled: true
+      - name: superfluous-else
+        enabled: true
+      - name: time-naming
+        enabled: true 
+      - name: var-declaration
+        enabled: true
+      - name: unconditional-recursion
+        enabled: true
+      - name: unhandled-error
+        enabled: true
+      - name: unnecessary-stmt
+        enabled: true
+      - name: unreachable-code
+        enabled: true
+      - name: unused-parameter
+        enabled: true
+      - name: unused-receiver
+        enabled: true
+      - name: waitgroup-by-value
+        enabled: true
 issues:
   max-same-issues: 0

@@ -6,12 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"sync"
 	"time"
 
 	"github.com/rs/zerolog/log"
 )
 
+// nolint: revive // "Client" name conflicts with interface.
 type TelemetryClient struct {
 	client
 	// address of the telemetry service, including port
@@ -40,7 +40,7 @@ func NewTelemetryClient(
 	}
 }
 
-func (c *TelemetryClient) Run(ctx context.Context, wg *sync.WaitGroup) error {
+func (c *TelemetryClient) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():

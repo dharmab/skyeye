@@ -39,7 +39,7 @@ func (b True) RoundedDegrees() float64 {
 }
 
 // True returns this bearing.
-func (b True) True(declination unit.Angle) Bearing {
+func (b True) True(_ unit.Angle) Bearing {
 	return b
 }
 
@@ -54,12 +54,12 @@ func (b True) Reciprocal() Bearing {
 }
 
 // IsTrue returns true for a true bearing.
-func (b True) IsTrue() bool {
+func (_ True) IsTrue() bool {
 	return true
 }
 
 // IsMagnetic returns false for a true bearing.
-func (b True) IsMagnetic() bool {
+func (_ True) IsMagnetic() bool {
 	return false
 }
 

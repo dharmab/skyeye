@@ -92,9 +92,8 @@ func (s *scope) compareThreat(a, b *group) int {
 	if math.Abs(weightedDistanceA.NauticalMiles()-weightedDistanceB.NauticalMiles()) > 3 {
 		if weightedDistanceA < weightedDistanceB {
 			return aIsHigherThreat
-		} else {
-			return bIsHigherThreat
 		}
+		return bIsHigherThreat
 	}
 
 	// Compare absolute distance

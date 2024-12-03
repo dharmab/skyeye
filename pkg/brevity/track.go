@@ -47,3 +47,7 @@ func TrackFromBearing(bearing bearings.Bearing) Track {
 		return UnknownDirection
 	}
 }
+
+func (t Track) String() string {
+	return string(t)
+}

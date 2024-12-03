@@ -15,7 +15,7 @@ type receiver struct {
 	// lock protects the receiver's state.
 	lock sync.RWMutex
 	// buffer of received voice packets.
-	buffer []voice.VoicePacket
+	buffer []voice.Packet
 	// origin is the GUID of a client we are currently listening to. We can only listen to one client at a time, and whoever started broadcasting first wins.
 	origin types.GUID
 	// deadline is extended every time another voice packet is received. When we pass the deadline, the transmission is considered over.
@@ -32,7 +32,7 @@ func (c *client) Receive() <-chan Transmission {
 
 // receive checks if the given packet is part of a new transmission or matches a transmission in progress.
 // If either case is true, the packet is buffered into the receiver.
-func (r *receiver) receive(packet *voice.VoicePacket) {
+func (r *receiver) receive(packet *voice.Packet) {
 	// Accept the packet if it is either:
 	// - the first packet of a new transmission
 	isNewTransmission := r.origin == "" && r.packetNumber == 0
@@ -76,7 +76,7 @@ func (r *receiver) isReceivingTransmission() bool {
 func (r *receiver) reset() {
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	r.buffer = make([]voice.VoicePacket, 0)
+	r.buffer = make([]voice.Packet, 0)
 	r.origin = ""
 	r.deadline = time.Time{}
 	r.packetNumber = 0
@@ -90,7 +90,7 @@ const maxRxGap = 300 * time.Millisecond
 const minRxDuration = 1 * time.Second // 1s is whisper.cpp's minimum duration, it errors for any samples shorter than this.
 
 // receiveVoice listens for incoming UDP voice packets, decodes them into VoicePacket structs, and routes them to the out channel for audio decoding.
-func (c *client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- []voice.VoicePacket) {
+func (c *client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- []voice.Packet) {
 	// t is a ticker which triggers the check for the end of a transmission.
 	t := time.NewTicker(frameLength)
 	for {
@@ -137,7 +137,7 @@ func (c *client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- 
 						logger := log.With().Stringer("duration", duration).Logger()
 						if duration > minRxDuration {
 							logger.Info().Msg("received transmission")
-							audio := make([]voice.VoicePacket, len(receiver.buffer))
+							audio := make([]voice.Packet, len(receiver.buffer))
 							copy(audio, receiver.buffer)
 							out <- audio
 						} else {

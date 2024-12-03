@@ -50,6 +50,19 @@ type NaturalLanguageResponse struct {
 	Speech string
 }
 
+func (r *NaturalLanguageResponse) Write(speech, subtitle string) {
+	r.Speech += speech
+	r.Subtitle += subtitle
+}
+
+func (r *NaturalLanguageResponse) WriteBoth(s string) {
+	r.Write(s, s)
+}
+
+func (r *NaturalLanguageResponse) WriteResponse(response NaturalLanguageResponse) {
+	r.Write(response.Speech, response.Subtitle)
+}
+
 type composer struct {
 	// callsign of the GCI controller
 	callsign string

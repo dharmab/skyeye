@@ -20,7 +20,10 @@ var _ Recognizer = &whisperRecognizer{}
 
 // NewWhisperRecognizer creates a new recognizer using OpenAI Whisper.
 func NewWhisperRecognizer(model *whisper.Model, callsign string) Recognizer {
-	return &whisperRecognizer{model: *model}
+	return &whisperRecognizer{
+		model:    *model,
+		callsign: callsign,
+	}
 }
 
 const maxSize = 256 * 1024
@@ -36,7 +39,7 @@ func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32, ena
 	if err != nil {
 		return "", fmt.Errorf("error creating whisper context: %w", err)
 	}
-	prompt := fmt.Sprintf("You receive commands in this template: {Either ANYFACE or %s} {PILOT CALLSIGN} {DIGITS} {'RADIO' or 'ALPHA' or 'BOGEY' or 'PICTURE' or 'DECLARE' or 'SNAPLOCK' or 'SPIKED'} {ARGUMENTS}. Parse numbers as digits. Separate numbers if there is silence between them. You may hear keywords in the arguments such as BULLSEYE or BRAA.", r.callsign)
+	prompt := fmt.Sprintf("You receive commands in this template: \"Either ANYFACE or %s, PILOT CALLSIGN, DIGITS, one of 'RADIO' 'ALPHA' 'BOGEY' 'PICTURE' 'DECLARE' 'SNAPLOCK' 'SPIKED'\", ARGUMENTS. Parse numbers as digits. Separate numbers if there is silence between them. You may hear keywords in the arguments such as BULLSEYE or BRAA.", r.callsign)
 	wCtx.SetInitialPrompt(prompt)
 
 	if wCtx.IsMultilingual() {
@@ -72,7 +75,9 @@ func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32, ena
 			if err != nil {
 				return textBuilder.String(), fmt.Errorf("error processing segment: %w", err)
 			}
-			textBuilder.WriteString(segment.Text)
+			if _, err := textBuilder.WriteString(segment.Text); err != nil {
+				return textBuilder.String(), fmt.Errorf("error writing segment text: %w", err)
+			}
 		}
 	}
 }

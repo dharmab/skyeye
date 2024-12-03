@@ -86,7 +86,7 @@ func (s *scope) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *grou
 		}
 
 		// Check coalition, categoty, and filters
-		if !s.isMatch(other, this.Contact.Coalition, group.category()) {
+		if !isMatch(other, this.Contact.Coalition, group.category()) {
 			continue
 		}
 

@@ -58,12 +58,15 @@ func IsSimilar(a, b string) bool {
 	return v > 0.6
 }
 
-func (p *parser) findGCICallsign(fields []string) (string, string, bool) {
+func (p *parser) findGCICallsign(fields []string) (callsign string, rest string, found bool) {
 	for i := range fields {
 		candidate := strings.Join(fields[:i+1], " ")
 		for _, wakePhrase := range []string{p.gciCallsign, Anyface} {
 			if IsSimilar(strings.TrimSpace(candidate), strings.ToLower(wakePhrase)) {
-				return candidate, strings.Join(fields[i+1:], " "), true
+				found = true
+				callsign = candidate
+				rest = strings.Join(fields[i+1:], " ")
+				return
 			}
 		}
 	}
@@ -110,9 +113,9 @@ func removeSymbols(tx string) string {
 	var builder strings.Builder
 	for _, r := range tx {
 		if r == '-' || r == '_' {
-			builder.WriteRune(' ')
+			_, _ = builder.WriteRune(' ')
 		} else if unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsSpace(r) {
-			builder.WriteRune(r)
+			_, _ = builder.WriteRune(r)
 		}
 	}
 	return builder.String()
@@ -122,9 +125,9 @@ func removeSymbols(tx string) string {
 func spaceNumbers(tx string) string {
 	builder := strings.Builder{}
 	for i, char := range tx {
-		builder.WriteRune(char)
+		_, _ = builder.WriteRune(char)
 		if i+1 < len(tx) && unicode.IsLetter(char) && unicode.IsDigit(rune(tx[i+1])) {
-			builder.WriteRune(' ')
+			_, _ = builder.WriteRune(' ')
 		}
 	}
 	return builder.String()
@@ -135,9 +138,9 @@ func spaceDigits(tx string) string {
 	builder := strings.Builder{}
 	for _, char := range tx {
 		if unicode.IsDigit(char) {
-			builder.WriteRune(' ')
+			_, _ = builder.WriteRune(' ')
 		}
-		builder.WriteRune(char)
+		_, _ = builder.WriteRune(char)
 	}
 	tx = builder.String()
 	return normalize(tx)
@@ -197,16 +200,15 @@ func (p *parser) Parse(tx string) any {
 	if !foundGCICallsign {
 		logger.Trace().Msg("no GCI callsign found")
 		return nil
-	} else {
-		event := logger.Debug().Str("heard", heardGCICallsign)
-		if p.enableTextLogging {
-			event = event.Str("rest", afterGCICallsign)
-		}
-		event.Msg("found GCI callsign")
-		logger.Debug().Str("heard", heardGCICallsign).Str("after", afterGCICallsign).Msg("found GCI callsign")
 	}
+	event := logger.Debug().Str("heard", heardGCICallsign)
+	if p.enableTextLogging {
+		event = event.Str("rest", afterGCICallsign)
+	}
+	event.Msg("found GCI callsign")
+	logger.Debug().Str("heard", heardGCICallsign).Str("after", afterGCICallsign).Msg("found GCI callsign")
 
-	event := logger.Debug()
+	event = logger.Debug()
 	if p.enableTextLogging {
 		event = event.Str("rest", afterGCICallsign)
 	}
@@ -262,19 +264,19 @@ func (p *parser) Parse(tx string) any {
 
 	switch requestWord {
 	case bogeyDope:
-		if request, ok := p.parseBogeyDope(pilotCallsign, scanner); ok {
+		if request, ok := parseBogeyDope(pilotCallsign, scanner); ok {
 			return request
 		}
 	case declare:
-		if request, ok := p.parseDeclare(pilotCallsign, scanner); ok {
+		if request, ok := parseDeclare(pilotCallsign, scanner); ok {
 			return request
 		}
 	case spiked:
-		if request, ok := p.parseSpiked(pilotCallsign, scanner); ok {
+		if request, ok := parseSpiked(pilotCallsign, scanner); ok {
 			return request
 		}
 	case snaplock:
-		if request, ok := p.parseSnaplock(pilotCallsign, scanner); ok {
+		if request, ok := parseSnaplock(pilotCallsign, scanner); ok {
 			return request
 		}
 	}
@@ -304,7 +306,7 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 			numDigits++
 		}
 		if numDigits == 0 || unicode.IsDigit(char) || unicode.IsSpace(char) {
-			builder.WriteRune(char)
+			_, _ = builder.WriteRune(char)
 		}
 	}
 

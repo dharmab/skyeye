@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dharmab/skyeye/pkg/coalitions"
+	secoalition "github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/lithammer/shortuuid/v3"
 
-	"github.com/DCS-gRPC/go-bindings/dcs/v0/coalition"
+	grpccoalition "github.com/DCS-gRPC/go-bindings/dcs/v0/coalition"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/common"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/mission"
 	"github.com/DCS-gRPC/go-bindings/dcs/v0/net"
@@ -20,14 +20,14 @@ type ChatListener struct {
 	callsign        string
 	netClient       net.NetServiceClient
 	missionClient   mission.MissionServiceClient
-	coalitionClient coalition.CoalitionServiceClient
+	coalitionClient grpccoalition.CoalitionServiceClient
 }
 
 func NewChatListener(
-	coalition coalitions.Coalition,
+	coalition secoalition.Coalition,
 	callsign string,
 	missionClient mission.MissionServiceClient,
-	coalitionClient coalition.CoalitionServiceClient,
+	coalitionClient grpccoalition.CoalitionServiceClient,
 	netClient net.NetServiceClient,
 ) *ChatListener {
 	manager := &ChatListener{
@@ -36,7 +36,7 @@ func NewChatListener(
 		coalitionClient: coalitionClient,
 		netClient:       netClient,
 	}
-	if coalition == coalitions.Red {
+	if coalition == secoalition.Red {
 		manager.coalition = common.Coalition_COALITION_RED
 	} else {
 		manager.coalition = common.Coalition_COALITION_BLUE
