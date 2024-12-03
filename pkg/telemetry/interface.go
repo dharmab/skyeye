@@ -11,7 +11,7 @@ import (
 )
 
 type Client interface {
-	Run(context.Context, *sync.WaitGroup) error
+	Run(context.Context) error
 	Stream(context.Context, *sync.WaitGroup, chan<- sim.Started, chan<- sim.Updated, chan<- sim.Faded)
 	Bullseye(coalitions.Coalition) (orb.Point, error)
 	Time() time.Time

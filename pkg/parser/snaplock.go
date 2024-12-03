@@ -6,8 +6,8 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
-func (p *parser) parseSnaplock(callsign string, scanner *bufio.Scanner) (*brevity.SnaplockRequest, bool) {
-	bra, ok := p.parseBRA(scanner)
+func parseSnaplock(callsign string, scanner *bufio.Scanner) (*brevity.SnaplockRequest, bool) {
+	bra, ok := parseBRA(scanner)
 	if !ok {
 		return nil, false
 	}

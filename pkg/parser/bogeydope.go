@@ -19,7 +19,7 @@ var bogeyFilterMap = map[string]brevity.ContactCategory{
 	"rotary wing": brevity.RotaryWing,
 }
 
-func (p *parser) parseBogeyDope(callsign string, scanner *bufio.Scanner) (*brevity.BogeyDopeRequest, bool) {
+func parseBogeyDope(callsign string, scanner *bufio.Scanner) (*brevity.BogeyDopeRequest, bool) {
 	filter := brevity.Aircraft
 	s := scanner.Text()
 	for scanner.Scan() {

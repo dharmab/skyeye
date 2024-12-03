@@ -44,7 +44,7 @@ func (b *Magnetic) True(declination unit.Angle) Bearing {
 }
 
 // Magnetic returns this magnetic bearing.
-func (b *Magnetic) Magnetic(declination unit.Angle) Bearing {
+func (b *Magnetic) Magnetic(_ unit.Angle) Bearing {
 	return b
 }
 
@@ -54,12 +54,12 @@ func (b *Magnetic) Reciprocal() Bearing {
 }
 
 // IsTrue returns false for a magnetic bearing.
-func (b *Magnetic) IsTrue() bool {
+func (_ *Magnetic) IsTrue() bool {
 	return false
 }
 
 // IsMagnetic returns true for a magnetic bearing.
-func (b *Magnetic) IsMagnetic() bool {
+func (_ *Magnetic) IsMagnetic() bool {
 	return true
 }
 

@@ -51,14 +51,13 @@ func PronounceDecimal(f float64, precision int, separator string) string {
 	}
 	if fractionalPartStr == "" {
 		return PronounceInt(integerPart)
-	} else {
-		fractionalPart, err := strconv.Atoi(fractionalPartStr)
-		if err != nil {
-			panic("unexpected fractional part: " + fractionalPartStr)
-		}
-
-		return fmt.Sprintf("%s %s %s", PronounceInt(integerPart), separator, PronounceInt(fractionalPart))
 	}
+	fractionalPart, err := strconv.Atoi(fractionalPartStr)
+	if err != nil {
+		panic("unexpected fractional part: " + fractionalPartStr)
+	}
+
+	return fmt.Sprintf("%s %s %s", PronounceInt(integerPart), separator, PronounceInt(fractionalPart))
 }
 
 // PronounceNumbers composes a text representation of the digits in the given string as a sequence of digits.
@@ -71,7 +70,7 @@ func PronounceNumbers(s string) string {
 			if err != nil {
 				continue
 			}
-			builder.WriteString(PronounceInt(i) + " ")
+			_, _ = builder.WriteString(PronounceInt(i) + " ")
 		}
 	}
 	return builder.String()

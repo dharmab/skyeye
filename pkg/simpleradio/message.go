@@ -28,17 +28,12 @@ func (c *client) Send(message types.Message) error {
 	return nil
 }
 
-// newMessage creates a new message with the client's version and the given message type.
+// newMessage creates a new message with the client's version, the given message type, and the client's info.
 func (c *client) newMessage(t types.MessageType) types.Message {
-	return types.Message{
+	message := types.Message{
 		Version: "2.1.0.2", // stubbing fake SRS version, TODO add flag
 		Type:    t,
 	}
-}
-
-// newMessageWithClient creates a new message with the client's version, the given message type, and the client's info.
-func (c *client) newMessageWithClient(t types.MessageType) types.Message {
-	message := c.newMessage(t)
 	message.Client = c.clientInfo
 	return message
 }
@@ -91,7 +86,7 @@ func (c *client) updateServerSettings(message types.Message) {
 
 // updateRadios sends a radio update message to the SRS server containing this client's information.
 func (c *client) updateRadios() error {
-	message := c.newMessageWithClient(types.MessageRadioUpdate)
+	message := c.newMessage(types.MessageRadioUpdate)
 	if err := c.Send(message); err != nil {
 		return fmt.Errorf("radio update failed: %w", err)
 	}
@@ -100,7 +95,7 @@ func (c *client) updateRadios() error {
 
 // connectExternalAWACSMode sends an external AWACS mode password message to the SRS server to authenticate as an external AWACS.
 func (c *client) connectExternalAWACSMode() error {
-	message := c.newMessageWithClient(types.MessageExternalAWACSModePassword)
+	message := c.newMessage(types.MessageExternalAWACSModePassword)
 	message.ExternalAWACSModePassword = c.externalAWACSModePassword
 	if err := c.Send(message); err != nil {
 		return fmt.Errorf("failed to authenticate with EAM password: %w", err)

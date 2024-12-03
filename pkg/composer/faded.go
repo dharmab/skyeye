@@ -2,48 +2,36 @@ package composer
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
 // ComposeFadedCall implements [Composer.ComposeFadedCall].
-func (c *composer) ComposeFadedCall(call brevity.FadedCall) NaturalLanguageResponse {
-	var subtitle, speech strings.Builder
-	writeBoth := func(s string) {
-		subtitle.WriteString(s)
-		speech.WriteString(s)
-	}
-
-	writeBoth(c.ComposeCallsigns(c.callsign) + ", ")
+func (c *composer) ComposeFadedCall(call brevity.FadedCall) (response NaturalLanguageResponse) {
+	response.WriteBoth(c.ComposeCallsigns(c.callsign) + ", ")
 	if call.Group.Contacts() == 1 {
-		writeBoth("single contact faded,")
+		response.WriteBoth("single contact faded,")
 	} else {
-		writeBoth(fmt.Sprintf("%d contacts faded,", call.Group.Contacts()))
+		response.WriteBoth(fmt.Sprintf("%d contacts faded,", call.Group.Contacts()))
 	}
 
 	if bullseye := call.Group.Bullseye(); bullseye != nil {
 		bullseye := c.ComposeBullseye(*bullseye)
-		subtitle.WriteString(" " + bullseye.Subtitle)
-		speech.WriteString(" " + bullseye.Speech)
+		response.WriteResponse(bullseye)
 	}
 
 	if call.Group.Track() != brevity.UnknownDirection {
-		writeBoth(fmt.Sprintf(", track %s", call.Group.Track()))
+		response.WriteBoth(fmt.Sprintf(", track %s", call.Group.Track()))
 	}
 
 	if call.Group.Declaration() != brevity.Unable {
-		writeBoth(fmt.Sprintf(", %s", call.Group.Declaration()))
+		response.WriteBoth(fmt.Sprintf(", %s", call.Group.Declaration()))
 	}
 
 	for _, platform := range call.Group.Platforms() {
-		writeBoth(", " + platform)
+		response.WriteBoth(", " + platform)
 	}
 
-	writeBoth(".")
-
-	return NaturalLanguageResponse{
-		Subtitle: subtitle.String(),
-		Speech:   speech.String(),
-	}
+	response.WriteBoth(".")
+	return
 }

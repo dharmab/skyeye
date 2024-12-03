@@ -62,7 +62,7 @@ func (c *client) removeClient(info types.ClientInfo) {
 
 // sync sends a sync message to the SRS server containing this client's information.
 func (c *client) sync() error {
-	message := c.newMessageWithClient(types.MessageSync)
+	message := c.newMessage(types.MessageSync)
 	if err := c.Send(message); err != nil {
 		return fmt.Errorf("sync failed: %w", err)
 	}

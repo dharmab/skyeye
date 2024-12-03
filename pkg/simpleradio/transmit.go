@@ -16,8 +16,8 @@ func (c *client) Transmit(transmission Transmission) {
 	c.txChan <- transmission
 }
 
-// transmit voice packets from queued transmissions to the SRS server.
-func (c *client) transmit(ctx context.Context, packetChan <-chan []voice.VoicePacket) {
+// transmitPackets transmits voice packets from queued transmissions to the SRS server.
+func (c *client) transmitPackets(ctx context.Context, packetChan <-chan []voice.Packet) {
 	for {
 		select {
 		case packets := <-packetChan:
@@ -52,18 +52,17 @@ func (c *client) waitForClearChannel() {
 				}
 			}
 		}
-		if isReceiving {
-			delay := time.Until(deadline) + 250*time.Millisecond
-			log.Info().Stringer("delay", delay).Msg("delaying outgoing transmission to avoid interrupting incoming transmission")
-			time.Sleep(delay)
-		} else {
+		if !isReceiving {
 			return
 		}
+		delay := time.Until(deadline) + 250*time.Millisecond
+		log.Info().Stringer("delay", delay).Msg("delaying outgoing transmission to avoid interrupting incoming transmission")
+		time.Sleep(delay)
 	}
 }
 
 // writePackets writes voice packets to the UDP connection.
-func (c *client) writePackets(packets []voice.VoicePacket) {
+func (c *client) writePackets(packets []voice.Packet) {
 	startTime := time.Now()
 	for i, packet := range packets {
 		b := packet.Encode()

@@ -24,7 +24,7 @@ const (
 var frameSize = channels * frameLength.Milliseconds() * int64(sampleRate.Kilohertz())
 
 // decodeFrame decodes the given Opus frame(s) into F32LE PCM audio data.
-func (c *client) decodeFrame(decoder *opus.Decoder, b []byte) ([]float32, error) {
+func decodeFrame(decoder *opus.Decoder, b []byte) ([]float32, error) {
 	f32le := make([]float32, frameSize)
 	n, err := decoder.DecodeFloat32(b, f32le)
 	if err != nil {
@@ -35,7 +35,7 @@ func (c *client) decodeFrame(decoder *opus.Decoder, b []byte) ([]float32, error)
 }
 
 // encodeFrame encodes the given F32LE PCM audio data into an Opus frame.
-func (c *client) encodeFrame(encoder *opus.Encoder, f32le []float32) ([]byte, error) {
+func encodeFrame(encoder *opus.Encoder, f32le []float32) ([]byte, error) {
 	b := make([]byte, encodingBufferSize)
 	n, err := encoder.Encode(pcm.F32toS16LE(f32le), b)
 	if err != nil {

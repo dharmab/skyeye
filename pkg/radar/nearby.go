@@ -21,7 +21,7 @@ func (s *scope) findNearbyGroups(pointOfInterest orb.Point, minAltitude, maxAlti
 		if _, ok := visited[trackfile.Contact.ID]; ok {
 			continue
 		}
-		isMatch := s.isMatch(trackfile, coalition, filter)
+		isMatch := isMatch(trackfile, coalition, filter)
 		inCircle := circle.Contains(trackfile.LastKnown().Point)
 		inStack := minAltitude <= trackfile.LastKnown().Altitude && trackfile.LastKnown().Altitude <= maxAltitude
 		if isMatch && inCircle && inStack {

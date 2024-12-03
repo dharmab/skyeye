@@ -1,4 +1,4 @@
-// package bearings contains functions for working with absolute and magnetic compass bearings.
+// Package bearings contains functions for working with absolute and magnetic compass bearings.
 package bearings
 
 import (

@@ -10,7 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity.DeclareRequest, bool) {
+func parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity.DeclareRequest, bool) {
 	var foundCoordinate bool
 	var bullseye *brevity.Bullseye
 	var bearing bearings.Bearing
@@ -22,12 +22,11 @@ func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity
 			if !ok {
 				if foundCoordinate {
 					return nil, false
-				} else {
-					return &brevity.DeclareRequest{
-						Callsign: callsign,
-						Sour:     true,
-					}, true
 				}
+				return &brevity.DeclareRequest{
+					Callsign: callsign,
+					Sour:     true,
+				}, true
 			}
 			continue
 		}
@@ -43,7 +42,7 @@ func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity
 		if isNumeric {
 			log.Debug().Str("text", scanner.Text()).Msg("found numeric token, assuming format bullseye")
 			foundCoordinate = true
-			bullseye = p.parseBullseye(scanner)
+			bullseye = parseBullseye(scanner)
 			break
 		}
 
@@ -51,7 +50,7 @@ func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity
 		for _, word := range bullseyeWords {
 			if IsSimilar(scanner.Text(), word) {
 				log.Debug().Str("text", scanner.Text()).Msg("found bullseye token")
-				bullseye = p.parseBullseye(scanner)
+				bullseye = parseBullseye(scanner)
 				if bullseye == nil {
 					return nil, false
 				}
@@ -68,12 +67,12 @@ func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity
 			if IsSimilar(scanner.Text(), word) {
 				log.Debug().Str("text", scanner.Text()).Msg("found braa token")
 				scanner.Scan()
-				b, ok := p.parseBearing(scanner)
+				b, ok := parseBearing(scanner)
 				if !ok {
 					return nil, false
 				}
 				bearing = b
-				r, ok := p.parseRange(scanner)
+				r, ok := parseRange(scanner)
 				if !ok {
 					return nil, false
 				}
@@ -94,13 +93,13 @@ func (p *parser) parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity
 		}
 	}
 
-	altitude, ok := p.parseAltitude(scanner)
+	altitude, ok := parseAltitude(scanner)
 	if ok {
 		log.Debug().Int("altitude", int(altitude.Feet())).Msg("parsed altitude")
 	}
 
-	track := p.parseTrack(scanner)
-	log.Debug().Str("track", string(track)).Msg("parsed track")
+	track := parseTrack(scanner)
+	log.Debug().Stringer("track", track).Msg("parsed track")
 
 	if IsBRAA {
 		return &brevity.DeclareRequest{

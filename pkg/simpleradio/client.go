@@ -220,7 +220,7 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	}()
 
 	udpVoiceRxChan := make(chan []byte, 64*0xFFFFF)
-	voiceBytesRxChan := make(chan []voice.VoicePacket, 0xFFFFF)
+	voiceBytesRxChan := make(chan []voice.Packet, 0xFFFFF)
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
@@ -231,7 +231,7 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 		c.decodeVoice(ctx, voiceBytesRxChan)
 	}()
 
-	voicePacketsTxChan := make(chan []voice.VoicePacket, 3)
+	voicePacketsTxChan := make(chan []voice.Packet, 3)
 	wg.Add(4)
 	go func() {
 		defer wg.Done()
@@ -239,7 +239,7 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	}()
 	go func() {
 		defer wg.Done()
-		c.transmit(ctx, voicePacketsTxChan)
+		c.transmitPackets(ctx, voicePacketsTxChan)
 	}()
 	go func() {
 		defer wg.Done()

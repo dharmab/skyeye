@@ -169,14 +169,24 @@ func (g *group) High() bool {
 	return g.Altitude() > 40000*unit.Foot
 }
 
+func (g *group) speed() unit.Speed {
+	speed := unit.Speed(0)
+	for _, trackfile := range g.contacts {
+		if trackfile.Speed() > speed {
+			speed = trackfile.Speed()
+		}
+	}
+	return speed
+}
+
 // Fast implements [brevity.Group.Fast].
 func (g *group) Fast() bool {
-	return false
+	return g.speed() > 600*unit.Knot && !g.VeryFast()
 }
 
 // VeryFast implements [brevity.Group.VeryFast].
 func (g *group) VeryFast() bool {
-	return false
+	return g.speed() > 900*unit.Knot
 }
 
 // MergedWith implements [brevity.Group.MergedWith].

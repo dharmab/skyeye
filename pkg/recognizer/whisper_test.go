@@ -26,7 +26,8 @@ type sample struct {
 
 func loadSample(b *testing.B, info fs.FileInfo) sample {
 	b.Helper()
-	fmt.Printf("Loading %s\n", info.Name())
+	_, err := fmt.Printf("Loading %s\n", info.Name())
+	require.NoError(b, err)
 	f, err := os.Open(filepath.Join(dataDir, info.Name()))
 	require.NoError(b, err)
 	streamer, format, err := wav.Decode(f)
