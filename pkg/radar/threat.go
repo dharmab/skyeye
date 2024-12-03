@@ -31,7 +31,7 @@ func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 		ids := make([]uint64, 0)
 		for _, friendlyGroup := range friendlyGroups {
 			distance := spatial.Distance(grp.point(), friendlyGroup.point())
-			withinThreatRadius := distance < grp.threatRadius() || distance < s.mandatoryThreatRadius
+			withinThreatRadius := s.isGroupWithinThreatRadius(grp, distance)
 			hostileIsHelo := grp.category() == brevity.RotaryWing
 			friendlyIsPlane := friendlyGroup.category() == brevity.FixedWing
 			heloVersusPlane := hostileIsHelo && friendlyIsPlane
@@ -64,4 +64,8 @@ func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 		result[grp] = ids
 	}
 	return result
+}
+
+func (s *scope) isGroupWithinThreatRadius(grp *group, distance unit.Length) bool {
+	return distance < grp.threatRadius() || distance < s.mandatoryThreatRadius
 }
