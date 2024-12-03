@@ -15,7 +15,7 @@ import (
 )
 
 type FileReader struct {
-	client
+	streamingClient
 	filePath string
 }
 
@@ -24,8 +24,8 @@ func NewFileClient(
 	updateInterval time.Duration,
 ) *FileReader {
 	return &FileReader{
-		client:   *NewClient(updateInterval),
-		filePath: filePath,
+		streamingClient: *newStreamingClient(updateInterval),
+		filePath:        filePath,
 	}
 }
 

@@ -54,12 +54,12 @@ func (b True) Reciprocal() Bearing {
 }
 
 // IsTrue returns true for a true bearing.
-func (_ True) IsTrue() bool {
+func (True) IsTrue() bool {
 	return true
 }
 
 // IsMagnetic returns false for a true bearing.
-func (_ True) IsMagnetic() bool {
+func (True) IsMagnetic() bool {
 	return false
 }
 

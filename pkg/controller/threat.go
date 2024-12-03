@@ -12,7 +12,7 @@ import (
 type cooldownTracker struct {
 	// cooldown is the interval between threat calls for the same threat.
 	cooldown time.Duration
-	// cooldowns maps unit IDs to the time at which the the threat cooldown expires. The threat cooldown suppresses
+	// cooldowns maps unit IDs to the time at which the threat cooldown expires. The threat cooldown suppresses
 	// threat calls for the threat with the given unit ID.
 	cooldowns map[uint64]time.Time
 	// lock used to synchronize access to the cooldowns map.
@@ -81,7 +81,7 @@ func (c *controller) broadcastThreat(ctx context.Context, hostileGroup brevity.G
 		}
 	}
 	if recentlyNotified {
-		logger.Debug().Uints64("threatIDs", hostileGroup.ObjectIDs()).Msg("supressing threat call because a call was recently broadcast for all contacts within the threat group")
+		logger.Debug().Uints64("threatIDs", hostileGroup.ObjectIDs()).Msg("suppressing threat call because a call was recently broadcast for all contacts within the threat group")
 		return
 	}
 

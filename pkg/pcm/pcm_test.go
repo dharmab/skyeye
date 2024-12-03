@@ -1,4 +1,4 @@
-// package audiotools contains utilities for converting beween different represenations of PCM audio data.
+// package audiotools contains utilities for converting between different represenations of PCM audio data.
 
 package pcm
 

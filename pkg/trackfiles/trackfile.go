@@ -162,7 +162,7 @@ func (t *Trackfile) Direction() brevity.Track {
 	return brevity.TrackFromBearing(course)
 }
 
-// groundSpeed returns the approxmiate speed of the track along the ground (i.e. in two dimensions).
+// groundSpeed returns the approximate speed of the track along the ground (i.e. in two dimensions).
 func (t *Trackfile) groundSpeed() unit.Speed {
 	if t.track.Len() < 2 {
 		return 0

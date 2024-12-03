@@ -85,7 +85,7 @@ func (r *receiver) reset() {
 // maxRxGap is a duration after which the receiver will assume the end of a transmission if no packets are received.
 const maxRxGap = 300 * time.Millisecond
 
-// minRxDuration is the mimimum duration of a transmission to be considered for speech recognition. This reduces
+// minRxDuration is the minimum duration of a transmission to be considered for speech recognition. This reduces
 // thrashing due to transmissions too short to contain any useful content.
 const minRxDuration = 1 * time.Second // 1s is whisper.cpp's minimum duration, it errors for any samples shorter than this.
 

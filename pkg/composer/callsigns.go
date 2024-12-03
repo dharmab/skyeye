@@ -7,7 +7,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
-func (_ *composer) ComposeCallsigns(callsigns ...string) string {
+func (*composer) ComposeCallsigns(callsigns ...string) string {
 	for i, callsign := range callsigns {
 		if callsign != brevity.LastCaller {
 			callsigns[i] = strings.ToUpper(callsign)

@@ -4,6 +4,7 @@ run:
 linters:
   presets:
     - bugs
+    - comment
     - performance
     - format
     - test
@@ -11,9 +12,10 @@ linters:
     - copyloopvar
     - goconst
     - godot
-    - revive
     - intrange
     - predeclared
+    - revive
+    - stylecheck
     - unconvert
     - usestdlibvars
     - whitespace
@@ -21,6 +23,7 @@ linters:
   disable:
     - asciicheck  # Unicode is fine!
     - contextcheck  # Neat but doesn't understand request contexts in this project
+    - godox  # The point of a TODO is something you can't do yet...
     - gofumpt  # Neat tool but no editor integration
     - gci  # Bugged? Stdlib imports out of order
     - testpackage  # Test packages only allow blackbox testing
