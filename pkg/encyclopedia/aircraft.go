@@ -592,13 +592,20 @@ var kc135Data = Aircraft{
 }
 
 func kc135Variants() []Aircraft {
-	return variants(
-		kc135Data,
-		map[string]string{
-			"":     "",
-			"MPRS": "MPRS",
+	return []Aircraft{
+		{
+			ACMIShortName:       "KC-135",
+			tags:                kc135Data.tags,
+			PlatformDesignation: kc135Data.PlatformDesignation,
+			OfficialName:        kc135Data.OfficialName,
 		},
-	)
+		{
+			ACMIShortName:       "KC135MPRS",
+			tags:                kc135Data.tags,
+			PlatformDesignation: kc135Data.PlatformDesignation,
+			OfficialName:        kc135Data.OfficialName,
+		},
+	}
 }
 
 var l39Data = Aircraft{
