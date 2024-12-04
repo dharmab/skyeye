@@ -203,9 +203,8 @@ If you wish to change the version of SkyEye in the future:
 ```sh
 # Stop SkyEye
 sudo systemctl stop skyeye
-# Edit the systemd service to change the image version
-sudoedit /etc/systemd/system/skyeye.service
-sudo systemctl daemon-reload
+# Edit the image.env file to change the image version
+sudoedit /etc/skyeye/image.env
 # Make any required changes to the configuration
 sudoedit /etc/skyeye/config.yaml
 # Restart SkyEye
