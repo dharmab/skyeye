@@ -8,8 +8,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// HandleBogeyDope implements Controller.HandleBogeyDope.
-func (c *controller) HandleBogeyDope(ctx context.Context, request *brevity.BogeyDopeRequest) {
+// HandleBogeyDope handles a BOGEY DOPE by reporting the closest enemy group to the requesting aircraft.
+func (c *Controller) HandleBogeyDope(ctx context.Context, request *brevity.BogeyDopeRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Any("filter", request.Filter).Logger()
 	logger.Debug().Msg("handling request")
 

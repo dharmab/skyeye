@@ -1,4 +1,4 @@
-// package radar implements mid-level logic for Ground-Controlled Interception (GCI)
+// Package radar implements mid-level logic for Ground-Controlled Interception (GCI).
 package radar
 
 import (
@@ -19,113 +19,7 @@ import (
 )
 
 // Radar consumes updates from the simulation, keeps track of each aircraft as a trackfile, and provides functions to collect the aircraft into groups.
-type Radar interface {
-	// SetBullseye updates the bullseye point for the given coalition.
-	// The bullseye point is the reference point for polar coordinates provided in [Group.Bullseye].
-	SetBullseye(orb.Point, coalitions.Coalition)
-	// Bullseye returns the bullseye point for the given coalition.
-	Bullseye(coalitions.Coalition) orb.Point
-	// SetMissionTime updates the mission time. The mission time is used for computing magnetic declination.
-	SetMissionTime(time.Time)
-	// Declination returns the magnetic declination at the given point, at the time provided in SetMissionTime.
-	Declination(orb.Point) unit.Angle
-	// Run consumes updates from the simulation channels until the context is cancelled.
-	Run(context.Context, *sync.WaitGroup)
-	// FindCallsign returns the trackfile on the given coalition that mosty closely matches the given callsign,
-	// or nil if no closely matching trackfile was found.
-	// The first return value is the callsign of the trackfile, and the second is the trackfile itself.
-	// The returned callsign may differ from the input callsign!
-	FindCallsign(string, coalitions.Coalition) (string, *trackfiles.Trackfile)
-	// FindUnit returns the trackfile for the given unit ID, or nil if no trackfile was found.
-	FindUnit(uint64) *trackfiles.Trackfile
-	// GetPicture returns a picture of the radar scope anchored at the center point, within the given radius,
-	// filtered by the given coalition and contact category. The first return value is the total number of groups
-	// and the second is a slice of up to 3 high priority groups. Each group has Bullseye set relative to the
-	// point provided in SetBullseye.
-	GetPicture(
-		radius unit.Length,
-		coalition coalitions.Coalition,
-		category brevity.ContactCategory,
-	) (int, []brevity.Group)
-	// FindNearbyGroupsWithBRAA returns all groups within the given radius of the given point of interest, within the given
-	// altitude block, filtered by the given coalition and contact category. Any given unit IDs are excluded from the search.
-	// Each group has BRAA set relative to the given origin. The groups are ordered by increasing distance from the point
-	// of interest.
-	FindNearbyGroupsWithBRAA(
-		origin,
-		pointOfInterest orb.Point,
-		minAltitude,
-		maxAltitude,
-		radius unit.Length,
-		coalition coalitions.Coalition,
-		category brevity.ContactCategory,
-		excludedIDs []uint64,
-	) []brevity.Group
-	// FindNearbyGroupsWithBullseye returns all groups within the given radius of the given point of interest, within the given
-	// altitude block, filtered by the given coalition and contact category. Any given unit IDs are excluded from the search.
-	// Each group has Bullseye set relative to the point provided in SetBullseye. The groups are ordered by increasing distance
-	// from the point of interest.
-	FindNearbyGroupsWithBullseye(
-		pointOfInterest orb.Point,
-		minAltitude,
-		maxAltitude,
-		radius unit.Length,
-		coalition coalitions.Coalition,
-		category brevity.ContactCategory,
-		excludedIDs []uint64,
-	) []brevity.Group
-	// FindNearestGroupWithBRAA returns the nearest group to the given origin (up to the given radius), within the
-	// given altitude block, filtered by the given coalition and contact category. The group has BRAA set relative to
-	// the given origin. Returns nil if no group was found.
-	FindNearestGroupWithBRAA(
-		origin orb.Point,
-		minAltitude,
-		maxAltitude,
-		radius unit.Length,
-		coalition coalitions.Coalition,
-		category brevity.ContactCategory,
-	) brevity.Group
-	// FindNearestGroupWithBullseye returns the nearest group to the given point of interest (up to the given radius),
-	// within the given altitude block, filtered by the given coalition and contact category. The group has Bullseye
-	// set relative to the point provided in SetBullseye. Returns nil if no group was found.
-	FindNearestGroupWithBullseye(
-		pointOfIntest orb.Point,
-		minAltitude,
-		maxAltitude,
-		radius unit.Length,
-		coalition coalitions.Coalition,
-		category brevity.ContactCategory,
-	) brevity.Group
-	// FindNearestGroupInSector returns the nearest group to the given origin (up to the given distance), within a 2D
-	// circular sector defined by the given origin ,radius, bearing and arc, within the given altitude block, filtered
-	// by the given coalition and contact category. The group has BRAA set relative to the given origin. Returns nil if
-	// no group was found.
-	FindNearestGroupInSector(
-		origin orb.Point,
-		minAltitude,
-		maxAltitude,
-		radius unit.Length,
-		bearing bearings.Bearing,
-		arc unit.Angle,
-		coalition coalitions.Coalition,
-		category brevity.ContactCategory,
-	) brevity.Group
-	SetStartedCallback(StartedCallback)
-	// SetFadedCallback sets the callback function to be called when a trackfile fades.
-	SetFadedCallback(FadedCallback)
-	// SetRemovedCallback sets the callback function to be called when a trackfile is aged out.
-	SetRemovedCallback(RemovedCallback)
-	// Threats returns a map of threat groups of the given coalition to threatened object IDs.
-	Threats(coalitions.Coalition) map[brevity.Group][]uint64
-	// Merges returns a map of hostile groups of the given coalition to friendly trackfiles.
-	Merges(coalitions.Coalition) map[brevity.Group][]*trackfiles.Trackfile
-	// WaitUntilFadesResolve blocks until all fade events have been processed, or the context is cancelled.
-	WaitUntilFadesResolve(context.Context)
-}
-
-var _ Radar = &scope{}
-
-type scope struct {
+type Radar struct {
 	// starts receives an event whenever a mission (re)starts.
 	starts <-chan sim.Started
 	// updates receives frames updating the position of aircraft.
@@ -139,7 +33,7 @@ type scope struct {
 	// bullsyses maps coalitions to their respective bullseye points.
 	bullseyes sync.Map
 	// contacts contains trackfiles for each aircraft.
-	contacts contactDatabase
+	contacts *contactDatabase
 	// startedCallback is called when a start event is received.
 	startedCallback StartedCallback
 	// fadedCallback is called when a fade event is received.
@@ -160,8 +54,9 @@ type scope struct {
 	pendingFadesLock sync.RWMutex
 }
 
-func New(starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length) Radar {
-	return &scope{
+// New creates a radar scope that consumes updates from the provided channels.
+func New(starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length) *Radar {
+	return &Radar{
 		starts:                starts,
 		updates:               updates,
 		fades:                 fades,
@@ -170,14 +65,17 @@ func New(starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim
 	}
 }
 
-func (s *scope) SetMissionTime(t time.Time) {
-	s.missionTimeLock.Lock()
-	defer s.missionTimeLock.Unlock()
-	s.missionTime = t
+// SetMissionTime updates the mission time. The mission time is used for computing magnetic declination.
+func (r *Radar) SetMissionTime(t time.Time) {
+	r.missionTimeLock.Lock()
+	defer r.missionTimeLock.Unlock()
+	r.missionTime = t
 }
 
-func (s *scope) SetBullseye(bullseye orb.Point, coalition coalitions.Coalition) {
-	current := s.Bullseye(coalition)
+// SetBullseye updates the bullseye point for the given coalition.
+// The bullseye point is the reference point for polar coordinates provided in [Group.Bullseye].
+func (r *Radar) SetBullseye(bullseye orb.Point, coalition coalitions.Coalition) {
+	current := r.Bullseye(coalition)
 	if current.Lon() != bullseye.Lon() || current.Lat() != bullseye.Lat() {
 		log.Info().
 			Int("coalitionID", int(coalition)).
@@ -185,19 +83,20 @@ func (s *scope) SetBullseye(bullseye orb.Point, coalition coalitions.Coalition) 
 			Float64("lat", bullseye.Lat()).
 			Msg("updating bullseye")
 	}
-	s.bullseyes.Store(coalition, bullseye)
+	r.bullseyes.Store(coalition, bullseye)
 }
 
-func (s *scope) Bullseye(coalition coalitions.Coalition) orb.Point {
-	p, ok := s.bullseyes.Load(coalition)
+// Bullseye returns the bullseye point for the given coalition.
+func (r *Radar) Bullseye(coalition coalitions.Coalition) orb.Point {
+	p, ok := r.bullseyes.Load(coalition)
 	if !ok {
 		return orb.Point{}
 	}
 	return p.(orb.Point)
 }
 
-// Run implements [Radar.Run].
-func (s *scope) Run(ctx context.Context, wg *sync.WaitGroup) {
+// Run consumes updates from the simulation channels until the context is cancelled.
+func (r *Radar) Run(ctx context.Context, wg *sync.WaitGroup) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -207,7 +106,7 @@ func (s *scope) Run(ctx context.Context, wg *sync.WaitGroup) {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				s.updateCenterPoint()
+				r.updateCenterPoint()
 			}
 		}
 	}()
@@ -219,8 +118,8 @@ func (s *scope) Run(ctx context.Context, wg *sync.WaitGroup) {
 			select {
 			case <-ctx.Done():
 				return
-			case <-s.starts:
-				s.handleStarted()
+			case <-r.starts:
+				r.handleStarted()
 			}
 		}
 	}()
@@ -232,15 +131,15 @@ func (s *scope) Run(ctx context.Context, wg *sync.WaitGroup) {
 			select {
 			case <-ctx.Done():
 				return
-			case update := <-s.updates:
-				s.handleUpdate(update)
+			case update := <-r.updates:
+				r.handleUpdate(update)
 			}
 		}
 	}()
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		s.collectFaded(ctx)
+		r.collectFaded(ctx)
 	}()
 
 	wg.Add(1)
@@ -253,7 +152,7 @@ func (s *scope) Run(ctx context.Context, wg *sync.WaitGroup) {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				s.handleGarbageCollection()
+				r.handleGarbageCollection()
 			}
 		}
 	}()
@@ -262,7 +161,7 @@ func (s *scope) Run(ctx context.Context, wg *sync.WaitGroup) {
 }
 
 // handleUpdate updates the database using the provided update.
-func (s *scope) handleUpdate(update sim.Updated) {
+func (r *Radar) handleUpdate(update sim.Updated) {
 	logger := log.With().
 		Str("callsign", update.Labels.Name).
 		Str("aircraft", update.Labels.ACMIName).
@@ -270,27 +169,27 @@ func (s *scope) handleUpdate(update sim.Updated) {
 		Stringer("coalition", update.Labels.Coalition).
 		Logger()
 
-	trackfile, ok := s.contacts.getByID(update.Labels.ID)
+	trackfile, ok := r.contacts.getByID(update.Labels.ID)
 	if ok {
 		trackfile.Update(update.Frame)
 	} else {
-		trackfile = trackfiles.NewTrackfile(update.Labels)
-		s.contacts.set(trackfile)
+		trackfile = trackfiles.New(update.Labels)
+		r.contacts.set(trackfile)
 		logger.Info().Msg("created new trackfile")
 	}
 }
 
 // handleGarbageCollection removes trackfiles that have not been updated in a long time.
-func (s *scope) handleGarbageCollection() {
-	s.pendingFadesLock.RLock()
-	defer s.pendingFadesLock.RUnlock()
-	s.missionTimeLock.RLock()
-	defer s.missionTimeLock.RUnlock()
-	if len(s.pendingFades) > 0 {
+func (r *Radar) handleGarbageCollection() {
+	r.pendingFadesLock.RLock()
+	defer r.pendingFadesLock.RUnlock()
+	r.missionTimeLock.RLock()
+	defer r.missionTimeLock.RUnlock()
+	if len(r.pendingFades) > 0 {
 		return
 	}
 
-	for trackfile := range s.contacts.values() {
+	for trackfile := range r.contacts.values() {
 		logger := log.With().
 			Uint64("id", trackfile.Contact.ID).
 			Str("callsign", trackfile.Contact.Name).
@@ -299,18 +198,18 @@ func (s *scope) handleGarbageCollection() {
 			Logger()
 
 		lastSeen := trackfile.LastKnown().Time
-		isOld := lastSeen.Before(s.missionTime.Add(-1 * time.Minute))
+		isOld := lastSeen.Before(r.missionTime.Add(-1 * time.Minute))
 		if !lastSeen.IsZero() && isOld {
-			ok := s.contacts.delete(trackfile.Contact.ID)
+			ok := r.contacts.delete(trackfile.Contact.ID)
 			if ok {
 				logger.Info().
-					Stringer("age", s.missionTime.Sub(lastSeen)).
+					Stringer("age", r.missionTime.Sub(lastSeen)).
 					Msg("expired trackfile")
 				go func() {
-					s.callbackLock.RLock()
-					defer s.callbackLock.RUnlock()
-					if s.removalCallback != nil {
-						s.removalCallback(trackfile)
+					r.callbackLock.RLock()
+					defer r.callbackLock.RUnlock()
+					if r.removalCallback != nil {
+						r.removalCallback(trackfile)
 					}
 				}()
 			}
@@ -352,10 +251,11 @@ func isMatch(trackfile *trackfiles.Trackfile, coalition coalitions.Coalition, fi
 	return matchesFilter
 }
 
-func (s *scope) Declination(p orb.Point) unit.Angle {
-	s.missionTimeLock.RLock()
-	defer s.missionTimeLock.RUnlock()
-	declination, err := bearings.Declination(p, s.missionTime)
+// Declination returns the magnetic declination at the given point, at the time provided in SetMissionTime.
+func (r *Radar) Declination(p orb.Point) unit.Angle {
+	r.missionTimeLock.RLock()
+	defer r.missionTimeLock.RUnlock()
+	declination, err := bearings.Declination(p, r.missionTime)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get declination")
 	}

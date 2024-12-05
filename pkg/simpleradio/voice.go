@@ -93,7 +93,7 @@ func (c *client) encodeVoice(ctx context.Context, packetChan chan<- []voice.Pack
 				}
 
 				guid := c.clientInfo.GUID
-				voicePacket := voice.NewVoicePacket(
+				voicePacket := voice.NewPacket(
 					audioBytes,
 					frequencyList,
 					100000002,

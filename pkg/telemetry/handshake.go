@@ -9,21 +9,30 @@ import (
 )
 
 const (
-	LowLevelProtocol        = "XtraLib.Stream"
+	// LowLevelProtocol is the name of the real-time telemetry low level protocol.
+	LowLevelProtocol = "XtraLib.Stream"
+	// LowLevelProtocolVersion is the supported version of the real-time telemetry low level protocol.
 	LowLevelProtocolVersion = "0"
 )
 
 const (
-	HighLevelProtocol        = "Tacview.RealTimeTelemetry"
+	// HighLevelProtocol is the name of the real-time telemetry high level protocol.
+	HighLevelProtocol = "Tacview.RealTimeTelemetry"
+	// HighLevelProtocolVersion is the supported version of the real-time telemetry high level protocol.
 	HighLevelProtocolVersion = "0"
 )
 
+// HostHandshake is the handshake packet sent by the host.
 type HostHandshake struct {
-	LowLevelProtocolVersion  string
+	// LowLevelProtocolVersion is the version of the low level protocol.
+	LowLevelProtocolVersion string
+	// HighLevelProtocolVersion is the version of the high level protocol.
 	HighLevelProtocolVersion string
-	Hostname                 string
+	// Hostname of the server.
+	Hostname string
 }
 
+// Encode the host handshake as a string.
 func (h *HostHandshake) Encode() (packet string) {
 	packet += fmt.Sprintf("%s.%s\n", LowLevelProtocol, LowLevelProtocolVersion)
 	packet += fmt.Sprintf("%s.%s\n", HighLevelProtocol, HighLevelProtocolVersion)
@@ -32,6 +41,7 @@ func (h *HostHandshake) Encode() (packet string) {
 	return
 }
 
+// DecodeHostHandshake decodes a host handshake from the given string.
 func DecodeHostHandshake(packet string) (HostHandshake, error) {
 	handshake := HostHandshake{}
 	for _, line := range strings.Split(packet, "\n") {
@@ -48,13 +58,19 @@ func DecodeHostHandshake(packet string) (HostHandshake, error) {
 	return handshake, nil
 }
 
+// ClientHandshake is the handshake packet sent by the client in response to the host handshake.
 type ClientHandshake struct {
-	LowLevelProtocolVersion  string
+	// LowLevelProtocolVersion is the version of the low level protocol.
+	LowLevelProtocolVersion string
+	// HighLevelProtocolVersion is the version of the high level protocol.
 	HighLevelProtocolVersion string
-	Hostname                 string
-	PasswordHash             string
+	// Hostname of the client.
+	Hostname string
+	// PasswordHash is the CRC64 hash of the password.
+	PasswordHash string
 }
 
+// NewClientHandshake creates a new client handshake using the given client hostname and password.
 func NewClientHandshake(hostname string, password string) (handshake *ClientHandshake) {
 	var passwordHash string
 	if password == "" {
@@ -73,6 +89,7 @@ func NewClientHandshake(hostname string, password string) (handshake *ClientHand
 	}
 }
 
+// Encode the client handshake as a string.
 func (h *ClientHandshake) Encode() (packet string) {
 	packet += fmt.Sprintf("%s.%s\n", LowLevelProtocol, LowLevelProtocolVersion)
 	packet += fmt.Sprintf("%s.%s\n", HighLevelProtocol, HighLevelProtocolVersion)
@@ -82,6 +99,7 @@ func (h *ClientHandshake) Encode() (packet string) {
 	return
 }
 
+// DecodeClientHandshake decodes a client handshake from the given string.
 func DecodeClientHandshake(packet string) (*ClientHandshake, error) {
 	lines := strings.Split(packet, "\n")
 	if len(lines) < 4 {

@@ -11,7 +11,7 @@ import (
 )
 
 // synthesize converts outgoing text to spoken audio.
-func (a *app) synthesize(ctx context.Context, in <-chan Message[composer.NaturalLanguageResponse], out chan<- Message[simpleradio.Audio]) {
+func (a *Application) synthesize(ctx context.Context, in <-chan Message[composer.NaturalLanguageResponse], out chan<- Message[simpleradio.Audio]) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -24,7 +24,7 @@ func (a *app) synthesize(ctx context.Context, in <-chan Message[composer.Natural
 }
 
 // synthesizeMessage synthesizes a single message and publishes the audio to the output channel.
-func (a *app) synthesizeMessage(ctx context.Context, response composer.NaturalLanguageResponse, out chan<- Message[simpleradio.Audio]) {
+func (a *Application) synthesizeMessage(ctx context.Context, response composer.NaturalLanguageResponse, out chan<- Message[simpleradio.Audio]) {
 	log.Info().Str("text", response.Speech).Msg("synthesizing speech")
 	start := time.Now()
 	audio, err := a.speaker.Say(response.Speech)

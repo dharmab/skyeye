@@ -152,7 +152,7 @@ func TestTracking(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			trackfile := NewTrackfile(Labels{
+			trackfile := New(Labels{
 				ID:        1,
 				ACMIName:  "F-15C",
 				Name:      "Eagle 1",

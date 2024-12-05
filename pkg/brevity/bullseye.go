@@ -16,6 +16,7 @@ type Bullseye struct {
 	distance unit.Length
 }
 
+// NewBullseye creates a new [Bullseye].
 func NewBullseye(bearing bearings.Bearing, distance unit.Length) *Bullseye {
 	if !bearing.IsMagnetic() {
 		log.Warn().Stringer("bearing", bearing).Msg("bearing provided to NewBullseye should be magnetic")

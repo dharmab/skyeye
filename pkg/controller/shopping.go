@@ -7,7 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (c *controller) HandleShopping(ctx context.Context, request *brevity.ShoppingRequest) {
+// HandleShopping handles a SHOPPING request... by not implementing it, since it's not an air-to-air call!
+func (c *Controller) HandleShopping(ctx context.Context, request *brevity.ShoppingRequest) {
 	log.Debug().Str("callsign", request.Callsign).Type("type", request).Msg("handling request")
 	foundCallsign, _, ok := c.findCallsign(request.Callsign)
 	if !ok {

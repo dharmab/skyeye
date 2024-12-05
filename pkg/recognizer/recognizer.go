@@ -1,4 +1,4 @@
-// package recognizer recognizes text from speech
+// Package recognizer recognizes text from speech.
 package recognizer
 
 import "context"

@@ -12,13 +12,13 @@ import (
 
 var fadeBroadcastRadius = 55 * unit.NauticalMile
 
-func (c *controller) handleStarted() {
+func (c *Controller) handleStarted() {
 	c.merges.reset()
 	c.threatCooldowns.reset()
 	c.wasLastPictureClean = false
 }
 
-func (c *controller) handleFaded(location orb.Point, group brevity.Group, coalition coalitions.Coalition) {
+func (c *Controller) handleFaded(location orb.Point, group brevity.Group, coalition coalitions.Coalition) {
 	for _, id := range group.ObjectIDs() {
 		c.remove(id)
 	}
@@ -48,6 +48,6 @@ func (c *controller) handleFaded(location orb.Point, group brevity.Group, coalit
 	}
 }
 
-func (c *controller) handleRemoved(trackfile *trackfiles.Trackfile) {
+func (c *Controller) handleRemoved(trackfile *trackfiles.Trackfile) {
 	c.remove(trackfile.Contact.ID)
 }

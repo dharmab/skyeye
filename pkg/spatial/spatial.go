@@ -1,4 +1,7 @@
-// spatial contains functions for working with the orb, bearings and unit modules together.
+// Package spatial contains geospatial functions.
+// It provides functions for working with the [github.com/paulmach/orb],
+// [github.com/dharmab/bearings] and [github.com/martinlindhe/unit] modules
+// together.
 package spatial
 
 import (
@@ -25,6 +28,7 @@ func TrueBearing(a, b orb.Point) bearings.Bearing {
 	)
 }
 
+// PointAtBearingAndDistance returns the point at the given bearing and distance from the origin point.
 func PointAtBearingAndDistance(origin orb.Point, bearing bearings.Bearing, distance unit.Length) orb.Point {
 	if bearing.IsMagnetic() {
 		log.Warn().Stringer("bearing", bearing).Msg("bearing provided to PointAtBearingAndDistance should not be magnetic")

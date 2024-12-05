@@ -27,6 +27,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/zaf/resample v1.5.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	golang.org/x/net v0.28.0
 	golang.org/x/sys v0.23.0
 	google.golang.org/grpc v1.64.1

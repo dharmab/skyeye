@@ -13,6 +13,7 @@ func (r PictureRequest) String() string {
 	return "PICTURE for " + r.Callsign
 }
 
+// PictureResponse contains parameters for a PICTURE.
 // PICTURE is a report to establish a tactical air image.
 // Reference: ATP 3-52.4 Chapter IV section 9.
 type PictureResponse struct {

@@ -1,4 +1,4 @@
-// package trackfiles records aircraft movement over time.
+// Package trackfiles records aircraft movement over time.
 package trackfiles
 
 import (
@@ -57,13 +57,15 @@ type Frame struct {
 	Heading unit.Angle
 }
 
-func NewTrackfile(labels Labels) *Trackfile {
+// New creates a new trackfile with the given labels.
+func New(labels Labels) *Trackfile {
 	return &Trackfile{
 		Contact: labels,
 		track:   *deque.New[Frame](),
 	}
 }
 
+// String returns a string representation of the trackfile suitable for logging.
 func (t *Trackfile) String() string {
 	frame := t.LastKnown()
 	return fmt.Sprintf(
@@ -112,6 +114,8 @@ func (t *Trackfile) LastKnown() Frame {
 	return t.track.Front()
 }
 
+// IsLastKnownPointZero returns true if the last known point is at (0, 0).
+// This means the trackfile has recorded no data.
 func (t *Trackfile) IsLastKnownPointZero() bool {
 	return spatial.IsZero(t.LastKnown().Point)
 }

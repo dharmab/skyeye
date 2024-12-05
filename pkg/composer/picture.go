@@ -7,13 +7,13 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
-// ComposePictureResponse implements [Composer.ComposePictureResponse].
-func (c *composer) ComposePictureResponse(response brevity.PictureResponse) NaturalLanguageResponse {
-	info := c.ComposeCoreInformationFormat(response.Groups...)
+// ComposePictureResponse constructs natural language brevity for responding to a PICTURE call.
+func (c *Composer) ComposePictureResponse(response brevity.PictureResponse) NaturalLanguageResponse {
+	info := c.composeCoreInformationFormat(response.Groups...)
 	if response.Count == 0 {
 		return NaturalLanguageResponse{
-			Subtitle: fmt.Sprintf("%s, %s.", c.ComposeCallsigns(c.callsign), brevity.Clean),
-			Speech:   fmt.Sprintf("%s, %s", c.ComposeCallsigns(c.callsign), brevity.Clean),
+			Subtitle: fmt.Sprintf("%s, %s.", c.composeCallsigns(c.Callsign), brevity.Clean),
+			Speech:   fmt.Sprintf("%s, %s", c.composeCallsigns(c.Callsign), brevity.Clean),
 		}
 	}
 
@@ -26,7 +26,7 @@ func (c *composer) ComposePictureResponse(response brevity.PictureResponse) Natu
 	info.Subtitle = strings.TrimSpace(info.Subtitle)
 
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s %s", c.ComposeCallsigns(c.callsign), groupCountFillIn, info.Subtitle),
-		Speech:   fmt.Sprintf("%s, %s %s", c.ComposeCallsigns(c.callsign), groupCountFillIn, info.Speech),
+		Subtitle: fmt.Sprintf("%s, %s %s", c.composeCallsigns(c.Callsign), groupCountFillIn, info.Subtitle),
+		Speech:   fmt.Sprintf("%s, %s %s", c.composeCallsigns(c.Callsign), groupCountFillIn, info.Speech),
 	}
 }

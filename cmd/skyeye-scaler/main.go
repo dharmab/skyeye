@@ -162,10 +162,15 @@ func run() error {
 	}
 }
 
+// Payload is the JSON data sent to the webhook.
 type Payload struct {
-	Action      string   `json:"action"`
-	Players     int      `json:"players"`
-	Address     string   `json:"address"`
+	// Action is "run" or "stop" indicating whether the SkyEye instance should be running or stopped.
+	Action string `json:"action"`
+	// Players is the number of players on the SkyEye frequencies.
+	Players int `json:"players"`
+	// Address is the address of the SRS server.
+	Address string `json:"address"`
+	// Frequencies is the list of SkyEye frequencies.
 	Frequencies []string `json:"frequencies"`
 }
 

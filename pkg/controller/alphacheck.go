@@ -7,8 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// HandleAlphaCheck implements [Controller.HandleAlphaCheck].
-func (c *controller) HandleAlphaCheck(ctx context.Context, request *brevity.AlphaCheckRequest) {
+// HandleAlphaCheck handles an ALPHA CHECK by reporting the position of the requesting aircraft.
+func (c *Controller) HandleAlphaCheck(ctx context.Context, request *brevity.AlphaCheckRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 

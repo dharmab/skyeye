@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// DiscordWebhook publishes traces as Discord chat messages.
 type DiscordWebhook struct {
 	session *discord.Session
 	id      string
@@ -18,6 +19,7 @@ type DiscordWebhook struct {
 
 var _ Tracer = (*DiscordWebhook)(nil)
 
+// NewDiscordWebhook creates a new DiscordWebhook which sends messages to the given webhook.
 func NewDiscordWebhook(webhookID, token string) (*DiscordWebhook, error) {
 	session, err := discord.New("")
 	if err != nil {
@@ -150,6 +152,7 @@ func formatTimings(ctx context.Context) []*discord.MessageEmbedField {
 	return fields
 }
 
+// Trace sends any trace information in the context to the Discord webhook.
 func (w *DiscordWebhook) Trace(ctx context.Context) {
 	title, fields := createReport(ctx)
 	params := &discord.WebhookParams{

@@ -7,8 +7,8 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
-// ComposeRadioCheckResponse implements [Composer.ComposeRadioCheckResponse].
-func (c *composer) ComposeRadioCheckResponse(response brevity.RadioCheckResponse) NaturalLanguageResponse {
+// ComposeRadioCheckResponse constructs natural language brevity for responding to a RADIO CHECK.
+func (c *Composer) ComposeRadioCheckResponse(response brevity.RadioCheckResponse) NaturalLanguageResponse {
 	var reply string
 	if response.RadarContact {
 		replies := []string{
@@ -41,7 +41,7 @@ func (c *composer) ComposeRadioCheckResponse(response brevity.RadioCheckResponse
 		}
 		reply = fmt.Sprintf("%s, %s", replies1[rand.IntN(len(replies1))], replies2[rand.IntN(len(replies2))])
 	}
-	reply = fmt.Sprintf(reply, c.ComposeCallsigns(response.Callsign))
+	reply = fmt.Sprintf(reply, c.composeCallsigns(response.Callsign))
 	return NaturalLanguageResponse{
 		Subtitle: reply,
 		Speech:   reply,

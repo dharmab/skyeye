@@ -7,30 +7,34 @@ import (
 	"github.com/paulmach/orb"
 )
 
+// StartedCallback is a callback function that is called when a new mission is started.
 type StartedCallback func()
 
-func (s *scope) SetStartedCallback(callback StartedCallback) {
-	s.callbackLock.Lock()
-	defer s.callbackLock.Unlock()
-	s.startedCallback = callback
+// SetStartedCallback sets the callback function that is called when a new mission is started.
+func (r *Radar) SetStartedCallback(callback StartedCallback) {
+	r.callbackLock.Lock()
+	defer r.callbackLock.Unlock()
+	r.startedCallback = callback
 }
 
 // FadedCallback is a callback function that is called when a group has not been updated by sensors for a timeout period.
 // The group and its coalition are provided.
 type FadedCallback func(location orb.Point, group brevity.Group, coalition coalitions.Coalition)
 
-func (s *scope) SetFadedCallback(callback FadedCallback) {
-	s.callbackLock.Lock()
-	defer s.callbackLock.Unlock()
-	s.fadedCallback = callback
+// SetFadedCallback sets the callback function to be called when a trackfile fades.
+func (r *Radar) SetFadedCallback(callback FadedCallback) {
+	r.callbackLock.Lock()
+	defer r.callbackLock.Unlock()
+	r.fadedCallback = callback
 }
 
 // RemovedCallback is a callback function that is called when a trackfile is aged out and removed.
 // A copy of the trackfile is provided.
 type RemovedCallback func(trackfile *trackfiles.Trackfile)
 
-func (s *scope) SetRemovedCallback(callback RemovedCallback) {
-	s.callbackLock.Lock()
-	defer s.callbackLock.Unlock()
-	s.removalCallback = callback
+// SetRemovedCallback sets the callback function that is called when a trackfile is removed.
+func (r *Radar) SetRemovedCallback(callback RemovedCallback) {
+	r.callbackLock.Lock()
+	defer r.callbackLock.Unlock()
+	r.removalCallback = callback
 }

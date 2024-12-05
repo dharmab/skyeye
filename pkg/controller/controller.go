@@ -1,4 +1,4 @@
-// package controller implements high-level logic for Ground-Controlled Interception (GCI)
+// Package controller implements high-level logic for Ground-Controlled Interception (GCI).
 package controller
 
 import (
@@ -21,11 +21,13 @@ var (
 	highestAltitude = unit.Length(100000) * unit.Foot
 )
 
+// Call is an envelope for a GCI call.
 type Call struct {
 	Context context.Context
 	Call    any
 }
 
+// NewCall creates a new Call message.
 func NewCall(ctx context.Context, call any) Call {
 	return Call{
 		Context: ctx,
@@ -34,40 +36,12 @@ func NewCall(ctx context.Context, call any) Call {
 }
 
 // Controller handles requests for GCI service.
-type Controller interface {
-	// Run starts the controller's control loops. It should be called exactly once. It blocks until the context is canceled.
-	// The controller publishes responses to the given channel.
-	Run(ctx context.Context, out chan<- Call)
-	// HandleAlphaCheck handles an ALPHA CHECK by reporting the position of the requesting aircraft.
-	HandleAlphaCheck(context.Context, *brevity.AlphaCheckRequest)
-	// HandleBogeyDope handles a BOGEY DOPE by reporting the closest enemy group to the requesting aircraft.
-	HandleBogeyDope(context.Context, *brevity.BogeyDopeRequest)
-	// HandleCheckIn handles an ambiguous CHECK IN by asking the player to clarify their call.
-	HandleCheckIn(context.Context, *brevity.CheckInRequest)
-	// HandleDeclare handles a DECLARE by reporting information about the target group.
-	HandleDeclare(context.Context, *brevity.DeclareRequest)
-	// HandlePicture handles a PICTURE by reporting a tactical air picture.
-	HandlePicture(context.Context, *brevity.PictureRequest)
-	// HandleRadioCheck handles a RADIO CHECK by responding to the requesting aircraft.
-	HandleRadioCheck(context.Context, *brevity.RadioCheckRequest)
-	// HandleShopping handles a SHOPPING request... by not implementing it, since it's not an air-to-air call!
-	HandleShopping(context.Context, *brevity.ShoppingRequest)
-	// HandleSnaplock handles a SNAPLOCK by reporting information about the target group.
-	HandleSnaplock(context.Context, *brevity.SnaplockRequest)
-	// HandleSpiked handles a SPIKED by reporting any enemy groups in the direction of the radar spike.
-	HandleSpiked(context.Context, *brevity.SpikedRequest)
-	// HandleTripwire handles a TRIPWIRE... by not implementing it LOL
-	HandleTripwire(context.Context, *brevity.TripwireRequest)
-	// HandleUnableToUnderstand handles requests where the wake word was recognized but the request could not be understood, by asking players on the channel to repeat their message.
-	HandleUnableToUnderstand(context.Context, *brevity.UnableToUnderstandRequest)
-}
-
-type controller struct {
+type Controller struct {
 	// coalition this controller serves.
 	coalition coalitions.Coalition
 
 	// scope provides information about the airspace.
-	scope radar.Radar
+	scope *radar.Radar
 
 	// srsClient is used to check if relevant friendly aircraft are on frequency before broadcasting calls.
 	srsClient simpleradio.Client
@@ -98,8 +72,9 @@ type controller struct {
 	calls chan<- Call
 }
 
+// New creates a new GCI controller.
 func New(
-	rdr radar.Radar,
+	rdr *radar.Radar,
 	srsClient simpleradio.Client,
 	coalition coalitions.Coalition,
 	enableAutomaticPicture bool,
@@ -107,8 +82,8 @@ func New(
 	enableThreatMonitoring bool,
 	threatMonitoringCooldown time.Duration,
 	threatMonitoringRequiresSRS bool,
-) Controller {
-	return &controller{
+) *Controller {
+	return &Controller{
 		coalition:                   coalition,
 		scope:                       rdr,
 		srsClient:                   srsClient,
@@ -123,8 +98,9 @@ func New(
 	}
 }
 
-// Run implements [Controller.Run].
-func (c *controller) Run(ctx context.Context, calls chan<- Call) {
+// Run starts the controller's control loops. It should be called exactly once. It blocks until the context is canceled.
+// The controller publishes responses to the given channel.
+func (c *Controller) Run(ctx context.Context, calls chan<- Call) {
 	c.calls = calls
 
 	log.Info().Msg("attaching callbacks")
@@ -154,7 +130,7 @@ func (c *controller) Run(ctx context.Context, calls chan<- Call) {
 	}
 }
 
-func (c *controller) broadcastSunrise(ctx context.Context) {
+func (c *Controller) broadcastSunrise(ctx context.Context) {
 	frequencies := make([]unit.Frequency, 0)
 	for _, rf := range c.srsClient.Frequencies() {
 		frequencies = append(frequencies, rf.Frequency)
@@ -165,7 +141,7 @@ func (c *controller) broadcastSunrise(ctx context.Context) {
 // findCallsign uses fuzzy matching to find a trackfile for the given callsign.
 // Any matching callsign is returned, along with any trackfile and a bool indicating
 // if a valid trackfile with a non-zero location was found.
-func (c *controller) findCallsign(callsign string) (string, *trackfiles.Trackfile, bool) {
+func (c *Controller) findCallsign(callsign string) (string, *trackfiles.Trackfile, bool) {
 	logger := log.With().Str("parsedCallsign", callsign).Logger()
 	foundCallsign, trackfile := c.scope.FindCallsign(callsign, c.coalition)
 	if trackfile == nil {
@@ -181,13 +157,13 @@ func (c *controller) findCallsign(callsign string) (string, *trackfiles.Trackfil
 	return foundCallsign, trackfile, true
 }
 
-func (c *controller) remove(id uint64) {
+func (c *Controller) remove(id uint64) {
 	log.Debug().Uint64("id", id).Msg("removing ID from controller state tracking")
 	c.threatCooldowns.remove(id)
 	c.merges.remove(id)
 }
 
-func (c *controller) reset() {
+func (c *Controller) reset() {
 	c.threatCooldowns.reset()
 	c.merges.reset()
 }

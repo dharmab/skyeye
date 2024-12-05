@@ -1,4 +1,4 @@
-// package coalitions defines the coalitions in DCS World.
+// Package coalitions defines the coalitions in DCS World.
 package coalitions
 
 // Coalition is the ID of a coalition in DCS World.
@@ -30,6 +30,7 @@ func All() []Coalition {
 	return []Coalition{Red, Blue, Neutrals}
 }
 
+// Opposite returns the opposing coalition.
 func (c Coalition) Opposite() Coalition {
 	switch c {
 	case Red:

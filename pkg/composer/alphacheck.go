@@ -7,8 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// ComposeAlphaCheckResponse implements [Composer.ComposeAlphaCheckResponse].
-func (c *composer) ComposeAlphaCheckResponse(response brevity.AlphaCheckResponse) NaturalLanguageResponse {
+// ComposeAlphaCheckResponse constructs natural language brevity for responding to an ALPHA CHECK.
+func (c *Composer) ComposeAlphaCheckResponse(response brevity.AlphaCheckResponse) NaturalLanguageResponse {
 	if response.Status {
 		if !response.Location.Bearing().IsMagnetic() {
 			log.Error().Stringer("bearing", response.Location.Bearing()).Msg("bearing provided to ComposeAlphaCheckResponse should be magnetic")
@@ -16,16 +16,16 @@ func (c *composer) ComposeAlphaCheckResponse(response brevity.AlphaCheckResponse
 		return NaturalLanguageResponse{
 			Subtitle: fmt.Sprintf(
 				"%s, %s, contact, alpha check bullseye %s/%d",
-				c.ComposeCallsigns(response.Callsign),
-				c.ComposeCallsigns(c.callsign),
+				c.composeCallsigns(response.Callsign),
+				c.composeCallsigns(c.Callsign),
 				response.Location.Bearing().String(),
 				int(response.Location.Distance().NauticalMiles()),
 			),
 			Speech: fmt.Sprintf(
 				"%s, %s, contact, alpha check bullseye %s, %d",
-				c.ComposeCallsigns(response.Callsign),
-				c.ComposeCallsigns(c.callsign),
-				PronounceBearing(response.Location.Bearing()),
+				c.composeCallsigns(response.Callsign),
+				c.composeCallsigns(c.Callsign),
+				pronounceBearing(response.Location.Bearing()),
 				int(response.Location.Distance().NauticalMiles()),
 			),
 		}

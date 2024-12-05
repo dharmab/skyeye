@@ -1,6 +1,6 @@
 package brevity
 
-// Shopping is an air-to-ground brevity commonly mistaken as an air-to-air brevity.
+// ShoppingRequest is an air-to-ground brevity commonly mistaken as an air-to-air brevity.
 type ShoppingRequest struct {
 	Callsign string
 }

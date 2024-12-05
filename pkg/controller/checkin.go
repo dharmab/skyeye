@@ -7,7 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (c *controller) HandleCheckIn(ctx context.Context, request *brevity.CheckInRequest) {
+// HandleCheckIn handles an ambiguous CHECK IN by asking the player to clarify their call.
+func (c *Controller) HandleCheckIn(ctx context.Context, request *brevity.CheckInRequest) {
 	log.Debug().Str("callsign", request.Callsign).Type("type", request).Msg("handling request")
 	foundCallsign, _, ok := c.findCallsign(request.Callsign)
 	if !ok {

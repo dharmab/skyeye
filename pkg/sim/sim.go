@@ -1,3 +1,4 @@
+// Package sim contains message types for simulation state changes.
 package sim
 
 import (

@@ -9,7 +9,7 @@ import (
 )
 
 // parse converts incoming brevity from text format to internal representations.
-func (a *app) parse(ctx context.Context, in <-chan Message[string], out chan<- Message[any]) {
+func (a *Application) parse(ctx context.Context, in <-chan Message[string], out chan<- Message[any]) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -22,7 +22,7 @@ func (a *app) parse(ctx context.Context, in <-chan Message[string], out chan<- M
 }
 
 // parseText parses a single transcribed transmission, publishing any successfully parsed requests to the output channel.
-func (a *app) parseText(ctx context.Context, text string, out chan<- Message[any]) {
+func (a *Application) parseText(ctx context.Context, text string, out chan<- Message[any]) {
 	logger := log.Logger
 	if a.enableTranscriptionLogging {
 		logger = logger.With().Str("text", text).Logger()

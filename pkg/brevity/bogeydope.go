@@ -5,11 +5,15 @@ import (
 	"strconv"
 )
 
+// ContactCategory is a filter for the type of aircraft to include in a BOGEY DOPE.
 type ContactCategory int
 
 const (
+	// Aircraft is the filter for all aircraft.
 	Aircraft ContactCategory = iota
+	// FixedWing filters for fixed wing aircraft.
 	FixedWing
+	// RotaryWing filters for rotary wing aircraft.
 	RotaryWing
 )
 
@@ -38,6 +42,7 @@ func (r BogeyDopeRequest) String() string {
 	return fmt.Sprintf("BOGEY DOPE for %s: filter %v", r.Callsign, r.Filter)
 }
 
+// BogeyDopeResponse is a response to a BOGEY DOPE request.
 type BogeyDopeResponse struct {
 	// Callsign of the friendly aircraft requesting the BOGEY DOPE.
 	Callsign string

@@ -22,6 +22,7 @@ type ClientInfo struct {
 	Position *Position `json:"LatLngPosition,omitempty"`
 }
 
+// RadioInfo is information about a client's radios.
 type RadioInfo struct {
 	// Radios is the inventory of radios operated by the client
 	Radios []Radio `json:"radios,omitempty"`

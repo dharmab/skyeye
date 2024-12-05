@@ -1,4 +1,4 @@
-// package speakers contains interfaces and implementations for text-to-speech speakers.
+// Package speakers contains interfaces and implementations for text-to-speech speakers.
 package speakers
 
 // Speaker provides text-to-speech.

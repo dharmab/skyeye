@@ -11,10 +11,10 @@ import (
 	"github.com/martinlindhe/unit"
 )
 
-func (s *scope) enumerateGroups(coalition coalitions.Coalition) []*group {
+func (r *Radar) enumerateGroups(coalition coalitions.Coalition) []*group {
 	visited := make(map[uint64]struct{})
 	groups := make([]*group, 0)
-	for trackfile := range s.contacts.values() {
+	for trackfile := range r.contacts.values() {
 		if _, ok := visited[trackfile.Contact.ID]; ok {
 			continue
 		}
@@ -28,7 +28,7 @@ func (s *scope) enumerateGroups(coalition coalitions.Coalition) []*group {
 			continue
 		}
 
-		grp := s.findGroupForAircraft(trackfile)
+		grp := r.findGroupForAircraft(trackfile)
 		if grp == nil {
 			continue
 		}
@@ -42,11 +42,11 @@ func (s *scope) enumerateGroups(coalition coalitions.Coalition) []*group {
 }
 
 // findGroupForAircraft creates a new group for the given trackfile and adds all nearby aircraft which can be considered part of the group.
-func (s *scope) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {
+func (r *Radar) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {
 	if trackfile == nil {
 		return nil
 	}
-	bullseye := s.Bullseye(trackfile.Contact.Coalition)
+	bullseye := r.Bullseye(trackfile.Contact.Coalition)
 	grp := &group{
 		bullseye:    &bullseye,
 		contacts:    make([]*trackfiles.Trackfile, 0),
@@ -54,7 +54,7 @@ func (s *scope) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {
 	}
 	grp.contacts = append(grp.contacts, trackfile)
 	if !trackfile.IsLastKnownPointZero() {
-		s.addNearbyAircraftToGroup(trackfile, grp)
+		r.addNearbyAircraftToGroup(trackfile, grp)
 	}
 	return grp
 }
@@ -66,7 +66,7 @@ func (s *scope) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {
 //
 // The spread is increased from the ATP numbers beacause the DCS AI isn't amazing at holding formation.
 // We allow mixed platform groups because these are fairly common in DCS.
-func (s *scope) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *group) {
+func (r *Radar) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *group) {
 	var tag encyclopedia.AircraftTag
 	thisData, ok := encyclopedia.GetAircraftData(this.Contact.ACMIName)
 	if ok {
@@ -79,7 +79,7 @@ func (s *scope) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *grou
 		}
 	}
 	spreadInterval := 5 * unit.NauticalMile
-	for other := range s.contacts.values() {
+	for other := range r.contacts.values() {
 		// Skip if this one is already in the group
 		if slices.Contains(group.ObjectIDs(), other.Contact.ID) {
 			continue
@@ -110,6 +110,6 @@ func (s *scope) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *grou
 		}
 
 		group.contacts = append(group.contacts, other)
-		s.addNearbyAircraftToGroup(other, group)
+		r.addNearbyAircraftToGroup(other, group)
 	}
 }

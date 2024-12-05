@@ -16,7 +16,7 @@ import (
 func TestGetByCallsign(t *testing.T) {
 	t.Parallel()
 	db := newContactDatabase()
-	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
+	trackfile := trackfiles.New(trackfiles.Labels{
 		ID:        1,
 		Name:      "Mobius 1 Reaper",
 		Coalition: coalitions.Blue,
@@ -56,7 +56,7 @@ func TestRealCallsigns(t *testing.T) {
 	db := newContactDatabase()
 
 	for i, test := range testCases {
-		trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
+		trackfile := trackfiles.New(trackfiles.Labels{
 			ID:        uint64(i),
 			Name:      test.Name,
 			Coalition: coalitions.Blue,
@@ -78,7 +78,7 @@ func TestRealCallsigns(t *testing.T) {
 func TestGetByID(t *testing.T) {
 	t.Parallel()
 	db := newContactDatabase()
-	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
+	trackfile := trackfiles.New(trackfiles.Labels{
 		ID:        1,
 		Name:      "Mobius 1 Reaper",
 		Coalition: coalitions.Blue,
@@ -97,7 +97,7 @@ func TestGetByID(t *testing.T) {
 func TestSet(t *testing.T) {
 	t.Parallel()
 	database := newContactDatabase()
-	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
+	trackfile := trackfiles.New(trackfiles.Labels{
 		ID:        1,
 		Name:      "Mobius 1 Reaper",
 		Coalition: coalitions.Blue,
@@ -129,7 +129,7 @@ func TestSet(t *testing.T) {
 func TestDelete(t *testing.T) {
 	t.Parallel()
 	database := newContactDatabase()
-	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
+	trackfile := trackfiles.New(trackfiles.Labels{
 		ID:        1,
 		Name:      "Mobius 1 Reaper",
 		Coalition: coalitions.Blue,
@@ -153,7 +153,7 @@ func TestDelete(t *testing.T) {
 func TestClear(t *testing.T) {
 	t.Parallel()
 	database := newContactDatabase()
-	trackfile := trackfiles.NewTrackfile(trackfiles.Labels{
+	trackfile := trackfiles.New(trackfiles.Labels{
 		ID:        1,
 		Name:      "Mobius 1 Reaper",
 		Coalition: coalitions.Blue,
@@ -167,7 +167,7 @@ func TestClear(t *testing.T) {
 
 	database.reset()
 
-	trackfile = trackfiles.NewTrackfile(trackfiles.Labels{
+	trackfile = trackfiles.New(trackfiles.Labels{
 		ID:        2,
 		Name:      "Yellow 13 Reiher",
 		Coalition: coalitions.Red,
@@ -186,7 +186,7 @@ func TestValues(t *testing.T) {
 	t.Parallel()
 	db := newContactDatabase()
 
-	mobius := trackfiles.NewTrackfile(trackfiles.Labels{
+	mobius := trackfiles.New(trackfiles.Labels{
 		ID:        1,
 		Name:      "Mobius 1 Reaper",
 		Coalition: coalitions.Blue,
@@ -194,7 +194,7 @@ func TestValues(t *testing.T) {
 	})
 	db.set(mobius)
 
-	yellow := trackfiles.NewTrackfile(trackfiles.Labels{
+	yellow := trackfiles.New(trackfiles.Labels{
 		ID:        2,
 		Name:      "Yellow 13 Reiher",
 		Coalition: coalitions.Red,

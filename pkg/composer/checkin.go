@@ -6,7 +6,8 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
-func (c *composer) ComposeCheckInResponse(response brevity.CheckInResponse) NaturalLanguageResponse {
+// ComposeCheckInResponse constructs natural language brevity for responding to an ambiguous CHECK IN call.
+func (c *Composer) ComposeCheckInResponse(response brevity.CheckInResponse) NaturalLanguageResponse {
 	replies := []string{
 		", I'm not sure if you wanted a radio check or an alpha check. Or did you just want to say hi?",
 		", I'm not sure if you wanted a radio check or an alpha check. Or are you trying to flirt? In that case, if you find me in the officer's club later, you can buy me an old fashioned.",
@@ -19,7 +20,7 @@ func (c *composer) ComposeCheckInResponse(response brevity.CheckInResponse) Natu
 		", I can't tell if you wanted a radio check or an alpha check.",
 	}
 
-	reply := c.ComposeCallsigns(response.Callsign) + replies[rand.IntN(len(replies))]
+	reply := c.composeCallsigns(response.Callsign) + replies[rand.IntN(len(replies))]
 	return NaturalLanguageResponse{
 		Subtitle: reply,
 		Speech:   reply,

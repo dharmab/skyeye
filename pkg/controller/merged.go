@@ -108,7 +108,7 @@ func (t *mergeTracker) reset() {
 }
 
 // broadcastMerges updates the merge tracker and broadcasts merged calls for any new merges.
-func (c *controller) broadcastMerges(ctx context.Context) {
+func (c *Controller) broadcastMerges(ctx context.Context) {
 	merges := c.scope.Merges(c.coalition)
 
 	hostileIDs := make([]uint64, 0)
@@ -133,7 +133,7 @@ func (c *controller) broadcastMerges(ctx context.Context) {
 
 // updateMergesForGroup updates the merge tracker for the given hostile group and friendly contacts.
 // Friendlies which are newly merged with the hostile group are returned.
-func (c *controller) updateMergesForGroup(hostileGroup brevity.Group, friendlies []*trackfiles.Trackfile) []*trackfiles.Trackfile {
+func (c *Controller) updateMergesForGroup(hostileGroup brevity.Group, friendlies []*trackfiles.Trackfile) []*trackfiles.Trackfile {
 	friendIDs := make(map[uint64]struct{})
 	for _, friendly := range friendlies {
 		friendIDs[friendly.Contact.ID] = struct{}{}
@@ -165,7 +165,7 @@ func (c *controller) updateMergesForGroup(hostileGroup brevity.Group, friendlies
 
 // updateMergesForContact checks if the given hostile and friendly have merged or separated, and updates the merge tracker accordingly.
 // It returns true if the contacts were merged, or false if they were already merged or if they were separated.
-func (c *controller) updateMergesForContact(hostile, friendly *trackfiles.Trackfile) bool {
+func (c *Controller) updateMergesForContact(hostile, friendly *trackfiles.Trackfile) bool {
 	logger := log.
 		With().
 		Str("hostile", hostile.Contact.Name).
@@ -196,7 +196,7 @@ func (c *controller) updateMergesForContact(hostile, friendly *trackfiles.Trackf
 	return false
 }
 
-func (c *controller) createMergedCall(friendlies []*trackfiles.Trackfile) brevity.MergedCall {
+func (c *Controller) createMergedCall(friendlies []*trackfiles.Trackfile) brevity.MergedCall {
 	call := brevity.MergedCall{
 		Callsigns: make([]string, 0),
 	}
@@ -207,7 +207,7 @@ func (c *controller) createMergedCall(friendlies []*trackfiles.Trackfile) brevit
 }
 
 // fillInMergeDetails sets the group's merged-with count, and if it is greater than 0, declares the group to be a FURBALL.
-func (c *controller) fillInMergeDetails(group brevity.Group) {
+func (c *Controller) fillInMergeDetails(group brevity.Group) {
 	mergedWith := 0
 	for _, id := range group.ObjectIDs() {
 		mergedWith += len(c.merges.friendliesMergedWith(id))
@@ -218,7 +218,7 @@ func (c *controller) fillInMergeDetails(group brevity.Group) {
 	}
 }
 
-func (c *controller) isGroupMergedWithFriendly(hostileGroup brevity.Group, friendID uint64) bool {
+func (c *Controller) isGroupMergedWithFriendly(hostileGroup brevity.Group, friendID uint64) bool {
 	for _, hostileID := range hostileGroup.ObjectIDs() {
 		if c.merges.isMerged(hostileID, friendID) {
 			return true

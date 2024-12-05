@@ -60,6 +60,7 @@ func ParseRadioFrequency(s string) (*RadioFrequency, error) {
 	}, nil
 }
 
+// IsSameFrequency returns true if the given frequency has the same frequency and modulation as this frequency.
 func (f RadioFrequency) IsSameFrequency(other RadioFrequency) bool {
 	return f.Frequency == other.Frequency && f.Modulation == other.Modulation
 }

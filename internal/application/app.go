@@ -31,14 +31,8 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// Application is the interface for running the SkyEye application.
-type Application interface {
-	// Run runs the SkyEye application. It should be called exactly once.
-	Run(context.Context, context.CancelFunc, *sync.WaitGroup) error
-}
-
-// app implements the Application.
-type app struct {
+// Application implements the SkyEye application.
+type Application struct {
 	// callsign of the GCI controller
 	callsign string
 	// srsClient is a SimpleRadio Standalone client
@@ -50,11 +44,11 @@ type app struct {
 	// chatListener listens for chat messages
 	chatListener *commands.ChatListener
 	// parser converts English brevity text to internal representations
-	parser parser.Parser
+	parser *parser.Parser
 	// radar tracks contacts and provides geometric computations
-	radar radar.Radar
+	radar *radar.Radar
 	// controller publishes responses and calls
-	controller controller.Controller
+	controller *controller.Controller
 	// composer converts responses and calls from internal representations to English brevity text
 	composer composer.Composer
 	// speaker provides text-to-speech synthesis
@@ -73,7 +67,7 @@ type app struct {
 }
 
 // NewApplication constructs a new Application.
-func NewApplication(config conf.Configuration) (Application, error) {
+func NewApplication(config conf.Configuration) (*Application, error) {
 	starts := make(chan sim.Started)
 	updates := make(chan sim.Updated)
 	fades := make(chan sim.Faded)
@@ -142,7 +136,7 @@ func NewApplication(config conf.Configuration) (Application, error) {
 		telemetryClient = telemetry.NewFileClient(config.ACMIFile, config.RadarSweepInterval)
 	} else {
 		log.Info().Str("address", config.TelemetryAddress).Msg("constructing telemetry client")
-		telemetryClient = telemetry.NewTelemetryClient(
+		telemetryClient = telemetry.NewRealTimeClient(
 			config.TelemetryAddress,
 			config.Callsign,
 			config.TelemetryPassword,
@@ -173,7 +167,7 @@ func NewApplication(config conf.Configuration) (Application, error) {
 	)
 
 	log.Info().Msg("constructing response composer")
-	responseComposer := composer.New(config.Callsign)
+	responseComposer := composer.Composer{Callsign: config.Callsign}
 
 	log.Info().Msg("constructing text-to-speech synthesizer")
 	synthesizer, err := speakers.NewPiperSpeaker(config.Voice, config.VoiceSpeed, config.VoicePauseLength)
@@ -184,7 +178,8 @@ func NewApplication(config conf.Configuration) (Application, error) {
 	tracers := make([]traces.Tracer, 0)
 	if config.EnableTracing {
 		log.Info().Msg("constructing tracers")
-		tracers = append(tracers, traces.NewLogTracer())
+		logTracer := traces.LogTracer{}
+		tracers = append(tracers, &logTracer)
 		if config.DiscordWebhookID != "" && config.DiscorbWebhookToken != "" {
 			discordWebhook, err := traces.NewDiscordWebhook(config.DiscordWebhookID, config.DiscorbWebhookToken)
 			if err != nil {
@@ -195,7 +190,7 @@ func NewApplication(config conf.Configuration) (Application, error) {
 	}
 
 	log.Info().Msg("constructing application")
-	app := &app{
+	app := &Application{
 		callsign:                   config.Callsign,
 		enableTranscriptionLogging: config.EnableTranscriptionLogging,
 		chatListener:               chatListener,
@@ -217,7 +212,7 @@ func NewApplication(config conf.Configuration) (Application, error) {
 }
 
 // Run implements Application.Run.
-func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitGroup) error {
+func (a *Application) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitGroup) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -377,13 +372,13 @@ func (a *app) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitG
 }
 
 // updateMissionTime updates the mission time on the radar.
-func (a *app) updateMissionTime() {
+func (a *Application) updateMissionTime() {
 	missionTime := a.telemetryClient.Time()
 	a.radar.SetMissionTime(missionTime)
 }
 
 // updateBullseyes updates the positions of the bullseyes on the radar.
-func (a *app) updateBullseyes() {
+func (a *Application) updateBullseyes() {
 	for _, coalition := range []secoalition.Coalition{secoalition.Red, secoalition.Blue} {
 		bullseye, err := a.telemetryClient.Bullseye(coalition)
 		if err != nil {
@@ -395,7 +390,7 @@ func (a *app) updateBullseyes() {
 }
 
 // trace the given request context using all configured tracers.
-func (a *app) trace(ctx context.Context) {
+func (a *Application) trace(ctx context.Context) {
 	if !a.enableTranscriptionLogging {
 		ctx = traces.WithoutRequestText(ctx)
 	}
