@@ -152,26 +152,26 @@ The body of the POST request is a JSON object with the following fields:
 
 By implementing a small webservice or serverless function that creates or destroys a SkyEye instance on demand, the cost of running SkyEye can be significantly reduced. This is particularly useful for servers that are only active for a few hours a week, such as a private squadron server.
 
-An example WinSW service definition is provided in the Windows release archive. You can edit this example file to include your webhook URL and the frequencies you want to monitor, then install and run it it using the included WinSW executable:
+An example WinSW service definition is provided in the Windows release archive. You can edit this example file to include your webhook URL and the frequencies you want to monitor, then install and run it it using the included `skyeye-scaler-service.exe` executable:
 
 ```batch
 :: Install SkyEye Scaler
-./winsw.exe install skyeye-service.yaml
+./skyeye-scaler-service.exe install skyeye-scaler-service.yml
 
 :: Start SkyEye Scaler
-./winsw.exe start skyeye-service.yaml
+./skyeye-scaler-service.exe start skyeye-scaler-service.yml
 
 :: Check if SkyEye Scaler is running
-./winsw.exe status skyeye-service.yaml
+./skyeye-scaler-service.exe status skyeye-scaler-service.yml
 
 :: Stop SkyEye Scaler
-./winsw.exe stop skyeye-service.yaml
+./skyeye-scaler-service.exe stop skyeye-scaler-service.yml
 
 :: Restart SkyEye Scaler
-./winsw.exe restart skyeye-service.yaml
+./skyeye-scaler-service.exe restart skyeye-scaler-service.yml
 
 :: Uninstall SkyEye Scaler
-./winsw.exe uninstall skyeye-service.yaml
+./skyeye-scaler-service.exe uninstall skyeye-scaler-service.yml
 ```
 
 The scaler is also available as a container image at `ghcr.io/dharmab/skyeye-scaler`. A Linux binary is also provided in the Linux release archive, although without a service definition.
@@ -311,32 +311,46 @@ journalctl -u skyeye > skyeye.log
 
 Download the SkyEye release ZIP from the [releases page](https://github.com/dharmab/skyeye/releases) and extract it.
 
-Edit `config.yaml` to configure SkyEye as desired. Note that any provided value of `whisper-model` here is ignored because it is overridden in `skyeye-service.yaml`. If you wish to change the whisper.cpp model, edit `skyeye-service.yaml`.
+Edit `config.yaml` to configure SkyEye as desired. Note that any provided value of `whisper-model` here is ignored because it is overridden in `skyeye-service.yml`. If you wish to change the whisper.cpp model, edit `skyeye-service.yml`.
 
-If you want SkyEye to automatically start on boot, edit `skyeye-service.yaml` and change `startmode` to "Automatic".
+If you want SkyEye to automatically start on boot, edit `skyeye-service.yml` and change `startmode` to "Automatic".
 
-Use the bundled `winsw.exe` to install and start SkyEye:
+Use the bundled `skyeye-service.exe` to install and start SkyEye:
 
 ```batch
 :: Install SkyEye
-./winsw.exe install skyeye-service.yaml
+./skyeye-service.exe install skyeye-service.yml
 
 :: Start SkyEye
-./winsw.exe start skyeye-service.yaml
+./skyeye-service.exe start skyeye-service.yml
 
 :: Check if SkyEye is running
-./winsw.exe status skyeye-service.yaml
+./skyeye-service.exe status skyeye-service.yml
 
 :: Stop SkyEye
-./WinSW-x6t4.exe stop skyeye-service.yaml
+./skyeye-service-x6t4.exe stop skyeye-service.yml
 
 :: Restart SkyEye
-./winsw.exe restart skyeye-service.yaml
+./skyeye-service.exe restart skyeye-service.yml
 
 :: Uninstall SkyEye
-./winsw.exe uninstall skyeye-service.yaml
+./skyeye-service.exe uninstall skyeye-service.yml
 ```
 
-Refer to the [WinSW documentation](https://github.com/winsw/winsw/tree/v2) for more information.
+Refer to the [WinSW documentation](https://github.com/winsw/winsw/tree/v2.12.0) for more information (`skyeye-service.exe` is a renamed `winsw.exe`).
 
-Logs will be saved in a `skyeye.log` file in the same directory as `skyeye-service.yaml`
+Logs will be saved in a `skyeye.log` file in the same directory as `skyeye-service.yml`
+
+If you want to change the version of SkyEye in the future:
+
+```batch
+:: Stop and Uninstall SkyEye
+./skyeye-service.exe stop skyeye-service.yml
+./skyeye-service.exe uninstall skyeye-service.yml
+
+:: Download a newer version of SkyEye and replace both skyeye.exe and skyeye-service.yml
+
+:: Install and Start the new version of SkyEye
+./skyeye-service.exe install skyeye-service.yml
+./skyeye-service.exe start skyeye-service.yml
+```
