@@ -136,7 +136,7 @@ func (c *streamingClient) sendUpdates(updates chan<- sim.Updated) {
 			logger.Error().Err(err).Msg("error getting object types")
 			continue
 		}
-		if !IsAircraft(taglist) {
+		if !isAircraft(taglist) {
 			continue
 		}
 		logger = logger.With().Strs("tags", taglist).Logger()
@@ -370,7 +370,7 @@ func (c *streamingClient) updateObject(update *objects.Update) error {
 		logger = logger.With().Stringer("coalition", propertyToCoalition(coalition)).Logger()
 	}
 
-	if isNewObject && IsRelevantObject(taglist) {
+	if isNewObject && isRelevantObject(taglist) {
 		logger.Info().Msg("recording new object")
 	}
 
@@ -387,7 +387,7 @@ func (c *streamingClient) updateObject(update *objects.Update) error {
 	if update.IsRemoval {
 		delete(c.state, object.ID)
 		c.fades <- sim.Faded{ID: object.ID}
-		if IsRelevantObject(taglist) {
+		if isRelevantObject(taglist) {
 			logger.Info().Msg("recording object removal")
 		}
 	}
@@ -406,14 +406,14 @@ func (c *streamingClient) reset() {
 	c.bullseyesIdx = map[coalitions.Coalition]uint64{}
 }
 
-func IsAircraft(taglist []string) bool {
+func isAircraft(taglist []string) bool {
 	return slices.Contains(taglist, tags.FixedWing) || slices.Contains(taglist, tags.Rotorcraft)
 }
 
-func IsBullseye(taglist []string) bool {
+func isBullseye(taglist []string) bool {
 	return slices.Contains(taglist, tags.Bullseye)
 }
 
-func IsRelevantObject(taglist []string) bool {
-	return IsAircraft(taglist) || IsBullseye(taglist)
+func isRelevantObject(taglist []string) bool {
+	return isAircraft(taglist) || isBullseye(taglist)
 }

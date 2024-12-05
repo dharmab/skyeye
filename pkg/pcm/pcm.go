@@ -1,4 +1,4 @@
-// package pcm converts between different representations of PCM audio data.
+// Package pcm converts between different representations of PCM audio data.
 // Ideally the only representations we would need would be []float32 for F32LE and []int16 for S16LE.
 // Sadly, many modules require us to provide raw byte arrays, so we also need conversion functions for []byte.
 package pcm
@@ -38,7 +38,7 @@ func F32toS16LEBytes(in []float32) []byte {
 	return out
 }
 
-// S16LEtoF32 converts a slice of int16 bytes to a slice of float32 bytes. This is useful for converting from S16LE to F32LE.
+// F32LEBytesToS16LEBytes converts a slice of int16 bytes to a slice of float32 bytes. This is useful for converting from S16LE to F32LE.
 func F32LEBytesToS16LEBytes(in []byte) []byte {
 	out := make([]byte, 0)
 	for i := 0; i < len(in); i += 4 {
@@ -59,7 +59,7 @@ func S16LEToF32LE(in []int16) []float32 {
 	return out
 }
 
-// S16LEBytesToF32 converts a slice of bytes to a slice of float32. This is useful for converting from S16LE to F32LE.
+// S16LEBytesToF32LE converts a slice of bytes to a slice of float32. This is useful for converting from S16LE to F32LE.
 func S16LEBytesToF32LE(in []byte) []float32 {
 	out := make([]float32, 0)
 	for i := 0; i < len(in); i += 2 {

@@ -1,3 +1,5 @@
+// Package telemetry contains clients for reading ACMI data from files or
+// real-time telemetry.
 package telemetry
 
 import (
@@ -11,8 +13,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// nolint: revive // "Client" name conflicts with interface.
-type TelemetryClient struct {
+// RealTimeClient reads real-time telemetry data from a remote telemetry service.
+type RealTimeClient struct {
 	streamingClient
 	// address of the telemetry service, including port
 	address string
@@ -24,14 +26,16 @@ type TelemetryClient struct {
 	connectionTimeout time.Duration
 }
 
-func NewTelemetryClient(
+// NewRealTimeClient creates a new telemetry client for reading real-time
+// telemetry data.
+func NewRealTimeClient(
 	address,
 	clientHostname,
 	password string,
 	connectionTimeout time.Duration,
 	updateInterval time.Duration,
-) *TelemetryClient {
-	return &TelemetryClient{
+) *RealTimeClient {
+	return &RealTimeClient{
 		streamingClient:   *newStreamingClient(updateInterval),
 		address:           address,
 		hostname:          clientHostname,
@@ -40,7 +44,10 @@ func NewTelemetryClient(
 	}
 }
 
-func (c *TelemetryClient) Run(ctx context.Context) error {
+// Run reads telemetry data until the context is canceled, automatically
+// reconnecting if the connection is lost, a read timeout occurs, or an EOF is
+// received.
+func (c *RealTimeClient) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -58,7 +65,7 @@ func (c *TelemetryClient) Run(ctx context.Context) error {
 	}
 }
 
-func (c *TelemetryClient) read(ctx context.Context) error {
+func (c *RealTimeClient) read(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	connection, err := c.connect()
@@ -79,7 +86,7 @@ func (c *TelemetryClient) read(ctx context.Context) error {
 	return nil
 }
 
-func (c *TelemetryClient) connect() (net.Conn, error) {
+func (c *RealTimeClient) connect() (net.Conn, error) {
 	dialer := &net.Dialer{Timeout: c.connectionTimeout}
 	connection, err := dialer.Dial("tcp", c.address)
 	if err != nil {
@@ -88,7 +95,7 @@ func (c *TelemetryClient) connect() (net.Conn, error) {
 	return connection, nil
 }
 
-func (c *TelemetryClient) handshake(reader *bufio.Reader, connection net.Conn) error {
+func (c *RealTimeClient) handshake(reader *bufio.Reader, connection net.Conn) error {
 	hostHandshakePacket, err := reader.ReadString('\x00')
 	if err != nil {
 		return fmt.Errorf("error reading host handshake: %w", err)

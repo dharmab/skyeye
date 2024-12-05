@@ -1,4 +1,4 @@
-// package encyclopedia is a database of aircraft data
+// Package encyclopedia is a database of aircraft data.
 package encyclopedia
 
 import (

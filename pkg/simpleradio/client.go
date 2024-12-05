@@ -1,4 +1,4 @@
-// package simpleradio contains a bespoke SimpleRadio-Standalone client.
+// Package simpleradio contains a SimpleRadio-Standalone client.
 package simpleradio
 
 import (
@@ -14,12 +14,17 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Audio is a sample of audio data in F32LE PCM format.
 type Audio []float32
 
+// Transmission is an envelope containing a trace ID, SRS client name, and audio sample for a transmission.
 type Transmission struct {
-	TraceID    string
+	// TraceID of the transmission.
+	TraceID string
+	// ClientName is the name of the SRS client that transmitted the audio.
 	ClientName string
-	Audio      Audio
+	// Audio sample for the transmission.
+	Audio Audio
 }
 
 // Client is a SimpleRadio-Standalone client.
@@ -90,6 +95,7 @@ type client struct {
 	lastPingLock sync.RWMutex
 }
 
+// NewClient creates a new SimpleRadio-Standalone client.
 func NewClient(config types.ClientConfiguration) (Client, error) {
 	guid := types.NewGUID()
 

@@ -7,8 +7,8 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
-// ComposeSayAgainResponse implements [Composer.ComposeSayAgainResponse].
-func (c *composer) ComposeSayAgainResponse(response brevity.SayAgainResponse) NaturalLanguageResponse {
+// ComposeSayAgainResponse constructs natural language brevity for asking a caller to repeat their last transmission.
+func (c *Composer) ComposeSayAgainResponse(response brevity.SayAgainResponse) NaturalLanguageResponse {
 	replies := map[bool][]string{
 		true: {
 			"%s, sorry, I didn't understand. Say again.",
@@ -29,7 +29,7 @@ func (c *composer) ComposeSayAgainResponse(response brevity.SayAgainResponse) Na
 	variation := replies[haveCallsign][rand.IntN(len(replies[haveCallsign]))]
 	reply := ""
 	if haveCallsign {
-		reply = fmt.Sprintf(variation, c.ComposeCallsigns(response.Callsign))
+		reply = fmt.Sprintf(variation, c.composeCallsigns(response.Callsign))
 	} else {
 		reply = variation
 	}

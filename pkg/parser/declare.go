@@ -48,7 +48,7 @@ func parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity.DeclareRequ
 
 		parsedAsBullseye := false
 		for _, word := range bullseyeWords {
-			if IsSimilar(scanner.Text(), word) {
+			if isSimilar(scanner.Text(), word) {
 				log.Debug().Str("text", scanner.Text()).Msg("found bullseye token")
 				bullseye = parseBullseye(scanner)
 				if bullseye == nil {
@@ -64,7 +64,7 @@ func parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity.DeclareRequ
 		}
 
 		for _, word := range braaWords {
-			if IsSimilar(scanner.Text(), word) {
+			if isSimilar(scanner.Text(), word) {
 				log.Debug().Str("text", scanner.Text()).Msg("found braa token")
 				scanner.Scan()
 				b, ok := parseBearing(scanner)

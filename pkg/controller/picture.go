@@ -10,15 +10,15 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// HandlePicture implements Controller.HandlePicture.
-func (c *controller) HandlePicture(ctx context.Context, request *brevity.PictureRequest) {
+// HandlePicture handles a PICTURE by reporting a tactical air picture.
+func (c *Controller) HandlePicture(ctx context.Context, request *brevity.PictureRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 
 	c.broadcastPicture(ctx, &logger, true)
 }
 
-func (c *controller) broadcastPicture(ctx context.Context, logger *zerolog.Logger, forceBroadcast bool) {
+func (c *Controller) broadcastPicture(ctx context.Context, logger *zerolog.Logger, forceBroadcast bool) {
 	if !forceBroadcast {
 		if c.srsClient.ClientsOnFrequency() == 0 {
 			logger.Debug().Msg("skipping PICTURE broadcast because no clients are on frequency")

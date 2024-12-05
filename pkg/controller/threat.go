@@ -56,7 +56,7 @@ func (t *cooldownTracker) remove(id uint64) {
 	delete(t.cooldowns, id)
 }
 
-func (c *controller) broadcastThreats(ctx context.Context) {
+func (c *Controller) broadcastThreats(ctx context.Context) {
 	if !c.enableThreatMonitoring {
 		return
 	}
@@ -66,7 +66,7 @@ func (c *controller) broadcastThreats(ctx context.Context) {
 	}
 }
 
-func (c *controller) broadcastThreat(ctx context.Context, hostileGroup brevity.Group, friendIDs []uint64) {
+func (c *Controller) broadcastThreat(ctx context.Context, hostileGroup brevity.Group, friendIDs []uint64) {
 	hostileGroup.SetDeclaration(brevity.Hostile)
 	c.fillInMergeDetails(hostileGroup)
 	hostileGroup.SetThreat(true)

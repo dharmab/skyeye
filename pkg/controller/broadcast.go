@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (c *controller) addFriendlyToBroadcast(callsigns []string, friendly *trackfiles.Trackfile) []string {
+func (c *Controller) addFriendlyToBroadcast(callsigns []string, friendly *trackfiles.Trackfile) []string {
 	logger := log.With().Str("callsign", friendly.Contact.Name).Logger()
 	isOnFrequency := c.srsClient.IsOnFrequency(friendly.Contact.Name)
 	if isOnFrequency {

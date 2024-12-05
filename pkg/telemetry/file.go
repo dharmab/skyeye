@@ -14,11 +14,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// FileReader reads telemetry data from a file.
 type FileReader struct {
 	streamingClient
 	filePath string
 }
 
+// NewFileClient creates a new telemetry client for reading data from a file.
 func NewFileClient(
 	filePath string,
 	updateInterval time.Duration,
@@ -29,6 +31,7 @@ func NewFileClient(
 	}
 }
 
+// Run reads telemetry data from the file.
 func (r *FileReader) Run(ctx context.Context) error {
 	f, err := openFile(r.filePath)
 	if err != nil {

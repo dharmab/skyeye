@@ -9,15 +9,16 @@ import (
 	"github.com/martinlindhe/unit"
 )
 
-func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint64 {
+// Threats returns a map of threat groups of the given coalition to threatened object IDs.
+func (r *Radar) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint64 {
 	threats := make(map[*group][]uint64)
-	hostileGroups := s.enumerateGroups(coalition)
+	hostileGroups := r.enumerateGroups(coalition)
 	radius := 100 * unit.NauticalMile
-	if s.mandatoryThreatRadius > radius {
-		radius = s.mandatoryThreatRadius
+	if r.mandatoryThreatRadius > radius {
+		radius = r.mandatoryThreatRadius
 	}
 	for _, grp := range hostileGroups {
-		friendlyGroups := s.findNearbyGroups(
+		friendlyGroups := r.findNearbyGroups(
 			grp.point(),
 			0,
 			math.MaxFloat64,
@@ -31,7 +32,7 @@ func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 		ids := make([]uint64, 0)
 		for _, friendlyGroup := range friendlyGroups {
 			distance := spatial.Distance(grp.point(), friendlyGroup.point())
-			withinThreatRadius := s.isGroupWithinThreatRadius(grp, distance)
+			withinThreatRadius := r.isGroupWithinThreatRadius(grp, distance)
 			hostileIsHelo := grp.category() == brevity.RotaryWing
 			friendlyIsPlane := friendlyGroup.category() == brevity.FixedWing
 			heloVersusPlane := hostileIsHelo && friendlyIsPlane
@@ -46,11 +47,11 @@ func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 
 		// If the hostile group only threatens a single friendly unit, use BRAA instead of Bullseye.
 		if len(threats[grp]) == 1 {
-			trackfile, ok := s.contacts.getByID(threats[grp][0])
+			trackfile, ok := r.contacts.getByID(threats[grp][0])
 			if !ok {
 				continue
 			}
-			declination := s.Declination(trackfile.LastKnown().Point)
+			declination := r.Declination(trackfile.LastKnown().Point)
 			bearing := spatial.TrueBearing(trackfile.LastKnown().Point, grp.point()).Magnetic(declination)
 			_range := spatial.Distance(trackfile.LastKnown().Point, grp.point())
 			aspect := brevity.AspectFromAngle(bearing, grp.course())
@@ -66,6 +67,6 @@ func (s *scope) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 	return result
 }
 
-func (s *scope) isGroupWithinThreatRadius(grp *group, distance unit.Length) bool {
-	return distance < grp.threatRadius() || distance < s.mandatoryThreatRadius
+func (r *Radar) isGroupWithinThreatRadius(grp *group, distance unit.Length) bool {
+	return distance < grp.threatRadius() || distance < r.mandatoryThreatRadius
 }

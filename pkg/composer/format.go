@@ -9,10 +9,10 @@ import (
 	"github.com/dharmab/skyeye/pkg/bearings"
 )
 
-// PronounceBearing composes a text representation of a bearing.
-func PronounceBearing(bearing bearings.Bearing) (s string) {
+// pronounceBearing composes a text representation of a bearing.
+func pronounceBearing(bearing bearings.Bearing) (s string) {
 	θ := int(bearing.RoundedDegrees())
-	s = PronounceInt(θ)
+	s = pronounceInt(θ)
 	if θ < 10 {
 		s = "0 " + s
 	}
@@ -22,14 +22,14 @@ func PronounceBearing(bearing bearings.Bearing) (s string) {
 	return
 }
 
-// PronounceInt composes a text representation of a sequence of digits.
-func PronounceInt(d int) string {
+// pronounceInt composes a text representation of a sequence of digits.
+func pronounceInt(d int) string {
 	if d < 0 {
-		return "minus " + PronounceInt(-d)
+		return "minus " + pronounceInt(-d)
 	}
 
 	if d >= 10 {
-		return PronounceInt(d/10) + " " + PronounceInt(d%10)
+		return pronounceInt(d/10) + " " + pronounceInt(d%10)
 	}
 
 	return strconv.Itoa(d)
@@ -37,8 +37,8 @@ func PronounceInt(d int) string {
 
 var defaultDecimalSeparator = "point"
 
-// PronounceFractional composes a text representation of the given float as a sequence of digits.
-func PronounceDecimal(f float64, precision int, separator string) string {
+// pronounceDecimal composes a text representation of the given float as a sequence of digits.
+func pronounceDecimal(f float64, precision int, separator string) string {
 	if separator == "" {
 		separator = defaultDecimalSeparator
 	}
@@ -50,19 +50,19 @@ func PronounceDecimal(f float64, precision int, separator string) string {
 		fractionalPartStr = strings.Repeat("0", precision)
 	}
 	if fractionalPartStr == "" {
-		return PronounceInt(integerPart)
+		return pronounceInt(integerPart)
 	}
 	fractionalPart, err := strconv.Atoi(fractionalPartStr)
 	if err != nil {
 		panic("unexpected fractional part: " + fractionalPartStr)
 	}
 
-	return fmt.Sprintf("%s %s %s", PronounceInt(integerPart), separator, PronounceInt(fractionalPart))
+	return fmt.Sprintf("%s %s %s", pronounceInt(integerPart), separator, pronounceInt(fractionalPart))
 }
 
-// PronounceNumbers composes a text representation of the digits in the given string as a sequence of digits.
+// pronounceNumbers composes a text representation of the digits in the given string as a sequence of digits.
 // Non-digit characters are ignored.
-func PronounceNumbers(s string) string {
+func pronounceNumbers(s string) string {
 	var builder strings.Builder
 	for _, char := range s {
 		if unicode.IsDigit(char) {
@@ -70,7 +70,7 @@ func PronounceNumbers(s string) string {
 			if err != nil {
 				continue
 			}
-			_, _ = builder.WriteString(PronounceInt(i) + " ")
+			_, _ = builder.WriteString(pronounceInt(i) + " ")
 		}
 	}
 	return builder.String()

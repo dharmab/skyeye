@@ -12,7 +12,7 @@ import (
 )
 
 // control runs the GCI controller and routes requests to the controller.
-func (a *app) control(ctx context.Context, wg *sync.WaitGroup, in <-chan Message[any], out chan<- controller.Call) {
+func (a *Application) control(ctx context.Context, wg *sync.WaitGroup, in <-chan Message[any], out chan<- controller.Call) {
 	log.Info().Msg("running controller")
 	wg.Add(1)
 	go func() {
@@ -31,7 +31,7 @@ func (a *app) control(ctx context.Context, wg *sync.WaitGroup, in <-chan Message
 }
 
 // handleRequest routes the given request to the controller's appropriate handler.
-func (a *app) handleRequest(ctx context.Context, r any) {
+func (a *Application) handleRequest(ctx context.Context, r any) {
 	logger := log.With().Type("type", a).Logger()
 	logger.Info().Msg("routing request to controller")
 	switch request := r.(type) {

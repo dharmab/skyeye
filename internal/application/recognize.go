@@ -11,7 +11,7 @@ import (
 )
 
 // recognize runs speech recognition on audio received from SRS and forwards recognized text to the given channel.
-func (a *app) recognize(ctx context.Context, out chan<- Message[string]) {
+func (a *Application) recognize(ctx context.Context, out chan<- Message[string]) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -30,7 +30,7 @@ func (a *app) recognize(ctx context.Context, out chan<- Message[string]) {
 // recognizeSample runs speech recognition on a single audio sample and forwards the recognized text to the output channel.
 // The first context is the parent context of the process, and the second context is the context of the request.
 // If the recognition process takes longer than 30 seconds, recognizeSample will log an error and return without publishing a message.
-func (a *app) recognizeSample(processCtx context.Context, requestCtx context.Context, audio simpleradio.Audio, out chan<- Message[string]) {
+func (a *Application) recognizeSample(processCtx context.Context, requestCtx context.Context, audio simpleradio.Audio, out chan<- Message[string]) {
 	recogizerCtx, cancel := context.WithTimeout(processCtx, 30*time.Second)
 	defer func() {
 		if recogizerCtx.Err() != nil && errors.Is(recogizerCtx.Err(), context.DeadlineExceeded) {

@@ -11,8 +11,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// HandleDeclare implements Controller.HandleDeclare.
-func (c *controller) HandleDeclare(ctx context.Context, request *brevity.DeclareRequest) {
+// HandleDeclare handles a DECLARE by reporting information about the target group.
+func (c *Controller) HandleDeclare(ctx context.Context, request *brevity.DeclareRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 

@@ -9,13 +9,13 @@ import (
 )
 
 // ComposeBRAA constructs natural language brevity for communicating BRAA information.
-func (c *composer) ComposeBRAA(braa brevity.BRAA, declaration brevity.Declaration) NaturalLanguageResponse {
+func (c *Composer) ComposeBRAA(braa brevity.BRAA, declaration brevity.Declaration) NaturalLanguageResponse {
 	if !braa.Bearing().IsMagnetic() {
 		log.Error().Stringer("bearing", braa.Bearing()).Msg("bearing provided to ComposeBRAA should be magnetic")
 	}
-	bearing := PronounceBearing(braa.Bearing())
+	bearing := pronounceBearing(braa.Bearing())
 	_range := int(braa.Range().NauticalMiles())
-	altitude := c.ComposeAltitudeStacks(braa.Stacks(), declaration)
+	altitude := c.composeAltitudeStacks(braa.Stacks(), declaration)
 	resp := NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf("BRAA %s/%d, %s", braa.Bearing().String(), _range, altitude),
 		Speech:   fmt.Sprintf("BRAA %s, %d, %s", bearing, _range, altitude),

@@ -4,6 +4,7 @@ import (
 	"github.com/martinlindhe/unit"
 )
 
+// MergedCall is a broadcast notifying a friendly aircraft that has merged with an unfriendly aircraft.
 type MergedCall struct {
 	// Callsigns of the friendly aircraft in the merge.
 	Callsigns []string

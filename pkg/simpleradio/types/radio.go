@@ -17,7 +17,7 @@ const (
 	// ModulationIntercom is intercom (used for multi-crew).
 	ModulationIntercom = 2
 	ModulationDisabled = 3
-	// ModulationIntercom is HAVE QUICK (https://en.wikipedia.org/wiki/Have_Quick, unused).
+	// ModulationHAVEQUICK is HAVE QUICK (https://en.wikipedia.org/wiki/Have_Quick, unused).
 	ModulationHAVEQUICK = 4
 	// ModulationSATCOM is satellite voice channels (unused).
 	ModulationSATCOM = 5

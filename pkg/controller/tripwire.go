@@ -7,7 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (c *controller) HandleTripwire(ctx context.Context, request *brevity.TripwireRequest) {
+// HandleTripwire handles a TRIPWIRE... by not implementing it LOL!
+func (c *Controller) HandleTripwire(ctx context.Context, request *brevity.TripwireRequest) {
 	log.Debug().Str("callsign", request.Callsign).Type("type", request).Msg("handling request")
 	foundCallsign, _, ok := c.findCallsign(request.Callsign)
 	if !ok {

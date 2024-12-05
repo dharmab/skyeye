@@ -7,8 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// HandleRadioCheck implements Controller.HandleRadioCheck.
-func (c *controller) HandleRadioCheck(ctx context.Context, request *brevity.RadioCheckRequest) {
+// HandleRadioCheck handles a RADIO CHECK by responding to the requesting aircraft.
+func (c *Controller) HandleRadioCheck(ctx context.Context, request *brevity.RadioCheckRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 	var response brevity.RadioCheckResponse

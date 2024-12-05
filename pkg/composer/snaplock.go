@@ -6,17 +6,17 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
-// ComposeSnaplockResponse implements [Composer.ComposeSnaplockResponse].
-func (c *composer) ComposeSnaplockResponse(response brevity.SnaplockResponse) NaturalLanguageResponse {
+// ComposeSnaplockResponse constructs natural language brevity for responding to a SNAPLOCK call.
+func (c *Composer) ComposeSnaplockResponse(response brevity.SnaplockResponse) NaturalLanguageResponse {
 	if response.Declaration == brevity.Hostile || response.Declaration == brevity.Friendly {
-		info := c.ComposeCoreInformationFormat(response.Group)
+		info := c.composeCoreInformationFormat(response.Group)
 		return NaturalLanguageResponse{
-			Subtitle: fmt.Sprintf("%s, %s", c.ComposeCallsigns(response.Callsign), info.Subtitle),
-			Speech:   fmt.Sprintf("%s, %s", c.ComposeCallsigns(response.Callsign), info.Speech),
+			Subtitle: fmt.Sprintf("%s, %s", c.composeCallsigns(response.Callsign), info.Subtitle),
+			Speech:   fmt.Sprintf("%s, %s", c.composeCallsigns(response.Callsign), info.Speech),
 		}
 	}
 
-	reply := fmt.Sprintf("%s, %s", c.ComposeCallsigns(response.Callsign), response.Declaration)
+	reply := fmt.Sprintf("%s, %s", c.composeCallsigns(response.Callsign), response.Declaration)
 	return NaturalLanguageResponse{
 		Subtitle: reply,
 		Speech:   reply,

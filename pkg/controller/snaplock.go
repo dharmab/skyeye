@@ -8,8 +8,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-// HandleSnaplock implements Controller.HandleSnaplock.
-func (c *controller) HandleSnaplock(ctx context.Context, request *brevity.SnaplockRequest) {
+// HandleSnaplock handles a SNAPLOCK by reporting information about the target group.
+func (c *Controller) HandleSnaplock(ctx context.Context, request *brevity.SnaplockRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Any("request", request).Logger()
 
 	logger.

@@ -17,12 +17,12 @@ func shiftPointTowards(a orb.Point, b orb.Point) orb.Point {
 	return geo.Midpoint(a, b)
 }
 
-func (s *scope) updateCenterPoint() {
-	s.centerLock.Lock()
-	defer s.centerLock.Unlock()
+func (r *Radar) updateCenterPoint() {
+	r.centerLock.Lock()
+	defer r.centerLock.Unlock()
 	blue := orb.Point{}
 	red := orb.Point{}
-	for contact := range s.contacts.values() {
+	for contact := range r.contacts.values() {
 		data, ok := encyclopedia.GetAircraftData(contact.Contact.ACMIName)
 		isArmed := !ok || data.ThreatRadius() > 0
 		isValid := isValidTrack(contact)
@@ -46,11 +46,11 @@ func (s *scope) updateCenterPoint() {
 	} else {
 		newCenter = geo.Midpoint(blue, red)
 	}
-	distance := spatial.Distance(s.center, newCenter)
-	bearing := spatial.TrueBearing(s.center, newCenter)
-	s.center = newCenter
+	distance := spatial.Distance(r.center, newCenter)
+	bearing := spatial.TrueBearing(r.center, newCenter)
+	r.center = newCenter
 	log.Trace().
-		Float64("lon", s.center.Lon()).
-		Float64("lat", s.center.Lat()).
+		Float64("lon", r.center.Lon()).
+		Float64("lat", r.center.Lat()).
 		Msgf("center point shifted %.1f NM along bearing %.0f", distance.NauticalMiles(), bearing.RoundedDegrees())
 }

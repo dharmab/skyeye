@@ -7,7 +7,8 @@ import (
 	"github.com/martinlindhe/unit"
 )
 
-// Reference ATP 3-52.4 Chapter V section 6.
+// Declaration identifies a contact's friendly status.
+// Reference: ATP 3-52.4 Chapter V section 6.
 type Declaration string
 
 const (

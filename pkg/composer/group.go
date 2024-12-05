@@ -12,9 +12,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// ComposeCoreInformationFormat communicates information about groups.
+// composeCoreInformationFormat communicates information about groups.
 // Reference: ATP 3-52.4 chapter IV section 3.
-func (c *composer) ComposeCoreInformationFormat(groups ...brevity.Group) NaturalLanguageResponse {
+func (c *Composer) composeCoreInformationFormat(groups ...brevity.Group) NaturalLanguageResponse {
 	if len(groups) == 0 {
 		return NaturalLanguageResponse{
 			Subtitle: string(brevity.Clean),
@@ -24,7 +24,7 @@ func (c *composer) ComposeCoreInformationFormat(groups ...brevity.Group) Natural
 
 	response := NaturalLanguageResponse{}
 	for i, group := range groups {
-		groupResponse := c.ComposeGroup(group)
+		groupResponse := c.composeGroup(group)
 		response.Speech += groupResponse.Speech
 		response.Subtitle += groupResponse.Subtitle
 		if i < len(groups)-1 {
@@ -36,7 +36,7 @@ func (c *composer) ComposeCoreInformationFormat(groups ...brevity.Group) Natural
 	return response
 }
 
-func (c *composer) ComposeGroup(group brevity.Group) (response NaturalLanguageResponse) {
+func (c *Composer) composeGroup(group brevity.Group) (response NaturalLanguageResponse) {
 	if group.BRAA() != nil && !group.BRAA().Bearing().IsMagnetic() {
 		log.Error().Stringer("bearing", group.BRAA().Bearing()).Msg("bearing provided to ComposeGroup should be magnetic")
 	}
@@ -53,7 +53,7 @@ func (c *composer) ComposeGroup(group brevity.Group) (response NaturalLanguageRe
 	isTrackKnown := group.Track() != brevity.UnknownDirection
 	if group.Bullseye() != nil {
 		bullseye := c.ComposeBullseye(*group.Bullseye())
-		altitude := c.ComposeAltitudeStacks(stacks, group.Declaration())
+		altitude := c.composeAltitudeStacks(stacks, group.Declaration())
 		response.Write(
 			fmt.Sprintf("%s %s, %s", label, bullseye.Speech, altitude),
 			fmt.Sprintf("%s %s, %s", label, bullseye.Subtitle, altitude),
@@ -88,12 +88,12 @@ func (c *composer) ComposeGroup(group brevity.Group) (response NaturalLanguageRe
 	if group.Heavy() {
 		response.WriteBoth(", heavy")
 	}
-	contacts := c.ComposeContacts(group.Contacts())
+	contacts := c.composeContacts(group.Contacts())
 	response.WriteResponse(contacts)
 
 	if !group.High() {
 		if len(stacks) > 1 {
-			response.WriteBoth(", " + c.ComposeAltitudeFillIns(stacks))
+			response.WriteBoth(", " + c.composeAltitudeFillIns(stacks))
 		}
 	}
 
@@ -119,9 +119,9 @@ func (c *composer) ComposeGroup(group brevity.Group) (response NaturalLanguageRe
 	return
 }
 
-// ComposeContacts communicates the number of contacts in a group.
+// composeContacts communicates the number of contacts in a group.
 // Reference: ATP 3-52.4 chapter IV section 2.
-func (*composer) ComposeContacts(n int) NaturalLanguageResponse {
+func (*Composer) composeContacts(n int) NaturalLanguageResponse {
 	// single contact is assumed if unspecified
 	s := ""
 	if n > 1 {
@@ -133,24 +133,24 @@ func (*composer) ComposeContacts(n int) NaturalLanguageResponse {
 	}
 }
 
-func (c *composer) ComposeAltitudeStacks(stacks []brevity.Stack, declaration brevity.Declaration) string {
+func (c *Composer) composeAltitudeStacks(stacks []brevity.Stack, declaration brevity.Declaration) string {
 	if len(stacks) == 0 {
 		return "altitude unknown"
 	}
 
 	if len(stacks) == 1 {
-		return c.ComposeAltitude(stacks[0].Altitude, declaration)
+		return c.composeAltitude(stacks[0].Altitude, declaration)
 	}
 
-	s := "stack " + c.ComposeAltitude(stacks[0].Altitude, declaration)
+	s := "stack " + c.composeAltitude(stacks[0].Altitude, declaration)
 	for i := 1; i < len(stacks)-1; i++ {
-		s += ", " + c.ComposeAltitude(stacks[i].Altitude, declaration)
+		s += ", " + c.composeAltitude(stacks[i].Altitude, declaration)
 	}
-	s += " and " + c.ComposeAltitude(stacks[len(stacks)-1].Altitude, declaration)
+	s += " and " + c.composeAltitude(stacks[len(stacks)-1].Altitude, declaration)
 	return s
 }
 
-func (*composer) ComposeAltitudeFillIns(stacks []brevity.Stack) string {
+func (*Composer) composeAltitudeFillIns(stacks []brevity.Stack) string {
 	if len(stacks) == 2 {
 		return fmt.Sprintf("%d high, %d low", stacks[0].Count, stacks[1].Count)
 	}
@@ -161,7 +161,7 @@ func (*composer) ComposeAltitudeFillIns(stacks []brevity.Stack) string {
 	return ""
 }
 
-func (*composer) ComposeAltitude(altitude unit.Length, declaration brevity.Declaration) string {
+func (*Composer) composeAltitude(altitude unit.Length, declaration brevity.Declaration) string {
 	hundreds := int(math.Round(altitude.Feet() / 100))
 	thousands := int(math.Round(altitude.Feet() / 1000))
 	if hundreds == 0 {

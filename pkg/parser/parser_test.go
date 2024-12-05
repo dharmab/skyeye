@@ -48,7 +48,7 @@ func TestParsePilotCallsign(t *testing.T) {
 
 func runParserTestCases(
 	t *testing.T,
-	p Parser,
+	p *Parser,
 	testCases []parserTestCase,
 	fn func(*testing.T, parserTestCase, any),
 ) {
@@ -219,7 +219,7 @@ func TestIsSimilar(t *testing.T) {
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%s_%s", test.a, test.b), func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, test.expected, IsSimilar(test.a, test.b))
+			assert.Equal(t, test.expected, isSimilar(test.a, test.b))
 		})
 	}
 }

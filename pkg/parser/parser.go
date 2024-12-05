@@ -12,26 +12,21 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type Parser interface {
-	// Parse reads natural language text, checks if it starts with the GCI
-	// callsign, and attempts to parse a request from the text. Returns a
-	// brevity request, or nil if the text does not start with the GCI
-	// callsign.
-	Parse(string) any
-}
-
-type parser struct {
+// Parser converts brevity requests from natural language into structured forms.
+type Parser struct {
 	gciCallsign       string
 	enableTextLogging bool
 }
 
-func New(callsign string, enableTextLogging bool) Parser {
-	return &parser{
+// New creates a new parser.
+func New(callsign string, enableTextLogging bool) *Parser {
+	return &Parser{
 		gciCallsign:       strings.ReplaceAll(callsign, " ", ""),
 		enableTextLogging: enableTextLogging,
 	}
 }
 
+// Anyface is a brevity codeword that can be used in place of a GCI callsign.
 const Anyface string = "anyface"
 
 const (
@@ -49,7 +44,7 @@ const (
 
 var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, snaplock, tripwire, shopping}
 
-func IsSimilar(a, b string) bool {
+func isSimilar(a, b string) bool {
 	v, err := fuzz.StringsSimilarity(strings.ToLower(a), strings.ToLower(b), fuzz.Levenshtein)
 	if err != nil {
 		log.Error().Err(err).Str("a", a).Str("b", b).Msg("failed to calculate similarity")
@@ -58,11 +53,11 @@ func IsSimilar(a, b string) bool {
 	return v > 0.6
 }
 
-func (p *parser) findGCICallsign(fields []string) (callsign string, rest string, found bool) {
+func (p *Parser) findGCICallsign(fields []string) (callsign string, rest string, found bool) {
 	for i := range fields {
 		candidate := strings.Join(fields[:i+1], " ")
 		for _, wakePhrase := range []string{p.gciCallsign, Anyface} {
-			if IsSimilar(strings.TrimSpace(candidate), strings.ToLower(wakePhrase)) {
+			if isSimilar(strings.TrimSpace(candidate), strings.ToLower(wakePhrase)) {
 				found = true
 				callsign = candidate
 				rest = strings.Join(fields[i+1:], " ")
@@ -76,7 +71,7 @@ func (p *parser) findGCICallsign(fields []string) (callsign string, rest string,
 func findRequestWord(fields []string) (string, int, bool) {
 	for i, field := range fields {
 		for _, word := range requestWords {
-			if IsSimilar(word, field) {
+			if isSimilar(word, field) {
 				return word, i, true
 			}
 		}
@@ -148,7 +143,7 @@ func spaceDigits(tx string) string {
 
 // uncrushCallsign corrects a corner case where the GCI callsign and the
 // following token have no space between them, e.g. "anyfaceeagle 1".
-func (p *parser) uncrushCallsign(s string) string {
+func (p *Parser) uncrushCallsign(s string) string {
 	for _, callsign := range []string{p.gciCallsign, Anyface} {
 		lc := strings.ToLower(callsign)
 		if strings.HasPrefix(s, lc) {
@@ -158,8 +153,11 @@ func (p *parser) uncrushCallsign(s string) string {
 	return s
 }
 
-// Parse implements Parser.Parse.
-func (p *parser) Parse(tx string) any {
+// Parse reads natural language text, checks if it starts with the GCI
+// callsign, and attempts to parse a request from the text. Returns a
+// brevity request, or nil if the text does not start with the GCI
+// callsign.
+func (p *Parser) Parse(tx string) any {
 	logger := log.With().Str("gci", p.gciCallsign).Logger()
 	if p.enableTextLogging {
 		logger = logger.With().Str("text", tx).Logger()
@@ -326,7 +324,7 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 
 func skipWords(scanner *bufio.Scanner, words ...string) bool {
 	for _, word := range words {
-		if IsSimilar(scanner.Text(), word) {
+		if isSimilar(scanner.Text(), word) {
 			return scanner.Scan()
 		}
 	}

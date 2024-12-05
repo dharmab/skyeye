@@ -10,11 +10,11 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func (s *scope) findNearbyGroups(pointOfInterest orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory, excludedIDs []uint64) []*group {
+func (r *Radar) findNearbyGroups(pointOfInterest orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory, excludedIDs []uint64) []*group {
 	circle := geo.NewBoundAroundPoint(pointOfInterest, radius.Meters())
 	groups := make([]*group, 0)
 	visited := make(map[uint64]struct{})
-	for trackfile := range s.contacts.values() {
+	for trackfile := range r.contacts.values() {
 		if slices.Contains(excludedIDs, trackfile.Contact.ID) {
 			continue
 		}
@@ -25,7 +25,7 @@ func (s *scope) findNearbyGroups(pointOfInterest orb.Point, minAltitude, maxAlti
 		inCircle := circle.Contains(trackfile.LastKnown().Point)
 		inStack := minAltitude <= trackfile.LastKnown().Altitude && trackfile.LastKnown().Altitude <= maxAltitude
 		if isMatch && inCircle && inStack {
-			grp := s.findGroupForAircraft(trackfile)
+			grp := r.findGroupForAircraft(trackfile)
 			for _, id := range grp.ObjectIDs() {
 				visited[id] = struct{}{}
 			}
@@ -43,8 +43,12 @@ func (s *scope) findNearbyGroups(pointOfInterest orb.Point, minAltitude, maxAlti
 	return groups
 }
 
-func (s *scope) FindNearbyGroupsWithBullseye(interest orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory, excludedIDs []uint64) []brevity.Group {
-	groups := s.findNearbyGroups(interest, minAltitude, maxAltitude, radius, coalition, filter, excludedIDs)
+// FindNearbyGroupsWithBullseye returns all groups within the given radius of the given point of interest, within the given
+// altitude block, filtered by the given coalition and contact category. Any given unit IDs are excluded from the search.
+// Each group has Bullseye set relative to the point provided in SetBullseye. The groups are ordered by increasing distance
+// from the point of interest.
+func (r *Radar) FindNearbyGroupsWithBullseye(interest orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory, excludedIDs []uint64) []brevity.Group {
+	groups := r.findNearbyGroups(interest, minAltitude, maxAltitude, radius, coalition, filter, excludedIDs)
 	result := make([]brevity.Group, 0, len(groups))
 	for _, grp := range groups {
 		result = append(result, grp)
@@ -52,11 +56,15 @@ func (s *scope) FindNearbyGroupsWithBullseye(interest orb.Point, minAltitude, ma
 	return result
 }
 
-func (s *scope) FindNearbyGroupsWithBRAA(origin, interest orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory, excludedIDs []uint64) []brevity.Group {
-	groups := s.findNearbyGroups(interest, minAltitude, maxAltitude, radius, coalition, filter, excludedIDs)
+// FindNearbyGroupsWithBRAA returns all groups within the given radius of the given point of interest, within the given
+// altitude block, filtered by the given coalition and contact category. Any given unit IDs are excluded from the search.
+// Each group has BRAA set relative to the given origin. The groups are ordered by increasing distance from the point
+// of interest.
+func (r *Radar) FindNearbyGroupsWithBRAA(origin, interest orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory, excludedIDs []uint64) []brevity.Group {
+	groups := r.findNearbyGroups(interest, minAltitude, maxAltitude, radius, coalition, filter, excludedIDs)
 	result := make([]brevity.Group, 0, len(groups))
 	for _, grp := range groups {
-		bearing := spatial.TrueBearing(origin, grp.point()).Magnetic(s.Declination(origin))
+		bearing := spatial.TrueBearing(origin, grp.point()).Magnetic(r.Declination(origin))
 		_range := spatial.Distance(origin, grp.point())
 		aspect := brevity.AspectFromAngle(bearing, grp.course())
 		grp.braa = brevity.NewBRAA(bearing, _range, grp.altitudes(), aspect)

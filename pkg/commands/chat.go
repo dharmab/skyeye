@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// ChatListener listens for commands from the in-game chat.
 type ChatListener struct {
 	coalition       common.Coalition
 	callsign        string
@@ -23,6 +24,7 @@ type ChatListener struct {
 	coalitionClient grpccoalition.CoalitionServiceClient
 }
 
+// NewChatListener creates a new ChatListener.
 func NewChatListener(
 	coalition secoalition.Coalition,
 	callsign string,
@@ -44,6 +46,7 @@ func NewChatListener(
 	return manager
 }
 
+// Run monitors the in-game chat for commands.
 func (l *ChatListener) Run(ctx context.Context, messages chan<- Request) {
 	nextAttempt := time.Now()
 	for {

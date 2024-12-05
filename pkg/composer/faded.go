@@ -6,9 +6,9 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
-// ComposeFadedCall implements [Composer.ComposeFadedCall].
-func (c *composer) ComposeFadedCall(call brevity.FadedCall) (response NaturalLanguageResponse) {
-	response.WriteBoth(c.ComposeCallsigns(c.callsign) + ", ")
+// ComposeFadedCall constructs natural language brevity for announcing a contact has faded.
+func (c *Composer) ComposeFadedCall(call brevity.FadedCall) (response NaturalLanguageResponse) {
+	response.WriteBoth(c.composeCallsigns(c.Callsign) + ", ")
 	if call.Group.Contacts() == 1 {
 		response.WriteBoth("single contact faded,")
 	} else {

@@ -10,7 +10,7 @@ import (
 )
 
 // transmit sends audio to SRS for transmission.
-func (a *app) transmit(ctx context.Context, in <-chan Message[simpleradio.Audio]) {
+func (a *Application) transmit(ctx context.Context, in <-chan Message[simpleradio.Audio]) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -23,7 +23,7 @@ func (a *app) transmit(ctx context.Context, in <-chan Message[simpleradio.Audio]
 }
 
 // transmitMessage submits a single audio sample to SRS.
-func (a *app) transmitMessage(rCtx context.Context, audio simpleradio.Audio) {
+func (a *Application) transmitMessage(rCtx context.Context, audio simpleradio.Audio) {
 	transmission := simpleradio.Transmission{
 		TraceID:    traces.GetTraceID(rCtx),
 		ClientName: traces.GetClientName(rCtx),

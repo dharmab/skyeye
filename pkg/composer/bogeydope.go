@@ -8,10 +8,10 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// ComposeBogeyDopeResponse implements [Composer.ComposeBogeyDopeResponse].
-func (c *composer) ComposeBogeyDopeResponse(response brevity.BogeyDopeResponse) NaturalLanguageResponse {
+// ComposeBogeyDopeResponse constructs natural language brevity for responding to a BOGEY DOPE call.
+func (c *Composer) ComposeBogeyDopeResponse(response brevity.BogeyDopeResponse) NaturalLanguageResponse {
 	if response.Group == nil {
-		reply := fmt.Sprintf("%s, %s", c.ComposeCallsigns(response.Callsign), brevity.Clean)
+		reply := fmt.Sprintf("%s, %s", c.composeCallsigns(response.Callsign), brevity.Clean)
 		return NaturalLanguageResponse{
 			Subtitle: reply,
 			Speech:   reply,
@@ -20,9 +20,9 @@ func (c *composer) ComposeBogeyDopeResponse(response brevity.BogeyDopeResponse) 
 	if !response.Group.BRAA().Bearing().IsMagnetic() {
 		log.Error().Stringer("bearing", response.Group.BRAA().Bearing()).Msg("bearing provided to ComposeBogeyDopeResponse should be magnetic")
 	}
-	info := c.ComposeCoreInformationFormat(response.Group)
+	info := c.composeCoreInformationFormat(response.Group)
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", c.ComposeCallsigns(response.Callsign), applyToFirstCharacter(info.Subtitle, strings.ToLower)),
-		Speech:   fmt.Sprintf("%s, %s", c.ComposeCallsigns(response.Callsign), info.Speech),
+		Subtitle: fmt.Sprintf("%s, %s", c.composeCallsigns(response.Callsign), applyToFirstCharacter(info.Subtitle, strings.ToLower)),
+		Speech:   fmt.Sprintf("%s, %s", c.composeCallsigns(response.Callsign), info.Speech),
 	}
 }

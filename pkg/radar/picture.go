@@ -11,21 +11,24 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// GetPicture implements [Radar.GetPicture].
-func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) (int, []brevity.Group) {
+// GetPicture returns a picture of the radar scope anchored at the center point, within the given radius,
+// filtered by the given coalition and contact category. The first return value is the total number of groups
+// and the second is a slice of up to 3 high priority groups. Each group has Bullseye set relative to the
+// point provided in SetBullseye.
+func (r *Radar) GetPicture(radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) (int, []brevity.Group) {
 	// Find groups near the center point
-	s.centerLock.RLock()
-	defer s.centerLock.RUnlock()
-	origin := s.center
+	r.centerLock.RLock()
+	defer r.centerLock.RUnlock()
+	origin := r.center
 	if spatial.IsZero(origin) {
 		log.Warn().Msg("center point is not set yet, using bullseye")
-		origin = s.Bullseye(coalition)
+		origin = r.Bullseye(coalition)
 		if spatial.IsZero(origin) {
 			log.Warn().Msg("bullseye point is not yet set, picture will be incoherent")
 		}
 	}
 
-	groups := s.findNearbyGroups(
+	groups := r.findNearbyGroups(
 		origin,
 		0,
 		math.MaxFloat64,
@@ -36,7 +39,7 @@ func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, f
 	)
 
 	// Sort groups from highest to lowest threat
-	slices.SortFunc(groups, s.compareThreat)
+	slices.SortFunc(groups, r.compareThreat)
 
 	// Return the top 3 groups
 	capacity := 3
@@ -51,7 +54,7 @@ func (s *scope) GetPicture(radius unit.Length, coalition coalitions.Coalition, f
 	return len(groups), result
 }
 
-func (s *scope) compareThreat(a, b *group) int {
+func (r *Radar) compareThreat(a, b *group) int {
 	aIsHigherThreat := -1
 	bIsHigherThreat := 1
 
@@ -65,8 +68,8 @@ func (s *scope) compareThreat(a, b *group) int {
 	}
 
 	// Prioritize aircraft within threat radius over aircraft outside threat radius
-	distanceA := spatial.Distance(s.center, a.point())
-	distanceB := spatial.Distance(s.center, b.point())
+	distanceA := spatial.Distance(r.center, a.point())
+	distanceB := spatial.Distance(r.center, b.point())
 	aIsThreat := distanceA < a.threatRadius()
 	bIsThreat := distanceB < b.threatRadius()
 	if aIsThreat && !bIsThreat {

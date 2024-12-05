@@ -30,12 +30,12 @@ func TestComposer_ComposeCallsigns(t *testing.T) {
 			expected:  []string{"ALPHA 1 1, ALPHA 1 2", "BRAVO 1 1, BRAVO 1 2", "CHARLIE 1 1"},
 		},
 	}
-	c := &composer{"Tester"}
+	c := &Composer{"Tester"}
 	for _, testCase := range testCases {
 		t.Run(strings.Join(testCase.callsigns, ", "), func(t *testing.T) {
 			t.Parallel()
 			for _, expected := range testCase.expected {
-				assert.Contains(t, c.ComposeCallsigns(testCase.callsigns...), expected)
+				assert.Contains(t, c.composeCallsigns(testCase.callsigns...), expected)
 			}
 		})
 	}

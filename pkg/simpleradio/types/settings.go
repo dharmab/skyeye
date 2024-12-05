@@ -1,5 +1,6 @@
 package types
 
+// ServerSetting identifies a server-side setting.
 type ServerSetting string
 
 const (

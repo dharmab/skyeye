@@ -7,18 +7,14 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type LogTracer struct {
-	Level zerolog.Level
-}
+// LogTracer publishes traces as structured logs.
+type LogTracer struct{}
 
 var _ Tracer = (*LogTracer)(nil)
 
-func NewLogTracer() *LogTracer {
-	return &LogTracer{Level: zerolog.TraceLevel}
-}
-
-func (t *LogTracer) Trace(ctx context.Context) {
-	loggerCtx := log.WithLevel(t.Level)
+// Trace logs any trace information in the context.
+func (*LogTracer) Trace(ctx context.Context) {
+	loggerCtx := log.WithLevel(zerolog.TraceLevel)
 	if traceID := GetTraceID(ctx); traceID != "" {
 		loggerCtx = loggerCtx.Str("traceID", traceID)
 	}

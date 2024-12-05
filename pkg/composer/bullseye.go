@@ -8,7 +8,7 @@ import (
 )
 
 // ComposeBullseye constructs natural language brevity for communicating Bullseye information.
-func (*composer) ComposeBullseye(bullseye brevity.Bullseye) NaturalLanguageResponse {
+func (*Composer) ComposeBullseye(bullseye brevity.Bullseye) NaturalLanguageResponse {
 	if !bullseye.Bearing().IsMagnetic() {
 		log.Error().Stringer("bearing", bullseye.Bearing()).Msg("bearing provided to ComposeBullseye should be magnetic")
 	}
@@ -26,7 +26,7 @@ func (*composer) ComposeBullseye(bullseye brevity.Bullseye) NaturalLanguageRespo
 		),
 		Speech: fmt.Sprintf(
 			"bullseye %s, %d",
-			PronounceBearing(bullseye.Bearing()),
+			pronounceBearing(bullseye.Bearing()),
 			int(bullseye.Distance().NauticalMiles()),
 		),
 	}

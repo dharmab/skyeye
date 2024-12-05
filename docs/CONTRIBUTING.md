@@ -174,26 +174,16 @@ You can run `make lint` and `make vet` to run some linters to catch some common 
 This project follows [Go standard project layout](https://github.com/golang-standards/project-layout).
 
 - `cmd/skyeye/main.go`: Main application entrypoint.
+- `cmd/skyeye-scaler/main.go`: Autoscaler companion application.
+- `dist`: Used in CI/CD for packaging releases.
+- `init`: Configuration files related to running SkyEye as a background application.
 - `internal`: [Internal packages](https://go.dev/doc/go1.4#internalpackages)
   - `application/app.go`: This is the glue that holds the rest of the system together. Sets up all the pieces of the application, wires them together and starts a bunch of concurrent routines.
+  - `cli`: Helpers for integrating with OS shells.
   - `conf/configuration.go`: Application configuration values and miscellaneous globals.
-- `pkg`: Library packages
-  - `bearings`: Models and functions related to handling true and magnetic compass bearings.
-  - `brevity`: Models and types related to the structure, syntax and semantics of air combat communication. Defines the messages passed between components during a GCI workflow.
-  - `coalitions`: Types that define the BLUE and RED coalitions in DCS. Split out to untangle an import cycle.
-  - `composer`: Turns brevity messages from internal data structures to English language text.
-  - `controller`: High-level GCI logic. Bridges between brevity messages and the radar package.
-  - `encyclopedia`: Database of information about aircraft and air combat.
-  - `parser`: Turns brevity from English language text into internal data structures.
-  - `pcm`: Utilities for working with [PCM audio](https://en.wikipedia.org/wiki/Pulse-code_modulation).
-  - `radar`: Mid-level GCI logic. Converts lower level concepts like trackfiles, Lon/Lat coordinates and individual contacts to higher level concepts like groups and bullseye/BRAA polar coordinates.
-  - `recognizer`: Converts audio to text (Speech-To-Text).
-  - `sim`: High-level interface for reading data from DCS World.
-  - `simpleradio`: Client for transmitting and receiving audio using SimpleRadio-Standalone.
-  - `synthesizer`: Converts text to audio (Text-To-Speech).
-  - `tacview`: Client for reading data from Tacview's real-time telemetry.
-  - `trackfile`: Low-level GCI logic. Converts instantaneous data read from the sim into trackfiles that model aircraft data changing over time.
+- `pkg`: Library packages. See https://pkg.go.dev/github.com/dharmab/skyeye for documenation.
 - `third_party`: Used during the build process to build C++ libraries.
+- `Dockerfile`: Linux container build configuration.
 - `Makefile`: Build scripts.
 - `tools.go`: Declares tooling dependencies.
 
@@ -201,12 +191,15 @@ This project follows [Go standard project layout](https://github.com/golang-stan
 
 ```mermaid
 flowchart TD
-    Players --- DCS
+    Players --- DCS[DCS World]
     Players <-->|natural language| SRS
-    SRS <-->|audio| simpleradio.Client -->|audio| recognizer.Recognizer -->|raw text| parser.Parser-->|brevity requests| controller.Controller
-    DCS --> Tacview -->|ACMI data| tacview.TelemetryClient -->|simulation updates| radar.Radar
+    SRS[SimpleRadio Standalone] <-->|audio| simpleradio.Client -->|incoming audio| recognizer.Recognizer -->|transcriptions| parser.Parser-->|requests| controller.Controller
+    DCS --> Tacview[Tacview Exporter] -->|ACMI data| telemetry.Client -->|simulation updates| radar.Radar
+    DCS --> DCS-gRPC --> commands.ChatListener -->|in-game chat| parser.Parser
     controller.Controller .->|queries| radar.Radar 
-    controller.Controller -->|brevity responses| composer.Composer
-    controller.Controller -->|brevity calls| composer.Composer
-    composer.Composer -->|natural language| speakers.Speaker -->|audio| simpleradio.Client
+    radar.Radar .->|callbacks| controller.Controller
+    controller.Controller -->|responses| composer.Composer
+    controller.Controller -->|broadcasts| composer.Composer
+    composer.Composer -->|natural language| speakers.Speaker -->|outgoing audio| simpleradio.Client
+
 ```

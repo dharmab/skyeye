@@ -13,7 +13,7 @@ import (
 )
 
 // compose converts outgoing brevity from internal representations to text format.
-func (a *app) compose(ctx context.Context, in <-chan controller.Call, out chan<- Message[composer.NaturalLanguageResponse]) {
+func (a *Application) compose(ctx context.Context, in <-chan controller.Call, out chan<- Message[composer.NaturalLanguageResponse]) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -26,7 +26,7 @@ func (a *app) compose(ctx context.Context, in <-chan controller.Call, out chan<-
 }
 
 // composeCall handles a single call, publishing the composition to the output channel.
-func (a *app) composeCall(ctx context.Context, call any, out chan<- Message[composer.NaturalLanguageResponse]) {
+func (a *Application) composeCall(ctx context.Context, call any, out chan<- Message[composer.NaturalLanguageResponse]) {
 	ctx = traces.WithHandledAt(ctx, time.Now())
 	logger := log.With().Type("type", call).Any("params", call).Logger()
 	logger.Info().Msg("composing brevity call")

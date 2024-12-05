@@ -7,7 +7,8 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
-func (c *composer) ComposeShoppingResponse(r brevity.ShoppingResponse) NaturalLanguageResponse {
+// ComposeShoppingResponse constructs natural language brevity for educating a caller about SHOPPING brevity.
+func (c *Composer) ComposeShoppingResponse(r brevity.ShoppingResponse) NaturalLanguageResponse {
 	replies1 := []string{
 		"%s, SHOPPING is a brevity code related to air-to-ground operations. It is not an air-to-air combat term.",
 		"%s, I'm an air battle manager, not a JTAC or Forward Air Controller. SHOPPING is an air-to-surface brevity code.",
@@ -28,7 +29,7 @@ func (c *composer) ComposeShoppingResponse(r brevity.ShoppingResponse) NaturalLa
 
 	reply := fmt.Sprintf(
 		fmt.Sprintf("%s %s", variation1, variation2),
-		c.ComposeCallsigns(r.Callsign),
+		c.composeCallsigns(r.Callsign),
 	)
 	return NaturalLanguageResponse{
 		Subtitle: reply,

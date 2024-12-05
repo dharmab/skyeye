@@ -7,11 +7,11 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
-// ComposeSunriseCall implements [Composer.ComposeSunriseCall].
-func (c *composer) ComposeSunriseCall(call brevity.SunriseCall) NaturalLanguageResponse {
+// ComposeSunriseCall constructs natural language brevity for announcing GCI services are online.
+func (c *Composer) ComposeSunriseCall(call brevity.SunriseCall) NaturalLanguageResponse {
 	message := NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("All players: GCI %s (bot) sunrise on ", c.ComposeCallsigns(c.callsign)),
-		Speech:   fmt.Sprintf("All players, GCI %s sunrise on ", c.ComposeCallsigns(c.callsign)),
+		Subtitle: fmt.Sprintf("All players: GCI %s (bot) sunrise on ", c.composeCallsigns(c.Callsign)),
+		Speech:   fmt.Sprintf("All players, GCI %s sunrise on ", c.composeCallsigns(c.Callsign)),
 	}
 
 	for i := range len(call.Frequencies) {
@@ -23,7 +23,7 @@ func (c *composer) ComposeSunriseCall(call brevity.SunriseCall) NaturalLanguageR
 		}
 		message.Subtitle += decimal
 		splits := strings.Split(decimal, ".")
-		message.Speech += PronounceDecimal(frequency.Megahertz(), len(splits[1]), "point")
+		message.Speech += pronounceDecimal(frequency.Megahertz(), len(splits[1]), "point")
 		if len(call.Frequencies) > 1 {
 			if i == len(call.Frequencies)-2 {
 				message.WriteBoth(" and ")

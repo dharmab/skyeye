@@ -11,12 +11,12 @@ import (
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 )
 
-// Merges returns a map of fixed-wing groups on the opposing coalition to the contacts on the given coalition that they are merged with.
-func (s *scope) Merges(coalition coalitions.Coalition) map[brevity.Group][]*trackfiles.Trackfile {
+// Merges returns a map of hostile groups of the given coalition to friendly trackfiles.
+func (r *Radar) Merges(coalition coalitions.Coalition) map[brevity.Group][]*trackfiles.Trackfile {
 	visited := make(map[uint64]struct{})
 	merges := make(map[brevity.Group][]*trackfiles.Trackfile)
-	bullseye := s.Bullseye(coalition)
-	for contact := range s.contacts.values() {
+	bullseye := r.Bullseye(coalition)
+	for contact := range r.contacts.values() {
 		if _, ok := visited[contact.Contact.ID]; ok {
 			continue
 		}
@@ -34,11 +34,11 @@ func (s *scope) Merges(coalition coalitions.Coalition) map[brevity.Group][]*trac
 			continue
 		}
 
-		grp := s.findGroupForAircraft(contact)
+		grp := r.findGroupForAircraft(contact)
 		mergedWith := make(map[uint64]*trackfiles.Trackfile)
 		for _, contact := range grp.contacts {
 			visited[contact.Contact.ID] = struct{}{}
-			for _, trackfile := range s.mergesForContact(contact) {
+			for _, trackfile := range r.mergesForContact(contact) {
 				mergedWith[trackfile.Contact.ID] = trackfile
 			}
 		}
@@ -55,12 +55,12 @@ func (s *scope) Merges(coalition coalitions.Coalition) map[brevity.Group][]*trac
 }
 
 // mergesForContact returns the opposing trackfiles that the given trackfile is merged with.
-func (s *scope) mergesForContact(trackfile *trackfiles.Trackfile) []*trackfiles.Trackfile {
+func (r *Radar) mergesForContact(trackfile *trackfiles.Trackfile) []*trackfiles.Trackfile {
 	mergedWith := make([]*trackfiles.Trackfile, 0)
 	if trackfile.IsLastKnownPointZero() {
 		return mergedWith
 	}
-	for other := range s.contacts.values() {
+	for other := range r.contacts.values() {
 		if trackfile.Contact.Coalition == other.Contact.Coalition {
 			continue
 		}

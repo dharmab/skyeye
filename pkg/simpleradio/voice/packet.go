@@ -1,4 +1,4 @@
-// package voice contains the types used by the SRS audio protocol to send and receive audio data over the network.
+// Package voice contains the types used by the SRS audio protocol to send and receive audio data over the network.
 package voice
 
 import (
@@ -117,7 +117,8 @@ const (
 	frequencyLength = 10
 )
 
-func NewVoicePacket(audioBytes []byte, frequencies []Frequency, unitID uint32, packetID uint64, hops byte, relay []byte, origin []byte) Packet {
+// NewPacket creates a new Packet.
+func NewPacket(audioBytes []byte, frequencies []Frequency, unitID uint32, packetID uint64, hops byte, relay []byte, origin []byte) Packet {
 	var audioSegmentLength uint16
 	if len(audioBytes) > math.MaxUint16 {
 		audioSegmentLength = math.MaxUint16
@@ -146,7 +147,7 @@ func NewVoicePacket(audioBytes []byte, frequencies []Frequency, unitID uint32, p
 	}
 }
 
-// Encode serializes a VoicePacket into a byte array.
+// Encode serializes a Packet into a byte array.
 func (p *Packet) Encode() []byte {
 	b := make([]byte, p.PacketLength)
 
@@ -201,7 +202,7 @@ func (p *Packet) String() string {
 	)
 }
 
-// Decode deserializes a voice packet from bytes to struct.
+// Decode deserializes a Packet from bytes to struct.
 func Decode(b []byte) (packet *Packet, err error) {
 	defer func() {
 		if r := recover(); r != nil {

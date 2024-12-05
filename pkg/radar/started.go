@@ -2,12 +2,12 @@ package radar
 
 import "github.com/rs/zerolog/log"
 
-func (s *scope) handleStarted() {
+func (r *Radar) handleStarted() {
 	log.Info().Msg("clearing all trackfiles due to mission (re)start")
-	s.contacts.reset()
-	s.callbackLock.RLock()
-	defer s.callbackLock.RUnlock()
-	if s.startedCallback != nil {
-		s.startedCallback()
+	r.contacts.reset()
+	r.callbackLock.RLock()
+	defer r.callbackLock.RUnlock()
+	if r.startedCallback != nil {
+		r.startedCallback()
 	}
 }

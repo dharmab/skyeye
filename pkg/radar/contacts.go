@@ -13,51 +13,34 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// contactDatabase is a thread-safe trackfile database.
-type contactDatabase interface {
-	// getByCallsignAndCoalititon returns the trackfile with the lowest edit distance to the given callsign, or nil if no closely named trackfile was found.
-	// The second return value is true if a trackfile was found, and false otherwise.
-	// The callsign in the trackfile may differ from the input callsign!
-	getByCallsignAndCoalititon(string, coalitions.Coalition) (string, *trackfiles.Trackfile, bool)
-	// getByID returns the trackfile for the given unit ID, or nil if no trackfile was found.
-	// The second return value is true if a trackfile was found, and false otherwise.
-	getByID(uint64) (*trackfiles.Trackfile, bool)
-	// set updates the trackfile for the given trackfile's unit ID, or inserts a new trackfile if no trackfile was found.
-	set(*trackfiles.Trackfile)
-	// delete removes the trackfile for the given unit ID.
-	// It returns true if the trackfile was found and removed, and false otherwise.
-	delete(uint64) bool
-	// reset removes all trackfiles from the database.
-	reset()
-	// values iterates over all trackfiles in the database.
-	values() iter.Seq[*trackfiles.Trackfile]
-}
-
-type database struct {
+// contactDatabase is a thread-safe trackfile contactDatabase.
+type contactDatabase struct {
 	lock        sync.RWMutex
 	contacts    map[uint64]*trackfiles.Trackfile
 	callsignIdx map[coalitions.Coalition]map[string]uint64
 }
 
-func newContactDatabase() contactDatabase {
-	d := &database{}
-	d.reset()
-	return d
+func newContactDatabase() *contactDatabase {
+	db := &contactDatabase{}
+	db.reset()
+	return db
 }
 
-// getByCallsignAndCoalititon implements [contactDatabase.getByCallsignAndCoalititon].
-func (d *database) getByCallsignAndCoalititon(callsign string, coalition coalitions.Coalition) (string, *trackfiles.Trackfile, bool) {
+// getByCallsignAndCoalititon returns the trackfile with the lowest edit distance to the given callsign, or nil if no closely named trackfile was found.
+// The second return value is true if a trackfile was found, and false otherwise.
+// The callsign in the trackfile may differ from the input callsign!
+func (db *contactDatabase) getByCallsignAndCoalititon(callsign string, coalition coalitions.Coalition) (string, *trackfiles.Trackfile, bool) {
 	logger := log.With().Str("callsign", callsign).Str("coalition", coalition.String()).Logger()
-	d.lock.RLock()
-	defer d.lock.RUnlock()
+	db.lock.RLock()
+	defer db.lock.RUnlock()
 
 	foundCallsign := ""
-	id, ok := d.callsignIdx[coalition][callsign]
+	id, ok := db.callsignIdx[coalition][callsign]
 	if ok {
 		foundCallsign = callsign
 	} else {
-		keys := make([]string, 0, len(d.callsignIdx[coalition]))
-		for k := range d.callsignIdx[coalition] {
+		keys := make([]string, 0, len(db.callsignIdx[coalition]))
+		for k := range db.callsignIdx[coalition] {
 			keys = append(keys, k)
 		}
 		logger.Info().Msg("callsign not found in index, attempting fuzzy search")
@@ -68,28 +51,29 @@ func (d *database) getByCallsignAndCoalititon(callsign string, coalition coaliti
 			return "", nil, false
 		}
 		logger.Info().Str("foundCallsign", foundCallsign).Msg("similar callsign found in index")
-		id = d.callsignIdx[coalition][foundCallsign]
+		id = db.callsignIdx[coalition][foundCallsign]
 	}
-	contact, ok := d.contacts[id]
+	contact, ok := db.contacts[id]
 	if !ok {
 		return "", nil, false
 	}
 	return foundCallsign, contact, true
 }
 
-// getByID implements [contactDatabase.getByID].
-func (d *database) getByID(id uint64) (*trackfiles.Trackfile, bool) {
-	d.lock.RLock()
-	defer d.lock.RUnlock()
+// getByID returns the trackfile for the given unit ID, or nil if no trackfile was found.
+// The second return value is true if a trackfile was found, and false otherwise.
+func (db *contactDatabase) getByID(id uint64) (*trackfiles.Trackfile, bool) {
+	db.lock.RLock()
+	defer db.lock.RUnlock()
 
-	contact, ok := d.contacts[id]
+	contact, ok := db.contacts[id]
 	return contact, ok
 }
 
-// set implements [contactDatabase.set].
-func (d *database) set(trackfile *trackfiles.Trackfile) {
-	d.lock.Lock()
-	defer d.lock.Unlock()
+// set updates the trackfile for the given trackfile's unit ID, or inserts a new trackfile if no trackfile was found.
+func (db *contactDatabase) set(trackfile *trackfiles.Trackfile) {
+	db.lock.Lock()
+	defer db.lock.Unlock()
 
 	// TODO get this string munging out of here
 	callsign, _, _ := strings.Cut(trackfile.Contact.Name, "|")
@@ -97,42 +81,42 @@ func (d *database) set(trackfile *trackfiles.Trackfile) {
 	if !ok {
 		callsign = trackfile.Contact.Name
 	}
-	d.callsignIdx[trackfile.Contact.Coalition][callsign] = trackfile.Contact.ID
-	d.contacts[trackfile.Contact.ID] = trackfile
+	db.callsignIdx[trackfile.Contact.Coalition][callsign] = trackfile.Contact.ID
+	db.contacts[trackfile.Contact.ID] = trackfile
 }
 
-// delete implements [contactDatabase.delete].
-func (d *database) delete(id uint64) bool {
-	d.lock.Lock()
-	defer d.lock.Unlock()
+// delete removes the trackfile for the given unit ID.
+func (db *contactDatabase) delete(id uint64) bool {
+	db.lock.Lock()
+	defer db.lock.Unlock()
 
-	contact, ok := d.contacts[id]
+	contact, ok := db.contacts[id]
 	if ok {
-		delete(d.callsignIdx[contact.Contact.Coalition], contact.Contact.Name)
+		delete(db.callsignIdx[contact.Contact.Coalition], contact.Contact.Name)
 	}
-	delete(d.contacts, id)
+	delete(db.contacts, id)
 
 	return ok
 }
 
-// reset implements [contactDatabase.reset].
-func (d *database) reset() {
-	d.lock.Lock()
-	defer d.lock.Unlock()
-	d.contacts = make(map[uint64]*trackfiles.Trackfile)
-	d.callsignIdx = make(map[coalitions.Coalition]map[string]uint64)
+// reset removes all trackfiles from the database.
+func (db *contactDatabase) reset() {
+	db.lock.Lock()
+	defer db.lock.Unlock()
+	db.contacts = make(map[uint64]*trackfiles.Trackfile)
+	db.callsignIdx = make(map[coalitions.Coalition]map[string]uint64)
 	for _, c := range []coalitions.Coalition{coalitions.Blue, coalitions.Red, coalitions.Neutrals} {
-		d.callsignIdx[c] = make(map[string]uint64)
+		db.callsignIdx[c] = make(map[string]uint64)
 	}
 }
 
-// values implements [contactDatabase.values].
-func (d *database) values() iter.Seq[*trackfiles.Trackfile] {
-	d.lock.RLock()
-	defer d.lock.RUnlock()
+// values iterates over all trackfiles in the database.
+func (db *contactDatabase) values() iter.Seq[*trackfiles.Trackfile] {
+	db.lock.RLock()
+	defer db.lock.RUnlock()
 
-	contacts := make([]*trackfiles.Trackfile, 0, len(d.contacts))
-	for _, contact := range d.contacts {
+	contacts := make([]*trackfiles.Trackfile, 0, len(db.contacts))
+	for _, contact := range db.contacts {
 		contacts = append(contacts, contact)
 	}
 	return slices.Values(contacts)

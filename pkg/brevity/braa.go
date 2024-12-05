@@ -36,6 +36,7 @@ type bra struct {
 	stacks  []Stack
 }
 
+// NewBRA creates a new [BRA].
 func NewBRA(b bearings.Bearing, r unit.Length, a ...unit.Length) BRA {
 	if !b.IsMagnetic() {
 		log.Warn().Stringer("bearing", b).Msg("bearing provided to NewBRA should be magnetic")
@@ -83,12 +84,13 @@ type braa struct {
 	aspect Aspect
 }
 
-func NewBRAA(b bearings.Bearing, r unit.Length, a []unit.Length, aspect Aspect) BRAA {
+// NewBRAA creates a new [BRAA].
+func NewBRAA(b bearings.Bearing, r unit.Length, altitudes []unit.Length, aspect Aspect) BRAA {
 	if !b.IsMagnetic() {
 		log.Warn().Stringer("bearing", b).Msg("bearing provided to NewBRAA should be magnetic")
 	}
 	return &braa{
-		bra:    NewBRA(b, r, a...),
+		bra:    NewBRA(b, r, altitudes...),
 		aspect: aspect,
 	}
 }
