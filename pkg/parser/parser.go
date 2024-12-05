@@ -293,8 +293,14 @@ func (p *parser) Parse(tx string) any {
 func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	tx = normalize(tx)
 	tx = spaceDigits(tx)
-	tx = strings.ReplaceAll(tx, "request", "")
-	tx = strings.ReplaceAll(tx, "this is", "")
+	for token, replacement := range map[string]string{
+		"request": "",
+		"this is": "",
+		"want to": "12",
+		"tutu":    "22",
+	} {
+		tx = strings.ReplaceAll(tx, token, replacement)
+	}
 
 	var builder strings.Builder
 	numDigits := 0
