@@ -161,9 +161,9 @@ jobs:
           cp LICENSE dist/skyeye-windows-amd64/LICENSE
           cp config.yaml dist/skyeye-windows-amd64/config.yaml
           cp docs/*.md dist/skyeye-windows-amd64/docs/
-          cp winsw.exe dist/skyeye-service.exe
+          cp winsw.exe dist/skyeye-windows-amd64/skyeye-service.exe
           cp init/winsw/skyeye-service.yml dist/skyeye-windows-amd64/skyeye-service.yml
-          cp winsw.exe dist/skyeye-scaler-service.exe
+          cp winsw.exe dist/skyeye-windows-amd64/skyeye-scaler-service.exe
           cp init/winsw/skyeye-scaler-service.yml dist/skyeye-windows-amd64/skyeye-scaler-service.yml
           cd dist
           zip -r skyeye-windows-amd64.zip skyeye-windows-amd64

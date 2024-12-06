@@ -156,22 +156,22 @@ An example WinSW service definition is provided in the Windows release archive. 
 
 ```batch
 :: Install SkyEye Scaler
-./skyeye-scaler-service.exe install skyeye-scaler-service.yml
+./skyeye-scaler-service.exe install
 
 :: Start SkyEye Scaler
-./skyeye-scaler-service.exe start skyeye-scaler-service.yml
+./skyeye-scaler-service.exe start
 
 :: Check if SkyEye Scaler is running
-./skyeye-scaler-service.exe status skyeye-scaler-service.yml
+./skyeye-scaler-service.exe status
 
 :: Stop SkyEye Scaler
-./skyeye-scaler-service.exe stop skyeye-scaler-service.yml
+./skyeye-scaler-service.exe stopwait
 
 :: Restart SkyEye Scaler
-./skyeye-scaler-service.exe restart skyeye-scaler-service.yml
+./skyeye-scaler-service.exe restart
 
 :: Uninstall SkyEye Scaler
-./skyeye-scaler-service.exe uninstall skyeye-scaler-service.yml
+./skyeye-scaler-service.exe uninstall
 ```
 
 The scaler is also available as a container image at `ghcr.io/dharmab/skyeye-scaler`. A Linux binary is also provided in the Linux release archive, although without a service definition.
@@ -319,22 +319,22 @@ Use the bundled `skyeye-service.exe` to install and start SkyEye:
 
 ```batch
 :: Install SkyEye
-./skyeye-service.exe install skyeye-service.yml
+./skyeye-service.exe install
 
 :: Start SkyEye
-./skyeye-service.exe start skyeye-service.yml
+./skyeye-service.exe start
 
 :: Check if SkyEye is running
-./skyeye-service.exe status skyeye-service.yml
+./skyeye-service.exe status
 
 :: Stop SkyEye
-./skyeye-service-x6t4.exe stop skyeye-service.yml
+./skyeye-service-x6t4.exe stopwait
 
 :: Restart SkyEye
-./skyeye-service.exe restart skyeye-service.yml
+./skyeye-service.exe restart
 
 :: Uninstall SkyEye
-./skyeye-service.exe uninstall skyeye-service.yml
+./skyeye-service.exe uninstall
 ```
 
 Refer to the [WinSW documentation](https://github.com/winsw/winsw/tree/v2.12.0) for more information (`skyeye-service.exe` is a renamed `winsw.exe`).
