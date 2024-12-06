@@ -62,6 +62,10 @@ type DeclareRequest struct {
 
 func (r DeclareRequest) String() string {
 	s := fmt.Sprintf("DECLARE for %s: ", r.Callsign)
+	if r.Sour {
+		s += "No coordinates provided"
+		return s
+	}
 	if r.IsBRAA {
 		s += fmt.Sprintf("bearing %s, range %.0f", r.Bearing, r.Range.NauticalMiles())
 		if r.Altitude != 0 {
@@ -70,7 +74,9 @@ func (r DeclareRequest) String() string {
 	} else {
 		s += fmt.Sprintf("bullseye %s", &r.Bullseye)
 	}
-	s += fmt.Sprintf(", track %s", r.Track)
+	if r.Track != UnknownDirection {
+		s += fmt.Sprintf(", track %s", r.Track)
+	}
 	return s
 }
 
