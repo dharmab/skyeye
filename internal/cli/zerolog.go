@@ -10,7 +10,13 @@ import (
 
 func SetupZerolog(levelName, formatName string) {
 	if strings.EqualFold(formatName, "pretty") {
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		writer := zerolog.ConsoleWriter{Out: os.Stderr}
+		if noColor, ok := os.LookupEnv("NO_COLOR"); ok {
+			if noColor != "" {
+				writer.NoColor = true
+			}
+		}
+		log.Logger = log.Output(writer)
 	}
 	var level zerolog.Level
 	switch strings.ToLower(levelName) {

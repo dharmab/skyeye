@@ -3,6 +3,9 @@ name: SkyEye Autoscaler
 description: SkyEye Autoscaler Tool
 executable: skyeye-scaler.exe'
 # Change arguments as required for your SRS server and autoscaler webhook
+env:
+  - name: NO_COLOR
+    value: "1"
 arguments: >
   --srs-server-address localhost:5002
   --srs-eam-password password
