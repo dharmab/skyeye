@@ -15,6 +15,7 @@ var alternateRequestWords = map[string]string{
 	"bogeydope":          bogeyDope,
 	"bogeydote":          bogeyDope,
 	"bogeyedope":         bogeyDope,
+	"boggido":            bogeyDope,
 	"boggy":              bogeyDope,
 	"bogido":             bogeyDope,
 	"bogie":              bogeyDope,
@@ -50,6 +51,7 @@ var alternateRequestWords = map[string]string{
 	"buggy do":           bogeyDope,
 	"buggy dog":          bogeyDope,
 	"buggy dope":         bogeyDope,
+	"bulgie":             bogeyDope,
 	"checking in":        checkIn,
 	"com check":          radioCheck,
 	"comcheck":           radioCheck,
@@ -96,6 +98,7 @@ var alternateRequestWords = map[string]string{
 	"snap lock":          snaplock,
 	"trip wire":          tripwire,
 	"vogadope":           bogeyDope,
+	"vogidobe":           bogeyDope,
 	"voki":               bogeyDope,
 	"warn me":            tripwire,
 }
