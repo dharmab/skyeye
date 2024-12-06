@@ -328,7 +328,7 @@ Use the bundled `skyeye-service.exe` to install and start SkyEye:
 ./skyeye-service.exe status
 
 :: Stop SkyEye
-./skyeye-service-x6t4.exe stopwait
+./skyeye-service.exe stopwait
 
 :: Restart SkyEye
 ./skyeye-service.exe restart
@@ -339,13 +339,13 @@ Use the bundled `skyeye-service.exe` to install and start SkyEye:
 
 Refer to the [WinSW documentation](https://github.com/winsw/winsw/tree/v2.12.0) for more information (`skyeye-service.exe` is a renamed `winsw.exe`).
 
-Logs will be saved in a `skyeye.log` file in the same directory as `skyeye-service.yml`
+Logs will be saved in a `skyeye-service.err.log` file in the same directory as `skyeye-service.yml`.
 
 If you want to change the version of SkyEye in the future:
 
 ```batch
 :: Stop and Uninstall SkyEye
-./skyeye-service.exe stop skyeye-service.yml
+./skyeye-service.exe stopwait skyeye-service.yml
 ./skyeye-service.exe uninstall skyeye-service.yml
 
 :: Download a newer version of SkyEye and replace both skyeye.exe and skyeye-service.yml
