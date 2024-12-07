@@ -52,7 +52,7 @@ func (c *Composer) composeGroup(group brevity.Group) (response NaturalLanguageRe
 	stacks := group.Stacks()
 	isTrackKnown := group.Track() != brevity.UnknownDirection
 	if group.Bullseye() != nil {
-		bullseye := c.ComposeBullseye(*group.Bullseye())
+		bullseye := c.composeBullseye(*group.Bullseye())
 		altitude := c.composeAltitudeStacks(stacks, group.Declaration())
 		response.Write(
 			fmt.Sprintf("%s %s, %s", label, bullseye.Speech, altitude),
@@ -62,7 +62,7 @@ func (c *Composer) composeGroup(group brevity.Group) (response NaturalLanguageRe
 			response.WriteBoth(fmt.Sprintf(", track %s", group.Track()))
 		}
 	} else if group.BRAA() != nil {
-		braa := c.ComposeBRAA(group.BRAA(), group.Declaration())
+		braa := c.composeBRAA(group.BRAA(), group.Declaration())
 		response.Write(
 			fmt.Sprintf("%s %s", label, braa.Speech),
 			fmt.Sprintf("%s %s", label, braa.Subtitle),
