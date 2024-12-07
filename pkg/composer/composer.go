@@ -1,7 +1,9 @@
 // Package composer converts brevity responses from structured forms into natural language.
 package composer
 
-import "strings"
+import (
+	"unicode"
+)
 
 // Composer converts brevity responses from structured forms into natural language.
 // It is nondeterministic; the same input may randomly produce different output, to add variety and personality to the bot's responses.
@@ -20,8 +22,8 @@ type NaturalLanguageResponse struct {
 
 // Write appends text to the subtitle and speech fields.
 func (r *NaturalLanguageResponse) Write(speech, subtitle string) {
-	r.Speech += speech
-	r.Subtitle += subtitle
+	r.Speech += addSpacing(speech)
+	r.Subtitle += addSpacing(subtitle)
 }
 
 // WriteBoth appends the same text to the subtitle and speech fields.
@@ -31,13 +33,17 @@ func (r *NaturalLanguageResponse) WriteBoth(s string) {
 
 // WriteResponse appends the given response's subtitle and speech to this response.
 func (r *NaturalLanguageResponse) WriteResponse(response NaturalLanguageResponse) {
-	if !strings.HasPrefix(response.Speech, " ") {
-		response.Speech = " " + response.Speech
-	}
-	if !strings.HasPrefix(response.Subtitle, " ") {
-		response.Subtitle = " " + response.Subtitle
-	}
 	r.Write(response.Speech, response.Subtitle)
+}
+
+func addSpacing(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	if unicode.IsLetter(rune(s[0])) || unicode.IsNumber(rune(s[0])) {
+		return " " + s
+	}
+	return s
 }
 
 func applyToFirstCharacter(s string, f func(string) string) string {
