@@ -7,8 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// ComposeBullseye constructs natural language brevity for communicating Bullseye information.
-func (*Composer) ComposeBullseye(bullseye brevity.Bullseye) NaturalLanguageResponse {
+// composeBullseye constructs natural language brevity for communicating Bullseye information.
+func (*Composer) composeBullseye(bullseye brevity.Bullseye) NaturalLanguageResponse {
 	if !bullseye.Bearing().IsMagnetic() {
 		log.Error().Stringer("bearing", bullseye.Bearing()).Msg("bearing provided to ComposeBullseye should be magnetic")
 	}

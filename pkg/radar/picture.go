@@ -11,11 +11,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// GetPicture returns a picture of the radar scope anchored at the center point, within the given radius,
+// Picture returns a picture of the radar scope anchored at the center point, within the given radius,
 // filtered by the given coalition and contact category. The first return value is the total number of groups
 // and the second is a slice of up to 3 high priority groups. Each group has Bullseye set relative to the
 // point provided in SetBullseye.
-func (r *Radar) GetPicture(radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) (int, []brevity.Group) {
+func (r *Radar) Picture(radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) (int, []brevity.Group) {
 	// Find groups near the center point
 	r.centerLock.RLock()
 	defer r.centerLock.RUnlock()
