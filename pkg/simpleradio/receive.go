@@ -25,8 +25,8 @@ type receiver struct {
 	packetNumber uint64
 }
 
-// Receive implements [Client.Receive].
-func (c *client) Receive() <-chan Transmission {
+// Receive returns a channel that receives transmissions over the radio. Each transmission is F32LE PCM audio data.
+func (c *Client) Receive() <-chan Transmission {
 	return c.rxChan
 }
 
@@ -90,7 +90,7 @@ const maxRxGap = 300 * time.Millisecond
 const minRxDuration = 1 * time.Second // 1s is whisper.cpp's minimum duration, it errors for any samples shorter than this.
 
 // receiveVoice listens for incoming UDP voice packets, decodes them into VoicePacket structs, and routes them to the out channel for audio decoding.
-func (c *client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- []voice.Packet) {
+func (c *Client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- []voice.Packet) {
 	// t is a ticker which triggers the check for the end of a transmission.
 	t := time.NewTicker(frameLength)
 	for {

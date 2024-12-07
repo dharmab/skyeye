@@ -14,7 +14,7 @@ import (
 const pingInterval = 15 * time.Second
 
 // sendPings pings the SRS server at regular intervals.
-func (c *client) sendPings(ctx context.Context) {
+func (c *Client) sendPings(ctx context.Context) {
 	log.Info().Stringer("interval", pingInterval).Msg("starting pings")
 	c.SendPing()
 	ticker := time.NewTicker(pingInterval)
@@ -30,7 +30,7 @@ func (c *client) sendPings(ctx context.Context) {
 }
 
 // SendPing sends a single ping to the SRS server over both TCP and UDP.
-func (c *client) SendPing() {
+func (c *Client) SendPing() {
 	guid := c.clientInfo.GUID
 	logger := log.With().Str("GUID", string(guid)).Logger()
 
@@ -47,7 +47,7 @@ func (c *client) SendPing() {
 }
 
 // receivePings listens for incoming UDP ping packets and logs them at DEBUG level.
-func (c *client) receivePings(ctx context.Context, in <-chan []byte) {
+func (c *Client) receivePings(ctx context.Context, in <-chan []byte) {
 	for {
 		select {
 		case b := <-in:

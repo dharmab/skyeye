@@ -14,7 +14,7 @@ import (
 const opusApplicationVoIP = 2048
 
 // deocdeVoice decodes incoming voice packets from voicePacketsChan into F32LE PCM audio data published to the client's rxChan.
-func (c *client) decodeVoice(ctx context.Context, voicePacketsChan <-chan []voice.Packet) {
+func (c *Client) decodeVoice(ctx context.Context, voicePacketsChan <-chan []voice.Packet) {
 	for {
 		select {
 		case voicePackets := <-voicePacketsChan:
@@ -53,7 +53,7 @@ func (c *client) decodeVoice(ctx context.Context, voicePacketsChan <-chan []voic
 }
 
 // encodeVoice encodes audio from the client's txChan and publishes an entire transmission's worth of voice packets to packetCh.
-func (c *client) encodeVoice(ctx context.Context, packetChan chan<- []voice.Packet) {
+func (c *Client) encodeVoice(ctx context.Context, packetChan chan<- []voice.Packet) {
 	frequencyList := make([]voice.Frequency, 0, len(c.clientInfo.RadioInfo.Radios))
 	for _, radio := range c.clientInfo.RadioInfo.Radios {
 		frequencyList = append(frequencyList, voice.Frequency{

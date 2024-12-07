@@ -78,8 +78,8 @@ func (f RadioFrequency) String() string {
 	return fmt.Sprintf("%f.3%s", f.Frequency, suffix)
 }
 
-// Frequencies implements [Client.Frequencies].
-func (c *client) Frequencies() []RadioFrequency {
+// Frequencies returns the frequencies the client is listening on.
+func (c *Client) Frequencies() []RadioFrequency {
 	frequencies := make([]RadioFrequency, 0)
 	for _, radio := range c.clientInfo.RadioInfo.Radios {
 		frequency := RadioFrequency{
@@ -91,8 +91,8 @@ func (c *client) Frequencies() []RadioFrequency {
 	return frequencies
 }
 
-// ClientsOnFrequency implements [Client.ClientsOnFrequency].
-func (c *client) ClientsOnFrequency() int {
+// ClientsOnFrequency returns the number of peers on the client's frequencies.
+func (c *Client) ClientsOnFrequency() int {
 	c.clientsLock.RLock()
 	defer c.clientsLock.RUnlock()
 	count := 0
@@ -108,8 +108,9 @@ func isBot(client types.ClientInfo) bool {
 	return strings.HasSuffix(client.Name, "[BOT]")
 }
 
-// HumansOnFrequency implements [Client.HumansOnFrequency].
-func (c *client) HumansOnFrequency() int {
+// HumansOnFrequency returns the number of human peers on the client's frequencies.
+// A human peer is any client whose name does not end with "[BOT]".
+func (c *Client) HumansOnFrequency() int {
 	c.clientsLock.RLock()
 	defer c.clientsLock.RUnlock()
 	count := 0
@@ -121,8 +122,9 @@ func (c *client) HumansOnFrequency() int {
 	return count
 }
 
-// BotsOnFrequency implements [Client.BotsOnFrequency].
-func (c *client) BotsOnFrequency() int {
+// BotsOnFrequency returns the number of bot peers on the client's frequencies.
+// A bot peer is any client whose name ends with "[BOT]".
+func (c *Client) BotsOnFrequency() int {
 	c.clientsLock.RLock()
 	defer c.clientsLock.RUnlock()
 	count := 0
@@ -134,8 +136,8 @@ func (c *client) BotsOnFrequency() int {
 	return count
 }
 
-// IsOnFrequency implements [Client.IsOnFrequency].
-func (c *client) IsOnFrequency(name string) bool {
+// IsOnFrequency checks if the named peer is on any of the client's frequencies.
+func (c *Client) IsOnFrequency(name string) bool {
 	c.clientsLock.RLock()
 	defer c.clientsLock.RUnlock()
 	for _, client := range c.clients {

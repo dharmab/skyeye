@@ -174,7 +174,7 @@ type Payload struct {
 	Frequencies []string `json:"frequencies"`
 }
 
-func callWebhook(ctx context.Context, httpClient *http.Client, srsClient simpleradio.Client) {
+func callWebhook(ctx context.Context, httpClient *http.Client, srsClient *simpleradio.Client) {
 	playerCount := srsClient.HumansOnFrequency()
 	logger := log.With().Int("players", playerCount).Logger()
 	action := "run"

@@ -27,32 +27,8 @@ type Transmission struct {
 	Audio Audio
 }
 
-// Client is a SimpleRadio-Standalone client.
-type Client interface {
-	// Run starts the SimpleRadio-Standalone client. It should be called exactly once.
-	Run(context.Context, *sync.WaitGroup) error
-	// Send sends a message to the SRS server.
-	Send(types.Message) error
-	// Receive returns a channel that receives transmissions over the radio. Each transmission is F32LE PCM audio data.
-	Receive() <-chan Transmission
-	// Transmit queues a transmission to send over the radio. The audio data should be in F32LE PCM format.
-	Transmit(Transmission)
-	// Frequencies returns the frequencies the client is listening on.
-	Frequencies() []RadioFrequency
-	// ClientsOnFrequency returns the number of peers on the client's frequencies.
-	ClientsOnFrequency() int
-	// HumansOnFrequency returns the number of human peers on the client's frequencies.
-	// A human peer is any client whose name does not end with "[BOT]".
-	HumansOnFrequency() int
-	// BotsOnFrequency returns the number of bot peers on the client's frequencies.
-	// A bot peer is any client whose name ends with "[BOT]".
-	BotsOnFrequency() int
-	// IsOnFrequency checks if the named unit is on any of the client's frequencies.
-	IsOnFrequency(string) bool
-}
-
-// client implements the SRS Client.
-type client struct {
+// Client is a SimpleRadio-Standalone Client.
+type Client struct {
 	// externalAWACSModePassword is the password for authenticating as an external AWACS in the SRS server.
 	externalAWACSModePassword string
 
@@ -96,7 +72,7 @@ type client struct {
 }
 
 // NewClient creates a new SimpleRadio-Standalone client.
-func NewClient(config types.ClientConfiguration) (Client, error) {
+func NewClient(config types.ClientConfiguration) (*Client, error) {
 	guid := types.NewGUID()
 
 	receivers := make(map[types.Radio]*receiver, len(config.Radios))
@@ -104,7 +80,7 @@ func NewClient(config types.ClientConfiguration) (Client, error) {
 		receivers[radio] = &receiver{}
 	}
 
-	client := &client{
+	client := &Client{
 		address: config.Address,
 		clientInfo: types.ClientInfo{
 			Name:      config.ClientName,
@@ -143,7 +119,7 @@ func NewClient(config types.ClientConfiguration) (Client, error) {
 }
 
 // initialize must be called after (re)connecting to the SRS server to synchronize the client and server state.
-func (c *client) initialize() error {
+func (c *Client) initialize() error {
 	log.Info().Msg("syncing with SRS server")
 	if err := c.sync(); err != nil {
 		return fmt.Errorf("sync failed: %w", err)
@@ -164,7 +140,7 @@ func (c *client) initialize() error {
 }
 
 // autoheal attempts to reconnect and reinitialize the SRS client if it stops receiving traffic from the SRS server.
-func (c *client) autoheal(ctx context.Context) {
+func (c *Client) autoheal(ctx context.Context) {
 	ticker := time.NewTicker(pingInterval / 3)
 	defer ticker.Stop()
 	for {
@@ -194,8 +170,8 @@ func (c *client) autoheal(ctx context.Context) {
 	}
 }
 
-// Run implements [Client.Run].
-func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
+// Run starts the SimpleRadio-Standalone client. It should be called exactly once.
+func (c *Client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	log.Info().Msg("SRS client starting")
 
 	defer c.close()
@@ -260,7 +236,7 @@ func (c *client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	return nil
 }
 
-func (c *client) getPeerName(guid types.GUID) (string, bool) {
+func (c *Client) getPeerName(guid types.GUID) (string, bool) {
 	c.clientsLock.RLock()
 	defer c.clientsLock.RUnlock()
 	info, ok := c.clients[guid]
@@ -271,7 +247,7 @@ func (c *client) getPeerName(guid types.GUID) (string, bool) {
 }
 
 // close the client's connections. Should be called after the autoheal goroutine has completed.
-func (c *client) close() {
+func (c *Client) close() {
 	var err error
 	if tcpErr := c.tcpConnection.Close(); tcpErr != nil {
 		err = errors.Join(err, fmt.Errorf("error closing TCP connection to SRS: %w", tcpErr))

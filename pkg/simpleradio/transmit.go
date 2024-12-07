@@ -11,13 +11,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// Transmit implements [Client.Transmit].
-func (c *client) Transmit(transmission Transmission) {
+// Transmit enqueues a transmission to send over the radio.
+func (c *Client) Transmit(transmission Transmission) {
 	c.txChan <- transmission
 }
 
 // transmitPackets transmits voice packets from queued transmissions to the SRS server.
-func (c *client) transmitPackets(ctx context.Context, packetChan <-chan []voice.Packet) {
+func (c *Client) transmitPackets(ctx context.Context, packetChan <-chan []voice.Packet) {
 	for {
 		select {
 		case packets := <-packetChan:
@@ -40,7 +40,7 @@ func (c *client) transmitPackets(ctx context.Context, packetChan <-chan []voice.
 }
 
 // waitForClearChannel waits for incoming transmissions to finish.
-func (c *client) waitForClearChannel() {
+func (c *Client) waitForClearChannel() {
 	for {
 		isReceiving := false
 		deadline := time.Now()
@@ -62,7 +62,7 @@ func (c *client) waitForClearChannel() {
 }
 
 // writePackets writes voice packets to the UDP connection.
-func (c *client) writePackets(packets []voice.Packet) {
+func (c *Client) writePackets(packets []voice.Packet) {
 	startTime := time.Now()
 	for i, packet := range packets {
 		b := packet.Encode()

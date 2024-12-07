@@ -16,7 +16,7 @@ import (
 )
 
 // connectTCP connects to the SRS server over TCP.
-func (c *client) connectTCP() error {
+func (c *Client) connectTCP() error {
 	log.Info().Str("address", c.address).Msg("connecting to SRS server TCP socket")
 	tcpAddress, err := net.ResolveTCPAddr("tcp", c.address)
 	if err != nil {
@@ -31,7 +31,7 @@ func (c *client) connectTCP() error {
 }
 
 // connectUDP connects to the SRS server over UDP.
-func (c *client) connectUDP() error {
+func (c *Client) connectUDP() error {
 	log.Info().Str("address", c.address).Msg("connecting to SRS server UDP socket")
 	udpAddress, err := net.ResolveUDPAddr("udp", c.address)
 	if err != nil {
@@ -47,7 +47,7 @@ func (c *client) connectUDP() error {
 
 // reconnect closes the existing connections and attempts to reconnect to the
 // SRS server. It will retry until successful or the context is canceled.
-func (c *client) reconnect(ctx context.Context) error {
+func (c *Client) reconnect(ctx context.Context) error {
 	var err error
 	backoff := frameLength
 
@@ -80,7 +80,7 @@ func (c *client) reconnect(ctx context.Context) error {
 }
 
 // receiveUDP listens for incoming UDP packets and routes them to the appropriate channel.
-func (c *client) receiveUDP(ctx context.Context, pingChan chan<- []byte, voiceChan chan<- []byte) {
+func (c *Client) receiveUDP(ctx context.Context, pingChan chan<- []byte, voiceChan chan<- []byte) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -120,7 +120,7 @@ func (c *client) receiveUDP(ctx context.Context, pingChan chan<- []byte, voiceCh
 }
 
 // receiveTCP listens for incoming TCP messages and routes them to the appropriate handler.
-func (c *client) receiveTCP(ctx context.Context) {
+func (c *Client) receiveTCP(ctx context.Context) {
 	reader := bufio.NewReader(c.tcpConnection)
 	for {
 		select {

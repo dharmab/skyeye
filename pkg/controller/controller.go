@@ -44,7 +44,7 @@ type Controller struct {
 	scope *radar.Radar
 
 	// srsClient is used to check if relevant friendly aircraft are on frequency before broadcasting calls.
-	srsClient simpleradio.Client
+	srsClient *simpleradio.Client
 
 	// enableAutomaticPicture enables automatic picture broadcasts.
 	enableAutomaticPicture bool
@@ -75,7 +75,7 @@ type Controller struct {
 // New creates a new GCI controller.
 func New(
 	rdr *radar.Radar,
-	srsClient simpleradio.Client,
+	srsClient *simpleradio.Client,
 	coalition coalitions.Coalition,
 	enableAutomaticPicture bool,
 	pictureBroadcastInterval time.Duration,
