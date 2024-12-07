@@ -36,7 +36,7 @@ type Application struct {
 	// callsign of the GCI controller
 	callsign string
 	// srsClient is a SimpleRadio Standalone client
-	srsClient simpleradio.Client
+	srsClient *simpleradio.Client
 	// telemetryClient streams ACMI data
 	telemetryClient telemetry.Client
 	// recognizer provides speech-to-text recognition

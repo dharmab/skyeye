@@ -10,8 +10,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// Send implements [Client.Send].
-func (c *client) Send(message types.Message) error {
+// Send sends a message to the SRS server.
+func (c *Client) Send(message types.Message) error {
 	// Sending a message means writing a JSON-serialized message to the TCP connection, followed by a newline.
 	if message.Version == "" {
 		return errors.New("message Version is required")
@@ -29,7 +29,7 @@ func (c *client) Send(message types.Message) error {
 }
 
 // newMessage creates a new message with the client's version, the given message type, and the client's info.
-func (c *client) newMessage(t types.MessageType) types.Message {
+func (c *Client) newMessage(t types.MessageType) types.Message {
 	message := types.Message{
 		Version: "2.1.0.2", // stubbing fake SRS version, TODO add flag
 		Type:    t,
@@ -39,7 +39,7 @@ func (c *client) newMessage(t types.MessageType) types.Message {
 }
 
 // handleMessage routes a given message to the appropriate handler.
-func (c *client) handleMessage(message types.Message) {
+func (c *Client) handleMessage(message types.Message) {
 	switch message.Type {
 	case types.MessagePing:
 		logMessageAndIgnore(message)
@@ -71,7 +71,7 @@ func (c *client) handleMessage(message types.Message) {
 }
 
 // updateServerSettings updates the client's settings to match the server's settings.
-func (c *client) updateServerSettings(message types.Message) {
+func (c *Client) updateServerSettings(message types.Message) {
 	log.Debug().Any("serverSettings", message.ServerSettings).Msg("received server settings")
 	if enabled, ok := message.ServerSettings[string(types.CoalitionAudioSecurity)]; ok {
 		if strings.ToLower(enabled) == "true" {
@@ -85,7 +85,7 @@ func (c *client) updateServerSettings(message types.Message) {
 }
 
 // updateRadios sends a radio update message to the SRS server containing this client's information.
-func (c *client) updateRadios() error {
+func (c *Client) updateRadios() error {
 	message := c.newMessage(types.MessageRadioUpdate)
 	if err := c.Send(message); err != nil {
 		return fmt.Errorf("radio update failed: %w", err)
@@ -94,7 +94,7 @@ func (c *client) updateRadios() error {
 }
 
 // connectExternalAWACSMode sends an external AWACS mode password message to the SRS server to authenticate as an external AWACS.
-func (c *client) connectExternalAWACSMode() error {
+func (c *Client) connectExternalAWACSMode() error {
 	message := c.newMessage(types.MessageExternalAWACSModePassword)
 	message.ExternalAWACSModePassword = c.externalAWACSModePassword
 	if err := c.Send(message); err != nil {
