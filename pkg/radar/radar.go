@@ -48,6 +48,10 @@ type Radar struct {
 	centerLock sync.RWMutex
 	// mandatoryThreatRadius is the radius within which a hostile aircraft is always considered a threat.
 	mandatoryThreatRadius unit.Length
+	// completedFades records the IDs of contacts that have been faded.
+	completedFades map[uint64]time.Time
+	// completedFadesLock protects completedFades.
+	completedFadesLock sync.RWMutex
 	// pendingFades collects faded contacts for grouping.
 	pendingFades []sim.Faded
 	// pendingFadesLock protects pendingFades.
@@ -62,6 +66,8 @@ func New(starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim
 		fades:                 fades,
 		contacts:              newContactDatabase(),
 		mandatoryThreatRadius: mandatoryThreatRadius,
+		completedFades:        map[uint64]time.Time{},
+		pendingFades:          []sim.Faded{},
 	}
 }
 
@@ -139,7 +145,7 @@ func (r *Radar) Run(ctx context.Context, wg *sync.WaitGroup) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		r.collectFaded(ctx)
+		r.collectFadedTrackfiles(ctx)
 	}()
 
 	wg.Add(1)
