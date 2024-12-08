@@ -2,6 +2,7 @@ package radar
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/sim"
@@ -10,22 +11,17 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func isTrackfileInGroup(trackfile *trackfiles.Trackfile, grp *group) bool {
-	for _, contact := range grp.contacts {
-		if contact.Contact.ID == trackfile.Contact.ID {
-			return true
-		}
-	}
-	return false
+func isTrackfileInGroup(candidate *trackfiles.Trackfile, grp *group) bool {
+	return slices.ContainsFunc(grp.contacts, func(member *trackfiles.Trackfile) bool {
+		return member.Contact.ID == candidate.Contact.ID
+	})
 }
 
-// collectFaded continuously collects faded contacts. When there is no new faded contact for 10 seconds,
+// collectFadedTrackfiles continuously collects faded contacts. When there is no new faded contact for 10 seconds,
 // it collects all faded contacts into groups, removes the contacts from the database, and calls the fadedCallback.
-func (r *Radar) collectFaded(ctx context.Context) {
+func (r *Radar) collectFadedTrackfiles(ctx context.Context) {
 	// Whenenver we pass the deadline, we collect the faded contacts into groups and call the fadedCallback.
 	var deadline time.Time
-
-	// We check the deadline at intervals.
 	ticker := time.NewTicker(10 * time.Second)
 
 	defer ticker.Stop()
@@ -43,37 +39,63 @@ func (r *Radar) collectFaded(ctx context.Context) {
 				r.pendingFades = append(r.pendingFades, fade)
 			}()
 		case <-ticker.C:
+			// Regularly handle pending fades.
 			go func() {
 				r.pendingFadesLock.Lock()
 				defer r.pendingFadesLock.Unlock()
 				if len(r.pendingFades) > 0 && time.Now().After(deadline) {
-					// The fade events have settled down now
+					log.Info().Int("count", len(r.pendingFades)).Msg("handling pending faded trackfiles")
 					r.handleFaded(r.pendingFades)
 					r.pendingFades = []sim.Faded{}
+				}
+			}()
+			// Periodically clean up completed fades.
+			go func() {
+				r.completedFadesLock.Lock()
+				defer r.completedFadesLock.Unlock()
+				for id, t := range r.completedFades {
+					age := time.Since(t)
+					if age > 5*time.Minute {
+						log.Debug().Stringer("age", age).Uint64("id", id).Msg("discarding faded trackfile from recent history")
+						delete(r.completedFades, id)
+					}
 				}
 			}()
 		}
 	}
 }
 
-// handleFaded collects faded contacts into groups, removes the contacts from the database, and calls the fadedCallback.
-func (r *Radar) handleFaded(fades []sim.Faded) {
+func (r *Radar) collectFadedGroups(fades []sim.Faded) []group {
 	var groups []group
 	for _, fade := range fades {
-		// Find the trackfile for the faded contact
-		trackfile, ok := r.contacts.getByID(fade.ID)
-		if !ok {
+		if func() bool {
+			r.completedFadesLock.RLock()
+			defer r.completedFadesLock.RUnlock()
+			_, ok := r.completedFades[fade.ID]
+			return ok
+		}() {
+			log.Info().Uint64("id", fade.ID).Msg("skipping faded trackfile because it was recently handled")
 			continue
 		}
 
+		func() {
+			r.completedFadesLock.Lock()
+			defer r.completedFadesLock.Unlock()
+			r.completedFades[fade.ID] = time.Now()
+		}()
+
+		trackfile, ok := r.contacts.getByID(fade.ID)
+		if !ok {
+			log.Warn().Uint64("id", fade.ID).Msg("faded trackfile not found on scope")
+			continue
+		}
 		log.Info().
 			Uint64("id", fade.ID).
 			Str("callsign", trackfile.Contact.Name).
 			Str("aircraft", trackfile.Contact.ACMIName).
 			Stringer("coalition", trackfile.Contact.Coalition).
-			Msg("removing trackfile")
+			Msg("removing faded trackfile")
 
-		// Check if the trackfile is already collected into a group
 		isGrouped := false
 		for _, grp := range groups {
 			if isTrackfileInGroup(trackfile, &grp) {
@@ -81,7 +103,6 @@ func (r *Radar) handleFaded(fades []sim.Faded) {
 				break
 			}
 		}
-		// If the trackfile is not already collected into a group, create a new group
 		if !isGrouped {
 			grp := r.findGroupForAircraft(trackfile)
 			if grp != nil {
@@ -89,19 +110,24 @@ func (r *Radar) handleFaded(fades []sim.Faded) {
 			}
 		}
 	}
+	return groups
+}
 
-	// remove the faded contacts from the database
+// handleFaded collects faded contacts into groups, removes the contacts from the database, and calls the fadedCallback.
+func (r *Radar) handleFaded(fades []sim.Faded) {
+	groups := r.collectFadedGroups(fades)
+
 	for _, fade := range fades {
 		r.contacts.delete(fade.ID)
 	}
 
-	// call the faded callback for each group
 	r.callbackLock.RLock()
 	defer r.callbackLock.RUnlock()
+	if r.fadedCallback == nil {
+		return
+	}
 	for _, grp := range groups {
-		if r.fadedCallback != nil {
-			r.fadedCallback(grp.point(), &grp, grp.contacts[0].Contact.Coalition)
-		}
+		r.fadedCallback(grp.point(), &grp, grp.contacts[0].Contact.Coalition)
 	}
 }
 
