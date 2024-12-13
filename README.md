@@ -94,6 +94,12 @@ This deserves a longer answer, for now see [this issue](https://github.com/dharm
 
 TL;DR I have no plans to attempt an ATC bot.
 
+### Can you add an option to do _insert feature here_?
+
+I'm happy to hear your ideas, but I am very selective about what I choose to implement.
+
+I develop SkyEye at no monetary cost to the user; therefore, one of my priorities is to keep the complexity of the software close to the minimum necessary level to ease the maintenance burden. I'm focusing only on features that are useful to most players. I avoid adding features that are gated by configuration options, because each one multiplies the permutations that need to be tested and debugged. [See this video.](https://youtu.be/czzAVuVz7u4?t=995)
+
 ### When is SkyEye's birthday?
 
 October 12th. At some point I'll put an Ace Combat 04 easter egg in there.
