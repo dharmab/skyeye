@@ -113,10 +113,15 @@ func (c *RealTimeClient) handshake(reader *bufio.Reader, connection net.Conn) er
 		Msg("received host handshake")
 
 	clientHandshake := NewClientHandshake(c.hostname, c.password)
+	log.Info().
+		Str("hostname", clientHandshake.Hostname).
+		Str("lowLevelProtocolVersion", clientHandshake.LowLevelProtocolVersion).
+		Str("highLevelProtocolVersion", clientHandshake.HighLevelProtocolVersion).
+		Msg("sending client handshake")
 	_, err = connection.Write([]byte(clientHandshake.Encode()))
 	if err != nil {
 		return fmt.Errorf("error sending client handshake: %w", err)
 	}
-	log.Info().Str("hostname", c.hostname).Msg("sent client handshake")
+
 	return nil
 }

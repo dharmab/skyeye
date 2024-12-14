@@ -1,11 +1,14 @@
 package telemetry
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
-	"hash/crc64"
 	"strconv"
 	"strings"
+	"unicode/utf16"
+
+	"github.com/pasztorpisti/go-crc"
 )
 
 const (
@@ -36,7 +39,7 @@ type HostHandshake struct {
 func (h *HostHandshake) Encode() (packet string) {
 	packet += fmt.Sprintf("%s.%s\n", LowLevelProtocol, LowLevelProtocolVersion)
 	packet += fmt.Sprintf("%s.%s\n", HighLevelProtocol, HighLevelProtocolVersion)
-	packet += "Host " + h.Hostname + "\n"
+	packet += h.Hostname + "\n"
 	packet += string(rune(0))
 	return
 }
@@ -51,8 +54,8 @@ func DecodeHostHandshake(packet string) (HostHandshake, error) {
 			handshake.LowLevelProtocolVersion = strings.SplitAfter(line, LowLevelProtocol+".")[1]
 		} else if strings.HasPrefix(line, HighLevelProtocol) {
 			handshake.HighLevelProtocolVersion = strings.SplitAfter(line, HighLevelProtocol+".")[1]
-		} else if strings.HasPrefix(line, "Host ") || strings.HasPrefix(line, "Server ") {
-			handshake.Hostname = strings.Split(line, " ")[1]
+		} else if len(line) > 0 {
+			handshake.Hostname = line
 		}
 	}
 	return handshake, nil
@@ -72,30 +75,32 @@ type ClientHandshake struct {
 
 // NewClientHandshake creates a new client handshake using the given client hostname and password.
 func NewClientHandshake(hostname string, password string) (handshake *ClientHandshake) {
-	var passwordHash string
-	if password == "" {
-		passwordHash = "0"
-	} else {
-		table := crc64.MakeTable(crc64.ECMA)
-		data := []byte(password)
-		hash := crc64.Checksum(data, table)
-		passwordHash = strconv.FormatUint(hash, 10)
-	}
 	return &ClientHandshake{
 		LowLevelProtocolVersion:  LowLevelProtocolVersion,
 		HighLevelProtocolVersion: HighLevelProtocolVersion,
 		Hostname:                 hostname,
-		PasswordHash:             passwordHash,
+		PasswordHash:             hashPassword(password),
 	}
+}
+
+func hashPassword(password string) string {
+	// Convert the password to UTF-16 encoding
+	utf16CodeUnits := utf16.Encode([]rune(password))
+	buf := make([]byte, len(utf16CodeUnits)*2)
+	for i, codeUnit := range utf16CodeUnits {
+		binary.LittleEndian.PutUint16(buf[i*2:], codeUnit)
+	}
+
+	hash := crc.CRC64WE.Calc(buf)
+	return strconv.FormatUint(hash, 16)
 }
 
 // Encode the client handshake as a string.
 func (h *ClientHandshake) Encode() (packet string) {
 	packet += fmt.Sprintf("%s.%s\n", LowLevelProtocol, LowLevelProtocolVersion)
 	packet += fmt.Sprintf("%s.%s\n", HighLevelProtocol, HighLevelProtocolVersion)
-	packet += fmt.Sprintf("Client %s\n", h.Hostname)
-	packet += h.PasswordHash
-	packet += string(rune(0))
+	packet += h.Hostname + "\n"
+	packet += h.PasswordHash + string(rune(0))
 	return
 }
 
