@@ -18,6 +18,19 @@ const (
 	LowLevelProtocolVersion = "0"
 )
 
+type HashAlgorithm string
+
+const (
+	// CRC64WE is the CRC-64/WE hash algorithm.
+	CRC64WE HashAlgorithm = "CRC-64/WE"
+	// CRC32ISOHDLC is the CRC-32/ISO-HDLC hash algorithm.
+	CRC32ISOHDLC HashAlgorithm = "CRC-32/ISO-HDLC"
+)
+
+func (a HashAlgorithm) String() string {
+	return string(a)
+}
+
 const (
 	// HighLevelProtocol is the name of the real-time telemetry high level protocol.
 	HighLevelProtocol = "Tacview.RealTimeTelemetry"
@@ -69,8 +82,10 @@ type ClientHandshake struct {
 	HighLevelProtocolVersion string
 	// Hostname of the client.
 	Hostname string
-	// PasswordHash is the CRC64 hash of the password.
-	PasswordHash string
+
+	password         string
+	hashCRC64WE      *string
+	hashCRC32ISOHDLC *string
 }
 
 // NewClientHandshake creates a new client handshake using the given client hostname and password.
@@ -79,11 +94,11 @@ func NewClientHandshake(hostname string, password string) (handshake *ClientHand
 		LowLevelProtocolVersion:  LowLevelProtocolVersion,
 		HighLevelProtocolVersion: HighLevelProtocolVersion,
 		Hostname:                 hostname,
-		PasswordHash:             hashPassword(password),
+		password:                 password,
 	}
 }
 
-func hashPassword(password string) string {
+func hashPassword(password string, algorithm HashAlgorithm) string {
 	// Convert the password to UTF-16 encoding
 	utf16CodeUnits := utf16.Encode([]rune(password))
 	buf := make([]byte, len(utf16CodeUnits)*2)
@@ -91,17 +106,43 @@ func hashPassword(password string) string {
 		binary.LittleEndian.PutUint16(buf[i*2:], codeUnit)
 	}
 
-	hash := crc.CRC64WE.Calc(buf)
+	var hash uint64
+	if algorithm == CRC64WE {
+		hash = crc.CRC64WE.Calc(buf)
+	} else if algorithm == CRC32ISOHDLC {
+		hash = uint64(crc.CRC32ISOHDLC.Calc(buf))
+	}
 	return strconv.FormatUint(hash, 16)
 }
 
 // Encode the client handshake as a string.
-func (h *ClientHandshake) Encode() (packet string) {
+func (h *ClientHandshake) Encode(algorithm HashAlgorithm) (packet string) {
 	packet += fmt.Sprintf("%s.%s\n", LowLevelProtocol, LowLevelProtocolVersion)
 	packet += fmt.Sprintf("%s.%s\n", HighLevelProtocol, HighLevelProtocolVersion)
 	packet += h.Hostname + "\n"
-	packet += h.PasswordHash + string(rune(0))
+	packet += hashPassword(h.password, algorithm)
+	packet += string(rune(0))
 	return
+}
+
+// HashCRC64WE returns the CRC64WE hash of the password. If the handshake was created using [NewClientHandshake],
+// the hash is computed from the provided password. If the handshake was created using [DecodeClientHandshake],
+// the hash is read from the decoded packet, or is "0" if no CRC64WE hash was found.
+func (h *ClientHandshake) HashCRC64WE() string {
+	if h.hashCRC64WE != nil {
+		return *h.hashCRC64WE
+	}
+	return hashPassword(h.password, CRC64WE)
+}
+
+// Returns the CRC32ISOHDLC hash of the password. If the handshake was created using [NewClientHandshake],
+// the hash is computed from the provided password. If the handshakre was created using [DecodeClientHandshake],
+// the hash is read from the decoded packet, or is "0" if no CRC32ISOHDLC hash was found.
+func (h *ClientHandshake) HashCRC32ISOHDLC() string {
+	if h.hashCRC32ISOHDLC != nil {
+		return *h.hashCRC32ISOHDLC
+	}
+	return hashPassword(h.password, CRC32ISOHDLC)
 }
 
 // DecodeClientHandshake decodes a client handshake from the given string.
@@ -129,6 +170,12 @@ func DecodeClientHandshake(packet string) (*ClientHandshake, error) {
 	if !ok {
 		return nil, errors.New("unable to decode password hash")
 	}
-	handshake.PasswordHash = hash
+	if len(hash) == 8 {
+		handshake.hashCRC32ISOHDLC = &hash
+	} else if len(hash) == 16 {
+		handshake.hashCRC64WE = &hash
+	} else {
+		return nil, errors.New("unexpected password hash length")
+	}
 	return handshake, nil
 }
