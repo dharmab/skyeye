@@ -24,6 +24,7 @@ type RealTimeClient struct {
 	password string
 	// connectionTimeout is the maximum time to wait for a connection to be established.
 	connectionTimeout time.Duration
+	hashAlgorithm     HashAlgorithm
 }
 
 // NewRealTimeClient creates a new telemetry client for reading real-time
@@ -41,6 +42,7 @@ func NewRealTimeClient(
 		hostname:          clientHostname,
 		password:          password,
 		connectionTimeout: connectionTimeout,
+		hashAlgorithm:     CRC64WE,
 	}
 }
 
@@ -112,13 +114,20 @@ func (c *RealTimeClient) handshake(reader *bufio.Reader, connection net.Conn) er
 		Str("highLevelProtocolVersion", hostHandshake.HighLevelProtocolVersion).
 		Msg("received host handshake")
 
+	if c.hashAlgorithm == CRC64WE {
+		c.hashAlgorithm = CRC32ISOHDLC
+	} else {
+		c.hashAlgorithm = CRC64WE
+	}
+
 	clientHandshake := NewClientHandshake(c.hostname, c.password)
 	log.Info().
 		Str("hostname", clientHandshake.Hostname).
 		Str("lowLevelProtocolVersion", clientHandshake.LowLevelProtocolVersion).
 		Str("highLevelProtocolVersion", clientHandshake.HighLevelProtocolVersion).
+		Stringer("algorithm", c.hashAlgorithm).
 		Msg("sending client handshake")
-	_, err = connection.Write([]byte(clientHandshake.Encode()))
+	_, err = connection.Write([]byte(clientHandshake.Encode(c.hashAlgorithm)))
 	if err != nil {
 		return fmt.Errorf("error sending client handshake: %w", err)
 	}
