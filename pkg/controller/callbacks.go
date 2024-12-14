@@ -15,6 +15,7 @@ var fadeBroadcastRadius = 55 * unit.NauticalMile
 func (c *Controller) handleStarted() {
 	c.merges.reset()
 	c.threatCooldowns.reset()
+	c.mergeCooldowns.reset()
 	c.wasLastPictureClean = false
 }
 

@@ -336,7 +336,7 @@ Your own aircraft must be on a SkyEye SRS frequency, and using the same name in 
 
 ### MERGED
 
-If a fixed-wing threat closes within 3 nautical miles of a friendly aircraft, the controller will transmit a MERGED call. MERGED calls only apply to fixed-wing threats. You won't receive a MERGED call about a helicopter threat.
+If any fixed-wing threats close within 3 nautical miles of a friendly aircraft, the controller will transmit a MERGED call. MERGED calls only apply to fixed-wing threats. You won't receive a MERGED call about a helicopter threat.
 
 Your own aircraft must be on the SRS frequency, and using the same name in DCS and in SRS, to receive MERGED calls.
 

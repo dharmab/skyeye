@@ -118,10 +118,19 @@ func (c *Controller) broadcastMerges(ctx context.Context) {
 	c.merges.keep(hostileIDs...)
 
 	for hostileGroup, friendlies := range merges {
-		newMergedFriendlies := c.updateMergesForGroup(hostileGroup, friendlies)
-
 		logger := log.With().Stringer("group", hostileGroup).Logger()
-		mergedCall := c.createMergedCall(newMergedFriendlies)
+		newMergedFriendlies := c.updateMergesForGroup(hostileGroup, friendlies)
+		friendliesToNotify := make([]*trackfiles.Trackfile, 0)
+		for _, friendly := range newMergedFriendlies {
+			if c.mergeCooldowns.isOnCooldown(friendly.Contact.ID) {
+				logger.Info().Uint64("friendID", friendly.Contact.ID).Msg("removing friend from pending merged call because another merged call was recently broadcast for this friend")
+				continue
+			}
+			friendliesToNotify = append(friendliesToNotify, friendly)
+			c.mergeCooldowns.extendCooldown(friendly.Contact.ID)
+		}
+
+		mergedCall := c.createMergedCall(friendliesToNotify)
 		if len(mergedCall.Callsigns) > 0 {
 			logger.Info().Strs("callsigns", mergedCall.Callsigns).Msg("broadcasting merged call")
 			c.calls <- NewCall(ctx, mergedCall)
