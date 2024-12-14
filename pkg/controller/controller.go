@@ -67,6 +67,8 @@ type Controller struct {
 
 	// merges tracks which contacts are in the merge.
 	merges *mergeTracker
+	// mergeCooldowns tracks the next time a merge call may be published for each friendly.
+	mergeCooldowns *cooldownTracker
 
 	// calls is the channel to publish responses and calls to.
 	calls chan<- Call
@@ -95,6 +97,7 @@ func New(
 		threatCooldowns:             newCooldownTracker(threatMonitoringCooldown),
 		threatMonitoringRequiresSRS: threatMonitoringRequiresSRS,
 		merges:                      newMergeTracker(),
+		mergeCooldowns:              newCooldownTracker(30 * time.Second),
 	}
 }
 
@@ -160,10 +163,12 @@ func (c *Controller) findCallsign(callsign string) (string, *trackfiles.Trackfil
 func (c *Controller) remove(id uint64) {
 	log.Debug().Uint64("id", id).Msg("removing ID from controller state tracking")
 	c.threatCooldowns.remove(id)
+	c.mergeCooldowns.remove(id)
 	c.merges.remove(id)
 }
 
 func (c *Controller) reset() {
 	c.threatCooldowns.reset()
+	c.mergeCooldowns.reset()
 	c.merges.reset()
 }
