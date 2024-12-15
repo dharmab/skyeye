@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,6 +34,66 @@ func TestParsePilotCallsign(t *testing.T) {
 			actual, ok := ParsePilotCallsign(test.name)
 			require.True(t, ok)
 			assert.Equal(t, test.expected, actual)
+		})
+	}
+}
+
+func TestSummarizeCallsigns(t *testing.T) {
+	t.Parallel()
+	testCases := []struct {
+		include  map[string]struct{}
+		exclude  map[string]struct{}
+		expected []string
+	}{
+		{
+			include: map[string]struct{}{
+				"viking 11": {},
+				"viking 12": {},
+				"viking 13": {},
+				"viking 14": {},
+			},
+			exclude: map[string]struct{}{
+				"shadow 11": {},
+				"shadow 12": {},
+				"darkstar":  {},
+			},
+			expected: []string{"viking flight"},
+		},
+		{
+			include: map[string]struct{}{
+				"viking 11": {},
+				"viking 12": {},
+			},
+			exclude: map[string]struct{}{
+				"viking 21": {},
+				"viking 22": {},
+				"shadow 11": {},
+				"shadow 12": {},
+				"darkstar":  {},
+			},
+			expected: []string{"viking 1 flight"},
+		},
+		{
+			include: map[string]struct{}{
+				"viking 11": {},
+				"viking 21": {},
+			},
+			exclude: map[string]struct{}{
+				"viking 12": {},
+				"viking 22": {},
+				"shadow 11": {},
+				"shadow 12": {},
+				"darkstar":  {},
+			},
+			expected: []string{"viking 11", "viking 21"},
+		},
+	}
+
+	for i, test := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			t.Parallel()
+			actual := SummarizeCallsigns(test.include, test.exclude)
+			assert.ElementsMatch(t, test.expected, actual)
 		})
 	}
 }
