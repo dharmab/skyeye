@@ -4,10 +4,8 @@ package parser
 import (
 	"bufio"
 	"strings"
-	"unicode"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
-	fuzz "github.com/hbollon/go-edlib"
 	"github.com/rodaine/numwords"
 	"github.com/rs/zerolog/log"
 )
@@ -44,15 +42,6 @@ const (
 
 var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, snaplock, tripwire, shopping}
 
-func isSimilar(a, b string) bool {
-	v, err := fuzz.StringsSimilarity(strings.ToLower(a), strings.ToLower(b), fuzz.Levenshtein)
-	if err != nil {
-		log.Error().Err(err).Str("a", a).Str("b", b).Msg("failed to calculate similarity")
-		return false
-	}
-	return v > 0.6
-}
-
 func (p *Parser) findGCICallsign(fields []string) (callsign string, rest string, found bool) {
 	for i := range fields {
 		candidate := strings.Join(fields[:i+1], " ")
@@ -77,68 +66,6 @@ func findRequestWord(fields []string) (string, int, bool) {
 		}
 	}
 	return "", 0, false
-}
-
-// normalize the given string by applying the following transformations:
-//
-//   - Split on any "|" character and discard the tail.
-//   - Convert to lowercase.
-//   - Replace hyphens and underscores with spaces. Remove any other characters
-//     that are not letters, digits, or spaces.
-//   - Insert a space between any letter immediately followed by a digit.
-//   - Trim leading and trailing whitespace.
-//   - Substitute alternate forms of request words with canonical forms.
-//   - Remove extra spaces.
-func normalize(tx string) string {
-	tx, _, _ = strings.Cut(tx, "|")
-	tx = strings.ToLower(tx)
-	tx = removeSymbols(tx)
-	tx = spaceNumbers(tx)
-	tx = strings.TrimSpace(tx)
-	for alt, word := range alternateRequestWords {
-		tx = strings.ReplaceAll(tx, alt, word)
-	}
-	tx = strings.Join(strings.Fields(tx), " ")
-	return tx
-}
-
-// removeSymbols removes any characters that are not letters, digits, or spaces.
-// Hyphens and underscores are replaced with spaces. Other symbols are removed.
-func removeSymbols(tx string) string {
-	var builder strings.Builder
-	for _, r := range tx {
-		if r == '-' || r == '_' {
-			_, _ = builder.WriteRune(' ')
-		} else if unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsSpace(r) {
-			_, _ = builder.WriteRune(r)
-		}
-	}
-	return builder.String()
-}
-
-// spaceNumbers inserts spaces between letters and numbers, e.g. "BRAA090" -> "BRAA 090".
-func spaceNumbers(tx string) string {
-	builder := strings.Builder{}
-	for i, char := range tx {
-		_, _ = builder.WriteRune(char)
-		if i+1 < len(tx) && unicode.IsLetter(char) && unicode.IsDigit(rune(tx[i+1])) {
-			_, _ = builder.WriteRune(' ')
-		}
-	}
-	return builder.String()
-}
-
-// spaceDigits inserts a space before each digit, e.g. "Eagle11" -> "Eagle 1 1".
-func spaceDigits(tx string) string {
-	builder := strings.Builder{}
-	for _, char := range tx {
-		if unicode.IsDigit(char) {
-			_, _ = builder.WriteRune(' ')
-		}
-		_, _ = builder.WriteRune(char)
-	}
-	tx = builder.String()
-	return normalize(tx)
 }
 
 // uncrushCallsign corrects a corner case where the GCI callsign and the
@@ -281,45 +208,6 @@ func (p *Parser) Parse(tx string) any {
 
 	logger.Debug().Msg("unrecognized request")
 	return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
-}
-
-// ParsePilotCallsign attempts to parse a callsign in one of the following formats:
-//   - A single word, followed by a number consisting of any digits
-//   - A number consisting of up to 3 digits
-//
-// Garbage in between the digits is ignored. The result is normalized so that each digit is lowercase and space-delimited.
-func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
-	tx = normalize(tx)
-	tx = spaceDigits(tx)
-	for token, replacement := range map[string]string{
-		"request": "",
-		"this is": "",
-		"want to": "12",
-		"tutu":    "22",
-	} {
-		tx = strings.ReplaceAll(tx, token, replacement)
-	}
-
-	var builder strings.Builder
-	numDigits := 0
-	for _, char := range tx {
-		if numDigits >= 3 {
-			break
-		}
-		if unicode.IsDigit(char) {
-			numDigits++
-		}
-		if numDigits == 0 || unicode.IsDigit(char) || unicode.IsSpace(char) {
-			_, _ = builder.WriteRune(char)
-		}
-	}
-
-	callsign = spaceDigits(normalize(builder.String()))
-	if callsign == "" {
-		return "", false
-	}
-
-	return callsign, true
 }
 
 func skipWords(scanner *bufio.Scanner, words ...string) bool {
