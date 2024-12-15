@@ -43,3 +43,9 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 
 	return callsign, true
 }
+
+// SummarizeCallsigns returns the minimum unambiguous set of callsigns to
+// address a set of aircraft.
+func SummarizeCallsigns(include, exclude map[string]struct{}) map[string]struct{} {
+	return map[string]struct{}{}
+}
