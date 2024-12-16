@@ -22,8 +22,14 @@ type NaturalLanguageResponse struct {
 
 // Write appends text to the subtitle and speech fields.
 func (r *NaturalLanguageResponse) Write(speech, subtitle string) {
-	r.Speech += addSpacing(speech)
-	r.Subtitle += addSpacing(subtitle)
+	if len(r.Speech) > 0 {
+		speech = addSpacing(speech)
+	}
+	if len(r.Subtitle) > 0 {
+		subtitle = addSpacing(subtitle)
+	}
+	r.Speech += speech
+	r.Subtitle += subtitle
 }
 
 // WriteBoth appends the same text to the subtitle and speech fields.
@@ -36,11 +42,13 @@ func (r *NaturalLanguageResponse) WriteResponse(response NaturalLanguageResponse
 	r.Write(response.Speech, response.Subtitle)
 }
 
+// addSpacing prepends a space to the string if it starts with a letter or number.
 func addSpacing(s string) string {
 	if len(s) == 0 {
 		return s
 	}
-	if unicode.IsLetter(rune(s[0])) || unicode.IsNumber(rune(s[0])) {
+	first := rune(s[0])
+	if unicode.IsLetter(first) || unicode.IsNumber(first) {
 		return " " + s
 	}
 	return s
