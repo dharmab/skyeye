@@ -48,15 +48,20 @@ func (t *mergeTracker) isMerged(hostileID, friendID uint64) bool {
 	return ok
 }
 
-// friendliesMergedWith returns the IDS that the given hostile ID is merged with.
-func (t *mergeTracker) friendliesMergedWith(hostileID uint64) []uint64 {
+// friendliesMergedWith returns the unique friendly IDs that have merged with the given hostile IDs.
+func (t *mergeTracker) friendliesMergedWith(hostileIDs ...uint64) []uint64 {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
-	friendIDs, ok := t.merged[hostileID]
-	if !ok {
-		return []uint64{}
+
+	uniqueFriendIDs := make(map[uint64]struct{})
+	for _, hostileID := range hostileIDs {
+		if friendIDs, ok := t.merged[hostileID]; ok {
+			for id := range friendIDs {
+				uniqueFriendIDs[id] = struct{}{}
+			}
+		}
 	}
-	return slices.Collect(maps.Keys(friendIDs))
+	return slices.Collect(maps.Keys(uniqueFriendIDs))
 }
 
 // separate records that the given hostile and friendly IDs have exited the merge.
@@ -217,11 +222,8 @@ func (c *Controller) createMergedCall(friendlies []*trackfiles.Trackfile) brevit
 
 // fillInMergeDetails sets the group's merged-with count, and if it is greater than 0, declares the group to be a FURBALL.
 func (c *Controller) fillInMergeDetails(group brevity.Group) {
-	mergedWith := 0
-	for _, id := range group.ObjectIDs() {
-		mergedWith += len(c.merges.friendliesMergedWith(id))
-	}
-	group.SetMergedWith(mergedWith)
+	count := len(c.merges.friendliesMergedWith(group.ObjectIDs()...))
+	group.SetMergedWith(count)
 	if group.MergedWith() > 0 {
 		group.SetDeclaration(brevity.Furball)
 	}
