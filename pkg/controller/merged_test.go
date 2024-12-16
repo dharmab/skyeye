@@ -29,6 +29,10 @@ func TestMergeTrackerFriendliesMergedWith(t *testing.T) {
 	tracker.merge(1, 3)
 	assert.Len(t, tracker.friendliesMergedWith(1), 2)
 	assert.Contains(t, tracker.friendliesMergedWith(1), uint64(3))
+	tracker.merge(2, 2)
+	assert.Len(t, tracker.friendliesMergedWith(1), 2)
+	assert.Len(t, tracker.friendliesMergedWith(2), 1)
+	assert.Contains(t, tracker.friendliesMergedWith(2), uint64(2))
 }
 
 func TestMergeTrackerSeparate(t *testing.T) {
