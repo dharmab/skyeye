@@ -22,14 +22,8 @@ type NaturalLanguageResponse struct {
 
 // Write appends text to the subtitle and speech fields.
 func (r *NaturalLanguageResponse) Write(speech, subtitle string) {
-	if len(r.Speech) > 0 {
-		speech = addSpacing(speech)
-	}
-	if len(r.Subtitle) > 0 {
-		subtitle = addSpacing(subtitle)
-	}
-	r.Speech += speech
-	r.Subtitle += subtitle
+	r.Speech = join(r.Speech, speech)
+	r.Subtitle = join(r.Subtitle, subtitle)
 }
 
 // WriteBoth appends the same text to the subtitle and speech fields.
@@ -40,6 +34,18 @@ func (r *NaturalLanguageResponse) WriteBoth(s string) {
 // WriteResponse appends the given response's subtitle and speech to this response.
 func (r *NaturalLanguageResponse) WriteResponse(response NaturalLanguageResponse) {
 	r.Write(response.Speech, response.Subtitle)
+}
+
+// join concatenates two strings, adding a space between them if not already present.
+func join(a, b string) string {
+	if len(a) == 0 {
+		return b
+	}
+	preceding := rune(a[len(a)-1])
+	if !unicode.IsSpace(preceding) {
+		return a + addSpacing(b)
+	}
+	return a + b
 }
 
 // addSpacing prepends a space to the string if it starts with a letter or number.
@@ -55,7 +61,7 @@ func addSpacing(s string) string {
 }
 
 func applyToFirstCharacter(s string, f func(string) string) string {
-	if len(s) == 0 {
+	if s == "" {
 		return s
 	}
 	return f(s[:1]) + s[1:]
