@@ -172,17 +172,17 @@ Examples:
 
 ```
 MOBIUS 1: "Thunderhead Mobius One bogey dope"
-THUNDERHEAD: "Mobius One, group threat BRAA 071/13, 17000, flank south, hostile, Flanker"
+THUNDERHEAD: "Mobius One, threat group BRAA 071/13, 17000, flank south, hostile, Flanker"
 ```
 
 ```
 HITMAN 11: "Galaxy Hitman One One looking for a bogey - anything interesting?"
-GALAXY: "Hitman One One, group threat BRAA 055/71, 22000, flank north, hostile, Tomcat"
+GALAXY: "Hitman One One, group BRAA 055/71, 22000, flank north, hostile, Tomcat"
 ```
 
 ```
 YELLOW 13: "Goliath Yellow One Three bogey"
-GOLIATH: "Yellow One Three, group threat BRAA 188/45, 8000, hot, hostile, Eagle"
+GOLIATH: "Yellow One Three, group BRAA 188/45, 8000, hot, hostile, Eagle"
 ```
 
 Tips:
