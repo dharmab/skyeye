@@ -47,6 +47,7 @@ var alternateRequestWords = map[string]string{
 	"book it out":        bogeyDope,
 	"book it up":         bogeyDope,
 	"bovido":             bogeyDope,
+	"bowie dope":         bogeyDope,
 	"boy dope":           bogeyDope,
 	"bubby dope":         bogeyDope,
 	"bucket up":          bogeyDope,
