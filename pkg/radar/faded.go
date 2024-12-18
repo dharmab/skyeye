@@ -86,7 +86,7 @@ func (r *Radar) collectFadedGroups(fades []sim.Faded) []group {
 
 		trackfile, ok := r.contacts.getByID(fade.ID)
 		if !ok {
-			log.Warn().Uint64("id", fade.ID).Msg("faded trackfile not found on scope")
+			log.Debug().Uint64("id", fade.ID).Msg("faded trackfile not found on scope")
 			continue
 		}
 		log.Info().
