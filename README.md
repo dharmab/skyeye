@@ -4,7 +4,7 @@ SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-c
 
 SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same computer as SkyEye. No cloud APIs are required. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can run it for less than a nickel per hour on a cloud server, or run it on a PC in your home.
 
-SkyEye is under active development. All of the radio calls I planned to support have been implemented - but there is still lots of work to do on performance, quality, accessibility, and additional features. To see what I'm working on, check out the [dev blog](https://www.8492sqdn.net/posts/)!
+SkyEye is production-ready software! I am currently working on documentation and finalizing the developer API in preparation for the 1.0 release.
 
 ## Getting Started
 
@@ -35,6 +35,8 @@ SkyEye would not be possible without these people and projects, for whom I am de
 * @proway's [go-igrf](github.com/proway2/go-igrf) module implements the [International Geomagnetic Reference Field](https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html) used to correct for magnetic declination.
 * [Cobra](https://cobra.dev) is used for the CLI frontend, including configuration flags, help and examples. [Viper](https://github.com/spf13/viper) is used to load configuration from a file/environment variables.
 * [MSYS2](https://www.msys2.org/) provides a Windows build environment.
+* @bwmarrin's [discordgo](github.com/bwmarrin/discordgo) module provides the Discord tracing integration.
+* @pasztorpisti's [go-crc](github.com/pasztorpisti/go-crc) module provides algorithms for negotiating handshakes with TacView telemetry sources.
 * [Oto](https://github.com/ebitengine/oto) was helpful for debugging audio format conversion problems.
 * [zerolog](https://github.com/rs/zerolog) is helpful for general logging and printf debugging.
 * [testify](https://github.com/stretchr/testify) is used in unit tests.
@@ -52,11 +54,7 @@ SkyEye would not be possible without these people and projects, for whom I am de
 
 ### Is this ready?
 
-This project is currently available in Limited Availability. Anyone can download the software and try it out, but it may contain bugs or have performance or quality issues. **I am currently only providing support for a limited number of personal friends**.
-
-A General Availability release is expected during winter 2024-2025. At that point, I expect the software to be stable with few or no issues, and support will be provided to the general audience.
-
-You can check current progress [here](https://github.com/dharmab/skyeye/milestones)!
+SkyEye is production ready software. It is used by the [Flashpoint Levant](https://limakilo.net/) public server and multiple private squadrons. A v1.0 release is being prepared for the end of 2024.
 
 ### What kind of hardware does it require?
 
@@ -70,7 +68,7 @@ I don't plan to provide a mechanism for players to submit their voice recordings
 
 ### Does this use Line-Of-Sight restrictions?
 
-No. Excluding this feature was an explicit choice in order to avoid [the complexity demon](https://grugbrain.dev/#grug-on-complexity).
+Not at this time. I am working on a solution for this, but it will take me a while.
 
 If this is a critical feature for you, consider using [MOOSE's AWACS module](https://flightcontrol-master.github.io/MOOSE_DOCS_DEVELOP/Documentation/Ops.AWACS.html) instead. It supports Line-Of-Sight and datalink simulation, at the tradeoff of requiring some special setup in the Mission Editor.
 
