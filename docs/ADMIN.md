@@ -5,6 +5,7 @@ This is a technical article on how to deploy SkyEye, targeted at multiplayer ser
 For a step-by-step guide, see one of the quickstart guides:
 
 - [Hetzner Cloud](QUICKSTART-HETZNER.md)
+- [Vultr](QUICKSTART-VULTR.md)
 
 # Planning Your Deployment
 
