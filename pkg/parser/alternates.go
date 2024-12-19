@@ -4,6 +4,7 @@ package parser
 // These are used to provide aliases for certain commands and to deal with quality issues in speech-to-text.
 var alternateRequestWords = map[string]string{
 	"alphacheck":         alphaCheck,
+	"alphachek":          alphaCheck,
 	"arfachek":           alphaCheck,
 	"arfatcheck":         alphaCheck,
 	"bobbiedope":         bogeyDope,
@@ -39,11 +40,13 @@ var alternateRequestWords = map[string]string{
 	"bokey":              bogeyDope,
 	"bokeydope":          bogeyDope,
 	"boki do":            bogeyDope,
+	"boki":               bogeyDope,
 	"booby dop":          bogeyDope,
 	"boobydope":          bogeyDope,
 	"boog it":            bogeyDope,
 	"boogie":             bogeyDope,
 	"boogiedope":         bogeyDope,
+	"boogitope":          bogeyDope,
 	"book it out":        bogeyDope,
 	"book it up":         bogeyDope,
 	"bovido":             bogeyDope,
