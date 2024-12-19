@@ -23,7 +23,9 @@ func isSimilar(a, b string) bool {
 //
 //   - Split on any "|" character and discard the tail.
 //   - Convert to lowercase.
-//   - Replace hyphens and underscores with spaces. Remove any other characters
+//   - Replace hyphens and underscores with spaces.
+//   - Replace a period followed by a non-space character with a space.
+//   - Remove any other characters
 //     that are not letters, digits, or spaces.
 //   - Insert a space between any letter immediately followed by a digit.
 //   - Trim leading and trailing whitespace.
@@ -42,12 +44,15 @@ func normalize(tx string) string {
 	return tx
 }
 
-// removeSymbols removes any characters that are not letters, digits, or spaces.
-// Hyphens and underscores are replaced with spaces. Other symbols are removed.
+// removeSymbols removes any characters that are not letters, digits, or
+// spaces. Hyphens and underscores are replaced with spaces. A period followed
+// by a non-space character is replaced with a space. Other symbols are
+// removed.
 func removeSymbols(tx string) string {
 	var builder strings.Builder
-	for _, r := range tx {
-		if r == '-' || r == '_' {
+	for i, r := range tx {
+		isPeriodBeforeNonSpace := r == '.' && i+1 < len(tx) && !unicode.IsSpace(rune(tx[i+1]))
+		if r == '-' || r == '_' || isPeriodBeforeNonSpace {
 			_, _ = builder.WriteRune(' ')
 		} else if unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsSpace(r) {
 			_, _ = builder.WriteRune(r)

@@ -194,6 +194,18 @@ func TestParserDeclare(t *testing.T) {
 				IsBRAA:   true,
 			},
 		},
+		{
+			text: "anyface mobius1, declare 177.29",
+			expected: &brevity.DeclareRequest{
+				Callsign: "mobius 1",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(177*unit.Degree),
+					29*unit.NauticalMile,
+				),
+				Range: 29 * unit.NauticalMile,
+				Track: brevity.UnknownDirection,
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
@@ -206,14 +218,18 @@ func TestParserDeclare(t *testing.T) {
 			assert.True(t, actual.IsBRAA)
 			require.NotNil(t, actual)
 			require.NotNil(t, actual.Bearing)
+			require.NotNil(t, expected.Bearing)
 			assert.InDelta(t, expected.Bearing.Degrees(), actual.Bearing.Degrees(), 0.5)
 			require.NotNil(t, actual.Range)
+			require.NotNil(t, expected.Range)
 			assert.InDelta(t, expected.Range.NauticalMiles(), actual.Range.NauticalMiles(), 0.5)
 		} else {
 			assert.False(t, actual.IsBRAA)
 			require.NotNil(t, actual)
 			require.NotNil(t, actual.Bullseye)
 			require.NotNil(t, actual.Bullseye.Bearing())
+			require.NotNil(t, expected.Bullseye)
+			require.NotNil(t, expected.Bullseye.Bearing())
 			assert.InDelta(t, expected.Bullseye.Bearing().Degrees(), actual.Bullseye.Bearing().Degrees(), 0.5)
 			assert.InDelta(t, expected.Bullseye.Distance().NauticalMiles(), actual.Bullseye.Distance().NauticalMiles(), 1)
 		}
