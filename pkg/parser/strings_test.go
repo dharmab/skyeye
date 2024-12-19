@@ -58,6 +58,8 @@ func TestRemoveSymbols(t *testing.T) {
 	}{
 		{"Eagle-12", "Eagle 12"},
 		{"Hello, World!", "Hello World"},
+		{"180.", "180"},
+		{"180.3", "180 3"},
 	}
 
 	for _, test := range tests {
