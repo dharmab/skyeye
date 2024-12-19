@@ -84,16 +84,20 @@ func (c *Composer) composeGroup(group brevity.Group) (response NaturalLanguageRe
 
 	// Fill-in information
 
-	// Heavy and number of contacts
-	if group.Heavy() {
-		response.WriteBoth(", heavy")
-	}
-	contacts := c.composeContacts(group.Contacts())
-	response.WriteResponse(contacts)
+	isFurball := group.Declaration() == brevity.Furball
 
-	if !group.High() {
-		if len(stacks) > 1 {
-			response.WriteBoth(", " + c.composeAltitudeFillIns(stacks))
+	if !isFurball {
+		// Heavy and number of contacts
+		if group.Heavy() {
+			response.WriteBoth(", heavy")
+		}
+		contacts := c.composeContacts(group.Contacts())
+		response.WriteResponse(contacts)
+
+		if !group.High() {
+			if len(stacks) > 1 {
+				response.WriteBoth(", " + c.composeAltitudeFillIns(stacks))
+			}
 		}
 	}
 
@@ -103,16 +107,18 @@ func (c *Composer) composeGroup(group brevity.Group) (response NaturalLanguageRe
 		response.WriteBoth(strings.Join(group.Platforms(), ", "))
 	}
 
-	// High
-	if group.High() {
-		response.WriteBoth(", high")
-	}
+	if !isFurball {
+		// High
+		if group.High() {
+			response.WriteBoth(", high")
+		}
 
-	// Fast or very fast
-	if group.Fast() {
-		response.WriteBoth(", fast")
-	} else if group.VeryFast() {
-		response.WriteBoth(", very fast")
+		// Fast or very fast
+		if group.Fast() {
+			response.WriteBoth(", fast")
+		} else if group.VeryFast() {
+			response.WriteBoth(", very fast")
+		}
 	}
 
 	response.WriteBoth(".")
