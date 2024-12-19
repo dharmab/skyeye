@@ -46,7 +46,7 @@ write_files:
       EnvironmentFile=-/etc/skyeye/image.env
       Restart=always
       RestartSec=60
-      
+
       ExecStartPre=/bin/rm -f %t/%n-pid %t/%n-cid
       ExecStart=/usr/bin/podman run \
         --conmon-pidfile %t/%n-pid \
