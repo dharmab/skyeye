@@ -45,7 +45,7 @@ func (c *Composer) composeGroup(group brevity.Group) (response NaturalLanguageRe
 	}
 	label := "Group"
 	if group.Threat() {
-		label = "Threat group"
+		label = "Threat"
 	}
 
 	// Group location, altitude, and track direction or specific aspect
@@ -62,14 +62,21 @@ func (c *Composer) composeGroup(group brevity.Group) (response NaturalLanguageRe
 			response.WriteBoth(fmt.Sprintf(", track %s", group.Track()))
 		}
 	} else if group.BRAA() != nil {
-		braa := c.composeBRAA(group.BRAA(), group.Declaration())
-		response.Write(
-			fmt.Sprintf("%s %s", label, braa.Speech),
-			fmt.Sprintf("%s %s", label, braa.Subtitle),
-		)
-		isCardinalAspect := slices.Contains([]brevity.Aspect{brevity.Flank, brevity.Beam, brevity.Drag}, group.BRAA().Aspect())
-		if isCardinalAspect && isTrackKnown {
-			response.WriteBoth(fmt.Sprintf(" %s", group.Track()))
+		if group.Threat() && group.BRAA().Range() < 5*unit.NauticalMile {
+			threatResponse := c.composeCloseThreat(group.BRAA(), group.Declaration())
+			response.WriteResponse(threatResponse)
+			direction := brevity.TrackFromBearing(group.BRAA().Bearing())
+			response.WriteBoth(", " + direction.String())
+		} else {
+			braaResponse := c.composeBRAA(group.BRAA(), group.Declaration())
+			response.Write(
+				fmt.Sprintf("%s %s", label, braaResponse.Speech),
+				fmt.Sprintf("%s %s", label, braaResponse.Subtitle),
+			)
+			isCardinalAspect := slices.Contains([]brevity.Aspect{brevity.Flank, brevity.Beam, brevity.Drag}, group.BRAA().Aspect())
+			if isCardinalAspect && isTrackKnown {
+				response.WriteBoth(fmt.Sprintf(" %s", group.Track()))
+			}
 		}
 	}
 
