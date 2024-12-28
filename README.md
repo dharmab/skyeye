@@ -4,7 +4,7 @@ SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-c
 
 SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same computer as SkyEye. No cloud APIs are required. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can run it for less than a nickel per hour on a cloud server, or run it on a PC in your home.
 
-SkyEye is production ready software. It is used by the [https://limakilo.net/](Flashpoint Levant) public server and a number of private squadrons.
+SkyEye is production ready software. It is used by the [Flashpoint Levant](https://limakilo.net/) public server and a number of private squadrons.
 
 ## Getting Started
 
