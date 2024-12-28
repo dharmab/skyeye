@@ -7,11 +7,17 @@ For a step-by-step guide, see one of the quickstart guides:
 - [Hetzner Cloud](QUICKSTART-HETZNER.md)
 - [Vultr](QUICKSTART-VULTR.md)
 
+# Getting Help
+
+If you need help with SkyEye, create a [GitHub issue](https://github.com/dharmab/skyeye/issues).
+
+I do not respond to direct messages on social media or the Eagle Dynamics forums. I dislike social media and use the minimal amount necessary for my projects and hobbies; I'd prefer to not use it at all.
+
 # Planning Your Deployment
 
 ## Major Known Issues
 
-- **Medium**: SkyEye will not report about hostile contacts below 50 knots. Unfortunately, this includes hostile helicopters that are moving slowly or hovering. [Bug tracked here](https://github.com/dharmab/skyeye/issues/65).
+- SkyEye will not report about hostile contacts below 50 knots. Unfortunately, this includes hostile helicopters that are moving slowly or hovering. [Bug tracked here](https://github.com/dharmab/skyeye/issues/65).
 - See also [this section in the player guide](PLAYER.md#a-word-of-warning) about the bot's limitations.
 
 ## System Architecture
@@ -25,7 +31,7 @@ flowchart LR
     dcs[Windows<br/>DCS World Server<br/>TacView Exporter<br/>SRS Server] <--> skyeye[Linux<br/>SkyEye]
 ```
 
-If you insist on running SkyEye on the same system as DCS, I cannot offer you any guarantees of performance. If you choose to try this anyway, I do recommend configuring Process Affinity to pin SkyEye to a set of dedicated CPU cores separate from any other CPU-intensive software. The easiest way to do this on Windows is by using the [CPU Affinities feature in Process Lasso](https://bitsum.com/processlasso-docs/#default_affinities).
+**Running SkyEye on the same computer as DCS World is not intended and probably won't work.** If you choose to try this anyway, configure Process Affinity to pin SkyEye to a set of dedicated CPU cores separate from any other CPU-intensive software. The easiest way to do this on Windows is by using the [CPU Affinities feature in Process Lasso](https://bitsum.com/processlasso-docs/#default_affinities).
 
 SkyEye will automatically reconnect to TacView if the connection is lost. However, if the connection to SRS is lost, SkyEye will exit. The guides for Linux and Windows provided below include scripts to automatically restart SkyEye after a delay.
 

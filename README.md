@@ -4,7 +4,7 @@ SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-c
 
 SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same computer as SkyEye. No cloud APIs are required. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can run it for less than a nickel per hour on a cloud server, or run it on a PC in your home.
 
-SkyEye is production-ready software! I am currently working on documentation and finalizing the developer API in preparation for the 1.0 release.
+SkyEye is production ready software. It is used by the [https://limakilo.net/](Flashpoint Levant) public server and a number of private squadrons.
 
 ## Getting Started
 
@@ -52,10 +52,6 @@ SkyEye would not be possible without these people and projects, for whom I am de
 
 ## FAQ
 
-### Is this ready?
-
-SkyEye is production ready software. It is used by the [Flashpoint Levant](https://limakilo.net/) public server and multiple private squadrons. A v1.0 release is being prepared for the end of 2024.
-
 ### What kind of hardware does it require?
 
 See the [Hardware section of the admin guide](docs/ADMIN.md#hardware).
@@ -76,21 +72,23 @@ OverlordBot also optionally supports this feature, although less than 1% of user
 
 ### Will this work with DCS' built-in VoIP?
 
-Hopefully in the future Eagle Dynamics will add support for external GCI bots. If anyone at ED is reading this, access to any relevant preview builds would be really helpful!
+As of this writing, DCS' built-in VoIP does not support external clients. SkyEye therefore requires SRS to function.
 
 ### Could this use a Large Language Model? (llama, mistral, etc.)
 
-This deserves a longer answer, for now see [this issue](https://github.com/dharmab/skyeye/issues/57)
+SkyEye uses an embedded LLM for speech-to-text, but I deliberately chose not to use an LLM for SkyEye's language parsing or decision-making logic. 
 
-TL;DR most of the controller logic is simple geometry that completes in about a millisecond. An LLM is several orders of magnitude slower, less accurate and a more difficult user experience.
+Within the domain of air combat communication, these problems are less linguistic and more mathematical in nature. Air combat communication uses a limited, highly specific vocabulary and a low-context grammar that can be parsed quickly with traditional programming methods. The workflow for the tactical controller is a straightforward decision tree mostly based on tables of aircraft data, some middle school geometry and a few statistical methods. These workflows can be implemented in a few hundred lines of code and run in a few milliseconds. An LLM would have worse performance, no guarantee of consistency, much larger CPU and memory requirements, and introduces a large surface area of ML-specific issues such as privacy of training data sets, debugging hallucinations, and a much more difficult testing and validation process.
 
-We use AI for the "squishy" problems - understanding human speech, and synthesizing human-like speech. We use traditional code for the algorithmic problems.
+While working on this software I spoke to a number of people who thought it would be as easy as feeding a bunch of PDFs to an LLM and it would magically learn how to be a competent tactical controller. This could not be further from the truth!
 
 ### Could this provide ATC services?
 
-This deserves a longer answer, for now see [this issue](https://github.com/dharmab/skyeye/issues/56)
+I have no plans to attempt an ATC bot due to limitations within DCS.
 
-TL;DR I have no plans to attempt an ATC bot.
+AI aircraft in DCS cannot be directly commanded through scripting or external software and are incapable of safely operating in controlled airspace. for example, AI aircraft in DCS do not sequence for landing, and will only begin an approach if the entire approach and runway are clear. AI aircraft also cannot execute a hold or a missed approach, and they make no effort to maintain separation from other aircraft.
+
+While working on this software I spoke to a number of people who thought it would be as easy as feeding a bunch of PDFs to an LLM and it would magically become a capable Air Traffic Controller. This could not be further from the truth!
 
 ### Can you add an option to do _insert feature here_?
 
@@ -98,6 +96,4 @@ I'm happy to hear your ideas, but I am very selective about what I choose to imp
 
 I develop SkyEye at no monetary cost to the user; therefore, one of my priorities is to keep the complexity of the software close to the minimum necessary level to ease the maintenance burden. I'm focusing only on features that are useful to most players. I avoid adding features that are gated by configuration options, because each one multiplies the permutations that need to be tested and debugged. [See this video.](https://youtu.be/czzAVuVz7u4?t=995)
 
-### When is SkyEye's birthday?
-
-October 12th. At some point I'll put an Ace Combat 04 easter egg in there.
+SkyEye is open source software. If you want a feature that I don't want to maintain, you have the right to fork the project and add it yourself (or hire a programmer to add it for you).
