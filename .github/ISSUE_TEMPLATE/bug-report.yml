@@ -1,6 +1,6 @@
 name: Bug Report
 description: Report a bug or other defect.
-title: ""
+title: "Bug Report: "
 labels: ["support"]
 body:
   - type: textarea
