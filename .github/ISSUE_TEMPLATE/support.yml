@@ -1,6 +1,6 @@
 name: Support/General Help
 description: Get general help with setting up and operating SkyEye.
-title: ""
+title: "Support Request: "
 labels: ["support"]
 body:
   - type: textarea
@@ -22,6 +22,7 @@ body:
     attributes:
       label: Logs
       description: "Alternatively, you can paste the log lines into this box."
+    validations:
       required: false
   - type: textarea
     id: acmi
