@@ -1,0 +1,62 @@
+name: Bug Report
+description: Report a bug or other defect.
+title: ""
+labels: ["support"]
+body:
+  - type: textarea
+    id: describe-bug
+    attributes:
+      label: Describe your issue
+      description: "Clearly and concisely state what the bug is. In what circumstances does it happen? What exactly happens? What did you expecte to happen instead?"
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: "If you can reproduce the bug, please provide step-by-step instructions."
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log File
+      description: "If you have the SkyEye logs, drag the log file into this box."
+      required: false
+  - type: textarea
+    id: logs-inline
+    attributes:
+      label: Logs
+      description: "Alternatively, you can paste the log lines into this box."
+      required: false
+  - type: textarea
+    id: acmi
+    attributes:
+      label: ACMI File
+      placeholder: "If you have an ACMI file, drag the file into this box."
+      required: false
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows
+        - Linux
+        - macOS
+      required: true
+  - type: input
+    id: cpu
+    attributes:
+      label: CPU
+      description: "What is the exact make and model of your CPU? e.g. Intel Core i9-13900k, AMD Ryzen 9 5900X"
+      required: true
+  - type: input
+    id: ram
+    attributes:
+      label: RAM
+      description: "How much RAM do you have?"
+      required: true
+  - type: input
+    id: software
+    attributes:
+      label: Other Software
+      description: "List any other software you are running on the same computer as SkyEye. e.g. DCS World client or server, SRS server, or other tools."
+      required: false
