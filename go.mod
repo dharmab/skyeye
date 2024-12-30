@@ -17,6 +17,7 @@ require (
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6
 	github.com/nabbl/piper v0.0.0-20240819160100-e51f2288a5c0
+	github.com/openai/openai-go v0.1.0-alpha.41
 	github.com/pasztorpisti/go-crc v1.0.0
 	github.com/paulmach/orb v0.11.1
 	github.com/proway2/go-igrf v0.5.1
@@ -193,6 +194,10 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tdakkota/asciicheck v0.2.0 // indirect
 	github.com/tetafro/godot v1.4.16 // indirect
+	github.com/tidwall/gjson v1.14.4 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/timakin/bodyclose v0.0.0-20230421092635-574207250966 // indirect
 	github.com/timonwong/loggercheck v0.9.4 // indirect
 	github.com/tomarrell/wrapcheck/v2 v2.9.0 // indirect

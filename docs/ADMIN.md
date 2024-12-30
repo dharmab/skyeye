@@ -4,8 +4,9 @@ This is a technical article on how to deploy SkyEye, targeted at multiplayer ser
 
 For a step-by-step guide, see one of the quickstart guides:
 
-- [Hetzner Cloud](QUICKSTART-HETZNER.md)
-- [Vultr](QUICKSTART-VULTR.md)
+- [Windows](QUICKSTART-WINDOWS.md)
+- [Linux on Hetzner Cloud](QUICKSTART-HETZNER.md)
+- [Linux on Vultr](QUICKSTART-VULTR.md)
 
 # Getting Help
 
@@ -22,7 +23,26 @@ I do not respond to direct messages on social media or the Eagle Dynamics forums
 
 ## System Architecture
 
-SkyEye works best when run on a dedicated system, separate from the DCS World and SRS servers.
+SkyEye can be deployed in two architectures: Local speech recognition and cloud-hosted speech recognition. Neither is better than the other; they each suit different use cases.
+
+Local speech recognition is more performance intensive, usually requiring two computers with quite good CPUs (one to run DCS and one to run SkyEye). However, it has a number of advantages:
+
+- Local speech recognition generally has a predictable fixed cost; it costs the same whether players talk only a little or chatter a lot. This makes hosting costs more predictable and reduces the impact a of a malicious or abusive player.
+- Local speech recognition is fully self-contained. It has better privacy qualities, and you can expect it to continue to work far into the future.
+- Local speech recognition can be self-hosted on your own hardware. This makes it a viable option for some international groups whose payment methods are not accepted by cloud hosting providers.
+- If you have very powerful hardware, self-hosting can be lower-latency and/or cheaper than cloud speech recognition.
+
+On the other hand, cloud speech recognition has a separate set of tradeoffs:
+
+- Less technical users will likely prefer cloud speech recognition, since it requires only one computer instead of two networked together.
+- Cloud speech recognition has a variable cost; this can be an advantage or disadvantage. In general, light to moderate usage is less expensive when using cloud speech recognition compared to using local speech recognition on a rented server. However, this can still be more expensive compared to self-hosted local speech recognition, or if you have a particularly chatty group of players. On public servers, there is a potential for abuse if a particular player spams the channel and racks up the cloud services bill. And of course, the company providing the service may choose to change their prices in the future.
+- Cloud speech recognition shares audio recordings with a third party, which may be a privacy concern.
+- Cloud speech recognition depends on an externally hosted API. It could break temporalily or permanently if the external API has an outage, makes a breaking change, or the company decides to stop providing the service to you.
+- Cloud speech recognition has good performance; while local speech recognition can be faster, in practice most players will be satisfied with the performance of cloud speech recognition.
+
+### Deployment with Local Speech Recognition
+
+When using local speech recognition, SkyEye works best when run on a dedicated system, separate from the DCS World and SRS servers.
 
 _Recommended Architecture: DCS, TacView and SRS on one Windows server. SkyEye on another Linux server._
 
@@ -31,9 +51,16 @@ flowchart LR
     dcs[Windows<br/>DCS World Server<br/>TacView Exporter<br/>SRS Server] <--> skyeye[Linux<br/>SkyEye]
 ```
 
-**Running SkyEye on the same computer as DCS World is not intended and probably won't work.** If you choose to try this anyway, configure Process Affinity to pin SkyEye to a set of dedicated CPU cores separate from any other CPU-intensive software. The easiest way to do this on Windows is by using the [CPU Affinities feature in Process Lasso](https://bitsum.com/processlasso-docs/#default_affinities).
+**Running SkyEye with local speech recognition on the same computer as DCS World is not intended and probably won't work.** If you choose to try this anyway, configure Process Affinity to pin SkyEye to a set of dedicated CPU cores separate from any other CPU-intensive software. The easiest way to do this on Windows is by using the [CPU Affinities feature in Process Lasso](https://bitsum.com/processlasso-docs/#default_affinities).
 
-SkyEye will automatically reconnect to TacView if the connection is lost. However, if the connection to SRS is lost, SkyEye will exit. The guides for Linux and Windows provided below include scripts to automatically restart SkyEye after a delay.
+### Deployment with Cloud Speech Recognition
+
+When using cloud speech recognition, you may deploy SkyEye on the same computer as DCS World and the SRS server.
+
+```mermaid
+flowchart TD
+    openai[OpenAI Audio Transcription API] <--> dcs[Windows<br/>DCS World Server<br/>TacView Exporter<br/>SRS Server<br/>SkyEye]
+```
 
 ## Software
 
@@ -42,7 +69,13 @@ requires Opus, SOXR and OpenBLAS to be installed using the OS package manager.
 
 ## Hardware
 
-SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space. The CPU must have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
+### Cloud Speech Recognition
+
+When using cloud speech recognition, SkyEye has relatively modest requirements: Any decent multithreaded CPU, around 1.5GB of RAM, and about 2GB of disk space.
+
+### Local Speech Recognition
+
+When using local speech recognition, SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space. The CPU must have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
 
 CPU Series|AVX2 Added In
 -|-
@@ -54,7 +87,7 @@ SkyEye currently only officially supports the AMD64 (x86-64) CPU architecture; A
 
 It is important that the CPU cores be **dedicated** cores. Shared core virtual machines are **not supported** and will result in **high latency and stuttering audio.**
 
-Non-scientific speech recognition performance:
+Non-scientific local speech recognition performance:
 
 System|CPU|Speech Recognition Model|Speech Recognition Time (Synthetic benchmark)|Speech Recognition Time (In practice)
 -|-|-|-|-
@@ -92,26 +125,26 @@ SkyEye can be configured using a YAML or JSON configuration file, environment va
 
 That is, environment variables override the config file, and CLI flags override everything.
 
-Command-line flags are documented in the `--help` text. Each flag can be provided directly as a config file key or as a `SKYEYE_` variable. For example, the whisper.cpp model path can be configured on Linux as a flag:
+Command-line flags are documented in the `--help` text. Each flag can be provided directly as a config file key or as a `SKYEYE_` variable. For example, the log level can be configured on Linux as a flag:
 
 ```sh
-./skyeye --whisper-model=models/ggml-small.en.bin
+./skyeye --log-level=debug
 ```
 
 Or a variable:
 
 ```sh
-export SKYEYE_WHISPER_MODEL=models/ggml-small.en.bin
+export SKYEYE_LOG_LEVEL=debug
 ./skyeye
 ```
 
 Or in a config file:
 
 ```yaml
-whisper_model: models/ggml-small.en.bin
+log-level: debug
 ```
 
-The config file's default location is `/etc/skyeye/config.yaml`. You can override this location by setting `--config-file` or `SKYEYE_CONFIG_FILE`.
+The config file's default location on Linux is `/etc/skyeye/config.yaml`. You can override this location by setting `--config-file` or `SKYEYE_CONFIG_FILE`. On Windows, the installer uses a `config.yaml` file within the same directory as `skyeye.exe`.
 
 It is recommended to use the configuration file as the main source of config. Most users find it the easiest option, and a file is simple to protect using access control policies, unlike a processes' environment or arguments.
 
@@ -119,7 +152,25 @@ A sample configuration file is provided in the download which should be customiz
 
 ## Speech Recognition
 
+### Cloud Speech Recognition
+
+You'll need to set up an account and organization for [OpenAI's API platform](https://openai.com/api/) and obtain an API key. Then configure both `recognizer` and `openai-api-key` in `config.yaml`:
+
+```yaml
+recognizer: openai-whisper-api
+openai-api-key: APIKEYGOESHERE
+```
+
+### Local Speech Recognition
+
 You'll need to choose a whisper.cpp speech recognition model from [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). See the example config file for recommendations on which model to use.
+
+Example configuration
+
+```yaml
+recognizer: openai-whisper-local
+whisper-model: whisper.bin
+```
 
 ## Networking
 

@@ -10,6 +10,13 @@ import (
 	"github.com/martinlindhe/unit"
 )
 
+type Recognizer string
+
+const (
+	WhisperLocal Recognizer = "openai-whisper-local"
+	WhisperAPI   Recognizer = "openai-whisper-api"
+)
+
 // Configuration for the SkyEye application.
 type Configuration struct {
 	// ACMIFile is the path to the ACMI file
@@ -47,8 +54,12 @@ type Configuration struct {
 	// RadarSweepInterval is the rate at which the radar will update. This does not impact performance - ACMI data is still streamed at the same rate.
 	// It only impacts the update rate of the GCI radar picture.
 	RadarSweepInterval time.Duration
-	// WhisperModel is a whisper.cpp model used for Speech To Text
+	// Recognizer selects which speech-to-text recognizer to use.
+	Recognizer Recognizer
+	// WhisperModel is a whisper.cpp model used for Speech To Text. It may be nil if OpenAI API transcription is configured.
 	WhisperModel *whisper.Model
+	// OpenAIAPIKey is the API key for the OpenAI API. It may be empty if local transcription is configured.
+	OpenAIAPIKey string
 	// Voice is the voice used for SRS transmissions
 	Voice voices.Voice
 	// Mute disables SRS transmissions
