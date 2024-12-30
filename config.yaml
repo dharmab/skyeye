@@ -22,7 +22,15 @@
 # Learn more: https://learnxinyminutes.com/docs/yaml/
 
 # SPEECH RECOGNITION
-# SkyEye requires a whisper.cpp model from
+#
+# Choose "openai-whisper-local" to use local speech recognition, which has
+# more intense system requirements.
+# Choose "openai-whisper-api" to use the OpenAI API for speech recognition,
+# which requires paying OpenAI for credits.
+# See docs/ADMIN.md for more details and advantages and disadvantages of each.
+#recognizer: openai-whisper-local
+#
+# If you chose local speech recogntion, SkyEye requires a whisper.cpp model from
 # https://huggingface.co/ggerganov/whisper.cpp/tree/main. Note that the
 # cloud-init and WinSW YAML files provided with the release will download the
 # model on your behalf before starting SkyEye. You probably only need to change
@@ -40,6 +48,10 @@
 # Only resort to the tiny model if the small model is too slow. It has poor
 # speech recognition quality.
 #whisper-model: ggml-tiny.en.bin
+#
+# If you chose the OpenAI API for cloud-based speech recognition, you need to
+# provide an API key. You can get an API key at https://openai.com/api.
+#openai-api-key: apikeygoeshere
 
 # TELEMETRY
 # Telemetry service address. Set this to the host and port of the TacView
@@ -85,7 +97,7 @@
 #grpc-address: dcs.example.com:50051
 #
 # If authentication is enabled on the DCS-gRPC server, set the API key here.
-# Authenication is STORNGLY RECOMMENDED if the DCS-gRPC server is exposed over
+# Authentication is STORNGLY RECOMMENDED if the DCS-gRPC server is exposed over
 # a network, as it allows powerful control over the DCS World server and mission.
 #grpc-password: passwordgoeshere
 

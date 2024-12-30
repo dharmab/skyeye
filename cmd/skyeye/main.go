@@ -53,7 +53,9 @@ var (
 	gciCallsigns                 []string
 	coalitionName                string
 	telemetryUpdateInterval      time.Duration
+	recognizerName               string
 	whisperModelPath             string
+	openAIAPIKey                 string
 	voiceName                    string
 	mute                         bool
 	voiceSpeed                   float64
@@ -106,9 +108,14 @@ func init() {
 	coalitionFlag := cli.NewEnum(&coalitionName, "Coalition", "blue", "red")
 	skyeye.Flags().Var(coalitionFlag, "coalition", "GCI coalition (blue, red)")
 
-	// AI models
+	// Speech-to-text
+	recognizerFlag := cli.NewEnum(&recognizerName, "Recognizer", string(conf.WhisperLocal), string(conf.WhisperAPI))
+	skyeye.Flags().Var(recognizerFlag, "recognizer", "Speech-to-text recognizer to use")
 	skyeye.Flags().StringVar(&whisperModelPath, "whisper-model", "", "Path to whisper.cpp model")
-	_ = skyeye.MarkFlagRequired("whisper-model")
+	skyeye.Flags().StringVar(&openAIAPIKey, "openai-api-key", "", "API key for OpenAPI AI")
+	skyeye.MarkFlagsOneRequired("whisper-model", "openai-api-key")
+
+	// Text-to-speech
 	voiceFlag := cli.NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine). Automatically chosen if not provided")
 	skyeye.Flags().Float64Var(&voiceSpeed, "voice-playback-speed", 1.0, "How quickly the GCI speaks (values below 1.0 are faster and above are slower)")
@@ -210,6 +217,12 @@ func loadCoalition() (coalition coalitions.Coalition) {
 }
 
 func loadWhisperModel() *whisper.Model {
+	if recognizerName != string(conf.WhisperLocal) {
+		return nil
+	}
+	if whisperModelPath == "" {
+		log.Fatal().Msg("whisper-model is required when recognizer is set to " + string(conf.WhisperLocal))
+	}
 	if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX2 {
 		log.Fatal().Msg("The CPU on this machine does not support AVX2 instructions.")
 	}
@@ -279,11 +292,6 @@ func preRun(cmd *cobra.Command, _ []string) error {
 	if err := initializeConfig(cmd); err != nil {
 		return fmt.Errorf("failed to initialize config: %w", err)
 	}
-
-	if whisperModelPath == "" && !viper.IsSet("whisper-model") {
-		_ = cmd.Help()
-		os.Exit(0)
-	}
 	return nil
 }
 
@@ -340,7 +348,9 @@ func run(_ *cobra.Command, _ []string) {
 		Callsign:                     callsign,
 		Coalition:                    coalition,
 		RadarSweepInterval:           telemetryUpdateInterval,
+		Recognizer:                   conf.Recognizer(recognizerName),
 		WhisperModel:                 whisperModel,
+		OpenAIAPIKey:                 openAIAPIKey,
 		Voice:                        voice,
 		Mute:                         mute,
 		VoiceSpeed:                   voiceSpeed,

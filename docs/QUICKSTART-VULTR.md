@@ -1,8 +1,12 @@
 # Quickstart on Vultr
 
-This guide is a step-by-step on how to run SkyEye on [Vultr](https://www.vultr.com/).
+This guide is a step-by-step on how to run SkyEye on [Vultr](https://www.vultr.com/) using local speech recogntion.
 
 It is assumed that you have set up an account, SSH keys and a billing method.
+
+## Getting Help
+
+See [the admin guide](ADMIN.md#getting-help) for how to get help if you have a problem.
 
 ## Create a SkyEye Server
 

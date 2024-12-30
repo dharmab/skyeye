@@ -1,8 +1,12 @@
 # Quickstart on Hetzner Cloud
 
-This guide is a step-by-step on how to run SkyEye on [Hetzner Cloud](https://www.hetzner.com/clouod).
+This guide is a step-by-step on how to run SkyEye on [Hetzner Cloud](https://www.hetzner.com/cloud) using local speech recogntion.
 
 It is assumed that you have set up an account and a billing method.
+
+## Getting Help
+
+See [the admin guide](ADMIN.md#getting-help) for how to get help if you have a problem.
 
 ## Create a Firewall
 
