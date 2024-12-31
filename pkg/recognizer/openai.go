@@ -21,6 +21,7 @@ type openaiRecognizer struct {
 
 var _ Recognizer = &openaiRecognizer{}
 
+// NewOpenAIRecognizer creates a new recognizer using OpenAI Platform.
 func NewOpenAIRecognizer(apiKey, callsign string) Recognizer {
 	return &openaiRecognizer{
 		callsign: callsign,
@@ -34,6 +35,7 @@ type transcriptionResponse struct {
 	Text string `json:"text"`
 }
 
+// Recognize implements [Recognizer.Recognize] using OpenAI Audio Transcriptions API.
 func (r *openaiRecognizer) Recognize(ctx context.Context, sample []float32, _ bool) (string, error) {
 	buf, err := createWAV(sample)
 	if err != nil {
@@ -53,6 +55,7 @@ func (r *openaiRecognizer) Recognize(ctx context.Context, sample []float32, _ bo
 	return transcription.Text, nil
 }
 
+// createWAV creates a RIFF WAV file from a 16KHz mono audio sample.
 func createWAV(sample []float32) (*bytes.Buffer, error) {
 	sampleRate := 16000
 	channels := 1
@@ -129,6 +132,8 @@ func createWAV(sample []float32) (*bytes.Buffer, error) {
 	return buf, nil
 }
 
-func writeBinary(w *bytes.Buffer, data interface{}) error {
+// writeBinary is a helper function to write binary data to a buffer in
+// little-endian order.
+func writeBinary(w *bytes.Buffer, data any) error {
 	return binary.Write(w, binary.LittleEndian, data)
 }
