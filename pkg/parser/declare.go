@@ -67,11 +67,12 @@ func parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity.DeclareRequ
 			if isSimilar(scanner.Text(), word) {
 				log.Debug().Str("text", scanner.Text()).Msg("found braa token")
 				scanner.Scan()
-				b, ok := parseBearing(scanner)
+				b, extra, ok := parseBearing(scanner)
 				if !ok {
 					return nil, false
 				}
 				bearing = b
+				scanner = prependToScanner(scanner, extra)
 				r, ok := parseRange(scanner)
 				if !ok {
 					return nil, false

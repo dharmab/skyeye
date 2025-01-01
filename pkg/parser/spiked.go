@@ -7,7 +7,7 @@ import (
 )
 
 func parseSpiked(callsign string, scanner *bufio.Scanner) (*brevity.SpikedRequest, bool) {
-	bearing, ok := parseBearing(scanner)
+	bearing, _, ok := parseBearing(scanner)
 	if !ok {
 		return nil, false
 	}
