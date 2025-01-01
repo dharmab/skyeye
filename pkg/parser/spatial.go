@@ -17,13 +17,16 @@ func parseBullseye(scanner *bufio.Scanner) *brevity.Bullseye {
 		return nil
 	}
 
-	b, ok := parseBearing(scanner)
+	b, extra, ok := parseBearing(scanner)
 	if !ok {
+		log.Debug().Msg("failed to parse bullseye bearing")
 		return nil
 	}
+	scanner = prependToScanner(scanner, extra)
 
 	r, ok := parseRange(scanner)
 	if !ok {
+		log.Debug().Msg("failed to parse bullseye range")
 		return nil
 	}
 
@@ -36,10 +39,12 @@ func parseBRA(scanner *bufio.Scanner) (brevity.BRA, bool) {
 	if !skipWords(scanner, braaWords...) {
 		return nil, false
 	}
-	b, ok := parseBearing(scanner)
+	b, extra, ok := parseBearing(scanner)
 	if !ok {
+		log.Debug().Msg("failed to parse BRA bearing")
 		return nil, false
 	}
+	scanner = prependToScanner(scanner, extra)
 
 	for scanner.Text() == "for" {
 		ok := scanner.Scan()
@@ -50,37 +55,45 @@ func parseBRA(scanner *bufio.Scanner) (brevity.BRA, bool) {
 
 	r, ok := parseRange(scanner)
 	if !ok {
+		log.Debug().Msg("failed to parse BRA range")
 		return nil, false
 	}
 
 	a, ok := parseAltitude(scanner)
 	if !ok {
+		log.Debug().Msg("failed to parse BRA altitude")
 		return nil, false
 	}
 
 	return brevity.NewBRA(b, r, a), true
 }
 
-// parseBearing parses a 3 digit magnetic bearing. Each digit must be individually pronounced. Zeroes must be prefixed to values below 100.
-func parseBearing(scanner *bufio.Scanner) (bearings.Bearing, bool) {
+// parseBearing parses a 3 digit magnetic bearing. Each digit should be
+// individually pronounced. Zeroes must be prefixed to values below 100.
+// Returns the bearing (if successfully parsed), the remaining text if any
+// characters were left in a token after parsing 3 digits, and a boolean
+// indicating if the bearing was successfully parsed.
+func parseBearing(scanner *bufio.Scanner) (bearings.Bearing, string, bool) {
 	bearing := 0 * unit.Degree
 	digitsParsed := 0
 	for digitsParsed < 3 {
-		for _, char := range scanner.Text() {
+		token := scanner.Text()
+		extra := token
+		for _, char := range token {
 			if d, err := numwords.ParseInt(string(char)); err == nil {
 				bearing = bearing*10 + unit.Degree*unit.Angle(d)
 				digitsParsed++
 			}
+			extra = extra[1:]
 			if digitsParsed == 3 {
-				return bearings.NewMagneticBearing(bearing), true
+				return bearings.NewMagneticBearing(bearing), extra, true
 			}
 		}
-		ok := scanner.Scan()
-		if !ok {
-			return bearings.NewMagneticBearing(bearing), true
+		if !scanner.Scan() {
+			return bearings.NewMagneticBearing(bearing), extra, true
 		}
 	}
-	return bearings.NewMagneticBearing(0), false
+	return bearings.NewMagneticBearing(0), "", false
 }
 
 // parseRange parses a distance. The number must be pronounced as a whole cardinal number.
@@ -102,7 +115,7 @@ func parseAltitude(scanner *bufio.Scanner) (unit.Length, bool) {
 	if !scanner.Scan() {
 		return 0, false
 	}
-	if !skipWords(scanner, "at", "altitude") {
+	if !skipWords(scanner, "at", "altitude", "angels") {
 		return 0, false
 	}
 	d, ok := parseNaturalNumber(scanner)

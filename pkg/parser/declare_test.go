@@ -202,7 +202,39 @@ func TestParserDeclare(t *testing.T) {
 					bearings.NewMagneticBearing(177*unit.Degree),
 					29*unit.NauticalMile,
 				),
-				Range: 29 * unit.NauticalMile,
+				Track: brevity.UnknownDirection,
+			},
+		},
+		{
+			text: "ANYFACE, DAGGER11, DECLARE, BULLSEYE 01464.",
+			expected: &brevity.DeclareRequest{
+				Callsign: "dagger 1 1",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(14*unit.Degree),
+					64*unit.NauticalMile,
+				),
+				Track: brevity.UnknownDirection,
+			},
+		},
+		{
+			text: "ANYFACE, DAGGER 1-1, DECLARE, BULZYE 01162, INJELS 18.",
+			expected: &brevity.DeclareRequest{
+				Callsign: "dagger 1 1",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(11*unit.Degree),
+					62*unit.NauticalMile,
+				),
+				Track: brevity.UnknownDirection,
+			},
+		},
+		{
+			text: "anyface, 140, declare BULLSEYE 058146",
+			expected: &brevity.DeclareRequest{
+				Callsign: "1 4 0",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(58*unit.Degree),
+					146*unit.NauticalMile,
+				),
 				Track: brevity.UnknownDirection,
 			},
 		},
@@ -241,12 +273,6 @@ func TestParserDeclare(t *testing.T) {
 func TestParserDeclareUnable(t *testing.T) {
 	t.Parallel()
 	testCases := []parserTestCase{
-		{
-			text: "anyface, 140, declare BULLSEYE 058146",
-			expected: &brevity.UnableToUnderstandRequest{
-				Callsign: "1 4 0",
-			},
-		},
 		{
 			text: "anyface, 140, declare 058",
 			expected: &brevity.UnableToUnderstandRequest{

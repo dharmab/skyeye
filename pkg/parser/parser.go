@@ -3,6 +3,7 @@ package parser
 
 import (
 	"bufio"
+	"bytes"
 	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -217,4 +218,19 @@ func skipWords(scanner *bufio.Scanner, words ...string) bool {
 		}
 	}
 	return true
+}
+
+func prependToScanner(scanner *bufio.Scanner, s string) *bufio.Scanner {
+	if s == "" {
+		return scanner
+	}
+	var buffer bytes.Buffer
+	_, _ = buffer.WriteString(s + " ")
+
+	for scanner.Scan() {
+		_, _ = buffer.WriteString(scanner.Text() + " ")
+	}
+	newScanner := bufio.NewScanner(&buffer)
+	newScanner.Split(bufio.ScanWords)
+	return newScanner
 }
