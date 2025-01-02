@@ -16,7 +16,6 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	for token, replacement := range map[string]string{
 		"request": "",
 		"this is": "",
-		"on one":  "11",
 		"want to": "12",
 		"tutu":    "22",
 		"to 8":    "28",

@@ -195,6 +195,132 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
+		{
+			text: TestCallsign + ", CAT1/1, request BOGUETTO.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "cat 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + "Cat 1.1 request BOGUE.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "cat 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + "Serptants, 6-8, Bogeydove.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "serptants 6 8",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", Spartan 1-1, Boogitope.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "spartan 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", COPWIPE11, BOKI NOLA.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "copwipe 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", Hornet one two, Bowie dope.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "hornet 1 2",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", radon11, boobydope.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "radon 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", stubs on one, poke it up.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "stubs on 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", Hollywood 11, VOGUE IT UP!",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "hollywood 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + "'s far on 1-1. Buggydope.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "s far on 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", copwhip11, poke it open.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "copwhip 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", copwhip11, poke it open.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "copwhip 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + " who is saying one-on-one request, Buggydope.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "who is saying 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", hood 1-3, BOBBYDO.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "hood 1 3",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", CAT11 request \"BOGI\".",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "cat 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", Voodoo11, BOGUIDO, please.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "voodoo 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", CAT1/1 \"BOGI\"",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "cat 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", hurry one, two. Bogeydome.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "hurry 1 2",
+				Filter:   brevity.Aircraft,
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()

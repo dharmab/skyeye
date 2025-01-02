@@ -70,6 +70,12 @@ func TestParserRadioCheck(t *testing.T) {
 				Callsign: "heaven",
 			},
 		},
+		{
+			text: TestCallsign + ", call me '1-2', DRAVIA CHECK.",
+			expected: &brevity.RadioCheckRequest{
+				Callsign: "call me 1 2",
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()

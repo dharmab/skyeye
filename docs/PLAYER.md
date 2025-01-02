@@ -53,7 +53,7 @@ Your callsign should be unique within a server. If multiple players have the sam
 
 Avoid:
 
-* Names that contain brevity codewords, including "alpha", "radio", "comm", "bogey", "picture", "declare", "snaplock", "spiked", "bullseye".
+* Names that contain or are similar to brevity codewords, including "alpha", "radio", "comm", "bogey", "picture", "declare", "snaplock", "spiked", "bullseye". For example, "Spade" can be difficult to distinguish from "SPIKE"
 * Names that are hard to distinguish, like "Spare"/"Spear", "Jester"/"Gesture", "Witch"/"Which". The bot will make a best effort, but may be less accurate.
 * Names that sound similar to numbers. For example, "Knight" sounds similar to "Nine", "Fort" sounds like "Four"
 * Names that aren't widely recognized words in common parlance, like "Razgriz" or "Beskar". The bot will make a best effort, but may be less accurate.
