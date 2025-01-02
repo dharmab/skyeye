@@ -86,7 +86,7 @@ Example: "Anyface, Mobius One, Alpha Check" and "Anyface, Mobius One, good morni
 
 Some types of requests require you to provide numeric arguments.
 
-* Compass bearings must be given by speaking each digit individually. Say "Six Five" or "Zero Six Five", not "Sixty-Five."
+* Compass bearings must be given by speaking all three digits individually. Say "Zero Six Five", not "Six Five" or "Sixty-Five."
 * All other numbers should be given normally - "Seventeen", not "One Seven"
 * Do not use ICAO pronunciation; pronounce numbers normally. Say "Three", "Five", "Nine", not "Tree", "Fife", "Niner".
 * When providing bullseye coordinates, you may either say "bullseye" before the coordinates, or omit the word "bullseye". That is, both "Bullseye Zero Six Five, Ninety-Nine" and "Zero Six Five, Ninety-Nine" are acceptable.
@@ -220,7 +220,7 @@ THUNDERHEAD: Mobius One, group bullseye 273/27, 2200, track east, hostile, Flank
 ```
 
 ```
-EAGLE 12: Disco, Eagle One Two, declare BRAA 090/25.
+EAGLE 12: Disco, Eagle One Two, declare BRAA zero nine zero, twenty five.
 DISCO: Eagle One Two, group bullseye 072/52, 8000, track north, hostile, Flogger.
 ```
 
@@ -334,11 +334,29 @@ Threat locations are given in BRAA format if they are relevant to a single frien
 
 Your own aircraft must be on a SkyEye SRS frequency, and using the same name in DCS and in SRS, to receive THREAT monitoring.
 
+Examples:
+
+```
+WIZARD: RAVEN Three One, threat group BRAA 070/20, 1000, hot, hostile, 2 contacts, Fishbed.
+```
+
+```
+GALAXY: HITMAN One One, threat group bullseye 040/96, 10000, track south, hostile, 2 contacts, Flanker.
+```
+
 ### MERGED
 
 If any fixed-wing threats close within 3 nautical miles of a friendly aircraft, the controller will transmit a MERGED call. MERGED calls only apply to fixed-wing threats. You won't receive a MERGED call about a helicopter threat.
 
 Your own aircraft must be on the SRS frequency, and using the same name in DCS and in SRS, to receive MERGED calls.
+
+You will only receive one MERGED call every 30 seconds. If you merge with multiple threats within 30 seconds, you will only receive one MERGED call.
+
+Example:
+
+```
+THUNDERHEAD: "Mobius one, merged."
+```
 
 ### FADED
 
@@ -349,5 +367,5 @@ When the GCI controller sees a hostile contact within weapons range of a friendl
 Example:
 
 ```
-THUNDERHEAD: "Thunderhead, single contact faded Bullseye 146/123, track west, hostile, Flanker"
+THUNDERHEAD: "Thunderhead, single contact faded, bullseye 146/123, track west, hostile, Flanker"
 ```
