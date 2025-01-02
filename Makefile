@@ -134,7 +134,7 @@ run:
 
 .PHONY: test
 test: generate
-	$(BUILD_VARS) $(GO) run gotest.tools/gotestsum -- $(BUILD_FLAGS) ./...
+	$(BUILD_VARS) $(GO) run gotest.tools/gotestsum -- $(BUILD_FLAGS) $(TEST_FLAGS) ./...
 
 .PHONY: benchmark-whisper
 benchmark-whisper: whisper

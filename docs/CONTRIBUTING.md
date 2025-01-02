@@ -153,9 +153,11 @@ Wow, that was easy!
 
 ## Test
 
-The canonical way to run the unit tests is by running `make test`. This can run tests for code that uses CGO. **This is the gate used for PR checks.**
+The canonical way to run the unit tests is by running `make test`. This can run tests for code that uses CGO. **This is the gate used for PR checks.** You can pass additional flags to `go test` using TEST_FLAGS. For example, `TEST_FLAGS=-parallel=1 make test` will run the tests without parallelism (1 test worker), which can make the logs for a failed test easier to understand.
 
 I have made an effort to structure packages so that CGO is never imported directly or indirectly within packages that aren't directly related to the Speech-To-Text and Text-To-Speech models. This means that most tests can be run though Visual Studio Code without the complexity and performance hit of CGO. **This is the easiest way to test and debug during development.**
+
+
 
 ## Benchmark
 
