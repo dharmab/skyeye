@@ -260,6 +260,39 @@ func TestParserDeclare(t *testing.T) {
 				IsBRAA:   true,
 			},
 		},
+		{
+			text: TestCallsign + ", Thunder 1-1, declare 17631.",
+			expected: &brevity.DeclareRequest{
+				Callsign: "thunder 1 1",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(176*unit.Degree),
+					31*unit.NauticalMile,
+				),
+				Track: brevity.UnknownDirection,
+			},
+		},
+		{
+			text: TestCallsign + ", Thunder 1-1, declare 177.29.",
+			expected: &brevity.DeclareRequest{
+				Callsign: "thunder 1 1",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(177*unit.Degree),
+					29*unit.NauticalMile,
+				),
+				Track: brevity.UnknownDirection,
+			},
+		},
+		{
+			text: TestCallsign + " who is saying 11 requests declare 25545.",
+			expected: &brevity.DeclareRequest{
+				Callsign: "who is saying 1 1",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(255*unit.Degree),
+					45*unit.NauticalMile,
+				),
+				Track: brevity.UnknownDirection,
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
