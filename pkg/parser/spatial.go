@@ -122,7 +122,13 @@ func parseAltitude(scanner *bufio.Scanner) (unit.Length, bool) {
 	if !ok {
 		return 0, false
 	}
-	return unit.Length(d) * unit.Foot, true
+
+	altitude := unit.Length(d) * unit.Foot
+	// Values below 100 are likely a player incorrectly saying "angels XX" intead of thousands of feet.
+	if d < 100 {
+		altitude = altitude * 1000
+	}
+	return altitude, true
 }
 
 func parseTrack(scanner *bufio.Scanner) brevity.Track {

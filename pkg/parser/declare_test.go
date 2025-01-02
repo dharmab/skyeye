@@ -217,7 +217,7 @@ func TestParserDeclare(t *testing.T) {
 			},
 		},
 		{
-			text: "ANYFACE, DAGGER 1-1, DECLARE, BULZYE 01162, INJELS 18.",
+			text: "ANYFACE, DAGGER 1-1, DECLARE, BULZYE 01162",
 			expected: &brevity.DeclareRequest{
 				Callsign: "dagger 1 1",
 				Bullseye: *brevity.NewBullseye(
@@ -225,6 +225,18 @@ func TestParserDeclare(t *testing.T) {
 					62*unit.NauticalMile,
 				),
 				Track: brevity.UnknownDirection,
+			},
+		},
+		{
+			text: "ANYFACE, DAGGER 1-1, DECLARE, BULZYE 011 62, INJELS 18.",
+			expected: &brevity.DeclareRequest{
+				Callsign: "dagger 1 1",
+				Bullseye: *brevity.NewBullseye(
+					bearings.NewMagneticBearing(11*unit.Degree),
+					62*unit.NauticalMile,
+				),
+				Altitude: 18000 * unit.Foot,
+				Track:    brevity.UnknownDirection,
 			},
 		},
 		{
