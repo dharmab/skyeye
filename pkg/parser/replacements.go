@@ -1,10 +1,17 @@
 package parser
 
-// alternateRequestWords is a map of alternate forms of request words.
-// These are used to provide aliases for certain commands and to deal with quality issues in speech-to-text.
-var alternateRequestWords = map[string]string{
+import (
+	"slices"
+)
+
+// replacementLUT is a map of alternate forms of request words. These are used
+// to provide aliases for certain commands and to deal with quality issues in
+// speech-to-text. Do not use this variable directly, instead use replacements
+// so that more specific forms are matched before more general forms.
+var replacementLUT = map[string]string{
 	"alphacheck":         alphaCheck,
 	"alphachek":          alphaCheck,
+	"alphajack":          alphaCheck,
 	"arfachek":           alphaCheck,
 	"arfatcheck":         alphaCheck,
 	"bobbiedope":         bogeyDope,
@@ -47,7 +54,6 @@ var alternateRequestWords = map[string]string{
 	"bokeido":            bogeyDope,
 	"bokey":              bogeyDope,
 	"bokeydope":          bogeyDope,
-	"boki do":            bogeyDope,
 	"boki":               bogeyDope,
 	"booby dop":          bogeyDope,
 	"boobydope":          bogeyDope,
@@ -68,17 +74,14 @@ var alternateRequestWords = map[string]string{
 	"bug it":             bogeyDope,
 	"bugadobe":           bogeyDope,
 	"bugadope":           bogeyDope,
+	"bugga":              bogeyDope,
 	"bugged up":          bogeyDope,
 	"buggetoo":           bogeyDope,
+	"buggetto":           bogeyDope,
 	"buggettope":         bogeyDope,
 	"buggidop":           bogeyDope,
-	"buggie do":          bogeyDope,
-	"buggie dog":         bogeyDope,
-	"buggie dope":        bogeyDope,
-	"buggy co":           bogeyDope,
-	"buggy do":           bogeyDope,
-	"buggy dog":          bogeyDope,
-	"buggy dope":         bogeyDope,
+	"buggie":             bogeyDope,
+	"buggy":              bogeyDope,
 	"buggydoke":          bogeyDope,
 	"buggydope":          bogeyDope,
 	"bugito":             bogeyDope,
@@ -124,10 +127,9 @@ var alternateRequestWords = map[string]string{
 	"pogdedo":            bogeyDope,
 	"pogeto":             bogeyDope,
 	"poggy dope":         bogeyDope,
+	"pogido":             bogeyDope,
 	"pogidop":            bogeyDope,
 	"pogito":             bogeyDope,
-	"pogy do":            bogeyDope,
-	"pogy dope":          bogeyDope,
 	"pogy":               bogeyDope,
 	"poke it open":       bogeyDope,
 	"poke it up":         bogeyDope,
@@ -151,4 +153,30 @@ var alternateRequestWords = map[string]string{
 	"vogue":              bogeyDope,
 	"voki":               bogeyDope,
 	"warn me":            tripwire,
+}
+
+type replacement struct {
+	Original string
+	Normal   string
+}
+
+// replacements is a slice of replacment forms of request words. replacements
+// is ordered so that more specific forms are matched before more general
+// forms.
+var replacements = []replacement{}
+
+func init() {
+	for k, v := range replacementLUT {
+		replacements = append(replacements, replacement{k, v})
+	}
+	slices.SortFunc(replacements, func(a, b replacement) int {
+		// Longer original strings should be matched first.
+		if len(a.Original) > len(b.Original) {
+			return -1
+		}
+		if len(a.Original) < len(b.Original) {
+			return 1
+		}
+		return 0
+	})
 }
