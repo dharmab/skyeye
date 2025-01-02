@@ -37,8 +37,8 @@ func normalize(tx string) string {
 	tx = removeSymbols(tx)
 	tx = spaceNumbers(tx)
 	tx = strings.TrimSpace(tx)
-	for alt, word := range alternateRequestWords {
-		tx = strings.ReplaceAll(tx, alt, word)
+	for _, repl := range replacements {
+		tx = strings.ReplaceAll(tx, repl.Original, repl.Normal)
 	}
 	tx = strings.Join(strings.Fields(tx), " ")
 	return tx

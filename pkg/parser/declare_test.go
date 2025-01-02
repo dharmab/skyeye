@@ -250,6 +250,16 @@ func TestParserDeclare(t *testing.T) {
 				Track: brevity.UnknownDirection,
 			},
 		},
+		{
+			text: TestCallsign + " GOLOM11, DECLARE, BRAA 25040.",
+			expected: &brevity.DeclareRequest{
+				Callsign: "golom 1 1",
+				Bearing:  bearings.NewMagneticBearing(250 * unit.Degree),
+				Range:    40 * unit.NauticalMile,
+				Track:    brevity.UnknownDirection,
+				IsBRAA:   true,
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
