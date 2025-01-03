@@ -1,32 +1,32 @@
 package composer
 
 import (
-	"fmt"
 	"slices"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
 // ComposeDeclareResponse constructs natural language brevity for responding to a DECLARE call.
-func (c *Composer) ComposeDeclareResponse(response brevity.DeclareResponse) NaturalLanguageResponse {
+func (c *Composer) ComposeDeclareResponse(response brevity.DeclareResponse) (reply NaturalLanguageResponse) {
+	reply.WriteBoth(c.composeCallsigns(response.Callsign) + ", ")
+
 	if response.Sour {
-		reply := fmt.Sprintf("%s, %s", c.composeCallsigns(response.Callsign), "unable, timber sour. Repeat your request with bullseye or BRAA position included.")
-		return NaturalLanguageResponse{
-			Subtitle: reply,
-			Speech:   reply,
-		}
+		reply.WriteBoth("unable, timber sour. Repeat your request with bullseye or BRAA position included.")
+		return
 	}
 
 	if slices.Contains([]brevity.Declaration{brevity.Furball, brevity.Unable, brevity.Clean}, response.Declaration) {
-		reply := fmt.Sprintf("%s, %s.", c.composeCallsigns(response.Callsign), response.Declaration)
-		return NaturalLanguageResponse{
-			Subtitle: reply,
-			Speech:   reply,
+		if response.Readback != nil {
+			bullseye := c.composeBullseye(*response.Readback)
+			reply.WriteResponse(bullseye)
+			reply.WriteBoth(",")
 		}
+		reply.WriteBoth(" " + string(response.Declaration))
+		return
 	}
+
 	info := c.composeCoreInformationFormat(response.Group)
-	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", c.composeCallsigns(response.Callsign), info.Subtitle),
-		Speech:   fmt.Sprintf("%s, %s", c.composeCallsigns(response.Callsign), info.Speech),
-	}
+	reply.WriteResponse(info)
+
+	return
 }
