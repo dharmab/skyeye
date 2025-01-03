@@ -48,6 +48,9 @@ type DeclareRequest struct {
 	Sour bool
 	// IsBRAA indicates if the contact is provided using Bullseye (false) or BRAA (true).
 	IsBRAA bool
+	// IsAmbiguous indicates if the requestor did not explicitly state if they
+	// were providing Bullseye or BRAA coordinates.
+	IsAmbiguous bool
 	// Bullseye of the contact, if provided using Bullseye.
 	Bullseye Bullseye
 	// Bearing of the contact, if provided using BRAA.
@@ -89,6 +92,9 @@ type DeclareResponse struct {
 	// because the friendly aircraft did not provide coordinates for the
 	// contact.
 	Sour bool
+	// If readback is not nil, the controller should read back the coordinate
+	// in the response.
+	Readback *Bullseye
 	// Declaration of the contact.
 	Declaration Declaration
 	// Group that was identified, if a specific one was identifiable.
