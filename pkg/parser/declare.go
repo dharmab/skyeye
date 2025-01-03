@@ -15,7 +15,8 @@ func parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity.DeclareRequ
 	var bullseye *brevity.Bullseye
 	var bearing bearings.Bearing
 	var _range unit.Length
-	var IsBRAA bool
+	var isBRAA bool
+	isAmbiguous := true
 	for {
 		if scanner.Text() == "" {
 			ok := scanner.Scan()
@@ -50,6 +51,7 @@ func parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity.DeclareRequ
 		for _, word := range bullseyeWords {
 			if isSimilar(scanner.Text(), word) {
 				log.Debug().Str("text", scanner.Text()).Msg("found bullseye token")
+				isAmbiguous = false
 				bullseye = parseBullseye(scanner)
 				if bullseye == nil {
 					return nil, false
@@ -66,6 +68,7 @@ func parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity.DeclareRequ
 		for _, word := range braaWords {
 			if isSimilar(scanner.Text(), word) {
 				log.Debug().Str("text", scanner.Text()).Msg("found braa token")
+				isAmbiguous = false
 				scanner.Scan()
 				b, extra, ok := parseBearing(scanner)
 				if !ok {
@@ -78,12 +81,12 @@ func parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity.DeclareRequ
 					return nil, false
 				}
 				_range = r
-				IsBRAA = true
+				isBRAA = true
 				break
 			}
 		}
 
-		if IsBRAA {
+		if isBRAA {
 			log.Debug().Float64("bearing", bearing.Degrees()).Float64("range", _range.NauticalMiles()).Msg("parsed bearing and range")
 			foundCoordinate = true
 			break
@@ -102,23 +105,25 @@ func parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity.DeclareRequ
 	track := parseTrack(scanner)
 	log.Debug().Stringer("track", track).Msg("parsed track")
 
-	if IsBRAA {
+	if isBRAA {
 		return &brevity.DeclareRequest{
-			Callsign: callsign,
-			Bearing:  bearing,
-			Range:    _range,
-			Altitude: altitude,
-			Track:    track,
-			IsBRAA:   true,
+			Callsign:    callsign,
+			Bearing:     bearing,
+			Range:       _range,
+			Altitude:    altitude,
+			Track:       track,
+			IsBRAA:      true,
+			IsAmbiguous: false,
 		}, true
 	}
 	if bullseye == nil {
 		return nil, false
 	}
 	return &brevity.DeclareRequest{
-		Callsign: callsign,
-		Bullseye: *bullseye,
-		Altitude: altitude,
-		Track:    track,
+		Callsign:    callsign,
+		Bullseye:    *bullseye,
+		Altitude:    altitude,
+		Track:       track,
+		IsAmbiguous: isAmbiguous,
 	}, true
 }

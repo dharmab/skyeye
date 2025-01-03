@@ -21,8 +21,9 @@ func TestParserDeclare(t *testing.T) {
 					bearings.NewMagneticBearing(75*unit.Degree),
 					26*unit.NauticalMile,
 				),
-				Altitude: 2000 * unit.Foot,
-				Track:    brevity.UnknownDirection,
+				IsAmbiguous: true,
+				Altitude:    2000 * unit.Foot,
+				Track:       brevity.UnknownDirection,
 			},
 		},
 		{
@@ -33,8 +34,9 @@ func TestParserDeclare(t *testing.T) {
 					bearings.NewMagneticBearing(75*unit.Degree),
 					26*unit.NauticalMile,
 				),
-				Altitude: 0,
-				Track:    brevity.UnknownDirection,
+				IsAmbiguous: true,
+				Altitude:    0,
+				Track:       brevity.UnknownDirection,
 			},
 		},
 		{
@@ -45,8 +47,9 @@ func TestParserDeclare(t *testing.T) {
 					bearings.NewMagneticBearing(75*unit.Degree),
 					26*unit.NauticalMile,
 				),
-				Altitude: 2000 * unit.Foot,
-				Track:    brevity.UnknownDirection,
+				IsAmbiguous: true,
+				Altitude:    2000 * unit.Foot,
+				Track:       brevity.UnknownDirection,
 			},
 		},
 		{
@@ -69,8 +72,9 @@ func TestParserDeclare(t *testing.T) {
 					bearings.NewMagneticBearing(75*unit.Degree),
 					26*unit.NauticalMile,
 				),
-				Altitude: 2000 * unit.Foot,
-				Track:    brevity.UnknownDirection,
+				IsAmbiguous: true,
+				Altitude:    2000 * unit.Foot,
+				Track:       brevity.UnknownDirection,
 			},
 		},
 		{
@@ -129,8 +133,9 @@ func TestParserDeclare(t *testing.T) {
 					bearings.NewMagneticBearing(52*unit.Degree),
 					77*unit.NauticalMile,
 				),
-				Altitude: 2000 * unit.Foot,
-				Track:    brevity.UnknownDirection,
+				IsAmbiguous: true,
+				Altitude:    2000 * unit.Foot,
+				Track:       brevity.UnknownDirection,
 			},
 		},
 		{
@@ -180,8 +185,9 @@ func TestParserDeclare(t *testing.T) {
 		{
 			text: "anyface, Eagle 12, declare",
 			expected: &brevity.DeclareRequest{
-				Callsign: "eagle 1 2",
-				Sour:     true,
+				Callsign:    "eagle 1 2",
+				Sour:        true,
+				IsAmbiguous: true,
 			},
 		},
 		{
@@ -202,7 +208,8 @@ func TestParserDeclare(t *testing.T) {
 					bearings.NewMagneticBearing(177*unit.Degree),
 					29*unit.NauticalMile,
 				),
-				Track: brevity.UnknownDirection,
+				IsAmbiguous: true,
+				Track:       brevity.UnknownDirection,
 			},
 		},
 		{
@@ -268,7 +275,8 @@ func TestParserDeclare(t *testing.T) {
 					bearings.NewMagneticBearing(176*unit.Degree),
 					31*unit.NauticalMile,
 				),
-				Track: brevity.UnknownDirection,
+				IsAmbiguous: true,
+				Track:       brevity.UnknownDirection,
 			},
 		},
 		{
@@ -279,7 +287,8 @@ func TestParserDeclare(t *testing.T) {
 					bearings.NewMagneticBearing(177*unit.Degree),
 					29*unit.NauticalMile,
 				),
-				Track: brevity.UnknownDirection,
+				IsAmbiguous: true,
+				Track:       brevity.UnknownDirection,
 			},
 		},
 		{
@@ -290,7 +299,8 @@ func TestParserDeclare(t *testing.T) {
 					bearings.NewMagneticBearing(255*unit.Degree),
 					45*unit.NauticalMile,
 				),
-				Track: brevity.UnknownDirection,
+				IsAmbiguous: true,
+				Track:       brevity.UnknownDirection,
 			},
 		},
 	}

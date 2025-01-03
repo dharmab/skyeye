@@ -116,6 +116,10 @@ func (c *Controller) HandleDeclare(ctx context.Context, request *brevity.Declare
 		}
 	}
 
+	if request.IsAmbiguous {
+		response.Readback = &request.Bullseye
+	}
+
 	logger.Debug().Any("declaration", response.Declaration).Msg("responding to DECLARE request")
 	c.calls <- NewCall(ctx, response)
 }
