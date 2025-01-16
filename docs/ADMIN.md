@@ -37,7 +37,7 @@ On the other hand, cloud speech recognition has a separate set of tradeoffs:
 - Less technical users will likely prefer cloud speech recognition, since it requires only one computer instead of two networked together.
 - Cloud speech recognition has a variable cost; this can be an advantage or disadvantage. In general, light to moderate usage is less expensive when using cloud speech recognition compared to using local speech recognition on a rented server. However, this can still be more expensive compared to self-hosted local speech recognition, or if you have a particularly chatty group of players. On public servers, there is a potential for abuse if a particular player spams the channel and racks up the cloud services bill. And of course, the company providing the service may choose to change their prices in the future.
 - Cloud speech recognition shares audio recordings with a third party, which may be a privacy concern.
-- Cloud speech recognition depends on an externally hosted API. It could break temporalily or permanently if the external API has an outage, makes a breaking change, or the company decides to stop providing the service to you.
+- Cloud speech recognition depends on an externally hosted API. It could break temporarily or permanently if the external API has an outage, makes a breaking change, or the company decides to stop providing the service to you.
 - Cloud speech recognition has good performance; while local speech recognition can be faster, in practice most players will be satisfied with the performance of cloud speech recognition.
 
 ### Deployment with Local Speech Recognition
@@ -110,7 +110,7 @@ Examples of suitable servers include:
 * [Amazon EC2 Dedicated Instances](https://aws.amazon.com/ec2/pricing/dedicated-instances/)
 * GCP Compute Engine `c2d-highcpu-*`, `c3d-highcpu-*`, `c3-highcpu-*`, `c4-highcpu-*` instances
 * Hetzner CCX instances
-* [Vultr Optimized Cloud Compute (CPU Optmized)](https://www.vultr.com/pricing/#optimized-cloud-compute)
+* [Vultr Optimized Cloud Compute (CPU Optimized)](https://www.vultr.com/pricing/#optimized-cloud-compute)
 * [Linode Dedicated CPU Instances](https://www.linode.com/pricing/#compute-dedicated)
 
 I won't provide an endorsement of any particular provider, but I will point out that as of August 2024 Hetzner's CCX23 instance is probably the cheapest way the run SkyEye on public cloud. The cheapest way to run SkyEye overall is probably on a spare computer in your house.
@@ -120,7 +120,7 @@ I won't provide an endorsement of any particular provider, but I will point out 
 SkyEye can be configured using a YAML or JSON configuration file, environment variables and/or command-line flags. The order of priority is:
 
 1. CLI flags
-2. Environment variabls
+2. Environment variables
 3. Configuration file
 
 That is, environment variables override the config file, and CLI flags override everything.
@@ -210,7 +210,7 @@ The body of the POST request is a JSON object with the following fields:
 - `action`: Either "run" if there is at least one player on SRS, or "stop" if there are no players on SRS.
 - `players`: The number of players on SRS.
 - `address`: The address and port of the SRS server being monitored, e.g. "srs.example.com:5002"
-- `frequencies`: A list of the SRSs frequencies being monitored. Each element is a float representing the channel's frequency in MHz.
+- `frequencies`: A list of the SRS frequencies being monitored. Each element is a float representing the channel's frequency in MHz.
 
 By implementing a small webservice or serverless function that creates or destroys a SkyEye instance on demand, the cost of running SkyEye can be significantly reduced. This is particularly useful for servers that are only active for a few hours a week, such as a private squadron server.
 
