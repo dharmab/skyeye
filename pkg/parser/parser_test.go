@@ -26,6 +26,7 @@ func runParserTestCases(
 			t.Helper()
 			t.Parallel()
 			actual := p.Parse(test.text)
+			require.NotNil(t, actual)
 			require.IsType(t, test.expected, actual)
 			fn(t, test, actual)
 		})
@@ -43,12 +44,22 @@ func TestParserSadPaths(t *testing.T) {
 			text:     "anyface radio check",
 			expected: &brevity.UnableToUnderstandRequest{},
 		},
+		{
+			text: "anyface eagle 1",
+			expected: &brevity.UnableToUnderstandRequest{
+				Callsign: "eagle 1",
+			},
+		},
 	}
 	runParserTestCases(
 		t,
 		New(TestCallsign, true),
 		testCases,
-		// Nothing more to do, since the type is already checked
-		func(*testing.T, parserTestCase, any) {},
+		func(t *testing.T, test parserTestCase, request any) {
+			t.Helper()
+			expected := test.expected.(*brevity.UnableToUnderstandRequest)
+			actual := request.(*brevity.UnableToUnderstandRequest)
+			require.Equal(t, expected.Callsign, actual.Callsign)
+		},
 	)
 }
