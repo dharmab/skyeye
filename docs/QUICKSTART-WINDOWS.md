@@ -14,7 +14,7 @@ Otherwise, go to https://platform.openai.com/settings/organization/api-keys and 
 
 Be sure to review the pricing of the "Whisper" audio model at https://openai.com/api/pricing. You will pay per-second for each second a player transmits on a SkyEye frequency in SRS. (You are not charged for the time SkyEye itself spends transmitting, nor are you charged for transmissions on other frequencies.)
 
-## Set Up DCS, Tacview, and SRS
+## Set Up DCS, TacView, and SRS
 
 Install DCS (either the client for singleplayer/hosted multiplayer use, or a dedicated server for multiplayer use).
 
@@ -22,7 +22,7 @@ Install the TacView Exporter. Within DCS, go to OPTIONS → SPECIAL → Tacview 
 
 Install SRS. Start and configure the SRS Server.
 
-Makre sure DCS is running a mission with both friendly and hostile air units so you can do some tests.
+Make sure DCS is running a mission with both friendly and hostile air units so you can do some tests.
 
 ## Set up SkyEye
 
