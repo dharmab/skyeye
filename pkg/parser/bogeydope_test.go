@@ -221,6 +221,26 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
+		simpleBogeyDopeTestCase("'Bogydope'"),
+		simpleBogeyDopeTestCase("BUGGADOPE"),
+		simpleBogeyDopeTestCase("BUGGET OAP."),
+		simpleBogeyDopeTestCase("BOGILOPE"),
+		simpleBogeyDopeTestCase("bug a dope"),
+		simpleBogeyDopeTestCase("buggett ope."),
+		simpleBogeyDopeTestCase("BOBBY DOPE"),
+		simpleBogeyDopeTestCase("Spokiedope"),
+		simpleBogeyDopeTestCase("Boogity"),
+		{
+			text: TestCallsign + "Cat11, Quest BOGUDO.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "cat 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		simpleBogeyDopeTestCase("OGIIDO."),
+		simpleBogeyDopeTestCase("OGYDO"),
+		simpleBogeyDopeTestCase("Bokeydoke"),
+		simpleBogeyDopeTestCase("PUKIDO"),
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()

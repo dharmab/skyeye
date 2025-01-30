@@ -64,6 +64,15 @@ func findRequestWord(fields []string) (string, int, bool) {
 			if isSimilar(word, field) {
 				return word, i, true
 			}
+			// HACK: Also compare the first half of long fields separately.
+			// Handles some cases of two words running together, e.g.
+			// "bogeydope" instead of "bogey dope".
+			if len(field) > 8 {
+				halfField := field[:len(field)/2]
+				if isSimilar(word, halfField) {
+					return word, i, true
+				}
+			}
 		}
 	}
 	return "", 0, false
