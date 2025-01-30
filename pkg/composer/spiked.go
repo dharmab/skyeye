@@ -2,45 +2,51 @@ package composer
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
 // ComposeSpikedResponse constructs natural language brevity for responding to a SPIKED call.
-func (c *Composer) ComposeSpikedResponse(response brevity.SpikedResponse) NaturalLanguageResponse {
+func (c *Composer) ComposeSpikedResponse(response brevity.SpikedResponseV2) NaturalLanguageResponse {
 	if response.Status {
-		reply := fmt.Sprintf(
-			"%s, spike range %d, %s, %s",
-			c.composeCallsigns(response.Callsign),
-			int(response.Range.NauticalMiles()),
-			c.composeAltitude(response.Altitude, brevity.Bogey),
-			response.Aspect)
-		isCardinalAspect := slices.Contains([]brevity.Aspect{brevity.Flank, brevity.Beam, brevity.Drag}, response.Aspect)
-		isTrackKnown := response.Track != brevity.UnknownDirection
-		if isCardinalAspect && isTrackKnown {
-			reply = fmt.Sprintf("%s %s", reply, response.Track)
+		nlr := NaturalLanguageResponse{}
+
+		callsigns := c.composeCallsigns(response.Callsign)
+		nlr.WriteBoth(callsigns)
+
+		grp := response.Group
+
+		_range := int(grp.BRAA().Range().NauticalMiles())
+		nlr.WriteBothf(", spike range %d", _range)
+
+		nlr.WriteBoth(", ")
+		altitude := c.composeAltitudeStacks(grp.Stacks(), grp.Declaration())
+		nlr.WriteBoth(altitude)
+
+		nlr.WriteBothf(", %s", grp.BRAA().Aspect())
+
+		if grp.BRAA().Aspect().IsCardinal() && grp.Track() != brevity.UnknownDirection {
+			nlr.WriteBothf(" %s", grp.Track())
 		}
-		reply = fmt.Sprintf("%s, %s", reply, response.Declaration)
-		if response.Contacts == 1 {
-			reply += ", single contact."
-		} else if response.Contacts > 1 {
-			reply = fmt.Sprintf("%s, %d contacts.", reply, response.Contacts)
+		declaration := c.composeDeclaration(grp)
+		nlr.WriteBoth(", ")
+		nlr.WriteResponse(declaration)
+
+		fillIns := c.composeFillIns(grp)
+		if len(fillIns.Subtitle) > 0 {
+			nlr.WriteResponse(fillIns)
 		}
-		return NaturalLanguageResponse{
-			Subtitle: reply,
-			Speech:   reply,
-		}
+		nlr.WriteBoth(".")
+		return nlr
 	}
 	if response.Bearing == nil {
+		nlr := NaturalLanguageResponse{}
 		message := fmt.Sprintf("%s, %s", c.composeCallsigns(response.Callsign), brevity.Unable)
-		return NaturalLanguageResponse{
-			Subtitle: message,
-			Speech:   message,
-		}
+		nlr.WriteBoth(message)
+		return nlr
 	}
 	return NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf("%s, %s clean %d.", c.composeCallsigns(response.Callsign), c.composeCallsigns(c.Callsign), int(response.Bearing.Degrees())),
-		Speech:   fmt.Sprintf("%s, %s, clean - %s", c.composeCallsigns(response.Callsign), c.composeCallsigns(c.Callsign), pronounceBearing(response.Bearing)),
+		Speech:   fmt.Sprintf("%s, %s, clean %s", c.composeCallsigns(response.Callsign), c.composeCallsigns(c.Callsign), pronounceBearing(response.Bearing)),
 	}
 }

@@ -55,3 +55,7 @@ func AspectFromAngle(bearing bearings.Bearing, track bearings.Bearing) Aspect {
 		return UnknownAspect
 	}
 }
+
+func (a Aspect) IsCardinal() bool {
+	return a == Flank || a == Beam || a == Drag
+}
