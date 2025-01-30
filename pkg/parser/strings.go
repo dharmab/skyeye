@@ -19,6 +19,15 @@ func isSimilar(a, b string) bool {
 	return v > 0.6
 }
 
+func hasDigits(tx string) bool {
+	for _, r := range tx {
+		if unicode.IsDigit(r) {
+			return true
+		}
+	}
+	return false
+}
+
 // normalize the given string by applying the following transformations:
 //
 //   - Split on any "|" character and discard the tail.

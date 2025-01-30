@@ -46,13 +46,6 @@ func parseBRA(scanner *bufio.Scanner) (brevity.BRA, bool) {
 	}
 	scanner = prependToScanner(scanner, extra)
 
-	for scanner.Text() == "for" {
-		ok := scanner.Scan()
-		if !ok {
-			return nil, false
-		}
-	}
-
 	r, ok := parseRange(scanner)
 	if !ok {
 		log.Debug().Msg("failed to parse BRA range")
@@ -62,7 +55,6 @@ func parseBRA(scanner *bufio.Scanner) (brevity.BRA, bool) {
 	a, ok := parseAltitude(scanner)
 	if !ok {
 		log.Debug().Msg("failed to parse BRA altitude")
-		return nil, false
 	}
 
 	return brevity.NewBRA(b, r, a), true
@@ -78,6 +70,12 @@ func parseBearing(scanner *bufio.Scanner) (bearings.Bearing, string, bool) {
 	digitsParsed := 0
 	for digitsParsed < 3 {
 		token := scanner.Text()
+		if !hasDigits(token) {
+			if !scanner.Scan() {
+				return bearings.NewMagneticBearing(0), "", false
+			}
+			continue
+		}
 		extra := token
 		for _, char := range token {
 			if d, err := numwords.ParseInt(string(char)); err == nil {
