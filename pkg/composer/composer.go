@@ -2,6 +2,7 @@
 package composer
 
 import (
+	"fmt"
 	"unicode"
 )
 
@@ -29,6 +30,11 @@ func (r *NaturalLanguageResponse) Write(speech, subtitle string) {
 // WriteBoth appends the same text to the subtitle and speech fields.
 func (r *NaturalLanguageResponse) WriteBoth(s string) {
 	r.Write(s, s)
+}
+
+// WriteBothf appends the formatted string to the subtitle and speech fields.
+func (r *NaturalLanguageResponse) WriteBothf(format string, a ...any) {
+	r.WriteBoth(fmt.Sprintf(format, a...))
 }
 
 // WriteResponse appends the given response's subtitle and speech to this response.

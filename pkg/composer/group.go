@@ -3,7 +3,6 @@ package composer
 import (
 	"fmt"
 	"math"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -59,7 +58,7 @@ func (c *Composer) composeGroup(group brevity.Group) (response NaturalLanguageRe
 			fmt.Sprintf("%s %s, %s", label, bullseye.Subtitle, altitude),
 		)
 		if isTrackKnown {
-			response.WriteBoth(fmt.Sprintf(", track %s", group.Track()))
+			response.WriteBothf(", track %s", group.Track())
 		}
 	} else if group.BRAA() != nil {
 		braa := c.composeBRAA(group.BRAA(), group.Declaration())
@@ -67,23 +66,36 @@ func (c *Composer) composeGroup(group brevity.Group) (response NaturalLanguageRe
 			fmt.Sprintf("%s %s", label, braa.Speech),
 			fmt.Sprintf("%s %s", label, braa.Subtitle),
 		)
-		isCardinalAspect := slices.Contains([]brevity.Aspect{brevity.Flank, brevity.Beam, brevity.Drag}, group.BRAA().Aspect())
-		if isCardinalAspect && isTrackKnown {
-			response.WriteBoth(fmt.Sprintf(" %s", group.Track()))
+		if group.BRAA().Aspect().IsCardinal() && isTrackKnown {
+			response.WriteBothf(" %s", group.Track())
 		}
 	}
 
 	// Declaration
-	response.WriteBoth(fmt.Sprintf(", %s", group.Declaration()))
+	response.WriteBoth(", ")
+	declaration := c.composeDeclaration(group)
+	response.WriteResponse(declaration)
+
+	// Fill-in information
+	fillIns := c.composeFillIns(group)
+	response.WriteResponse(fillIns)
+
+	response.WriteBoth(".")
+	return
+}
+
+func (*Composer) composeDeclaration(group brevity.Group) (response NaturalLanguageResponse) {
+	response.WriteBoth(string(group.Declaration()))
 	if group.MergedWith() == 1 {
 		response.WriteBoth(", merged with 1 friendly")
 	}
 	if group.MergedWith() > 1 {
-		response.WriteBoth(fmt.Sprintf(", merged with %d friendlies", group.MergedWith()))
+		response.WriteBothf(", merged with %d friendlies", group.MergedWith())
 	}
+	return
+}
 
-	// Fill-in information
-
+func (c *Composer) composeFillIns(group brevity.Group) (response NaturalLanguageResponse) {
 	isFurball := group.Declaration() == brevity.Furball
 
 	if !isFurball {
@@ -95,6 +107,7 @@ func (c *Composer) composeGroup(group brevity.Group) (response NaturalLanguageRe
 		response.WriteResponse(contacts)
 
 		if !group.High() {
+			stacks := group.Stacks()
 			if len(stacks) > 1 {
 				response.WriteBoth(", " + c.composeAltitudeFillIns(stacks))
 			}
@@ -121,7 +134,6 @@ func (c *Composer) composeGroup(group brevity.Group) (response NaturalLanguageRe
 		}
 	}
 
-	response.WriteBoth(".")
 	return
 }
 

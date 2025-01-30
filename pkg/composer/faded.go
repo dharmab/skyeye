@@ -1,8 +1,6 @@
 package composer
 
 import (
-	"fmt"
-
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
@@ -12,7 +10,7 @@ func (c *Composer) ComposeFadedCall(call brevity.FadedCall) (response NaturalLan
 	if call.Group.Contacts() == 1 {
 		response.WriteBoth("single contact faded,")
 	} else {
-		response.WriteBoth(fmt.Sprintf("%d contacts faded,", call.Group.Contacts()))
+		response.WriteBothf("%d contacts faded,", call.Group.Contacts())
 	}
 
 	if bullseye := call.Group.Bullseye(); bullseye != nil {
@@ -21,11 +19,11 @@ func (c *Composer) ComposeFadedCall(call brevity.FadedCall) (response NaturalLan
 	}
 
 	if call.Group.Track() != brevity.UnknownDirection {
-		response.WriteBoth(fmt.Sprintf(", track %s", call.Group.Track()))
+		response.WriteBothf(", track %s", call.Group.Track())
 	}
 
 	if call.Group.Declaration() != brevity.Unable {
-		response.WriteBoth(fmt.Sprintf(", %s", call.Group.Declaration()))
+		response.WriteBothf(", %s", call.Group.Declaration())
 	}
 
 	for _, platform := range call.Group.Platforms() {

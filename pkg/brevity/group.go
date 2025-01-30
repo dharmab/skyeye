@@ -23,13 +23,13 @@ type Group interface {
 	// Altitude is the group's highest altitude. This may be zero for BOGEY DOPE, SNAPLOCK, and THREAT calls.
 	Altitude() unit.Length
 	// Stacks are the group's altitude STACKS, ordered from highest to lowest in intervals of at least 10,000 feet.
-	// This may be empty for BOGEY DOPE, SNAPLOCK, and THREAT calls.
+	// This may be empty for BOGEY DOPE, SNAPLOCK, SPIKED and THREAT calls.
 	Stacks() []Stack
-	// Track is the group's track direction. This may be UnknownDirection for BOGEY DOPE, SNAPLOCK, and THREAT calls.
+	// Track is the group's track direction. This may be UnknownDirection for BOGEY DOPE, SNAPLOCK, SPIKED and THREAT calls.
 	Track() Track
-	// Aspect is the group's aspect angle relative to another aircraft. This may be nil for BOGEY DOPE, SNAPLOCK, and some THREAT calls.
+	// Aspect is the group's aspect angle relative to another aircraft. This may be nil for BOGEY DOPE, SNAPLOCK, SPIKED and some THREAT calls.
 	Aspect() Aspect
-	// BRAA is an alternate format for the group's location. This is nil except for BOGEY DOPE, SNAPLOCK, and some THREAT calls.
+	// BRAA is an alternate format for the group's location. This is nil except for BOGEY DOPE, SNAPLOCK, SPIKED, and some THREAT calls.
 	BRAA() BRAA
 	// Declaration of the group's friend or foe status.
 	Declaration() Declaration
