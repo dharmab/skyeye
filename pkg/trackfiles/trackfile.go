@@ -151,6 +151,42 @@ func (t *Trackfile) Course() bearings.Bearing {
 	return course
 }
 
+// IsManuevering returns true if the track is changing direction.
+func (t *Trackfile) IsManuevering() bool {
+	t.lock.RLock()
+	defer t.lock.RUnlock()
+	if t.track.Len() <= 2 {
+		return false
+	}
+	type courseChange struct {
+		a  unit.Angle
+		dt time.Duration
+	}
+	courseChanges := make([]courseChange, 0, t.track.Len()-1)
+	latest := t.track.Front()
+	for i := 1; i < t.track.Len(); i++ {
+		cursor := t.track.At(i)
+		angularChange := spatial.AngularDifference(
+			bearings.NewTrueBearing(latest.Heading),
+			bearings.NewTrueBearing(cursor.Heading),
+		)
+		timeDelta := latest.Time.Sub(cursor.Time)
+		courseChanges = append(courseChanges, courseChange{angularChange, timeDelta})
+	}
+	maxCourseChange := 0 * unit.Degree
+	maxCourseChangePerSecond := 0 * unit.Degree
+	for _, change := range courseChanges {
+		if change.a > maxCourseChange {
+			maxCourseChange = change.a
+		}
+		angularChangePerSecond := unit.Angle(change.a.Degrees()/change.dt.Seconds()) * unit.Degree
+		if angularChangePerSecond > maxCourseChangePerSecond {
+			maxCourseChangePerSecond = angularChangePerSecond
+		}
+	}
+	return maxCourseChangePerSecond > (90.0/40.0)*unit.Degree && maxCourseChange > 60*unit.Degree
+}
+
 // Direction returns the cardinal direction that the track is moving in, or [brevity.UnknownDirection] if the track is not moving faster than 1 m/s.
 func (t *Trackfile) Direction() brevity.Track {
 	t.lock.RLock()

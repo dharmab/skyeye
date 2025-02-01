@@ -28,6 +28,15 @@ func TrueBearing(a, b orb.Point) bearings.Bearing {
 	)
 }
 
+// AngularDifference returns the absolute difference between two bearings.
+func AngularDifference(a, b bearings.Bearing) unit.Angle {
+	difference := math.Abs(a.Value().Degrees() - b.Value().Degrees())
+	if difference > 180 {
+		difference = 360 - difference
+	}
+	return unit.Angle(difference) * unit.Degree
+}
+
 // PointAtBearingAndDistance returns the point at the given bearing and distance from the origin point.
 func PointAtBearingAndDistance(origin orb.Point, bearing bearings.Bearing, distance unit.Length) orb.Point {
 	if bearing.IsMagnetic() {
