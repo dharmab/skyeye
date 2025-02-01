@@ -21,7 +21,11 @@ func (c *Composer) ComposeDeclareResponse(response brevity.DeclareResponse) (rep
 			reply.WriteResponse(bullseye)
 			reply.WriteBoth(",")
 		}
-		reply.WriteBoth(" " + string(response.Declaration))
+		reply.WriteBoth(" ")
+		reply.WriteResponse(c.composeDeclaration(response.Group))
+		if fillIns := c.composeFillIns(response.Group); fillIns.Subtitle != "" {
+			reply.WriteResponse(fillIns)
+		}
 		return
 	}
 
