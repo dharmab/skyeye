@@ -1,10 +1,10 @@
 package parser
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestParsePilotCallsign(t *testing.T) {
@@ -25,14 +25,35 @@ func TestParsePilotCallsign(t *testing.T) {
 		{"Red 054", "red 0 5 4"},
 		{"Gunfighter request", "gunfighter"},
 		{"This is Red 7", "red 7"},
+		{"[CLAN] Wolf 1", "wolf 1"},
+		{"Wolf 1 [CLAN]", "wolf 1"},
+		{"[CLAN] Wolf 1 [1SG]", "wolf 1"},
+		{"[Wolf 1", "wolf 1"},
 	}
 
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			actual, ok := ParsePilotCallsign(test.name)
-			require.True(t, ok)
+			assert.True(t, ok)
 			assert.Equal(t, test.expected, actual)
+		})
+	}
+}
+
+func TestParsePilotCallsignInvalid(t *testing.T) {
+	t.Parallel()
+	testCases := []string{
+		"",
+		"[]",
+		"[CLAN]",
+	}
+
+	for i, test := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			t.Parallel()
+			_, ok := ParsePilotCallsign(test)
+			assert.False(t, ok)
 		})
 	}
 }
