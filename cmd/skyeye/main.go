@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"math/rand/v2"
+	"net/http"
 	"os"
 	"os/signal"
 	"reflect"
@@ -19,6 +20,7 @@ import (
 	"golang.org/x/sys/cpu"
 
 	"github.com/martinlindhe/unit"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -30,6 +32,12 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/prometheus"
+	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
 // Used for CLI configuration values.
@@ -66,6 +74,8 @@ var (
 	threatMonitoringInterval     time.Duration
 	threatMonitoringRequiresSRS  bool
 	mandatoryThreatRadiusNM      float64
+	exportMetrics                bool
+	metricsPort                  int
 	enableTracing                bool
 	discordWebhookID             string
 	discordWebhookToken          string
@@ -130,6 +140,10 @@ func init() {
 	skyeye.Flags().Float64Var(&mandatoryThreatRadiusNM, "mandatory-threat-radius", 25, "Briefed radius for mandatory THREAT calls, in nautical miles")
 	skyeye.Flags().BoolVar(&threatMonitoringRequiresSRS, "threat-monitoring-requires-srs", true, "Require aircraft to be on SRS to receive THREAT calls. Only useful to disable when debugging")
 
+	// Metrics
+	skyeye.Flags().BoolVar(&exportMetrics, "export-metrics", false, "Export Prometheus metrics via HTTP")
+	skyeye.Flags().IntVar(&metricsPort, "metrics-port", 8080, "TCP port on which to export Prometheus metrics via HTTP")
+
 	// Tracing
 	skyeye.Flags().BoolVar(&enableTracing, "tracing", false, "Enable tracing")
 	skyeye.Flags().StringVar(&discordWebhookID, "discord-webhook-id", "", "Discord webhook ID for tracing")
@@ -140,9 +154,11 @@ func init() {
 	skyeye.Flags().DurationVar(&exitAfter, "exit-after", time.Hour*24*365*20, "Exit after running for the specified duration")
 }
 
+const commandName = "skyeye"
+
 // Top-level CLI command.
 var skyeye = &cobra.Command{
-	Use:     "skyeye",
+	Use:     commandName,
 	Version: Version,
 	Short:   "AI Powered GCI Bot for DCS World",
 	Long:    "Skyeye uses real-time telemetry data from TacView to provide Ground-Controlled Intercept service over SimpleRadio-Standalone.",
@@ -288,6 +304,31 @@ func loadCallsign(rando *rand.Rand) (callsign string) {
 	return
 }
 
+func loadMeterProvider() (*metric.MeterProvider, error) {
+	appResource, err := resource.Merge(
+		resource.Default(),
+		resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceName(commandName),
+			semconv.ServiceVersion(Version),
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create metric resource: %w", err)
+	}
+
+	exporter, err := prometheus.New()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create prometheus exporter: %w", err)
+	}
+
+	provider := metric.NewMeterProvider(
+		metric.WithResource(appResource),
+		metric.WithReader(exporter),
+	)
+	return provider, nil
+}
+
 func preRun(cmd *cobra.Command, _ []string) error {
 	if err := initializeConfig(cmd); err != nil {
 		return fmt.Errorf("failed to initialize config: %w", err)
@@ -332,6 +373,28 @@ func run(_ *cobra.Command, _ []string) {
 	voice := loadVoice(rando)
 	callsign := loadCallsign(rando)
 	parsedSRSFrequencies := cli.LoadFrequencies(srsFrequencies)
+
+	log.Info().Msg("configuring metrics")
+	meterProvider, err := loadMeterProvider()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create metric provider")
+	}
+	defer func() {
+		log.Info().Msg("shutting down meter provider")
+		if err := meterProvider.Shutdown(ctx); err != nil {
+			log.Error().Err(err).Msg("failed to shut down meter provider")
+		}
+	}()
+	otel.SetMeterProvider(meterProvider)
+	if exportMetrics {
+		log.Info().Msgf("exporting metrics on :%d/metrics", metricsPort)
+		go func() {
+			http.Handle("/metrics", promhttp.Handler())
+			if err := http.ListenAndServe(fmt.Sprintf(":%d", metricsPort), nil); err != nil {
+				log.Error().Err(err).Msg("failed to serve metrics")
+			}
+		}()
+	}
 
 	config := conf.Configuration{
 		ACMIFile:                     acmiFile,

@@ -9,6 +9,7 @@ import (
 
 // HandleAlphaCheck handles an ALPHA CHECK by reporting the position of the requesting aircraft.
 func (c *Controller) HandleAlphaCheck(ctx context.Context, request *brevity.AlphaCheckRequest) {
+	alphaCheckCounter.Add(ctx, 1)
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 

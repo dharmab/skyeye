@@ -10,14 +10,15 @@ import (
 
 // HandleSnaplock handles a SNAPLOCK by reporting information about the target group.
 func (c *Controller) HandleSnaplock(ctx context.Context, request *brevity.SnaplockRequest) {
+	snaplockCounter.Add(ctx, 1)
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Any("request", request).Logger()
 
 	logger.
-		Info().
+		Debug().
 		Float64("bearing", request.BRA.Bearing().Rounded().Degrees()).
 		Float64("range", request.BRA.Range().NauticalMiles()).
 		Float64("altitude", request.BRA.Altitude().Feet()).
-		Msg("received request")
+		Msg("handling request")
 
 	if !request.BRA.Bearing().IsMagnetic() {
 		logger.Error().Stringer("bearing", request.BRA.Bearing()).Msg("bearing provided to HandleSnaplock should be magnetic")

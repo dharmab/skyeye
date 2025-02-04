@@ -9,6 +9,7 @@ import (
 
 // HandleRadioCheck handles a RADIO CHECK by responding to the requesting aircraft.
 func (c *Controller) HandleRadioCheck(ctx context.Context, request *brevity.RadioCheckRequest) {
+	radioCheckCounter.Add(ctx, 1)
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 	var response brevity.RadioCheckResponse

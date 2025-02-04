@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 	"github.com/rs/zerolog/log"
@@ -30,6 +31,7 @@ const maxSize = 256 * 1024
 
 // Recognize implements [Recognizer.Recognize] using whisper.cpp.
 func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32, enableTranscriptionLogging bool) (string, error) {
+	start := time.Now()
 	if len(sample) > maxSize {
 		log.Warn().Int("length", len(sample)).Int("maxLength", maxSize).Msg("clamping sample to maximum size")
 		sample = sample[:maxSize]
@@ -37,6 +39,7 @@ func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32, ena
 
 	wCtx, err := r.model.NewContext()
 	if err != nil {
+		record(ctx, false, start)
 		return "", fmt.Errorf("error creating whisper context: %w", err)
 	}
 
@@ -58,6 +61,7 @@ func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32, ena
 		nil,
 	)
 	if err != nil {
+		record(ctx, false, start)
 		return "", fmt.Errorf("error processing sample: %w", err)
 	}
 
@@ -65,17 +69,20 @@ func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32, ena
 	for {
 		select {
 		case <-ctx.Done():
-			log.Warn().Msg("returning early from speech recognition due to context cancellation")
+			record(ctx, false, start)
 			return textBuilder.String(), nil
 		default:
 			segment, err := wCtx.NextSegment()
 			if errors.Is(err, io.EOF) {
+				record(ctx, true, start)
 				return textBuilder.String(), nil
 			}
 			if err != nil {
+				record(ctx, false, start)
 				return textBuilder.String(), fmt.Errorf("error processing segment: %w", err)
 			}
 			if _, err := textBuilder.WriteString(segment.Text); err != nil {
+				record(ctx, false, start)
 				return textBuilder.String(), fmt.Errorf("error writing segment text: %w", err)
 			}
 		}
