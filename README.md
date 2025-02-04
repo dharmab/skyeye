@@ -1,6 +1,10 @@
 # SkyEye: AI Powered GCI Bot for DCS
 
-SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-controlled_interception) (GCI) bot for the flight simulator [Digital Combat Simulator](https://www.digitalcombatsimulator.com) (DCS). It is an advanced replacement for the in-game E-2, E-3 and A-50 AI aircraft. SkyEye is a substantial improvement over the DCS AWACS:
+![](https://repository-images.githubusercontent.com/712246301/691d4acd-5b70-41b2-b087-9ec27a7f6590)
+
+SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-controlled_interception) (GCI) bot for the flight simulator [Digital Combat Simulator](https://www.digitalcombatsimulator.com) (DCS). It is an advanced replacement for the in-game E-2, E-3 and A-50 AI aircraft. 
+
+SkyEye is a substantial improvement over the DCS AWACS:
 
 1. SkyEye offers modern voice recognition using a current-generation AI model. Keyboard input is also supported.
 2. SkyEye has natural sounding voices, using a neural network to synthesize speech instead of robotically clipping together samples.
