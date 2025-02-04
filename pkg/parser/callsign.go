@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"regexp"
 	"strings"
 	"unicode"
 )
@@ -9,8 +10,11 @@ import (
 //   - A single word, followed by a number consisting of any digits
 //   - A number consisting of up to 3 digits
 //
-// Garbage in between the digits is ignored. The result is normalized so that each digit is lowercase and space-delimited.
+// Garbage in between the digits is ignored. Clan tags in the format "[CLAN]"
+// are also ignored. The result is normalized so that each digit is lowercase
+// and space-delimited.
 func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
+	tx = removeClanTags(tx)
 	tx = normalize(tx)
 	tx = spaceDigits(tx)
 	for token, replacement := range map[string]string{
@@ -44,4 +48,10 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	}
 
 	return callsign, true
+}
+
+var clanTagExpression = regexp.MustCompile(`\[.*?\]`)
+
+func removeClanTags(tx string) string {
+	return clanTagExpression.ReplaceAllString(tx, "")
 }
