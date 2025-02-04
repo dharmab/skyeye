@@ -2,6 +2,7 @@ package speakers
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"time"
 
@@ -39,15 +40,23 @@ func NewPiperSpeaker(v voices.Voice, playbackSpeed float64, playbackPause time.D
 
 // Say implements [Speaker.Say].
 func (s *piperSynth) Say(text string) ([]float32, error) {
-	synthesized, err := s.tts.Synthesize(text, piper.WithSpeed(float32(s.speed)), piper.WithPause(float32(s.pauseLength.Seconds())))
+	start := time.Now()
+	synthesized, err := s.tts.Synthesize(
+		text,
+		piper.WithSpeed(float32(s.speed)),
+		piper.WithPause(float32(s.pauseLength.Seconds())),
+	)
 	if err != nil {
+		record(context.Background(), false, start)
 		return nil, fmt.Errorf("failed to synthesize text: %w", err)
 	}
 	downsampled, err := downsample(synthesized, 24000, 16000, 1)
 	if err != nil {
+		record(context.Background(), false, start)
 		return nil, fmt.Errorf("failed to downsample synthesized audio: %w", err)
 	}
 	f32le := pcm.S16LEBytesToF32LE(downsampled)
+	record(context.Background(), true, start)
 	return f32le, nil
 }
 

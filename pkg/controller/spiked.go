@@ -10,6 +10,7 @@ import (
 
 // HandleSpiked handles a SPIKED request by reporting any enemy groups in the direction of the radar spike.
 func (c *Controller) HandleSpiked(ctx context.Context, request *brevity.SpikedRequest) {
+	spikedCounter.Add(ctx, 1)
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Float64("bearing", request.Bearing.Degrees()).Logger()
 	logger.Debug().Msg("handling request")
 

@@ -12,6 +12,7 @@ import (
 
 // HandlePicture handles a PICTURE by reporting a tactical air picture.
 func (c *Controller) HandlePicture(ctx context.Context, request *brevity.PictureRequest) {
+	pictureCounter.Add(ctx, 1)
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
 
