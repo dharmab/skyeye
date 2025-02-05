@@ -10,6 +10,7 @@ import (
 
 // HandleBogeyDope handles a BOGEY DOPE by reporting the closest enemy group to the requesting aircraft.
 func (c *Controller) HandleBogeyDope(ctx context.Context, request *brevity.BogeyDopeRequest) {
+	bogeyDopeCounter.Add(ctx, 1)
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Any("filter", request.Filter).Logger()
 	logger.Debug().Msg("handling request")
 
