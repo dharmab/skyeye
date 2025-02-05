@@ -241,6 +241,10 @@ func TestParserBogeyDope(t *testing.T) {
 		simpleBogeyDopeTestCase("OGYDO"),
 		simpleBogeyDopeTestCase("Bokeydoke"),
 		simpleBogeyDopeTestCase("PUKIDO"),
+		simpleBogeyDopeTestCase("BOGU DOPE"),
+		simpleBogeyDopeTestCase("BUGGIT-OPE."),
+		simpleBogeyDopeTestCase("Boguie Dope"),
+		simpleBogeyDopeTestCase("request 'Bogydope'"),
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
