@@ -7,6 +7,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
+	"github.com/gofrs/flock"
 	"github.com/martinlindhe/unit"
 )
 
@@ -56,12 +57,16 @@ type Configuration struct {
 	RadarSweepInterval time.Duration
 	// Recognizer selects which speech-to-text recognizer to use.
 	Recognizer Recognizer
+	// RecognizerLock is a file-based lock to control multiple instances running the recognizer at the same time.
+	RecognizerLock *flock.Flock
 	// WhisperModel is a whisper.cpp model used for Speech To Text. It may be nil if OpenAI API transcription is configured.
 	WhisperModel *whisper.Model
 	// OpenAIAPIKey is the API key for the OpenAI API. It may be empty if local transcription is configured.
 	OpenAIAPIKey string
 	// Voice is the voice used for SRS transmissions
 	Voice voices.Voice
+	// VoiceLock is a file-based lock to control multiple instances running Piper at the same time.
+	VoiceLock *flock.Flock
 	// Mute disables SRS transmissions
 	Mute bool
 	// Piper playback speed (default is 1.0) - The higher the value the slower it is.
