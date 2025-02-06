@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio"
@@ -38,6 +39,15 @@ func (a *Application) recognizeSample(processCtx context.Context, requestCtx con
 		}
 	}()
 	defer cancel()
+
+	if err := tryLock(processCtx, a.recognizerLock); err != nil {
+		err := fmt.Errorf("unable to obtain recognizer lock: %w", err)
+		log.Error().Err(err).Msg("error recognizing audio sample")
+		a.trace(traces.WithRequestError(processCtx, err))
+		return
+	}
+
+	defer unlock(a.recognizerLock)
 
 	log.Info().Msg("recognizing audio sample")
 	start := time.Now()
