@@ -242,17 +242,16 @@ The scaler is also available as a container image at `ghcr.io/dharmab/skyeye-sca
 
 ## Linux
 
-### cloud-init
+### Automated Installation with Container Image
 
-A sample [cloud-init](https://cloudinit.readthedocs.io/en/latest/) config is provided in `/init/cloud-init` directory in the Git repository. This automates the installation and startup on a new cloud server instance. It should be compatible with most Linux distributions including Debian, Ubuntu, Fedora, Arch Linux and OpenSUSE.
+A sample [cloud-init](https://cloudinit.readthedocs.io/en/latest/) config is provided in `/init/cloud-init` directory in the Git repository ([direct link](https://raw.githubusercontent.com/dharmab/skyeye/refs/heads/main/init/cloud-init/cloud-config.yaml)). This automates the installation and startup on a new cloud server instance, using the container `ghcr.io/dharmab/skyeye`. It should be compatible with most Linux distributions including Debian, Ubuntu, Fedora, Arch Linux and OpenSUSE.
 
 See documentation on cloud-init:
 
 - [Official documentation](https://cloudinit.readthedocs.io/en/latest/index.html)
 - [AWS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html#user-data-cloud-init)
-- [GCP](https://cloud.google.com/container-optimized-os/docs/how-to/create-configure-instance#using_cloud-init_with_the_cloud_config_format)
-- [Hetzer](https://docs.hetzner.cloud/#servers-create-a-server)
-- [Linode](https://techdocs.akamai.com/cloud-computing/docs/overview-of-the-metadata-service#add-user-data-when-deploying-a-compute-instance)
+- Hetzner: [GUI](https://docs.hetzner.com/cloud/servers/getting-started/creating-a-server), [API](https://docs.hetzner.cloud/#servers-create-a-server)
+- [Linode](https://techdocs.akamai.com/cloud-computing/docs/add-user-data-when-deploying-a-compute-instance)
 - [Vultr](https://docs.vultr.com/how-to-deploy-a-vultr-server-with-cloudinit-userdata)
 
 To customize this cloud-init file:
@@ -275,39 +274,74 @@ sudo systemctl start skyeye
 journalctl -fu skyeye
 ```
 
-### Manual Installation
+> Note: The container image is only supported on Linux; it will not work correctly on macOS or Windows because of CPU latency requirements.
+
+### Manual Installation with Native Binary
+
+You can install SkyEye on a Linux server by manually downloading a release and installing it. The instructions below should be compatible with Ubuntu and Arch Linux, and should be adaptable to other distributions.
 
 Install shared libraries for [Opus](https://opus-codec.org/), [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/) and [OpenBLAS](http://www.openblas.net/) with [OpenMP](https://www.openmp.org/about/openmp-faq/#OMPAPI).
 
 Ubuntu:
 
-```bash
+```sh
+# Install shared libraries on Ubuntu
 sudo apt-get update
 sudo apt-get install libopus0 libsoxr0 libopenblas0-openmp
-```
 
-Arch Linux:
-
-```bash
+# Install shared libraries on Arch Linux
 sudo pacman -Syu opus soxr openblas
 ```
 
-Download SkyEye and an AI model. Copy them to `/opt/skyeye/`. Create a `skyeye` user to run SkyEye.
+Install SkyEye:
 
-```bash
+```sh
+# Create a user named "skyeye" to run SkyEye
 sudo useradd -G users skyeye
+
+# Download the latest version of SkyEye and install to to /opt/skyeye
 curl -sL https://github.com/dharmab/skyeye/releases/latest/download/skyeye-linux-amd64.tar.gz -o /tmp/skyeye-linux-amd64.tar.gz
 tar -xzf /tmp/skyeye-linux-amd64.tar.gz -C /tmp/
 sudo mkdir -p /opt/skyeye/bin
 sudo mv /tmp/skyeye-linux-amd64/skyeye /opt/skyeye/bin/skyeye
 sudo chmod +x /opt/skyeye/bin/skyeye
+
+# Download a Whisper speech recognition model and install it to /opt/skyeye/models
 sudo mkdir -p /opt/skyeye/models
 curl -sL https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin -o /opt/skyeye/models/ggml-small.en.bin
+
+# Grant the "skyeye" user ownership of the SkyEye installation directory
 sudo chown -R skyeye:users /opt/skyeye
+
+# Create a SkyEye config directory and copy the sample config file there.
 sudo mkdir -p /etc/skyeye
 sudo mv /tmp/skyeye-linux-amd64/config.yaml /etc/skyeye/config.yaml
+
+# Grant the "skyeye" user ownership of the SkyEye config directory
 sudo chmod 600 /etc/skyeye/config.yaml
 sudo chown -R skyeye:users /etc/skyeye
+
+# Clean up the downloaded files
+rm -rf /tmp/skyeye-linux-amd64.tar.gz /tmp/skyeye-linux-amd64
+```
+
+Edit the config file as required:
+
+```sh
+# Edit the configuration file using the text editor specified in the EDITOR environment variable
+sudoedit /etc/skyeye/config.yaml
+```
+
+If you are a Linux noob, you can use [micro](https://micro-editor.github.io/) for a friendly experience:
+
+```sh
+# Install micro on Ubuntu
+sudo apt-get install micro
+# Install micro on Arch Linux
+sudo pacman -Syu micro
+
+# Edit the configuration file using micro
+EDITOR=micro sudoedit /etc/skyeye/config.yaml
 ```
 
 Save this systemd unit to `/etc/systemd/system/skyeye.service`:
@@ -329,17 +363,38 @@ RestartSec=60
 WantedBy=multi-user.target
 ```
 
-Edit the config file as required using `sudoedit /etc/skyeye/config.yaml`.
+To start SkyEye, and enable it to start on boot:
 
-### Container
+```sh
+# Load changes to skyeye.service file
+sudo systemctl daemon-reload
+# Configure SkyEye to start on boot, and also start it immediately
+sudo systemctl enable skyeye.service --now
+```
 
-A container image is available at `ghcr.io/dharmab/skyeye`. This image is only functional on Linux; it will not work correctly on Windows or macOS. It is subject to the same dedicated CPU requirements as the native binary. The `skyeye` binary is the container entrypoint. You will need to mount a whisper model into the container.
+If you wish to change the version of SkyEye in the future:
+
+https://github.com/dharmab/skyeye/releases/download/v1.1.4/skyeye-linux-amd64.tar.gz
+
+```sh
+# Remove any old downloads
+rm -rf /tmp/skyeye-linux-amd64.tar.gz /tmp/skyeye-linux-amd64
+# Set new_version to whichever version you want to change to
+new_version=v1.1.4
+# Download the new version and replace the SkyEye executable
+curl -sL https://github.com/dharmab/skyeye/releases/dowload/$new_version/skyeye-linux-amd64.tar.gz -o /tmp/skyeye-linux-amd64.tar.gz
+tar -xzf /tmp/skyeye-linux-amd64.tar.gz -C /tmp/
+sudo mv /tmp/skyeye-linux-amd64/skyeye /opt/skyeye/bin/skyeye
+sudo chown skyeye:users /opt/skyeye/bin/skyeye
+# Restart SkyEye
+sudo systemctl start skyeye.service
+```
 
 ### Service Management
 
 Use `systemctl` to start the bot:
 
-```bash
+```sh
 # Load changes to skyeye.service file
 sudo systemctl daemon-reload
 
@@ -358,7 +413,7 @@ sudo systemctl disable skyeye.service
 
 View the logs with `journalctl`:
 
-```bash
+```sh
 # Stream the logs
 journalctl -fu skyeye
 
