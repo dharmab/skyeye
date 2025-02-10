@@ -61,6 +61,8 @@ Avoid:
 * Names that are hard to distinguish, like "Spare"/"Spear", "Jester"/"Gesture", "Witch"/"Which". The bot will make a best effort, but may be less accurate.
 * Names that sound similar to numbers. For example, "Knight" sounds similar to "Nine", "Fort" sounds like "Four"
 * Names that aren't widely recognized words in common parlance, like "Razgriz" or "Beskar". The bot will make a best effort, but may be less accurate.
+* Names without the 1-3 digits. The bot will make a best effort, but the digits make a very large difference in error correction! Each digit added to a callsign is equivalent to 2-3 letters in terms of improved accuracy.
+* Callsigns that are very short. If your callsign is only 2-3 characters, a single misheard letter will be an uncorrectable error. The two to three syllable rule of thumb tends to result in callsigns that are correctable when misheard.
 * Names in poor taste.
 
 If your callsign doesn't follow this format, SkyEye makes a best effort to understand it while still applying its parser rules. A bare username like "Jeff" (with no numbers) may still work, but do not expect this to work reliably.
