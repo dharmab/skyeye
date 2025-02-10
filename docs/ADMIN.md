@@ -262,16 +262,10 @@ To customize this cloud-init file:
 If you wish to change the version of SkyEye in the future:
 
 ```sh
-# Stop SkyEye
-sudo systemctl stop skyeye
 # Edit the image.env file to change the image version
 sudoedit /etc/skyeye/image.env
-# Make any required changes to the configuration
-sudoedit /etc/skyeye/config.yaml
 # Restart SkyEye
-sudo systemctl start skyeye
-# Check the logs and check if it seems to be working
-journalctl -fu skyeye
+sudo systemctl restart skyeye
 ```
 
 > Note: The container image is only supported on Linux; it will not work correctly on macOS or Windows because of CPU latency requirements.
