@@ -25,6 +25,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/synthesizer/speakers"
 	"github.com/dharmab/skyeye/pkg/telemetry"
 	"github.com/dharmab/skyeye/pkg/traces"
+	"github.com/gofrs/flock"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -41,6 +42,8 @@ type Application struct {
 	telemetryClient telemetry.Client
 	// recognizer provides speech-to-text recognition
 	recognizer recognizer.Recognizer
+	// recognizerLock prevents multiple instances from running the recognizer at the same time
+	recognizerLock *flock.Flock
 	// chatListener listens for chat messages
 	chatListener *commands.ChatListener
 	// parser converts English brevity text to internal representations
@@ -53,6 +56,8 @@ type Application struct {
 	composer composer.Composer
 	// speaker provides text-to-speech synthesis
 	speaker speakers.Speaker
+	// speakerLock prevents multiple instances from running the speaker at the same time
+	speakerLock *flock.Flock
 	// enableTranscriptionLogging controls whether transcriptions are included in logs
 	enableTranscriptionLogging bool
 	// tracers are destinations where traces are sent when tracing is enabled
@@ -205,11 +210,13 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		srsClient:                  srsClient,
 		telemetryClient:            telemetryClient,
 		recognizer:                 speechRecognizer,
+		recognizerLock:             config.RecognizerLock,
 		parser:                     requestParser,
 		radar:                      rdr,
 		controller:                 gciController,
 		composer:                   responseComposer,
 		speaker:                    synthesizer,
+		speakerLock:                config.VoiceLock,
 		tracers:                    tracers,
 		starts:                     starts,
 		updates:                    updates,
@@ -404,5 +411,42 @@ func (a *Application) trace(ctx context.Context) {
 	}
 	for _, tracer := range a.tracers {
 		tracer.Trace(ctx)
+	}
+}
+
+// tryLock attempts to acquire the given lock, logging the result. Returns an
+// error if the lock could not be acquired, either due to an underlying error
+// or because the context was canceled.
+func tryLock(ctx context.Context, lock *flock.Flock) error {
+	if lock == nil {
+		return nil
+	}
+	start := time.Now()
+	logger := log.With().Str("path", lock.Path()).Logger()
+	logger.Info().Msg("acquiring lock")
+	const retryDelay = 100 * time.Millisecond
+	ok, err := lock.TryLockContext(ctx, retryDelay)
+	if err != nil {
+		logger.Error().Err(err).Msg("error acquiring lock")
+		return err
+	}
+	if !ok {
+		msg := "unable to acquire lock"
+		logger.Error().Msg(msg)
+		return errors.New(msg)
+	}
+	logger.Info().Stringer("wait", time.Since(start)).Msg("acquired lock")
+	return nil
+}
+
+// unlock attempts to release the given lock, logging the result.
+func unlock(lock *flock.Flock) {
+	if lock == nil {
+		return
+	}
+	logger := log.With().Str("path", lock.Path()).Logger()
+	logger.Info().Msg("releasing lock")
+	if err := lock.Unlock(); err != nil {
+		logger.Error().Err(err).Msg("error releasing lock")
 	}
 }

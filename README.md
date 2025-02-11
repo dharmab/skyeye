@@ -98,6 +98,7 @@ SkyEye would not be possible without these people and projects, for whom I am de
 * [Oto](https://github.com/ebitengine/oto) was helpful for debugging audio format conversion problems.
 * [zerolog](https://github.com/rs/zerolog) is helpful for general logging and printf debugging.
 * [testify](https://github.com/stretchr/testify) is used in unit tests.
+* [flock](https://github.com/gofrs/flock), maintained by [the Gofrs](https://github.com/gofrs), provides optional concurrency controls for running multiple instances of SkyEye on a single CPU.
 * Multiple DCS communities provide invaluable feedback and morale-booster energy:
   * [Team Lima Kilo](https://github.com/team-limakilo/) and the Flashpoint Levant community 
   * The Hoggit Discord server

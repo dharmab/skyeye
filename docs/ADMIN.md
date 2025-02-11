@@ -51,7 +51,11 @@ flowchart LR
     dcs[Windows<br/>DCS World Server<br/>TacView Exporter<br/>SRS Server] <--> skyeye[Linux<br/>SkyEye]
 ```
 
-**Running SkyEye with local speech recognition on the same computer as DCS World is not intended and probably won't work.** If you choose to try this anyway, configure Process Affinity to pin SkyEye to a set of dedicated CPU cores separate from any other CPU-intensive software. The easiest way to do this on Windows is by using the [CPU Affinities feature in Process Lasso](https://bitsum.com/processlasso-docs/#default_affinities).
+#### Caution: Running SkyEye and DCS World on One Computer
+
+**Running SkyEye with local speech recognition on the same computer as DCS World is not intended and probably won't work. I am not able to effectively provide support for issues with this configuration** If you choose to try this anyway, configure Process Affinity to pin SkyEye to a set of dedicated CPU cores separate from any other CPU-intensive software. The easiest way to do this on Windows is by using the [CPU Affinities feature in Process Lasso](https://bitsum.com/processlasso-docs/#default_affinities). But to emphasize, **I can't provide support for this configuration and recommend against it.**
+
+Running SkyEye with cloud speech recognition on the same computer as DCS World _is_ supported.
 
 ### Deployment with Cloud Speech Recognition
 
@@ -237,6 +241,28 @@ An example WinSW service definition is provided in the Windows release archive. 
 ```
 
 The scaler is also available as a container image at `ghcr.io/dharmab/skyeye-scaler`. A Linux binary is also provided in the Linux release archive, although without a service definition.
+
+## Multiple Instances (Experimental)
+
+You may want to run multiple instances of SkyEye on the same CPU:
+
+- Running a separate instance for each of the Blue and Red coalitions
+- Running multiple controllers for different radio frequencies
+- Running multiple instances for different servers
+
+There is a potential performance issue that could occur if two or more instances attempt to run an AI model at the same moment. Depending on how talkative your players are, this might be a rare occurrence, or it might be near constantly happening. You can mitigate this by configuring the `recognizer-lock-path` and `voice-lock-path` flags. Each of these is a file path where SkyEye will create and acquire a lock file before running the STT or TTS model, respectively. If the lock cannot be acquired in a reasonable time, SkyEye will abort handling that particular transmission. By configuring all instances to use the same lock path, you can ensure that only one instance is running the AI model at a time.
+
+Note that `recognizer-lock-path` should only be used if you are using local speech recognition. It is harmful when using cloud speech recognition.
+
+Also note that TTS is pretty fast in practice and you might not need to set `voice-lock-path`. Test your hardware with and without this lock and see if it's necessary. Using the lock may delay the controller's responses, so if you don't need it, don't use it.
+
+If you are not running multiple instances, these locks are harmful to performance and should not be used. This can especially be a problem if your machine has a slow or busy disk.
+
+Be aware that it is technically possible for the file lock to become deadlocked in some cases, such as if SkyEye is unable to exit cleanly. If you use this feature you should monitor the logs and traces for errors related to lock acquisition. You may need to manually resolve a deadlock by stopping down all SkyEye instances, deleting the lock file and restarting the instances.
+
+This architecture is marked experimental because I don't test this configuration. You are responsible for testing these features on your hardware.
+
+Lastly, I cannot predict how these locks work in combination with CPU Core Affinity/Process Lasso. I suspect results will vary depending on the CPU's core and cache layout. To repeat and emphasize: **Core Affinity/Process Lasso configurations have no guarantees of performance and are at your own risk.**
 
 # Installation
 
