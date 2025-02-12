@@ -39,7 +39,7 @@ jobs:
         uses: ./.github/actions/build-whisper
       - name: Test
         run: |
-          go run gotest.tools/gotestsum -- -tags nolibopusfile ./...
+          go tool gotest.tools/gotestsum -- -tags nolibopusfile ./...
   build-linux-amd64:
     name: Build on Linux AMD64
     runs-on: ubuntu-latest

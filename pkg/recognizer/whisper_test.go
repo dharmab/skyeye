@@ -1,7 +1,6 @@
 package recognizer
 
 import (
-	"context"
 	"fmt"
 	"io/fs"
 	"os"
@@ -77,12 +76,11 @@ func BenchmarkWhisperRecognizer(b *testing.B) {
 	model, err := whisper.New(modelPath)
 	require.NoError(b, err)
 	recognizer := NewWhisperRecognizer(&model, "Thunderhead")
-	ctx := context.Background()
 	b.ResetTimer()
 	for _, sample := range samples {
 		b.Run(sample.filename, func(b *testing.B) {
 			for range b.N {
-				_, err := recognizer.Recognize(ctx, sample.pcm, true)
+				_, err := recognizer.Recognize(b.Context(), sample.pcm, true)
 				require.NoError(b, err)
 			}
 		})
