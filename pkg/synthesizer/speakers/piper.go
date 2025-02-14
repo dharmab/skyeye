@@ -37,7 +37,7 @@ func NewPiperSpeaker(v voices.Voice, playbackSpeed float64, playbackPause time.D
 	return &piperSynth{tts: tts, speed: playbackSpeed, pauseLength: playbackPause}, nil
 }
 
-// Say implements [Speaker.Say].
+// Say implements [Speaker.Say] using Piper.
 func (s *piperSynth) Say(text string) ([]float32, error) {
 	synthesized, err := s.tts.Synthesize(text, piper.WithSpeed(float32(s.speed)), piper.WithPause(float32(s.pauseLength.Seconds())))
 	if err != nil {
@@ -51,6 +51,12 @@ func (s *piperSynth) Say(text string) ([]float32, error) {
 	return f32le, nil
 }
 
+// Close is a no-op.
+func (s *piperSynth) Close() error {
+	return nil
+}
+
+// downsample the given S16LE PCM audio to the target sample rate.
 func downsample(in []byte, orignalRate float64, newRate float64, channels int) ([]byte, error) {
 	var buf bytes.Buffer
 	resampler, err := resample.New(&buf, orignalRate, newRate, channels, resample.I16, resample.LowQ)

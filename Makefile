@@ -29,6 +29,12 @@ WHISPER_H_PATH = $(WHISPER_CPP_PATH)/whisper.h
 WHISPER_CPP_REPO = https://github.com/dharmab/whisper.cpp.git
 WHISPER_CPP_VERSION = v1.6.2-openmp
 
+KOKORO_ASSET_PATH = $(SKYEYE_PATH)/pkg/synthesizer/speakers/kokoro
+KOKORO_MODEL_PATH = $(KOKORO_ASSET_PATH)/model.onnx
+KOKORO_VOICES_PATH = $(KOKORO_ASSET_PATH)/voices.bin
+KOKORO_TOKENS_PATH = $(KOKORO_ASSET_PATH)/tokens.txt
+KOKORO_ESPEAK_NG_DATA_PATH = $(KOKORO_ASSET_PATH)/espeak-ng-data
+
 # Compiler variables and flags
 GOBUILDVARS = GOARCH=$(GOARCH)
 BUILD_VARS = CGO_ENABLED=1 \
@@ -118,11 +124,24 @@ $(LIBWHISPER_PATH) $(WHISPER_H_PATH):
 .PHONY: whisper
 whisper: $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 
+$(KOKORO_MODEL_PATH) $(KOKORO_VOICES_PATH) $(KOKORO_TOKENS_PATH) $(KOKORO_ESPEAK_NG_DATA_PATH):
+	mkdir -p $(KOKORO_ASSET_PATH)
+	@echo "Downloading kokoro model - this might take a while"
+	curl -L https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-en-v0_19.tar.bz2 | tar -C $(KOKORO_ASSET_PATH) -xj
+	mv $(KOKORO_ASSET_PATH)/kokoro-en-v0_19/model.onnx $(KOKORO_MODEL_PATH)
+	mv $(KOKORO_ASSET_PATH)/kokoro-en-v0_19/voices.bin $(KOKORO_VOICES_PATH)
+	mv $(KOKORO_ASSET_PATH)/kokoro-en-v0_19/tokens.txt $(KOKORO_TOKENS_PATH)
+	mv $(KOKORO_ASSET_PATH)/kokoro-en-v0_19/espeak-ng-data $(KOKORO_ESPEAK_NG_DATA_PATH)
+	rm -rf $(KOKORO_ASSET_PATH)/kokoro-en-v0_19
+
+.PHONY: kokoro
+kokoro: $(KOKORO_MODEL_PATH) $(KOKORO_VOICES_PATH) $(KOKORO_TOKENS_PATH) $(KOKORO_ESPEAK_NG_DATA_PATH)
+
 .PHONY: generate
 generate:
 	$(BUILD_VARS) $(GO) generate $(BUILD_FLAGS) ./...
 
-$(SKYEYE_BIN): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
+$(SKYEYE_BIN): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH) $(KOKORO_MODEL_PATH) $(KOKORO_VOICES_PATH) $(KOKORO_TOKENS_PATH) $(KOKORO_ESPEAK_NG_DATA_PATH)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
 
 $(SKYEYE_SCALER_BIN): generate $(SKYEYE_SOURCES)
@@ -163,3 +182,4 @@ mostlyclean:
 .PHONY: clean
 clean: mostlyclean
 	rm -rf "$(WHISPER_CPP_PATH)"
+	rm -rf "$(KOKORO_ASSET_PATH)"

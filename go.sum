@@ -376,6 +376,14 @@ github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7V
 github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
 github.com/julz/importas v0.2.0 h1:y+MJN/UdL63QbFJHws9BVC5RpA2iq0kpjrFajTGivjQ=
 github.com/julz/importas v0.2.0/go.mod h1:pThlt589EnCYtMnmhmRYY/qn9lCf/frPOK+WMx3xiJY=
+github.com/k2-fsa/sherpa-onnx-go v1.10.44 h1:RTf0KlaQCVs2fHcZO8jD3/fbdY+FBJsN+lbU5nfmu0o=
+github.com/k2-fsa/sherpa-onnx-go v1.10.44/go.mod h1:JEBDXFl5savR6cWxE/+wSodjG37XUAwQzewb9Qlcv5w=
+github.com/k2-fsa/sherpa-onnx-go-linux v1.10.44 h1:YcCZ9fSLSIQOZhAAkqTYG7S4yJ3P5PJF+X909cGR8PQ=
+github.com/k2-fsa/sherpa-onnx-go-linux v1.10.44/go.mod h1:lHZRU/WtBUJetJVPyXHg092diEWYyIEoaob+LMJKWvo=
+github.com/k2-fsa/sherpa-onnx-go-macos v1.10.44 h1:4gwXfypjEt0Hu/cDf5dKGdUHYAnwyj3iDIXqmJJ7uLk=
+github.com/k2-fsa/sherpa-onnx-go-macos v1.10.44/go.mod h1:o1Cd6Zy+Tpq3bLAWqBoVcDenxi8HSaSubURtbtIqH2s=
+github.com/k2-fsa/sherpa-onnx-go-windows v1.10.44 h1:VN/poDIjDgA8LGdVs1tT4c0NkXrl/OpnBh3JoLxgOxk=
+github.com/k2-fsa/sherpa-onnx-go-windows v1.10.44/go.mod h1:R7JSrFkZGkfM/F/gVSR+yTJ+sPaHhJgdqsB5N7dTU6E=
 github.com/karamaru-alpha/copyloopvar v1.2.1 h1:wmZaZYIjnJ0b5UoKDjUHrikcV0zuPyyxI4SVplLd2CI=
 github.com/karamaru-alpha/copyloopvar v1.2.1/go.mod h1:nFmMlFNlClC2BPvNaHMdkirmTJxVCY0lhxBtlfOypMM=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=

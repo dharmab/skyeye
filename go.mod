@@ -13,6 +13,7 @@ require (
 	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240727173504-6739eb83c3ca
 	github.com/gopxl/beep/v2 v2.0.3
 	github.com/hbollon/go-edlib v1.6.0
+	github.com/k2-fsa/sherpa-onnx-go v1.10.44
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6
 	github.com/nabbl/piper v0.0.0-20240819160100-e51f2288a5c0
@@ -125,6 +126,9 @@ require (
 	github.com/jingyugao/rowserrcheck v1.1.1 // indirect
 	github.com/jjti/go-spancheck v0.6.4 // indirect
 	github.com/julz/importas v0.2.0 // indirect
+	github.com/k2-fsa/sherpa-onnx-go-linux v1.10.44 // indirect
+	github.com/k2-fsa/sherpa-onnx-go-macos v1.10.44 // indirect
+	github.com/k2-fsa/sherpa-onnx-go-windows v1.10.44 // indirect
 	github.com/karamaru-alpha/copyloopvar v1.2.1 // indirect
 	github.com/kisielk/errcheck v1.8.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.5 // indirect

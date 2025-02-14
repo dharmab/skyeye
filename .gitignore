@@ -77,8 +77,10 @@ $RECYCLE.BIN/
 # whisper.cpp project
 third_party/whisper.cpp
 
-# whisper.cpp models
+# Model files
+*.onnx
 *.bin
+pkg/synthesizer/speakers/kokoro
 
 # ELF binary
 /skyeye
