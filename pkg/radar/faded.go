@@ -22,8 +22,14 @@ func isTrackfileInGroup(candidate *trackfiles.Trackfile, grp *group) bool {
 func (r *Radar) collectFadedTrackfiles(ctx context.Context) {
 	// Whenenver we pass the deadline, we collect the faded contacts into groups and call the fadedCallback.
 	var deadline time.Time
-	ticker := time.NewTicker(10 * time.Second)
-
+	// We count the number of times we extend the deadline. We extend the deadline for a long duration the first
+	// couple of times, and then for a shorter duration for every time after that. This helps reduce very long
+	// FADED chains (I hope LOL).
+	var extensions int
+	const shortExtension = 5 * time.Second
+	const longExtension = 15 * time.Second
+	const maxLongExtensions = 2
+	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 	for {
 		select {
@@ -32,25 +38,31 @@ func (r *Radar) collectFadedTrackfiles(ctx context.Context) {
 		case fade := <-r.fades:
 			// When we receive a faded contact, we wait a little in case it's wingman is also fading.
 			// This is common if the flight lands or is being engaged by a coordinated flight.
-			deadline = time.Now().Add(15 * time.Second)
-			go func() {
+			extension := shortExtension
+			if extensions < maxLongExtensions {
+				extension = longExtension
+			}
+			deadline = time.Now().Add(extension)
+			extensions++
+			log.Debug().Time("deadline", deadline).Int("extensions", extensions).Msg("received faded trackfile and extended faded call collection deadline")
+			func() {
 				r.pendingFadesLock.Lock()
 				defer r.pendingFadesLock.Unlock()
 				r.pendingFades = append(r.pendingFades, fade)
 			}()
 		case <-ticker.C:
 			// Regularly handle pending fades.
-			go func() {
+			func() {
 				r.pendingFadesLock.Lock()
 				defer r.pendingFadesLock.Unlock()
-				if len(r.pendingFades) > 0 && time.Now().After(deadline) {
+				if len(r.pendingFades) > 0 && (time.Now().After(deadline)) {
 					log.Info().Int("count", len(r.pendingFades)).Msg("handling pending faded trackfiles")
 					r.handleFaded(r.pendingFades)
 					r.pendingFades = []sim.Faded{}
 				}
 			}()
 			// Periodically clean up completed fades.
-			go func() {
+			func() {
 				r.completedFadesLock.Lock()
 				defer r.completedFadesLock.Unlock()
 				for id, t := range r.completedFades {
@@ -61,6 +73,7 @@ func (r *Radar) collectFadedTrackfiles(ctx context.Context) {
 					}
 				}
 			}()
+			extensions = 0
 		}
 	}
 }
