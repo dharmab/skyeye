@@ -43,7 +43,7 @@ func (s *piperSynth) Say(text string) ([]float32, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to synthesize text: %w", err)
 	}
-	downsampled, err := downsample(synthesized, 24000, 16000, 1)
+	downsampled, err := downsample(synthesized, 22050, 16000, 1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to downsample synthesized audio: %w", err)
 	}
