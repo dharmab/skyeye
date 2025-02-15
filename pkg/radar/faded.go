@@ -36,6 +36,11 @@ func (r *Radar) collectFadedTrackfiles(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case fade := <-r.fades:
+			logger := log.With().Uint64("id", fade.ID).Logger()
+			if _, ok := r.contacts.getByID(fade.ID); !ok {
+				logger.Trace().Msg("ignoring fade notification because it was not correlated to a trackfile")
+				continue
+			}
 			// When we receive a faded contact, we wait a little in case it's wingman is also fading.
 			// This is common if the flight lands or is being engaged by a coordinated flight.
 			extension := shortExtension
@@ -44,7 +49,7 @@ func (r *Radar) collectFadedTrackfiles(ctx context.Context) {
 			}
 			deadline = time.Now().Add(extension)
 			extensions++
-			log.Debug().Time("deadline", deadline).Int("extensions", extensions).Msg("received faded trackfile and extended faded call collection deadline")
+			logger.Debug().Time("deadline", deadline).Int("extensions", extensions).Msg("received faded trackfile and extended faded call collection deadline")
 			func() {
 				r.pendingFadesLock.Lock()
 				defer r.pendingFadesLock.Unlock()
@@ -99,7 +104,7 @@ func (r *Radar) collectFadedGroups(fades []sim.Faded) []group {
 
 		trackfile, ok := r.contacts.getByID(fade.ID)
 		if !ok {
-			log.Debug().Uint64("id", fade.ID).Msg("faded trackfile not found on scope")
+			log.Trace().Uint64("id", fade.ID).Msg("fade notification was not correlated to a trackfile")
 			continue
 		}
 		log.Info().
