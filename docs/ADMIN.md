@@ -366,8 +366,6 @@ sudo systemctl enable skyeye.service --now
 
 If you wish to change the version of SkyEye in the future:
 
-https://github.com/dharmab/skyeye/releases/download/v1.1.4/skyeye-linux-amd64.tar.gz
-
 ```sh
 # Remove any old downloads
 rm -rf /tmp/skyeye-linux-amd64.tar.gz /tmp/skyeye-linux-amd64
