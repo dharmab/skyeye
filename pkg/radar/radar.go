@@ -11,7 +11,6 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/sim"
-	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -228,7 +227,7 @@ func (r *Radar) handleGarbageCollection() {
 //   - If AGL is known, AGL is above 10 meters
 //   - If AGL is unknown, speed is above 50 knots
 func isValidTrack(trackfile *trackfiles.Trackfile) bool {
-	if spatial.IsZero(trackfile.LastKnown().Point) {
+	if trackfile.IsLastKnownPointZero() {
 		return false
 	}
 

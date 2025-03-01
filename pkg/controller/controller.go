@@ -3,6 +3,7 @@ package controller
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -52,6 +53,8 @@ type Controller struct {
 	pictureBroadcastInterval time.Duration
 	// pictureBroadcastDeadline is the time at which the controller will broadcast the next tactical air picture.
 	pictureBroadcastDeadline time.Time
+	// pictureBroadcastDeadlineLock protects pictureBroadcastDeadline.
+	pictureBroadcastDeadlineLock sync.RWMutex
 	// wasLastPictureClean tracks if the most recently broadcast picture was clean, so that the controller can avoid
 	// repeatedly broadcasting clean pictures.
 	wasLastPictureClean bool
@@ -126,7 +129,15 @@ func (c *Controller) Run(ctx context.Context, calls chan<- Call) {
 		case <-ticker.C:
 			c.broadcastMerges(traces.WithTraceID(ctx, shortuuid.New()))
 			c.broadcastThreats(traces.WithTraceID(ctx, shortuuid.New()))
-			if c.enableAutomaticPicture && time.Now().After(c.pictureBroadcastDeadline) {
+			shouldBroadcastPicture := false
+			func() {
+				c.pictureBroadcastDeadlineLock.Lock()
+				defer c.pictureBroadcastDeadlineLock.Unlock()
+				if time.Now().After(c.pictureBroadcastDeadline) {
+					shouldBroadcastPicture = true
+				}
+			}()
+			if shouldBroadcastPicture {
 				c.broadcastPicture(traces.WithTraceID(ctx, shortuuid.New()), &log.Logger, false)
 			}
 		}
