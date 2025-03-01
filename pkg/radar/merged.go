@@ -25,7 +25,7 @@ func (r *Radar) Merges(coalition coalitions.Coalition) map[brevity.Group][]*trac
 			continue
 		}
 
-		if contact.IsLastKnownPointZero() {
+		if !isValidTrack(contact) {
 			continue
 		}
 
