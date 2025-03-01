@@ -108,6 +108,12 @@ func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 func (t *Trackfile) LastKnown() Frame {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
+	return t.unsafeLastKnown()
+}
+
+// unsafeLastKnown is like LastKnown, but it does not acquire a lock. The calling
+// function must acquire t.lock before calling this function.
+func (t *Trackfile) unsafeLastKnown() Frame {
 	if t.track.Len() == 0 {
 		return Frame{}
 	}
@@ -121,7 +127,7 @@ func (t *Trackfile) IsLastKnownPointZero() bool {
 }
 
 func (t *Trackfile) bestAvailableDeclination() unit.Angle {
-	latest := t.LastKnown()
+	latest := t.unsafeLastKnown()
 	declincation, err := bearings.Declination(latest.Point, latest.Time)
 	if err != nil {
 		return 0

@@ -40,7 +40,11 @@ func (c *Controller) broadcastPicture(ctx context.Context, logger *zerolog.Logge
 		c.calls <- NewCall(ctx, brevity.PictureResponse{Count: count, Groups: groups})
 	}
 
-	c.pictureBroadcastDeadline = time.Now().Add(c.pictureBroadcastInterval)
+	func() {
+		c.pictureBroadcastDeadlineLock.Lock()
+		defer c.pictureBroadcastDeadlineLock.Unlock()
+		c.pictureBroadcastDeadline = time.Now().Add(c.pictureBroadcastInterval)
+	}()
 	c.wasLastPictureClean = isPictureClean
 	logger.Info().Time("deadline", c.pictureBroadcastDeadline).Msg("extended next PICTURE broadcast time")
 }
