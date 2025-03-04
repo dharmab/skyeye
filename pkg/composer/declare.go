@@ -22,9 +22,13 @@ func (c *Composer) ComposeDeclareResponse(response brevity.DeclareResponse) (rep
 			reply.WriteBoth(",")
 		}
 		reply.WriteBoth(" ")
-		reply.WriteResponse(c.composeDeclaration(response.Group))
-		if fillIns := c.composeFillIns(response.Group); fillIns.Subtitle != "" {
-			reply.WriteResponse(fillIns)
+		if response.Declaration == brevity.Furball {
+			reply.WriteResponse(c.composeDeclaration(response.Group))
+			if fillIns := c.composeFillIns(response.Group); fillIns.Subtitle != "" {
+				reply.WriteResponse(fillIns)
+			}
+		} else {
+			reply.WriteBoth(string(response.Declaration))
 		}
 		return
 	}
