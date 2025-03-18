@@ -1,0 +1,18 @@
+// Folder-specific settings
+//
+// For a full list of overridable settings, and general information on folder-specific settings,
+// see the documentation: https://zed.dev/docs/configuring-zed#settings-files
+{
+  "env": {
+    "CGO_ENABLED": "1",
+    "C_INCLUDE_PATH": "${workspaceFolder}/third_party/whisper.cpp/",
+    "LIBRARY_PATH": "${workspaceFolder}/third_party/whisper.cpp/"
+  },
+  "lsp": {
+    "gopls": {
+      "initialization_options": {
+        "buildFlags": ["-tags=nolibopusfile"]
+      }
+    }
+  }
+}
