@@ -108,7 +108,7 @@ func (c *Composer) composeFillIns(group brevity.Group) (response NaturalLanguage
 
 		if !group.High() {
 			stacks := group.Stacks()
-			if len(stacks) > 1 {
+			if len(stacks) > 1 && group.Contacts() > 2 {
 				response.WriteBoth(", " + c.composeAltitudeFillIns(stacks))
 			}
 		}
