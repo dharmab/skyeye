@@ -136,7 +136,12 @@ func init() {
 	skyeye.Flags().BoolVar(&threatMonitoringRequiresSRS, "threat-monitoring-requires-srs", true, "Require aircraft to be on SRS to receive THREAT calls. Only useful to disable when debugging")
 
 	// Tracing
+	skyeye.Flags().BoolVar(&enableTracing, "enable-tracing", false, "Enable tracing")
 	skyeye.Flags().BoolVar(&enableTracing, "tracing", false, "Enable tracing")
+	if err := skyeye.Flags().MarkDeprecated("tracing", "use --enable-tracing instead"); err != nil {
+		log.Fatal().Err(err).Msg("failed to mark flag as deprecated")
+	}
+	skyeye.MarkFlagsMutuallyExclusive("tracing", "enable-tracing")
 	skyeye.Flags().StringVar(&discordWebhookID, "discord-webhook-id", "", "Discord webhook ID for tracing")
 	skyeye.Flags().StringVar(&discordWebhookToken, "discord-webhook-token", "", "Discord webhook token for tracing")
 	skyeye.MarkFlagsRequiredTogether("discord-webhook-id", "discord-webhook-token")
