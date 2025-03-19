@@ -14,6 +14,7 @@ require (
 	github.com/gofrs/flock v0.12.1
 	github.com/gopxl/beep/v2 v2.0.3
 	github.com/hbollon/go-edlib v1.6.0
+	github.com/jba/omap v0.1.0
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6
 	github.com/nabbl/piper v0.0.0-20240819160100-e51f2288a5c0
