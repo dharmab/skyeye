@@ -1,6 +1,8 @@
 package types
 
 import (
+	"slices"
+
 	"github.com/dharmab/skyeye/pkg/coalitions"
 )
 
@@ -39,10 +41,8 @@ type RadioInfo struct {
 // IsOnFrequency is true if the other client has a radio with the same frequency, modulation, and encryption settings as this client.
 func (i *RadioInfo) IsOnFrequency(other RadioInfo) bool {
 	for _, thisRadio := range i.Radios {
-		for _, otherRadio := range other.Radios {
-			if thisRadio.IsSameFrequency(otherRadio) {
-				return true
-			}
+		if slices.ContainsFunc(other.Radios, thisRadio.IsSameFrequency) {
+			return true
 		}
 	}
 	return false
