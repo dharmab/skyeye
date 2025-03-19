@@ -60,7 +60,7 @@ func (h *HostHandshake) Encode() (packet string) {
 // DecodeHostHandshake decodes a host handshake from the given string.
 func DecodeHostHandshake(packet string) (HostHandshake, error) {
 	handshake := HostHandshake{}
-	for _, line := range strings.Split(packet, "\n") {
+	for line := range strings.SplitSeq(packet, "\n") {
 		if line == "" || line == string(rune(0)) {
 			continue
 		} else if strings.HasPrefix(line, LowLevelProtocol) {
