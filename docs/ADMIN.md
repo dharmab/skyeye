@@ -183,7 +183,7 @@ Outbound ports typically required by SkyEye:
 - `5002/TCP`: SRS Data
 - `5002/UDP`: SRS Audio
 - `42674/TCP`: TacView Real-Time Telemetry
-- `443/TCP`: Discord webhook
+- `443/TCP`: OpenAI Platform API, Discord webhook
 
 SkyEye does not require any inbound ports during runtime.
 
@@ -265,6 +265,10 @@ This architecture is marked experimental because I don't test this configuration
 Lastly, I cannot predict how these locks work in combination with CPU Core Affinity/Process Lasso. I suspect results will vary depending on the CPU's core and cache layout. To repeat and emphasize: **Core Affinity/Process Lasso configurations have no guarantees of performance and are at your own risk.**
 
 # Installation
+
+You will need to install the Tacview Exporter in your DCS server. Use the official TacView client to verify that you can connect to the Real-Time Telemetry address and port. (Real-Time Telemetry is a paid feature of the Tacview client, but is available in the free trial if you don't have a paid license.)
+
+You will need to enable External AWACS Mode (EAM) in your SRS server settings and configure an EAM password for the coalition(s) you want SkyEye to serve (i.e. configure the blue password for SkyEye to provide GCI to blue players).
 
 ## Linux
 

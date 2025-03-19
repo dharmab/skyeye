@@ -75,11 +75,20 @@ func (c *Client) updateServerSettings(message types.Message) {
 	log.Debug().Any("serverSettings", message.ServerSettings).Msg("received server settings")
 	if enabled, ok := message.ServerSettings[string(types.CoalitionAudioSecurity)]; ok {
 		if strings.ToLower(enabled) == "true" {
-			log.Info().Msg("enabling secure coalition radios")
+			if !c.secureCoalitionRadios {
+				log.Info().Msg("enabling secure coalition radios")
+			}
 			c.secureCoalitionRadios = true
 		} else {
 			log.Info().Msg("disabling secure coalition radios")
 			c.secureCoalitionRadios = false
+		}
+	}
+	if enabled, ok := message.ServerSettings[string(types.ExternalAWACSMode)]; ok {
+		if strings.ToLower(enabled) == "true" {
+			log.Debug().Msg("SRS server has enabled external AWACS mode")
+		} else {
+			log.Error().Msg("unable to receive or transmit: SRS server has disabled external AWACS mode")
 		}
 	}
 }

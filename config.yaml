@@ -65,6 +65,11 @@
 #telemetry-password: passwordgoeshere
 
 # SIMPLERADIO-STANDALONE
+#
+# External AWACS Mode (EAM) must be enabled in the SRS server and an EAM
+# password must be configured. If correctly configured the SR-Server.exe
+# GUI will display "ON" next to External AWACS Mode.
+#
 # SRS server address. Set this to the host and port of the SRS server.
 # SRS server running on the same computer:
 #srs-server-address: localhost:5002
