@@ -2,6 +2,7 @@
 package encyclopedia
 
 import (
+	"slices"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -89,13 +90,10 @@ func (a Aircraft) HasTag(tag AircraftTag) bool {
 }
 
 // HasAnyTag returns true if the aircraft has any of the specified tags.
+//
+// Deprecated: Use slices.Contains instead.
 func (a Aircraft) HasAnyTag(tags ...AircraftTag) bool {
-	for _, tag := range tags {
-		if a.HasTag(tag) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(tags, a.HasTag)
 }
 
 // ThreatRadius returns the aircraft's threat radius.
