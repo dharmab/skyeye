@@ -21,7 +21,7 @@ type Message struct {
 	// Version is the SRS client version.
 	Version string `json:"Version"`
 	// Client is used in messages that reference a single client.
-	Client ClientInfo `json:"Client,omitempty"`
+	Client ClientInfo `json:"Client"` // TODO v2: Change type to *ClientInfo and set omitempty
 	// Clients is used in messages that reference multiple clients.
 	Clients []ClientInfo `json:"Clients,omitempty"`
 	// ServerSettings is a map of server settings and their values. It sometimes appears in Sync messages.
