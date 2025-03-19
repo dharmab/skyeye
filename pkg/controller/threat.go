@@ -105,6 +105,8 @@ func (c *Controller) broadcastThreat(ctx context.Context, hostileGroup brevity.G
 		return
 	}
 
+	threatCall.Callsigns = collateCallsigns(threatCall.Callsigns, c.getFriendlyCallsigns())
+
 	logger.Info().Any("call", threatCall).Msg("broadcasting threat call for group")
 	c.calls <- NewCall(ctx, threatCall)
 

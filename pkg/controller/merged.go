@@ -217,6 +217,7 @@ func (c *Controller) createMergedCall(friendlies []*trackfiles.Trackfile) brevit
 	for _, friendly := range friendlies {
 		call.Callsigns = c.addFriendlyToBroadcast(call.Callsigns, friendly)
 	}
+	call.Callsigns = collateCallsigns(call.Callsigns, c.getFriendlyCallsigns())
 	return call
 }
 

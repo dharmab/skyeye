@@ -7,7 +7,7 @@
 1. Get airborne.
 1. Tune to any of the server's SkyEye frequencies in SRS.
 1. Say "Anyface, Callsign 1, radio check" and see if the bot understands you.
-1. Say "Anyface, Callsign 1, picture" to be told about the highest priority threats to your coalition. 
+1. Say "Anyface, Callsign 1, picture" to be told about the highest priority threats to your coalition.
 1. Say "Anyface, Callsign 1, bogey" to get a bearing to the nearest threat to you.
 
 ### ⚠️ If the bot doesn't seem to respond to you
@@ -67,6 +67,33 @@ Avoid:
 
 If your callsign doesn't follow this format, SkyEye makes a best effort to understand it while still applying its parser rules. A bare username like "Jeff" (with no numbers) may still work, but do not expect this to work reliably.
 
+### Strict Callsigns
+
+If you play in a private squadron that coordinates their callsigns, it is strongly recommended that you use strict callsigns.
+
+Strict callsigns are callsigns that meet the following criteria:
+
+1. An English word.
+2. **Exactly two digits.**
+3. A pipe character (`|`)
+3. Your non-callsign username.
+
+SkyEye makes a best effort to combine broadcast calls for strict callsigns into flights and elements, as appropriate for the current situation. For example, instead of saying:
+
+`Marauder One One, Marauder One Two, Marauder One Three, Marauder One Four, Marauder One Five, threat group bullseye 070/20, 12000, track north, hostile, 2 contacts, Fishbed.`
+
+Your flight may receive a shorter call such as:
+
+`Marauder One flight, threat group bullseye 070/20, 120-0, track north, hostile, 2 contacts, Fishbed.`
+
+If a call is only relevant to certain aircraft in a flight, SkyEye will abbreviate the callsigns. A call like:
+
+`Wardog One Three, Wardog One Four, merged.`
+
+May be shortened to:
+
+`Wardog One Three, One Four, merged.`
+
 ## Using SkyEye
 
 You can send a request to SkyEye by speaking on any SkyEye frequency in SRS. If the server operator has enabled DCS-gRPC integration, you may alternatively type the request into the in-game chat.[^f10]
@@ -112,9 +139,9 @@ Tips:
 
 Keyword: `RADIO` or `COMM`
 
-Function: The GCI will respond if they heard you. They will also inform you if they cannot see you on the radar scope. 
+Function: The GCI will respond if they heard you. They will also inform you if they cannot see you on the radar scope.
 
-Use: Testing communication with the bot. 
+Use: Testing communication with the bot.
 
 Examples:
 
@@ -168,7 +195,7 @@ Keyword: `BOGEY`
 
 Function: The GCI will give you the Bearing, Range, Altitude and Aspect from your aircraft to the nearest air-to-air threat.
 
-Use: Get a vector to the nearest hostile aircraft. 
+Use: Get a vector to the nearest hostile aircraft.
 
 Arguments:
 
@@ -195,7 +222,7 @@ Tips:
 
 * Make this request repeatedly during a BVR timeline to build and maintain situational awareness.
 * Note: Specific filters such as "MiG-29" or "Flanker" do **not** work. You can only filter to airplanes or helicopters.
-* If you are a fixed-wing aircraft, hostile fixed-wing aircraft are prioritized over hostile helicopters, regardless of range. 
+* If you are a fixed-wing aircraft, hostile fixed-wing aircraft are prioritized over hostile helicopters, regardless of range.
 
 ### DECLARE
 
@@ -262,7 +289,7 @@ Tips:
 
 * Repeat this call at regular intervals to maintain situational awareness.
 * Air combat is highly complex and the threat ranking algorithm is imperfect. The GCI might omit a highly dangerous adversary from the response. Exercise caution!
-* Be considerate of your allies on the channel. The response contains a great deal of useful information, but can occupy the channel for 20-30 seconds. 
+* Be considerate of your allies on the channel. The response contains a great deal of useful information, but can occupy the channel for 20-30 seconds.
 
 ### SNAPLOCK
 

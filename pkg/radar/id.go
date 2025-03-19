@@ -25,3 +25,14 @@ func (r *Radar) FindUnit(id uint64) *trackfiles.Trackfile {
 	}
 	return trackfile
 }
+
+// FindByCoalition returns all trackfiles on the given coalition.
+func (r *Radar) FindByCoalition(coalition coalitions.Coalition) []*trackfiles.Trackfile {
+	contacts := []*trackfiles.Trackfile{}
+	for trackfile := range r.contacts.values() {
+		if trackfile.Contact.Coalition == coalition {
+			contacts = append(contacts, trackfile)
+		}
+	}
+	return contacts
+}
