@@ -156,7 +156,11 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 	case conf.WhisperLocal:
 		speechRecognizer = recognizer.NewWhisperRecognizer(config.WhisperModel, config.Callsign)
 	case conf.WhisperAPI:
-		speechRecognizer = recognizer.NewOpenAIRecognizer(config.OpenAIAPIKey, config.Callsign)
+		speechRecognizer = recognizer.NewWhisperAPIRecognizer(config.OpenAIAPIKey, config.Callsign)
+	case conf.GPT4o:
+		speechRecognizer = recognizer.NewGPT4oRecognizer(config.OpenAIAPIKey, config.Callsign)
+	case conf.GPT4oMini:
+		speechRecognizer = recognizer.NewGPT4oMiniRecognizer(config.OpenAIAPIKey, config.Callsign)
 	default:
 		return nil, fmt.Errorf("failed to construct application: unrecognized recognizer %q", config.Recognizer)
 	}

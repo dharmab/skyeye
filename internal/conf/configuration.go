@@ -16,6 +16,8 @@ type Recognizer string
 const (
 	WhisperLocal Recognizer = "openai-whisper-local"
 	WhisperAPI   Recognizer = "openai-whisper-api"
+	GPT4o        Recognizer = "openai-gpt4o"
+	GPT4oMini    Recognizer = "openai-gpt4o-mini"
 )
 
 // Configuration for the SkyEye application.

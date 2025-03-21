@@ -165,6 +165,8 @@ recognizer: openai-whisper-api
 openai-api-key: APIKEYGOESHERE
 ```
 
+Valid values for `recognizer` are `openai-whisper-api`, `openai-gpt4o` and `openai-gpt4o-mini`. I do not recommend using the GPT4o options at this time, because the GPT4o models lack support for a feature called [prompting](https://platform.openai.com/docs/guides/speech-to-text#prompting) which SkyEye uses to drastically improve recognition of air combat brevity. In playtesting, the Whisper models currently provide significantly better results than the GPT4o models.
+
 ### Local Speech Recognition
 
 You'll need to choose a whisper.cpp speech recognition model from [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). See the example config file for recommendations on which model to use.

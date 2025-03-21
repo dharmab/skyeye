@@ -8,46 +8,66 @@ import (
 	"fmt"
 
 	"github.com/dharmab/skyeye/pkg/pcm"
-	"github.com/rs/zerolog/log"
-
 	openai "github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
+	"github.com/rs/zerolog/log"
 )
 
-type openaiRecognizer struct {
+type openAIRecognizer struct {
 	callsign string
 	client   *openai.Client
+	model    string
 }
 
-var _ Recognizer = &openaiRecognizer{}
+var _ Recognizer = &openAIRecognizer{}
 
-// NewOpenAIRecognizer creates a new recognizer using OpenAI Platform.
-func NewOpenAIRecognizer(apiKey, callsign string) Recognizer {
-	return &openaiRecognizer{
+func newOpenAIRecognizer(apiKey, model, callsign string) Recognizer {
+	return &openAIRecognizer{
 		callsign: callsign,
 		client: openai.NewClient(
 			option.WithAPIKey(apiKey),
 		),
+		model: model,
 	}
 }
 
-type transcriptionResponse struct {
-	Text string `json:"text"`
+func NewWhisperAPIRecognizer(apiKey, callsign string) Recognizer {
+	return newOpenAIRecognizer(apiKey, "whisper-1", callsign)
 }
 
-// Recognize implements [Recognizer.Recognize] using OpenAI Audio Transcriptions API.
-func (r *openaiRecognizer) Recognize(ctx context.Context, sample []float32, _ bool) (string, error) {
+// NewGPT4oRecognizer creates a new recognizer using OpenAI Platform's GPT-4o model.
+func NewGPT4oRecognizer(apiKey, callsign string) Recognizer {
+	return newOpenAIRecognizer(apiKey, "gpt-4o-transcribe", callsign)
+}
+
+// NewGPT4oMiniRecognizer creates a new recognizer using OpenAI Platform's GPT-4o Mini model.
+func NewGPT4oMiniRecognizer(apiKey, callsign string) Recognizer {
+	return newOpenAIRecognizer(apiKey, "gpt-4o-mini-transcribe", callsign)
+}
+
+// NewOpenAIRecognizer creates a new recognizer using OpenAI Platform.
+//
+// Deprecated: Use NewWhisperAPIRecognizer, NewGPT4oRecognizer, or NewGPT4oMiniRecognizer instead.
+func NewOpenAIRecognizer(apiKey, callsign string) Recognizer { // nolint: revive // Ignore deprecated function
+	return NewWhisperAPIRecognizer(apiKey, callsign)
+}
+
+// Recognize implements [Recognizer.Recognize] using OpenAI Platform's hosted GPT4 transcription model.
+func (r *openAIRecognizer) Recognize(ctx context.Context, sample []float32, _ bool) (string, error) {
+	log.Debug().Msg("creating WAV from sample")
 	buf, err := createWAV(sample)
 	if err != nil {
 		return "", fmt.Errorf("error creating WAV: %w", err)
 	}
+
 	body := openai.AudioTranscriptionNewParams{
 		File:     openai.FileParam(buf, "audio.wav", "audio/wav"),
-		Model:    openai.String("whisper-1"),
+		Model:    openai.String(r.model),
 		Language: openai.String("en"),
 		Prompt:   openai.String(prompt(r.callsign)),
 	}
-	log.Info().Msg("calling OpenAI Audio Transcriptions API")
+
+	log.Info().Str("model", r.model).Msg("calling OpenAI Audio Transcriptions API")
 	transcription, err := r.client.Audio.Transcriptions.New(ctx, body)
 	if err != nil {
 		return "", fmt.Errorf("error transcribing audio: %w", err)

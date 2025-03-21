@@ -28,6 +28,8 @@
 # Choose "openai-whisper-api" to use the OpenAI API for speech recognition,
 # which requires paying OpenAI for credits.
 # See docs/ADMIN.md for more details and advantages and disadvantages of each.
+# "openai-gpt4o" and "openai-gpt4o-mini" are also valid, but are not recommended
+# at this time due to higher error rates than Whisper.
 #recognizer: openai-whisper-local
 #
 # If you chose local speech recogntion, SkyEye requires a whisper.cpp model from
