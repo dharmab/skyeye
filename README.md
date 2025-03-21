@@ -2,7 +2,7 @@
 
 ![](https://repository-images.githubusercontent.com/712246301/691d4acd-5b70-41b2-b087-9ec27a7f6590)
 
-SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-controlled_interception) (GCI) bot for the flight simulator [Digital Combat Simulator](https://www.digitalcombatsimulator.com) (DCS). It is an advanced replacement for the in-game E-2, E-3 and A-50 AI aircraft. 
+SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-controlled_interception) (GCI) bot for the flight simulator [Digital Combat Simulator](https://www.digitalcombatsimulator.com) (DCS). It is an advanced replacement for the in-game E-2, E-3 and A-50 AI aircraft.
 
 SkyEye is a substantial improvement over the DCS AWACS:
 
@@ -49,7 +49,7 @@ As of this writing, DCS' built-in VoIP does not support external clients. SkyEye
 
 ### Could this use a Large Language Model? (llama, mistral, etc.)
 
-SkyEye uses an embedded LLM for speech-to-text, but I deliberately chose not to use an LLM for SkyEye's language parsing or decision-making logic. 
+SkyEye uses an embedded LLM for speech-to-text, but I deliberately chose not to use an LLM for SkyEye's language parsing or decision-making logic.
 
 Within the domain of air combat communication, these problems are less linguistic and more mathematical in nature. Air combat communication uses a limited, highly specific vocabulary and a low-context grammar that can be parsed quickly with traditional programming methods. The workflow for the tactical controller is a straightforward decision tree mostly based on tables of aircraft data, some middle school geometry and a few statistical methods. These workflows can be implemented in a few hundred lines of code and run in a few milliseconds. An LLM would have worse performance, no guarantee of consistency, much larger CPU and memory requirements, and introduces a large surface area of ML-specific issues such as privacy of training data sets, debugging hallucinations, and a much more difficult testing and validation process.
 
@@ -90,17 +90,18 @@ SkyEye would not be possible without these people and projects, for whom I am de
 * @zaf's [resample](https://github.com/zaf/resample) module helps with audio format conversion between Piper and SRS.
 * @martinlindhe's [unit](https://github.com/martinlindhe/unit) module provides easy angular, length, speed and frequency unit conversion.
 * @paulmach's [orb](https://github.com/paulmach/orb) module provides a simple, flexible GIS library for analyzing the geometric relationships between aircraft.
-* @proway's [go-igrf](github.com/proway2/go-igrf) module implements the [International Geomagnetic Reference Field](https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html) used to correct for magnetic declination.
+* @proway's [go-igrf](https://github.com/proway2/go-igrf) module implements the [International Geomagnetic Reference Field](https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html) used to correct for magnetic declination.
+* @jba' [omap](https://github.com/jba/omap) module provides a data structure used as part of SkyEye's algorithm for combining player callsigns.
 * [Cobra](https://cobra.dev) is used for the CLI frontend, including configuration flags, help and examples. [Viper](https://github.com/spf13/viper) is used to load configuration from a file/environment variables.
 * [MSYS2](https://www.msys2.org/) provides a Windows build environment.
-* @bwmarrin's [discordgo](github.com/bwmarrin/discordgo) module provides the Discord tracing integration.
-* @pasztorpisti's [go-crc](github.com/pasztorpisti/go-crc) module provides algorithms for negotiating handshakes with TacView telemetry sources.
+* @bwmarrin's [discordgo](https://github.com/bwmarrin/discordgo) module provides the Discord tracing integration.
+* @pasztorpisti's [go-crc](https://github.com/pasztorpisti/go-crc) module provides algorithms for negotiating handshakes with TacView telemetry sources.
 * [Oto](https://github.com/ebitengine/oto) was helpful for debugging audio format conversion problems.
 * [zerolog](https://github.com/rs/zerolog) is helpful for general logging and printf debugging.
 * [testify](https://github.com/stretchr/testify) is used in unit tests.
 * [flock](https://github.com/gofrs/flock), maintained by [the Gofrs](https://github.com/gofrs), provides optional concurrency controls for running multiple instances of SkyEye on a single CPU.
 * Multiple DCS communities provide invaluable feedback and morale-booster energy:
-  * [Team Lima Kilo](https://github.com/team-limakilo/) and the Flashpoint Levant community 
+  * [Team Lima Kilo](https://github.com/team-limakilo/) and the Flashpoint Levant community
   * The Hoggit Discord server
   * [Digital Controllers](https://digital-controllers.com/)
   * [1VSC](https://1stvsc.com/wing/)
@@ -108,4 +109,3 @@ SkyEye would not be possible without these people and projects, for whom I am de
   * @Frosty-nee
 * The _Ace Combat_ series by PROJECT ACES/Bandai Namco and _Project Wingman_ by Sector D2 are _massive_ influences on my interest in GCI/AWACS, and aviation in general. This project would not exist without the impact of _Ace Combat 04: Shattered Skies_.
 * And of course, [_DCS World_](https://www.digitalcombatsimulator.com/en/) is produced by Eagle Dynamics.
-
