@@ -39,6 +39,7 @@ On the other hand, cloud speech recognition has a separate set of tradeoffs:
 - Cloud speech recognition shares audio recordings with a third party, which may be a privacy concern.
 - Cloud speech recognition depends on an externally hosted API. It could break temporarily or permanently if the external API has an outage, makes a breaking change, or the company decides to stop providing the service to you.
 - Cloud speech recognition has good performance; while local speech recognition can be faster, in practice most players will be satisfied with the performance of cloud speech recognition.
+- When using cloud speech recognition, you have a **legal obligation** to disclose to your players that they are interacting with AI. (ref: [OpenAI Usage Policies](https://openai.com/policies/usage-policies/)). Of course, you should be doing this anyway! I recommend adding a disclosure to your mission briefing, and enabling "Show Transmitter Name" in your SRS server.
 
 ### Deployment with Local Speech Recognition
 
