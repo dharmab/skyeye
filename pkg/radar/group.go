@@ -240,16 +240,33 @@ func (g *group) category() brevity.ContactCategory {
 	return aircraft.Category()
 }
 
+func (g *group) isArmed() bool {
+	var hasData, result bool
+	for _, trackfile := range g.contacts {
+		if data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName); ok {
+			hasData = true
+			if !data.HasTag(encyclopedia.Unarmed) {
+				result = true
+				break
+			}
+		}
+	}
+	if !hasData {
+		result = true // Assumed armed if aircraft not in encyclopedia
+	}
+	return result
+}
+
 func (g *group) isFighter() bool {
-	isFighter := false
+	result := false
 	for _, trackfile := range g.contacts {
 		data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName)
 		if ok && data.HasTag(encyclopedia.Fighter) {
-			isFighter = true
+			result = true
 			break
 		}
 	}
-	return isFighter
+	return result
 }
 
 // point returns the center point of the group.
