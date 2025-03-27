@@ -85,8 +85,8 @@ func (a Aircraft) Tags() []AircraftTag {
 
 // HasTag returns true if the aircraft has the specified tag.
 func (a Aircraft) HasTag(tag AircraftTag) bool {
-	_, ok := a.tags[tag]
-	return ok
+	v, ok := a.tags[tag]
+	return ok && v
 }
 
 // HasAnyTag returns true if the aircraft has any of the specified tags.

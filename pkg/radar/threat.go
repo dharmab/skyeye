@@ -68,5 +68,8 @@ func (r *Radar) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 }
 
 func (r *Radar) isGroupWithinThreatRadius(grp *group, distance unit.Length) bool {
+	if !grp.isArmed() {
+		return false
+	}
 	return distance < grp.threatRadius() || distance < r.mandatoryThreatRadius
 }
