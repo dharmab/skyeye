@@ -52,3 +52,10 @@ func (c *Controller) handleFaded(location orb.Point, group brevity.Group, coalit
 func (c *Controller) handleRemoved(trackfile *trackfiles.Trackfile) {
 	c.remove(trackfile.Contact.ID)
 }
+
+func (c *Controller) remove(id uint64) {
+	log.Debug().Uint64("id", id).Msg("removing ID from controller state tracking")
+	c.threatCooldowns.remove(id)
+	c.mergeCooldowns.remove(id)
+	c.merges.remove(id)
+}

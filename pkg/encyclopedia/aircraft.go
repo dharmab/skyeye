@@ -475,7 +475,7 @@ var ftData = Aircraft{
 		FixedWing: true,
 	},
 	PlatformDesignation: "MiG-15",
-	NATOReportingName:   mig15NATOReportingName,
+	NATOReportingName:   "Fagot",
 	threatRadius:        SAR1IRThreat,
 }
 
