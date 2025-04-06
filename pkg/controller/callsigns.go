@@ -8,8 +8,29 @@ import (
 	"unicode"
 
 	"github.com/dharmab/skyeye/pkg/parser"
+	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/jba/omap"
+	"github.com/rs/zerolog/log"
 )
+
+// findCallsign uses fuzzy matching to find a trackfile for the given callsign.
+// Any matching callsign is returned, along with any trackfile and a bool indicating
+// if a valid trackfile with a non-zero location was found.
+func (c *Controller) findCallsign(callsign string) (string, *trackfiles.Trackfile, bool) {
+	logger := log.With().Str("parsedCallsign", callsign).Logger()
+	foundCallsign, trackfile := c.scope.FindCallsign(callsign, c.coalition)
+	if trackfile == nil {
+		logger.Info().Msg("no trackfile found for callsign")
+		return "", nil, false
+	}
+	logger = logger.With().Str("foundCallsign", foundCallsign).Logger()
+	if trackfile.IsLastKnownPointZero() {
+		logger.Info().Msg("found trackfile for callsign but without location")
+		return foundCallsign, trackfile, false
+	}
+	logger.Debug().Msg("found trackfile for callsign")
+	return foundCallsign, trackfile, true
+}
 
 // strictCallsign is a strucured model of a callsign that includes the flight
 // codeword (which may include spaces) and a two-digit flight and position

@@ -48,3 +48,20 @@ func (c *Controller) broadcastPicture(ctx context.Context, logger *zerolog.Logge
 	c.wasLastPictureClean = isPictureClean
 	logger.Info().Time("deadline", c.pictureBroadcastDeadline).Msg("extended next PICTURE broadcast time")
 }
+
+func (c *Controller) broadcastAutomaticPicture(ctx context.Context) {
+	if !c.enableAutomaticPicture {
+		return
+	}
+	shouldBroadcastPicture := false
+	func() {
+		c.pictureBroadcastDeadlineLock.Lock()
+		defer c.pictureBroadcastDeadlineLock.Unlock()
+		if time.Now().After(c.pictureBroadcastDeadline) {
+			shouldBroadcastPicture = true
+		}
+	}()
+	if shouldBroadcastPicture {
+		c.broadcastPicture(ctx, &log.Logger, false)
+	}
+}

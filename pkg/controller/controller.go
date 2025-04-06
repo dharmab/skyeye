@@ -6,12 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/traces"
-	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/lithammer/shortuuid/v3"
 	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
@@ -129,57 +127,7 @@ func (c *Controller) Run(ctx context.Context, calls chan<- Call) {
 		case <-ticker.C:
 			c.broadcastMerges(traces.WithTraceID(ctx, shortuuid.New()))
 			c.broadcastThreats(traces.WithTraceID(ctx, shortuuid.New()))
-			shouldBroadcastPicture := false
-			func() {
-				c.pictureBroadcastDeadlineLock.Lock()
-				defer c.pictureBroadcastDeadlineLock.Unlock()
-				if time.Now().After(c.pictureBroadcastDeadline) {
-					shouldBroadcastPicture = true
-				}
-			}()
-			if shouldBroadcastPicture {
-				c.broadcastPicture(traces.WithTraceID(ctx, shortuuid.New()), &log.Logger, false)
-			}
+			c.broadcastAutomaticPicture(traces.WithTraceID(ctx, shortuuid.New()))
 		}
 	}
-}
-
-func (c *Controller) broadcastSunrise(ctx context.Context) {
-	frequencies := make([]unit.Frequency, 0)
-	for _, rf := range c.srsClient.Frequencies() {
-		frequencies = append(frequencies, rf.Frequency)
-	}
-	c.calls <- NewCall(traces.WithTraceID(ctx, shortuuid.New()), brevity.SunriseCall{Frequencies: frequencies})
-}
-
-// findCallsign uses fuzzy matching to find a trackfile for the given callsign.
-// Any matching callsign is returned, along with any trackfile and a bool indicating
-// if a valid trackfile with a non-zero location was found.
-func (c *Controller) findCallsign(callsign string) (string, *trackfiles.Trackfile, bool) {
-	logger := log.With().Str("parsedCallsign", callsign).Logger()
-	foundCallsign, trackfile := c.scope.FindCallsign(callsign, c.coalition)
-	if trackfile == nil {
-		logger.Info().Msg("no trackfile found for callsign")
-		return "", nil, false
-	}
-	logger = logger.With().Str("foundCallsign", foundCallsign).Logger()
-	if trackfile.IsLastKnownPointZero() {
-		logger.Info().Msg("found trackfile for callsign but without location")
-		return foundCallsign, trackfile, false
-	}
-	logger.Debug().Msg("found trackfile for callsign")
-	return foundCallsign, trackfile, true
-}
-
-func (c *Controller) remove(id uint64) {
-	log.Debug().Uint64("id", id).Msg("removing ID from controller state tracking")
-	c.threatCooldowns.remove(id)
-	c.mergeCooldowns.remove(id)
-	c.merges.remove(id)
-}
-
-func (c *Controller) reset() {
-	c.threatCooldowns.reset()
-	c.mergeCooldowns.reset()
-	c.merges.reset()
 }
