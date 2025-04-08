@@ -181,7 +181,10 @@ func (t *Trackfile) groundSpeed() unit.Speed {
 	latest := t.track.Front()
 	previous := t.track.At(1)
 
-	timeDelta := latest.Time.Sub(previous.Time) + 1*time.Millisecond
+	timeDelta := latest.Time.Sub(previous.Time)
+	if timeDelta == 0 {
+		return 0
+	}
 
 	groundDistance := spatial.Distance(latest.Point, previous.Point)
 	groundSpeed := unit.Speed(
@@ -202,7 +205,12 @@ func (t *Trackfile) Speed() unit.Speed {
 
 	latest := t.track.Front()
 	previous := t.track.At(1)
-	timeDelta := latest.Time.Sub(previous.Time) + 1*time.Millisecond
+
+	timeDelta := latest.Time.Sub(previous.Time)
+	if timeDelta == 0 {
+		return 0
+	}
+
 	var verticalDistance unit.Length
 	if latest.Altitude > previous.Altitude {
 		verticalDistance = latest.Altitude - previous.Altitude
