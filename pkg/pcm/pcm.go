@@ -1,6 +1,8 @@
 // Package pcm converts between different representations of PCM audio data.
 // Ideally the only representations we would need would be []float32 for F32LE and []int16 for S16LE.
 // Sadly, many modules require us to provide raw byte arrays, so we also need conversion functions for []byte.
+//
+//nolint:gosec // intentional conversions between integer and binary representations
 package pcm
 
 import (

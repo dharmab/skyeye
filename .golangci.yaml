@@ -1,108 +1,155 @@
+version: "2"
 run:
   build-tags:
     - nolibopusfile
 linters:
-  presets:
-    - bugs
-    - comment
-    - performance
-    - format
-    - test
   enable:
+    - asasalint
+    - bidichk
+    - bodyclose
     - copyloopvar
+    - dupword
+    - durationcheck
+    - errchkjson
+    - errorlint
+    - exhaustive
+    - fatcontext
+    - gocheckcompilerdirectives
+    - gochecksumtype
     - goconst
     - godot
+    - gosec
+    - gosmopolitan
     - intrange
+    - loggercheck
+    - makezero
+    - misspell
+    - musttag
+    - nilerr
+    - nilnesserr
+    - noctx
+    - paralleltest
+    - perfsprint
+    - prealloc
     - predeclared
+    - protogetter
+    - reassign
+    - recvcheck
     - revive
-    - stylecheck
+    - rowserrcheck
+    - spancheck
+    - sqlclosecheck
+    - staticcheck
+    - testableexamples
+    - testifylint
+    - thelper
+    - tparallel
     - unconvert
     - usestdlibvars
+    - usetesting
     - whitespace
     - zerologlint
   disable:
     - asciicheck  # Unicode is fine!
     - contextcheck  # Neat but doesn't understand request contexts in this project
-    - godox  # The point of a TODO is something you can't do yet...
-    - gofumpt  # Neat tool but no editor integration
-    - gci  # Bugged? Stdlib imports out of order
-    - testpackage  # Test packages only allow blackbox testing
     - exhaustruct  # Too verbose
-linters-settings:
-  gosec:
-    excludes:
-      - G107 # Intentional use of custom webhooks
-      - G115 # https://github.com/securego/gosec/issues/1187
-      - G404 # We aren't using math/rand/v2 for secure random numbers in this project
-  revive:
-    rules:
-      - name: bool-literal-in-expr
-        disabled: false
-      - name: confusing-naming
-        disabled: false
-      - name: confusing-results
-        disabled: false
-      - name: constant-logical-expr
-        disabled: false
-      - name: context-as-argument
-        disabled: false
-      - name: context-keys-type
-        disabled: false
-      - name: defer
-        disabled: false
-      - name: early-return
-        disabled: false
-      - name: empty-block
-        disabled: false
-      - name: error-naming
-        disabled: false
-      - name: error-return
-        disabled: false
-      - name: error-strings
-        disabled: false
-      - name: errorf
-        disabled: false
-      - name: exported
-        disabled: false
-      - name: identical-branches
-        disabled: false
-      - name: if-return
-        disabled: false
-      - name: increment-decrement
-        disabled: false
-      - name: indent-error-flow
-        disabled: false
-      - name: import-shadowing
-        disabled: false
-      - name: modifies-value-receiver
-        disabled: false
-      - name: package-comments
-        disabled: false
-      - name: range
-        disabled: false
-      - name: redefines-builtin-id
-        disabled: false
-      - name: string-of-int
-        disabled: false
-      - name: superfluous-else
-        disabled: false
-      - name: time-naming
-        disabled: false 
-      - name: var-declaration
-        disabled: false
-      - name: unconditional-recursion
-        disabled: false
-      - name: unhandled-error
-        disabled: false
-      - name: unnecessary-stmt
-        disabled: false
-      - name: unreachable-code
-        disabled: false
-      - name: unused-parameter
-        disabled: false
-      - name: unused-receiver
-        disabled: false
-      - name: waitgroup-by-value
-        disabled: false
+    - godox  # The point of a TODO is something you can't do yet...
+    - testpackage  # Test packages only allow blackbox testing
+  settings:
+    gosec:
+      excludes:
+        - G107  # Intentional use of custom webhooks
+        - G404  # We aren't using math/rand/v2 for secure purposes
+    revive:
+      rules:
+        - name: bool-literal-in-expr
+          disabled: false
+        - name: confusing-naming
+          disabled: false
+        - name: confusing-results
+          disabled: false
+        - name: constant-logical-expr
+          disabled: false
+        - name: context-as-argument
+          disabled: false
+        - name: context-keys-type
+          disabled: false
+        - name: defer
+          disabled: false
+        - name: early-return
+          disabled: false
+        - name: empty-block
+          disabled: false
+        - name: error-naming
+          disabled: false
+        - name: error-return
+          disabled: false
+        - name: error-strings
+          disabled: false
+        - name: errorf
+          disabled: false
+        - name: exported
+          disabled: false
+        - name: identical-branches
+          disabled: false
+        - name: if-return
+          disabled: false
+        - name: increment-decrement
+          disabled: false
+        - name: indent-error-flow
+          disabled: false
+        - name: import-shadowing
+          disabled: false
+        - name: modifies-value-receiver
+          disabled: false
+        - name: package-comments
+          disabled: false
+        - name: range
+          disabled: false
+        - name: redefines-builtin-id
+          disabled: false
+        - name: string-of-int
+          disabled: false
+        - name: superfluous-else
+          disabled: false
+        - name: time-naming
+          disabled: false
+        - name: var-declaration
+          disabled: false
+        - name: unconditional-recursion
+          disabled: false
+        - name: unhandled-error
+          disabled: false
+        - name: unnecessary-stmt
+          disabled: false
+        - name: unreachable-code
+          disabled: false
+        - name: unused-parameter
+          disabled: false
+        - name: unused-receiver
+          disabled: false
+        - name: waitgroup-by-value
+          disabled: false
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 issues:
   max-same-issues: 0
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

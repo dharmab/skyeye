@@ -30,14 +30,6 @@ type group struct {
 
 var _ brevity.Group = &group{}
 
-func newGroupUsingBullseye(bullseye orb.Point) *group {
-	return &group{
-		bullseye:    &bullseye,
-		contacts:    make([]*trackfiles.Trackfile, 0),
-		declaration: brevity.Unable,
-	}
-}
-
 // Threat implements [brevity.Group.Threat].
 func (g *group) Threat() bool {
 	return g.isThreat

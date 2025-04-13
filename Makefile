@@ -141,7 +141,7 @@ run:
 
 .PHONY: test
 test: generate
-	$(BUILD_VARS) $(GO) tool gotest.tools/gotestsum -- $(BUILD_FLAGS) $(TEST_FLAGS) ./...
+	$(BUILD_VARS) $(GO) tool gotestsum -- $(BUILD_FLAGS) $(TEST_FLAGS) ./...
 
 .PHONY: benchmark-whisper
 benchmark-whisper: whisper
@@ -156,7 +156,7 @@ vet: generate
 # Don't use this make target in CI, it's not guaranteed to be accurate. Provided for convenience only.
 .PHONY: lint
 lint: whisper
-	$(BUILD_VARS) $(GO) tool github.com/golangci/golangci-lint/cmd/golangci-lint run ./...
+	$(BUILD_VARS) $(GO) tool golangci-lint run ./...
 
 .PHONY: format
 format:

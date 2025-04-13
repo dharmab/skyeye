@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"unicode"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
 )
@@ -58,20 +57,4 @@ func pronounceDecimal(f float64, precision int, separator string) string {
 	}
 
 	return fmt.Sprintf("%s %s %s", pronounceInt(integerPart), separator, pronounceInt(fractionalPart))
-}
-
-// pronounceNumbers composes a text representation of the digits in the given string as a sequence of digits.
-// Non-digit characters are ignored.
-func pronounceNumbers(s string) string {
-	var builder strings.Builder
-	for _, char := range s {
-		if unicode.IsDigit(char) {
-			i, err := strconv.Atoi(string(char))
-			if err != nil {
-				continue
-			}
-			_, _ = builder.WriteString(pronounceInt(i) + " ")
-		}
-	}
-	return builder.String()
 }

@@ -27,7 +27,7 @@ func TestGetByCallsign(t *testing.T) {
 	name, tf, ok := db.getByCallsignAndCoalititon("mobius 1", coalitions.Blue)
 	require.True(t, ok)
 	assert.Equal(t, "mobius 1", name)
-	assert.EqualValues(t, trackfile, tf)
+	assert.Equal(t, trackfile, tf)
 
 	_, _, ok = db.getByCallsignAndCoalititon("mobius 1", coalitions.Red)
 	require.False(t, ok)
@@ -35,7 +35,7 @@ func TestGetByCallsign(t *testing.T) {
 	name, tf, ok = db.getByCallsignAndCoalititon("moebius 1", coalitions.Blue)
 	require.True(t, ok)
 	assert.Equal(t, "mobius 1", name)
-	assert.EqualValues(t, trackfile, tf)
+	assert.Equal(t, trackfile, tf)
 
 	_, _, ok = db.getByCallsignAndCoalititon("yellow 13", coalitions.Red)
 	assert.False(t, ok)
@@ -57,7 +57,7 @@ func TestRealCallsigns(t *testing.T) {
 
 	for i, test := range testCases {
 		trackfile := trackfiles.New(trackfiles.Labels{
-			ID:        uint64(i),
+			ID:        uint64(i), //nolint:gosec // i is never negative
 			Name:      test.Name,
 			Coalition: coalitions.Blue,
 			ACMIName:  "F-15C",
@@ -71,7 +71,7 @@ func TestRealCallsigns(t *testing.T) {
 		foundCallsign, tf, ok := db.getByCallsignAndCoalititon(test.heardAs, coalitions.Blue)
 		require.True(t, ok, "queried %s, expected %s, but result was %v", test.heardAs, test.Name, ok)
 		assert.Equal(t, parsedCallsign, foundCallsign)
-		assert.EqualValues(t, uint64(i), tf.Contact.ID)
+		assert.Equal(t, uint64(i), tf.Contact.ID) //nolint:gosec // i is never negative
 	}
 }
 
@@ -88,7 +88,7 @@ func TestGetByID(t *testing.T) {
 
 	val, ok := db.getByID(1)
 	require.True(t, ok)
-	assert.EqualValues(t, trackfile, val)
+	assert.Equal(t, trackfile, val)
 
 	_, ok = db.getByID(2)
 	assert.False(t, ok)
@@ -107,7 +107,7 @@ func TestSet(t *testing.T) {
 
 	val, ok := database.getByID(1)
 	require.True(t, ok)
-	assert.EqualValues(t, trackfile, val)
+	assert.Equal(t, trackfile, val)
 
 	trackfile.Update(trackfiles.Frame{
 		Time: time.Now(),
@@ -123,7 +123,7 @@ func TestSet(t *testing.T) {
 
 	val, ok = database.getByID(1)
 	require.True(t, ok)
-	assert.EqualValues(t, trackfile, val)
+	assert.Equal(t, trackfile, val)
 }
 
 func TestDelete(t *testing.T) {
@@ -205,11 +205,12 @@ func TestValues(t *testing.T) {
 	foundMobius := false
 	foundYellow := false
 	for trackfile := range db.values() {
-		if trackfile.Contact.ID == mobius.Contact.ID {
-			require.EqualValues(t, mobius, trackfile)
+		switch trackfile.Contact.ID {
+		case mobius.Contact.ID:
+			require.Equal(t, mobius, trackfile)
 			foundMobius = true
-		} else if trackfile.Contact.ID == yellow.Contact.ID {
-			require.EqualValues(t, yellow, trackfile)
+		case yellow.Contact.ID:
+			require.Equal(t, yellow, trackfile)
 			foundYellow = true
 		}
 		if foundMobius && foundYellow {
