@@ -121,9 +121,9 @@ func init() {
 
 	// Text-to-speech
 	voiceFlag := cli.NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
-	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine). Automatically chosen if not provided")
-	skyeye.Flags().Float64Var(&voiceSpeed, "voice-playback-speed", 1.0, "How quickly the GCI speaks (values below 1.0 are faster and above are slower)")
-	skyeye.Flags().DurationVar(&voicePauseLength, "voice-playback-pause", 200*time.Millisecond, "How long the GCI pauses between sentences")
+	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine). Automatically chosen if not provided. Voice is always feminine on macOS")
+	skyeye.Flags().Float64Var(&voiceSpeed, "voice-playback-speed", 1.0, "How quickly the GCI speaks (values below 1.0 are faster and above are slower).")
+	skyeye.Flags().DurationVar(&voicePauseLength, "voice-playback-pause", 200*time.Millisecond, "How long the GCI pauses between sentences. No function on macOS")
 	skyeye.Flags().BoolVar(&mute, "mute", false, "Mute all SRS transmissions. Useful for testing without disrupting play")
 	skyeye.Flags().StringVar(&voiceLockPath, "voice-lock-path", "", "Path to lock file for concurrent text-to-speech when using multiple instances")
 
