@@ -11,6 +11,7 @@ require (
 	github.com/dharmab/goacmi v1.0.3
 	github.com/gammazero/deque v0.2.1
 	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20240727173504-6739eb83c3ca
+	github.com/go-audio/aiff v1.1.0
 	github.com/gofrs/flock v0.12.1
 	github.com/gopxl/beep/v2 v2.0.3
 	github.com/hbollon/go-edlib v1.6.0
@@ -87,6 +88,7 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/ghostiam/protogetter v0.3.9 // indirect
+	github.com/go-audio/audio v1.0.0 // indirect
 	github.com/go-critic/go-critic v0.11.5 // indirect
 	github.com/go-toolsmith/astcast v1.1.0 // indirect
 	github.com/go-toolsmith/astcopy v1.1.0 // indirect

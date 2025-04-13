@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 
@@ -187,9 +188,14 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 	responseComposer := composer.Composer{Callsign: config.Callsign}
 
 	log.Info().Msg("constructing text-to-speech synthesizer")
-	synthesizer, err := speakers.NewPiperSpeaker(config.Voice, config.VoiceSpeed, config.VoicePauseLength)
-	if err != nil {
-		return nil, fmt.Errorf("failed to construct application: %w", err)
+	var synthesizer speakers.Speaker
+	if runtime.GOOS == "darwin" {
+		synthesizer = speakers.NewMacOSSpeaker(config.Voice, config.VoiceSpeed)
+	} else {
+		synthesizer, err = speakers.NewPiperSpeaker(config.Voice, config.VoiceSpeed, config.VoicePauseLength)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct application: %w", err)
+		}
 	}
 
 	tracers := make([]traces.Tracer, 0)

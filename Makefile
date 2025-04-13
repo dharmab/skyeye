@@ -148,7 +148,7 @@ vet: generate
 # Note: Running golangci-lint from source like this is not recommended, see https://golangci-lint.run/welcome/install/#install-from-source
 # Don't use this make target in CI, it's not guaranteed to be accurate. Provided for convenience only.
 .PHONY: lint
-lint:
+lint: whisper
 	$(BUILD_VARS) $(GO) tool github.com/golangci/golangci-lint/cmd/golangci-lint run ./...
 
 .PHONY: format

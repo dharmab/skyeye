@@ -80,10 +80,12 @@ SkyEye would not be possible without these people and projects, for whom I am de
 * @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against SkyEye during early development, and Jones himself was also patient with my questions on Discord.
 * OpenAI's [Whisper](https://github.com/openai/whisper) provides speech-to-text. @ggerganov's [whisper.cpp](https://github.com/ggerganov/whisper.cpp) allows Whisper to be used locally without requiring cloud services.
 * @rodaine's [numwords](https://github.com/rodaine/numwords) module is invaluable for parsing numeric quantities from voice input.
-* [Piper](https://github.com/rhasspy/piper) by the [Rhasspy](https://rhasspy.readthedocs.io/en/latest/) voice assistant project is used for speech-to-text.
-* The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for SkyEye.
-* @popey's dataset provides the masculine voice for SkyEye.
-* @amitybell's [embedded Piper module](https://github.com/amitybell/piper) makes distribution and implementation of Piper a breeze. @nabbl improved this module by adding support for macOS and variable speeds.
+* [Piper](https://github.com/rhasspy/piper) by the [Rhasspy](https://rhasspy.readthedocs.io/en/latest/) voice assistant project is used for speech-to-text on Windows and Linux.
+* The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for SkyEye on Windows and Linux.
+* @popey's dataset provides the masculine voice for SkyEye on Windows and Linux.
+* @amitybell's [embedded Piper module](https://github.com/amitybell/piper) makes distribution and implementation of Piper a breeze. @nabbl improved this module.
+* Apple's [Speech Synthesis Manager](https://developer.apple.com/documentation/applicationservices/speech_synthesis_manager) is used for speech-to-text on macOS.
+* @mattetti's [go-audio project](https://github.com/go-audio) is used for decoding AIFF audio.
 * The [Opus codec](https://opus-codec.org) and the [`hraban/opus`](https://github.com/hraban/opus) module provides audio compression for the SRS protocol.
 * @hbollon's [go-edlib](github.com/hbollon/go-edlib) module provides algorithms to help SkyEye understand when it slightly mishears/the user slightly misspeaks a callsign or command over the radio.
 * @lithammer's [shortuuid](https://github.com/lithammer/shortuuid) module provides a GUID implementation compatible with the SRS protocols.
