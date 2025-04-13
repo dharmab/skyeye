@@ -18,7 +18,7 @@ jobs:
       - name: Build whisper.cpp
         uses: ./.github/actions/build-whisper
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
           version: latest
       - name: vet

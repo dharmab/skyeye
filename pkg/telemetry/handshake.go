@@ -107,9 +107,10 @@ func hashPassword(password string, algorithm HashAlgorithm) string {
 	}
 
 	var hash uint64
-	if algorithm == CRC64WE {
+	switch algorithm {
+	case CRC64WE:
 		hash = crc.CRC64WE.Calc(buf)
-	} else if algorithm == CRC32ISOHDLC {
+	case CRC32ISOHDLC:
 		hash = uint64(crc.CRC32ISOHDLC.Calc(buf))
 	}
 	return strconv.FormatUint(hash, 16)

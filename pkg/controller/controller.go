@@ -110,6 +110,7 @@ func (c *Controller) Run(ctx context.Context, calls chan<- Call) {
 	log.Info().Msg("attaching callbacks")
 	c.scope.SetFadedCallback(c.handleFaded)
 	c.scope.SetRemovedCallback(c.handleRemoved)
+	c.scope.SetStartedCallback(c.handleStarted)
 
 	c.broadcastSunrise(ctx)
 

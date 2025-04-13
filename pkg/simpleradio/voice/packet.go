@@ -119,19 +119,17 @@ const (
 
 // NewPacket creates a new Packet.
 func NewPacket(audioBytes []byte, frequencies []Frequency, unitID uint32, packetID uint64, hops byte, relay []byte, origin []byte) Packet {
-	var audioSegmentLength uint16
 	if len(audioBytes) > math.MaxUint16 {
-		audioSegmentLength = math.MaxUint16
-	} else {
-		audioSegmentLength = uint16(len(audioBytes))
+		audioBytes = audioBytes[:math.MaxUint16]
 	}
+	audioSegmentLength := uint16(len(audioBytes)) //nolint:gosec // audioButes is truncated to math.MaxUint16
 
-	var frequenciesSegmentLength uint16
-	if len(frequencies)*frequencyLength > math.MaxUint16 {
-		frequenciesSegmentLength = math.MaxUint16
-	} else {
-		frequenciesSegmentLength = uint16(len(frequencies) * frequencyLength)
+	f := len(frequencies) * frequencyLength
+	if f > math.MaxUint16 {
+		f = math.MaxUint16
+		frequencies = frequencies[:f/frequencyLength]
 	}
+	frequenciesSegmentLength := uint16(f) //nolint:gosec // frequencies are truncated such that f is within bounds
 
 	return Packet{
 		PacketLength:             headerSegmentLength + audioSegmentLength + frequenciesSegmentLength + fixedSegmentLength,

@@ -259,7 +259,7 @@ func randomizer() (rando *rand.Rand) {
 	} else if 16 <= hour && hour < 24 {
 		seed = seed - 3
 	}
-	rando = rand.New(rand.NewPCG(uint64(seed), uint64(seed)))
+	rando = rand.New(rand.NewPCG(uint64(seed), uint64(seed))) // nolint:gosec // seed is bounded to small values, so overflow is impossible
 	return
 }
 

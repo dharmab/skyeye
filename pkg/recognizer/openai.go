@@ -77,12 +77,14 @@ func (r *openAIRecognizer) Recognize(ctx context.Context, sample []float32, _ bo
 
 // createWAV creates a RIFF WAV file from a 16KHz mono audio sample.
 func createWAV(sample []float32) (*bytes.Buffer, error) {
-	sampleRate := 16000
-	channels := 1
-	bitsPerSample := 16
-	bytesPerSample := bitsPerSample / 8
-	bytesPerBlock := channels * bitsPerSample / 8
-	bytesPerSecond := sampleRate * bytesPerBlock
+	const (
+		sampleRate     = 16000
+		channels       = 1
+		bitsPerSample  = 16
+		bytesPerSample = bitsPerSample / 8
+		bytesPerBlock  = channels * bitsPerSample / 8
+		bytesPerSecond = sampleRate * bytesPerBlock
+	)
 
 	data := pcm.F32toS16LE(sample)
 	dataSize := len(data) * bytesPerSample
@@ -129,7 +131,7 @@ func createWAV(sample []float32) (*bytes.Buffer, error) {
 	if _, err := buf.WriteString("data"); err != nil {
 		writeErr = errors.Join(writeErr, err)
 	}
-	if err := writeBinary(buf, int32(dataSize)); err != nil {
+	if err := writeBinary(buf, dataSize); err != nil {
 		writeErr = errors.Join(writeErr, err)
 	}
 	for _, d := range data {
@@ -141,7 +143,7 @@ func createWAV(sample []float32) (*bytes.Buffer, error) {
 	// Update file size
 	fileSize := buf.Len() - 8
 	fileSizeBytes := new(bytes.Buffer)
-	if err := writeBinary(fileSizeBytes, int32(fileSize)); err != nil {
+	if err := writeBinary(fileSizeBytes, fileSize); err != nil {
 		writeErr = errors.Join(writeErr, err)
 	}
 	copy(buf.Bytes()[4:8], fileSizeBytes.Bytes())
