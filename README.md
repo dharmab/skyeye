@@ -4,17 +4,24 @@
 
 SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-controlled_interception) (GCI) bot for the flight simulator [Digital Combat Simulator](https://www.digitalcombatsimulator.com) (DCS). It is an advanced replacement for the in-game E-2, E-3 and A-50 AI aircraft.
 
+
 SkyEye is a substantial improvement over the DCS AWACS:
 
 1. SkyEye offers modern voice recognition using a current-generation AI model. Keyboard input is also supported.
-2. SkyEye has natural sounding voices, using a neural network to synthesize speech instead of robotically clipping together samples.
+2. SkyEye has natural sounding voices, instead of robotically clipping together samples. On Windows and Linux, SkyEye uses a neural network to speak in a human-like voice. On macOS, SkyEye speaks using a version of Siri's voice.
 3. SkyEye adheres more closely to real-world [brevity](https://rdl.train.army.mil/catalog-ws/view/100.ATSC/5773E259-8F90-4694-97AD-81EFE6B73E63-1414757496033/atp1-02x1.pdf) and [procedures](https://www.alssa.mil/Portals/9/Documents/mttps/sd_acc_2024.pdf?ver=IZRWZy_DhRSOJWgNSAbMWA%3D%3D) instead of the incorrect brevity used by the in-game AWACS.
 4. SkyEye supports a larger number of commands, including [PICTURE](docs/PLAYER.md#picture), [BOGEY DOPE](docs/PLAYER.md#bogey-dope), [DECLARE](docs/PLAYER.md#declare), [SNAPLOCK](docs/PLAYER.md#snaplock), [SPIKED](docs/PLAYER.md#spiked) , and [ALPHA CHECK](docs/PLAYER.md#alpha-check).
 5. SkyEye intelligently monitors the battlespace, providing automatic [THREAT](docs/PLAYER.md#threat), [MERGED](docs/PLAYER.md#merged) and [FADED](docs/PLAYER.md#faded) callouts to improve situational awareness.
 
-SkyEye uses Speech-To-Text and Text-To-Speech technology which can run locally on the same computer as SkyEye. No cloud APIs are required, although cloud APIs are optionally supported. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can run it for less than a nickel per hour on a cloud server, or run it on a PC in your home.
+SkyEye uses Speech-To-Text and Text-To-Speech technology which can run locally on the same computer as SkyEye. No cloud APIs are required, although cloud APIs are optionally supported. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can run it for less than a nickel per hour on a cloud server, or run it on a computer in your home running Windows, Linux or macOS.
 
-SkyEye is production ready software. It is used by the [Flashpoint Levant](https://limakilo.net/) public server and a number of private squadrons.
+SkyEye is production ready software. It is used by a few public servers and many private squadrons. Based on download statistics, I estimate over 100 communities are using SkyEye, such as:
+
+- [Flashpoint Levant](https://limakilo.net/)
+- [Victor Romeo Sierra](https://forum.dcs.world/topic/368175-launching-ai-centric-dcs-server-victor-romeo-sierra/)
+- [DCS ANZUS](https://www.dcsanzus.com/)
+
+SkyEye is **free software**. It is free as in beer; you can download and run it for free. It is also free as in freedom; the source code is available for you to study and modify to fit your needs.
 
 ## Getting Started
 
@@ -22,6 +29,12 @@ SkyEye is production ready software. It is used by the [Flashpoint Levant](https
 * Server admins: See [the admin guide](docs/ADMIN.md) for a technical guide on deploying the bot.
 * Developers: See [the contributing guide](docs/CONTRIBUTING.md) for instructions on building, running and modifying the bot.
 * Please also see [the privacy statement](docs/PRIVACY.md) to understand how SkyEye uses your voice and gameplay data to function.
+
+## Demonstration
+
+See it in action! Jump to 7:24 in [this demo video by DCS ANZUS](https://youtu.be/yksS1PBH2x0?t=444)
+
+[![](site/demo.jpg)](https://youtu.be/yksS1PBH2x0?t=444)
 
 ## FAQ
 

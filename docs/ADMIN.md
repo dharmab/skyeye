@@ -23,7 +23,7 @@ I do not respond to direct messages on social media or the Eagle Dynamics forums
 
 ## System Architecture
 
-SkyEye can be deployed in two architectures: Local speech recognition and cloud-hosted speech recognition. Neither is better than the other; they each suit different use cases.
+SkyEye can be deployed in two architectures: Local speech recognition and cloud-hosted speech recognition. Neither is universally better than the other; they each suit different use cases.
 
 Local speech recognition is more performance intensive, usually requiring two computers with quite good CPUs (one to run DCS and one to run SkyEye). However, it has a number of advantages:
 
@@ -31,6 +31,7 @@ Local speech recognition is more performance intensive, usually requiring two co
 - Local speech recognition is fully self-contained. It has better privacy qualities, and you can expect it to continue to work far into the future.
 - Local speech recognition can be self-hosted on your own hardware. This makes it a viable option for some international groups whose payment methods are not accepted by cloud hosting providers.
 - If you have very powerful hardware, self-hosting can be lower-latency and/or cheaper than cloud speech recognition.
+- If you have a Mac with an Apple Sillicon CPU, local speech recognition is the best option, since it uses the GPU/Neural Engine for extremely fast performance.
 
 On the other hand, cloud speech recognition has a separate set of tradeoffs:
 
@@ -69,7 +70,7 @@ flowchart TD
 
 ## Software
 
-SkyEye is officially supported on Windows AMD64, Linux AMD64 and Apple Silicon. The Windows version bundles all required libraries within skyeye.exe. The Linux version requires Opus and SOXR to be installed using the OS package manager. The macOS version requires Opus and SOXR to be installed using Homebrew.
+SkyEye is officially supported on Windows AMD64, Linux AMD64 and Apple Silicon. The Windows version bundles all required libraries within skyeye.exe. The Linux and macOS versions require [Opus](https://opus-codec.org/), [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/) and [OpenBLAS](http://www.openblas.net/) with [OpenMP](https://www.openmp.org/about/openmp-faq/#OMPAPI) to be installed through the package manager or Homebrew, respectively.
 
 ## Hardware
 
@@ -81,7 +82,7 @@ When using cloud speech recognition, SkyEye has relatively modest requirements: 
 
 #### Windows and Linux
 
-When running on Windows and Linux, local speech recognition runs on the CPU. In this configuration, SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space. The CPU must either have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
+When running on Windows and Linux, local speech recognition runs on the CPU. In this configuration, SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space. The CPU must have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
 
 CPU Series|AVX2 Added In
 -|-
