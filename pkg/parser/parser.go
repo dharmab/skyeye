@@ -60,6 +60,7 @@ func (p *Parser) findGCICallsign(fields []string) (callsign string, rest string,
 
 func findRequestWord(fields []string) (string, int, bool) {
 	for i, field := range fields {
+		field = strings.TrimPrefix(field, "request")
 		for _, word := range requestWords {
 			if isSimilar(word, field) {
 				return word, i, true
