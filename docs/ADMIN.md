@@ -106,11 +106,13 @@ Non-scientific local speech recognition performance:
 
 System|CPU|Speech Recognition Model|Speech Recognition Time (Synthetic benchmark)|Speech Recognition Time (In practice)
 -|-|-|-|-
+Macbook Pro|Apple M4 Max|ggml-small.en.bin|0.09-0.13s|?
 Mac Mini|Apple M4|ggml-small.en.bin|0.25-0.5s|?
+Macbook Pro|Apple M4 Max|ggml-medium.en.bin|0.3-0.5s|?
 Macbook Air|Apple M4|ggml-small.en.bin|0.35-0.5s|0.5s
 Mac Mini|Apple M4|ggml-medium.en.bin|0.9-1.0s|?
-My current PC|AMD 5900X|ggml-small.en.bin|1.0-1.5s|1.5-2.0s
 Macbook Air|Apple M4|ggml-medium.en.bin|1.1-1.5s|1.2-1.5s
+My current PC|AMD 5900X|ggml-small.en.bin|1.0-1.5s|1.5-2.0s
 My older PC|AMD 3900XT|ggml-small.en.bin|2-3s|?
 Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (4 dedicated cores)|ggml-small.en.bin|3.0-3.5s|3.0-3.5s
 My current PC|AMD 5900X|ggml-medium.en.bin|3.5-4.5s|4-5s
