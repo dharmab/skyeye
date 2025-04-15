@@ -1,7 +1,6 @@
 package speakers
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 
@@ -10,8 +9,8 @@ import (
 	feminine "github.com/amitybell/piper-voice-jenny"
 	"github.com/dharmab/skyeye/pkg/pcm"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
+	"github.com/martinlindhe/unit"
 	"github.com/nabbl/piper"
-	"github.com/zaf/resample"
 )
 
 type piperSynth struct {
@@ -43,25 +42,10 @@ func (s *piperSynth) Say(text string) ([]float32, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to synthesize text: %w", err)
 	}
-	downsampled, err := downsample(synthesized, 22050, 16000, 1)
+	downsampled, err := downsample(synthesized, 22050*unit.Hertz)
 	if err != nil {
 		return nil, fmt.Errorf("failed to downsample synthesized audio: %w", err)
 	}
 	f32le := pcm.S16LEBytesToF32LE(downsampled)
 	return f32le, nil
-}
-
-func downsample(in []byte, orignalRate float64, newRate float64, channels int) ([]byte, error) {
-	var buf bytes.Buffer
-	resampler, err := resample.New(&buf, orignalRate, newRate, channels, resample.I16, resample.LowQ)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create resampler: %w", err)
-	}
-	defer resampler.Close()
-
-	_, err = resampler.Write(in)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resample synthesized audio: %w", err)
-	}
-	return buf.Bytes(), nil
 }

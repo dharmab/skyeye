@@ -18,7 +18,7 @@ func (c *Composer) composeBRAA(braa brevity.BRAA, declaration brevity.Declaratio
 	altitude := c.composeAltitudeStacks(braa.Stacks(), declaration)
 	resp := NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf("BRAA %s/%d, %s", braa.Bearing().String(), _range, altitude),
-		Speech:   fmt.Sprintf("BRAA %s, %d, %s", bearing, _range, altitude),
+		Speech:   fmt.Sprintf("bra %s, %d, %s", bearing, _range, altitude),
 	}
 
 	isAspectKnown :=

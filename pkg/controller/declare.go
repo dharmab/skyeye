@@ -107,6 +107,9 @@ func (c *Controller) HandleDeclare(ctx context.Context, request *brevity.Declare
 	} else if len(friendlyGroups) > 0 && len(hostileGroups) > 0 {
 		logger.Debug().Msg("both friendly and hostile groups found")
 		response.Declaration = brevity.Furball
+		if len(hostileGroups) == 1 {
+			response.Group = hostileGroups[0]
+		}
 	}
 
 	if response.Group != nil {
