@@ -74,7 +74,25 @@ I have no plans to attempt an ATC bot due to limitations within DCS.
 
 AI aircraft in DCS cannot be directly commanded through scripting or external software and are incapable of safely operating in controlled airspace. for example, AI aircraft in DCS do not sequence for landing, and will only begin an approach if the entire approach and runway are clear. AI aircraft also cannot execute a hold or a missed approach, and they make no effort to maintain separation from other aircraft.
 
-While working on this software I spoke to a number of people who thought it would be as easy as feeding a bunch of PDFs to an LLM and it would magically become a capable Air Traffic Controller. This could not be further from the truth!
+While working on this software I spoke to a number of people who thought it would be as easy as feeding a bunch of PDFs to an LLM and it would magically become a capable Air Traffic Controller. This could not be further from the truth! [See this post by a startup working on AI for ATC on the challenges involved.](https://news.ycombinator.com/item?id=43257323)
+
+### Are there options for different voices?
+
+SkyEye can be used with one of three voices:
+
+1. Jenny, a feminine Irish English voice available on Windows and Linux.
+2. Alan, a masculine British English voice available on Windows and Linux.
+3. Samantha, a feminine US English voice available on macOS. This is the version of Siri's voice from the iPhone 4s, iPhone 5 and iPhone 6.
+
+I have chosen these voices because they meet the following criteria:
+
+- Permissive licensing
+- Source data was recorded with consent
+- Correct and unambiguous pronunciation, especially of numeric values
+- Able to run fully offline on modest hardware in near-realtime, with consistent output on different hardware
+- Easily redistributable without requiring complex additional software to be installed
+
+I have investigated a number of alternative AI voices including ElevenLabs, OpenAI, Kokoro, Sherpa, Coqui, and others. I have not found voices that better meet these criteria. I continue to follow the state of the art and watch for new developments.
 
 ### Can you add an option to do _insert feature here_?
 
@@ -100,13 +118,13 @@ SkyEye would not be possible without these people and projects, for whom I am de
 * Apple's [Speech Synthesis Manager](https://developer.apple.com/documentation/applicationservices/speech_synthesis_manager) is used for speech-to-text on macOS.
 * @mattetti's [go-audio project](https://github.com/go-audio) is used for decoding AIFF audio.
 * The [Opus codec](https://opus-codec.org) and the [`hraban/opus`](https://github.com/hraban/opus) module provides audio compression for the SRS protocol.
-* @hbollon's [go-edlib](github.com/hbollon/go-edlib) module provides algorithms to help SkyEye understand when it slightly mishears/the user slightly misspeaks a callsign or command over the radio.
+* @hbollon's [go-edlib](https://github.com/hbollon/go-edlib) module provides algorithms to help SkyEye understand when it slightly mishears/the user slightly misspeaks a callsign or command over the radio.
 * @lithammer's [shortuuid](https://github.com/lithammer/shortuuid) module provides a GUID implementation compatible with the SRS protocols.
 * @zaf's [resample](https://github.com/zaf/resample) module helps with audio format conversion between Piper and SRS.
 * @martinlindhe's [unit](https://github.com/martinlindhe/unit) module provides easy angular, length, speed and frequency unit conversion.
 * @paulmach's [orb](https://github.com/paulmach/orb) module provides a simple, flexible GIS library for analyzing the geometric relationships between aircraft.
 * @proway's [go-igrf](https://github.com/proway2/go-igrf) module implements the [International Geomagnetic Reference Field](https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html) used to correct for magnetic declination.
-* @jba' [omap](https://github.com/jba/omap) module provides a data structure used as part of SkyEye's algorithm for combining player callsigns.
+* @rsc and @jba's [omap](https://github.com/jba/omap) module provides a data structure used as part of SkyEye's algorithm for combining player callsigns.
 * [Cobra](https://cobra.dev) is used for the CLI frontend, including configuration flags, help and examples. [Viper](https://github.com/spf13/viper) is used to load configuration from a file/environment variables.
 * [MSYS2](https://www.msys2.org/) provides a Windows build environment.
 * @bwmarrin's [discordgo](https://github.com/bwmarrin/discordgo) module provides the Discord tracing integration.
