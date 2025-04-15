@@ -58,6 +58,12 @@ func TestParserAlphaCheck(t *testing.T) {
 				Callsign: "eagle 1 1",
 			},
 		},
+		{
+			text: TestCallsign + " Eagle11, ARFA CHECK",
+			expected: &brevity.AlphaCheckRequest{
+				Callsign: "eagle 1 1",
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()

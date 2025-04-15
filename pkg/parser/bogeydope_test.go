@@ -8,16 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func simpleBogeyDopeTestCase(tail string) parserTestCase {
-	return parserTestCase{
-		text: fmt.Sprintf("%s, eagle 1-1, %s", TestCallsign, tail),
-		expected: &brevity.BogeyDopeRequest{
-			Callsign: "eagle 1 1",
-			Filter:   brevity.Aircraft,
-		},
-	}
-}
-
 func TestParserBogeyDope(t *testing.T) {
 	t.Parallel()
 	testCases := []parserTestCase{
@@ -56,11 +46,6 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
-		simpleBogeyDopeTestCase("request 'BOGIDOPE"),
-		simpleBogeyDopeTestCase("request 'POGGY DOPE."),
-		simpleBogeyDopeTestCase("POGY"),
-		simpleBogeyDopeTestCase("request POGGY DOPE"),
-		simpleBogeyDopeTestCase("request BuggyDoke."),
 		{
 			text: TestCallsign + ", HORNET, 1, 2, BOGGID, 2.",
 			expected: &brevity.BogeyDopeRequest{
@@ -82,10 +67,7 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
-		simpleBogeyDopeTestCase("request POGIDOP."),
-		simpleBogeyDopeTestCase("request to log it up."),
-		simpleBogeyDopeTestCase("PUGGY DOPE."),
-		simpleBogeyDopeTestCase("Bugga Dope."),
+
 		{
 			text: TestCallsign + " serpent, 6/8, BUBBYDO.",
 			expected: &brevity.BogeyDopeRequest{
@@ -93,9 +75,6 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
-		simpleBogeyDopeTestCase("POGADO."),
-		simpleBogeyDopeTestCase("POGY-DO."),
-		simpleBogeyDopeTestCase("POGIDO."),
 		{
 			text: TestCallsign + ", Glimmer, Buggetto.",
 			expected: &brevity.BogeyDopeRequest{
@@ -134,11 +113,6 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
-		simpleBogeyDopeTestCase("request BOGUETTO."),
-		simpleBogeyDopeTestCase("request BOGUE."),
-		simpleBogeyDopeTestCase("Bogeydove."),
-		simpleBogeyDopeTestCase("Boogitope."),
-		simpleBogeyDopeTestCase("BOKI NOLA."),
 		{
 			text: TestCallsign + ", Hornet one two, Bowie dope.",
 			expected: &brevity.BogeyDopeRequest{
@@ -146,7 +120,6 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
-		simpleBogeyDopeTestCase("boobydope."),
 		{
 			text: TestCallsign + ", stubs on one, poke it up.",
 			expected: &brevity.BogeyDopeRequest{
@@ -154,7 +127,6 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
-		simpleBogeyDopeTestCase("VOGUE IT UP!"),
 		{
 			text: TestCallsign + "'s far on 1-1. Buggydope.",
 			expected: &brevity.BogeyDopeRequest{
@@ -162,7 +134,6 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
-		simpleBogeyDopeTestCase("poke it open."),
 		{
 			text: TestCallsign + " who is saying one-on-one request, Buggydope.",
 			expected: &brevity.BogeyDopeRequest{
@@ -170,7 +141,6 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
-		simpleBogeyDopeTestCase("BOBBYDO."),
 		{
 			text: TestCallsign + ", CAT11 request \"BOGI\".",
 			expected: &brevity.BogeyDopeRequest{
@@ -178,7 +148,6 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
-		simpleBogeyDopeTestCase("BOGUIDO, please."),
 		{
 			text: TestCallsign + ", CAT1/1 \"BOGI\"",
 			expected: &brevity.BogeyDopeRequest{
@@ -207,13 +176,6 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
-		simpleBogeyDopeTestCase("Boogado."),
-		simpleBogeyDopeTestCase("VOGUY-DOPE."),
-		simpleBogeyDopeTestCase("Bugadoop."),
-		simpleBogeyDopeTestCase("Bogeynope."),
-		simpleBogeyDopeTestCase("doggy dope."),
-		simpleBogeyDopeTestCase("Povey-Dope."),
-		simpleBogeyDopeTestCase("Boogitup."),
 		{
 			text: TestCallsign + " and eagle 1-1, BoogieDote.",
 			expected: &brevity.BogeyDopeRequest{
@@ -221,15 +183,6 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
-		simpleBogeyDopeTestCase("'Bogydope'"),
-		simpleBogeyDopeTestCase("BUGGADOPE"),
-		simpleBogeyDopeTestCase("BUGGET OAP."),
-		simpleBogeyDopeTestCase("BOGILOPE"),
-		simpleBogeyDopeTestCase("bug a dope"),
-		simpleBogeyDopeTestCase("buggett ope."),
-		simpleBogeyDopeTestCase("BOBBY DOPE"),
-		simpleBogeyDopeTestCase("Spokiedope"),
-		simpleBogeyDopeTestCase("Boogity"),
 		{
 			text: TestCallsign + "Cat11, Quest BOGUDO.",
 			expected: &brevity.BogeyDopeRequest{
@@ -237,14 +190,119 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
-		simpleBogeyDopeTestCase("OGIIDO."),
-		simpleBogeyDopeTestCase("OGYDO"),
-		simpleBogeyDopeTestCase("Bokeydoke"),
-		simpleBogeyDopeTestCase("PUKIDO"),
-		simpleBogeyDopeTestCase("BOGU DOPE"),
-		simpleBogeyDopeTestCase("BUGGIT-OPE."),
-		simpleBogeyDopeTestCase("Boguie Dope"),
-		simpleBogeyDopeTestCase("request 'Bogydope'"),
+	}
+	simpleCases := []string{
+		"request 'BOGIDOPE",
+		"request 'POGGY DOPE.",
+		"POGY",
+		"request POGGY DOPE",
+		"request BuggyDoke.",
+		"request POGIDOP.",
+		"request to log it up.",
+		"PUGGY DOPE.",
+		"Bugga Dope.",
+		"POGADO.",
+		"POGY-DO.",
+		"POGIDO.",
+		"request BOGUETTO.",
+		"request BOGUE.",
+		"Bogeydove.",
+		"Boogitope.",
+		"BOKI NOLA.",
+		"boobydope.",
+		"VOGUE IT UP!",
+		"poke it open.",
+		"BOBBYDO.",
+		"BOGUIDO, please.",
+		"Boogado.",
+		"VOGUY-DOPE.",
+		"Bugadoop.",
+		"Bogeynope.",
+		"doggy dope.",
+		"Povey-Dope.",
+		"Boogitup.",
+		"'Bogydope'",
+		"BUGGADOPE",
+		"BUGGET OAP.",
+		"BOGILOPE",
+		"bug a dope",
+		"buggett ope.",
+		"BOBBY DOPE",
+		"Spokiedope",
+		"Boogity",
+		"OGIIDO.",
+		"OGYDO",
+		"Bokeydoke",
+		"PUKIDO",
+		"BOGU DOPE",
+		"BUGGIT-OPE.",
+		"Boguie Dope",
+		"request 'Bogydope'",
+		"Bugie Dope",
+		"Boogito.",
+		"Oki-dope.",
+		"Boogitov.",
+		"Bogeito.",
+		"POGGY DILT",
+		"request Boogit up",
+		"'BOCHY' 'DOPE",
+		"BOKE IT UP",
+		"BOGDOPE",
+		"POGGY DOG",
+		"Boogie Dope",
+		"Dogito",
+		"BOGLOPE",
+		"POGGY DOK",
+		"WOGITOP",
+		"BUBBY DO",
+		"VOGEDOPE",
+		"Puggido",
+		"OGEYDOPE",
+		"BOOY DOPE",
+		"OGGY DOPE",
+		"OG dope",
+		"POGGY DOP",
+		"OIDO",
+		"POGEDO",
+		"FOGIDO",
+		"POGEDDOPE",
+		"BOGIDOKE was 1-3-0.",
+		"BOGIDO",
+		"BoogieDope",
+		"BOBBY DOOM",
+		"BOGAN DOE",
+		"Bo-I-Doke",
+		"for your dope",
+		"REQUESTBOADO",
+		"REQUESTVOGED HOPE",
+		"Bobi Dop",
+		"OBEY-DOPE",
+		"Bucky Dope",
+		"BAKITO",
+		"BUGADO",
+		"Booby-Doo",
+		"Poby-Dope.",
+		"BOBBY DO",
+		"POKETOP",
+		"Bugie",
+		"Boogalup",
+		"Bovito",
+		"POGGY DO",
+		"VOGITO",
+		"BOMBDO",
+		"BOBIDOP",
+		"BOGGY DOPE",
+		"BOYADOP",
+	}
+	for _, text := range simpleCases {
+		tc := parserTestCase{
+			text: fmt.Sprintf("%s, eagle 1-1, %s", TestCallsign, text),
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "eagle 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		}
+		testCases = append(testCases, tc)
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
