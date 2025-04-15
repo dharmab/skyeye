@@ -17,16 +17,13 @@ jobs:
         uses: ./.github/actions/setup
       - name: Build whisper.cpp
         uses: ./.github/actions/build-whisper
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v7
-        with:
-          version: latest
-      - name: vet
-        run: make vet
-      - name: Format
-        run: go fmt ./... && git diff --exit-code
-      - name: Tidy
-        run: go mod tidy && git diff --exit-code
+      - name: Lint
+        run: |
+          make lint
+          make vet
+          make format
+          go mod tidy
+          git diff --exit-code
   test:
     name: Test
     runs-on: ubuntu-latest
