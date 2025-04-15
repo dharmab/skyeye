@@ -190,7 +190,7 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 	log.Info().Msg("constructing text-to-speech synthesizer")
 	var synthesizer speakers.Speaker
 	if runtime.GOOS == "darwin" {
-		synthesizer = speakers.NewMacOSSpeaker(config.Voice, config.VoiceSpeed)
+		synthesizer = speakers.NewMacOSSpeaker(config.VoiceSpeed)
 	} else {
 		synthesizer, err = speakers.NewPiperSpeaker(config.Voice, config.VoiceSpeed, config.VoicePauseLength)
 		if err != nil {

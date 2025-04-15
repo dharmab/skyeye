@@ -5,23 +5,19 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
+	"github.com/dharmab/skyeye/pkg/pcm"
 	"github.com/go-audio/aiff"
 	"github.com/martinlindhe/unit"
 )
 
 type macOSSynth struct {
-	voice string
-	rate  *unit.Frequency
+	rate *unit.Frequency
 }
 
 var _ Speaker = (*macOSSynth)(nil)
 
-func NewMacOSSpeaker(_ voices.Voice, playbackSpeed float64) Speaker {
-	synth := &macOSSynth{
-		voice: "Samantha",
-	}
-
+func NewMacOSSpeaker(playbackSpeed float64) Speaker {
+	synth := &macOSSynth{}
 	if playbackSpeed != 1.0 {
 		const (
 			maxRate     = 300 * unit.Hertz
@@ -44,7 +40,6 @@ func NewMacOSSpeaker(_ voices.Voice, playbackSpeed float64) Speaker {
 		}
 		synth.rate = &rate
 	}
-
 	return synth
 }
 
@@ -55,7 +50,7 @@ func (s *macOSSynth) Say(text string) ([]float32, error) {
 	}
 	defer os.Remove(outFile.Name())
 
-	args := []string{"--voice", s.voice, "--output", outFile.Name()}
+	args := []string{"--voice", "Samantha", "--output", outFile.Name()}
 	if s.rate != nil {
 		args = append(args, "--rate", fmt.Sprintf("%.1f", s.rate.Hertz()))
 	}
@@ -70,6 +65,13 @@ func (s *macOSSynth) Say(text string) ([]float32, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode AIFF file: %w", err)
 	}
-	data := buf.AsFloat32Buffer().Data
-	return data, nil
+	f32 := buf.AsFloat32Buffer()
+	b := pcm.F32toS16LEBytes(f32.Data)
+	sample, err := downsample(b, unit.Frequency(decoder.SampleRate)*unit.Hertz)
+	if err != nil {
+		return nil, fmt.Errorf("failed to downsample audio: %w", err)
+	}
+
+	f32le := pcm.S16LEBytesToF32LE(sample)
+	return f32le, nil
 }

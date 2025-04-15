@@ -88,9 +88,11 @@ I have chosen these voices because they meet the following criteria:
 
 - Permissive licensing
 - Source data was recorded with consent
-- Correct and unambiguous pronunciation, especially of numeric values
-- Able to run fully offline on modest hardware in near-realtime, with consistent output on different hardware
+- Correct and unambiguous pronunciation, especially of numeric values, NATO reporting names and the Core Information Format
+- Able to run fully offline on modest hardware in near-realtime
 - Easily redistributable without requiring complex additional software to be installed
+- Sound the same regardless of the make and model of CPU or GPU used to generate it
+- Likely to remain functional many years into the future, including on future OS versions
 
 I have investigated a number of alternative AI voices including ElevenLabs, OpenAI, Kokoro, Sherpa, Coqui, and others. I have not found voices that better meet these criteria. I continue to follow the state of the art and watch for new developments.
 
