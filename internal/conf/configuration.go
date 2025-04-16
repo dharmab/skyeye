@@ -67,6 +67,9 @@ type Configuration struct {
 	OpenAIAPIKey string
 	// Voice is the voice used for SRS transmissions
 	Voice voices.Voice
+	// UseSystemVoice controls whether to use the System Voice on macOS. This allows use of current Siri voices,
+	// but requires additional configuration in System Settings.
+	UseSystemVoice bool
 	// VoiceLock is a file-based lock to control multiple instances running Piper at the same time.
 	VoiceLock *flock.Flock
 	// Mute disables SRS transmissions

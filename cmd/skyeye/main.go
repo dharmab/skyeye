@@ -59,6 +59,7 @@ var (
 	recognizerLockPath           string
 	openAIAPIKey                 string
 	voiceName                    string
+	useSystemVoice               bool
 	mute                         bool
 	voiceSpeed                   float64
 	voicePauseLength             time.Duration
@@ -121,11 +122,18 @@ func init() {
 
 	// Text-to-speech
 	voiceFlag := cli.NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
-	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine). Automatically chosen if not provided. Voice is always feminine on macOS")
+	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine). Automatically chosen if not provided.")
 	skyeye.Flags().Float64Var(&voiceSpeed, "voice-playback-speed", 1.0, "How quickly the GCI speaks (values below 1.0 are faster and above are slower).")
-	skyeye.Flags().DurationVar(&voicePauseLength, "voice-playback-pause", 200*time.Millisecond, "How long the GCI pauses between sentences. No function on macOS")
 	skyeye.Flags().BoolVar(&mute, "mute", false, "Mute all SRS transmissions. Useful for testing without disrupting play")
 	skyeye.Flags().StringVar(&voiceLockPath, "voice-lock-path", "", "Path to lock file for concurrent text-to-speech when using multiple instances")
+	if runtime.GOOS == "darwin" {
+		skyeye.Flags().BoolVar(&useSystemVoice, "use-system-voice", false, "Use the System Voice chosen in the Spoken Content page in System Settings instead of Samantha.")
+		if err := skyeye.Flags().MarkDeprecated("voice", "Select a voice in System Settings and use --use-system-voice instead."); err != nil {
+			log.Fatal().Err(err).Msg("failed to mark flag as deprecated")
+		}
+	} else {
+		skyeye.Flags().DurationVar(&voicePauseLength, "voice-playback-pause", 200*time.Millisecond, "How long the GCI pauses between sentences.")
+	}
 
 	// Controller behavior
 	skyeye.Flags().BoolVar(&enableAutomaticPicture, "auto-picture", true, "Enable automatic PICTURE broadcasts")

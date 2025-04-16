@@ -8,7 +8,7 @@ SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-c
 SkyEye is a substantial improvement over the DCS AWACS:
 
 1. SkyEye offers modern voice recognition using a current-generation AI model. Keyboard input is also supported.
-2. SkyEye has natural sounding voices, instead of robotically clipping together samples. On Windows and Linux, SkyEye uses a neural network to speak in a human-like voice. On macOS, SkyEye speaks using a version of Siri's voice.
+2. SkyEye has natural sounding voices, instead of robotically clipping together samples. On Windows and Linux, SkyEye uses a neural network to speak in a human-like voice. On macOS, SkyEye speaks using Siri's voice.
 3. SkyEye adheres more closely to real-world [brevity](https://rdl.train.army.mil/catalog-ws/view/100.ATSC/5773E259-8F90-4694-97AD-81EFE6B73E63-1414757496033/atp1-02x1.pdf) and [procedures](https://www.alssa.mil/Portals/9/Documents/mttps/sd_acc_2024.pdf?ver=IZRWZy_DhRSOJWgNSAbMWA%3D%3D) instead of the incorrect brevity used by the in-game AWACS.
 4. SkyEye supports a larger number of commands, including [PICTURE](docs/PLAYER.md#picture), [BOGEY DOPE](docs/PLAYER.md#bogey-dope), [DECLARE](docs/PLAYER.md#declare), [SNAPLOCK](docs/PLAYER.md#snaplock), [SPIKED](docs/PLAYER.md#spiked) , and [ALPHA CHECK](docs/PLAYER.md#alpha-check).
 5. SkyEye intelligently monitors the battlespace, providing automatic [THREAT](docs/PLAYER.md#threat), [MERGED](docs/PLAYER.md#merged) and [FADED](docs/PLAYER.md#faded) callouts to improve situational awareness.
@@ -78,11 +78,12 @@ While working on this software I spoke to a number of people who thought it woul
 
 ### Are there options for different voices?
 
-SkyEye can be used with one of three voices:
+SkyEye can be used with one of these voices:
 
 1. Jenny, a feminine Irish English voice available on Windows and Linux.
 2. Alan, a masculine British English voice available on Windows and Linux.
-3. Samantha, a feminine US English voice available on macOS. This is the version of Siri's voice from the iPhone 4s, iPhone 5 and iPhone 6.
+3. Samantha, a feminine US English voice available on macOS. This is the older version of Siri's voice from the iPhone 4s, iPhone 5 and iPhone 6.
+4. Siri's voices are available on macOS. Additional download and setup steps are required to use them.
 
 I have chosen these voices because they meet the following criteria:
 
