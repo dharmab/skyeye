@@ -222,7 +222,7 @@ It is also possible to use one of the newer Siri voices. This procedure was test
 6. In the list of languages, make sure "English" is selected
 7. Click on "Voice"
 8. Scroll down to "Siri".
-9. Listen to the previews and download a Siri voice you like.
+9. Listen to the previews and download a Siri voice you like. I've found that "Voice 5" works well.
 10. Click "Done"
 11. Set the system voice to your choice of Siri voice
 
