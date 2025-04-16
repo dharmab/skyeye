@@ -11,12 +11,13 @@ import (
 )
 
 type macOSSynth struct {
-	rate *unit.Frequency
+	rate  *unit.Frequency
+	voice string
 }
 
 var _ Speaker = (*macOSSynth)(nil)
 
-func NewMacOSSpeaker(playbackSpeed float64) Speaker {
+func NewMacOSSpeaker(useSystemVoice bool, playbackSpeed float64) Speaker {
 	synth := &macOSSynth{}
 	if playbackSpeed != 1.0 {
 		const (
@@ -38,6 +39,9 @@ func NewMacOSSpeaker(playbackSpeed float64) Speaker {
 			}
 			rate = defaultRate + shift
 		}
+		if !useSystemVoice {
+			synth.voice = "Samantha"
+		}
 		synth.rate = &rate
 	}
 	return synth
@@ -50,7 +54,10 @@ func (s *macOSSynth) Say(text string) ([]float32, error) {
 	}
 	defer os.Remove(outFile.Name())
 
-	args := []string{"--voice", "Samantha", "--output", outFile.Name()}
+	args := []string{"--output", outFile.Name()}
+	if s.voice != "" {
+		args = append(args, "--voice", s.voice)
+	}
 	if s.rate != nil {
 		args = append(args, "--rate", fmt.Sprintf("%.1f", s.rate.Hertz()))
 	}

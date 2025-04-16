@@ -195,6 +195,45 @@ recognizer: openai-whisper-local
 whisper-model: whisper.bin
 ```
 
+## Speech Synthesis
+
+### Windows and Linux
+
+SkyEye bundles two AI generated voices on Windows and Linux:
+
+* An Irish English feminine voice, based on ["Jenny" by Dioco](https://github.com/dioco-group/jenny-tts-dataset)
+* A British English masculine voice, based on [Alan Pope](https://popey.com/blog/)
+
+You can select between these voices using the `voice` configuration option. If you do not select a voice, the two voices are rotated based on the wall clock time when SkyEye is started.
+
+### macOS
+
+SkyEye uses AI generated voices built into macOS.
+
+By default, the "Samantha" voice is used. This is the version of Siri's voice from the iPhone 4s, iPhone 5 and iPhone 6, based on [Susan Bennett](https://susancbennett.com/).
+
+It is also possible to use one of the newer Siri voices. This procedure was tested on macOS 15.4 Sequoia.
+
+1. Open System settings
+2. Click on "Accessibility"
+3. Click on "Spoken Content"
+4. If the system language is not English, set the system speech language to English
+5. Next to "System Voice", click the "i" button
+6. In the list of languages, make sure "English" is selected
+7. Click on "Voice"
+8. Scroll down to "Siri".
+9. Listen to the previews and download a Siri voice you like.
+10. Click "Done"
+11. Set the system voice to your choice of Siri voice
+
+To test your change, open Terminal and run this command:
+
+```sh
+say "Hello! This should be read in the voice you chose."
+```
+
+Finally, to use the selected voice instead of Samantha, set SkyEye's `use-system-voice` configuration option to `true`.
+
 ## Networking
 
 Outbound ports typically required by SkyEye:
