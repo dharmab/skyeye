@@ -238,7 +238,7 @@ This procedure was tested on macOS 15.4 Sequoia.
 6. In the list of languages, make sure "English" is selected
 7. Click on "Voice"
 8. Scroll down to "Siri".
-9. Listen to the previews and download a Siri voice you like. I've found that "Voice 5" works well.
+9. Listen to the previews and download a Siri voice you like. I've found that of the 5 US English voices, Voice 5 sounds best, and Voice 1 and Voice 2 are acceptable, but Voice 3 and Voice 4 have a strange pronunciation of the word "bullseye."
 10. Click "Done"
 11. Set the system voice to your choice of Siri voice
 
