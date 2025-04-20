@@ -533,10 +533,10 @@ _Note: I am planning to improve the installation on macOS by creating a method t
 
 Install [Homebrew](https://brew.sh).
 
-Install shared libraries for Opus and SoX Resampler:
+Install dependencies:
 
 ```sh
-brew install libsoxr opus
+brew install llvm libsoxr opus
 ```
 
 Install SkyEye:
