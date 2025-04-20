@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/pcm"
 	"github.com/go-audio/aiff"
 	"github.com/martinlindhe/unit"
@@ -17,9 +18,10 @@ type macOSSynth struct {
 
 var _ Speaker = (*macOSSynth)(nil)
 
+// NewMacOSSpeaker creates a Speaker powered by Apple's Speech Synthesis Manager.
 func NewMacOSSpeaker(useSystemVoice bool, playbackSpeed float64) Speaker {
 	synth := &macOSSynth{}
-	if playbackSpeed != 1.0 {
+	if playbackSpeed != conf.DefaultPlaybackSpeed {
 		const (
 			maxRate     = 300 * unit.Hertz
 			defaultRate = 180 * unit.Hertz
@@ -28,11 +30,11 @@ func NewMacOSSpeaker(useSystemVoice bool, playbackSpeed float64) Speaker {
 		var rate unit.Frequency
 		if playbackSpeed < 0 {
 			rate = maxRate
-		} else if playbackSpeed > 1 {
+		} else if playbackSpeed > conf.DefaultPlaybackSpeed {
 			rate = minRate
 		} else {
 			var shift unit.Frequency
-			if playbackSpeed < 1.0 {
+			if playbackSpeed < conf.DefaultPlaybackSpeed {
 				shift = unit.Frequency(playbackSpeed*(maxRate-defaultRate).Hertz()) * unit.Hertz
 			} else {
 				shift = unit.Frequency(1-playbackSpeed*(maxRate-defaultRate).Hertz()) * unit.Hertz

@@ -2,9 +2,8 @@
 
 Requirements to develop SkyEye:
 
-- Windows or Linux PC
+- Windows, Linux, or macOS (Apple Silicon) computer
   - If on Windows, willing to learn to use Visual Studio Code
-  - macOS support is experimental. It is currently not included in regression tests, so the build might be broken.
 - Beginner level skills in the Go programming language. If you already know another programming language, [A Tour of Go](https://go.dev/tour) can get you up to speed in an afternoon.
 - Comfortable with Git
 - Familiar with *nix command line basics (not much, mostly `cd` and `make`)
@@ -41,11 +40,15 @@ Run one of the following to install dependency libraries:
 make install-arch-linux-dependencies
 # Debian/Ubuntu
 make install-debian-dependencies
+# Fedora/Red Hat
+make install-fedora-dependencies
 ```
 
 Run `make` to build `skyeye`.
 
-### macOS (Experimental)
+Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
+
+### macOS
 
 Install [Homebrew](https://brew.sh/).
 
@@ -61,8 +64,6 @@ Run `make` to build `skyeye`.
 
 Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
 
-_macOS support was graciously contributed to this repo by a contributor testing using a Macbook Pro with M3. The project maintainer does not have an Apple Silicon device for regression and QA testing, so macOS is currently marked as experimental._
-
 ## Run Against a Live Server
 
 Install the [DCS World Dedicated Server](https://www.digitalcombatsimulator.com/en/downloads/world/server/). This can be on a different computer.
@@ -73,9 +74,9 @@ Install [DCS-SRS](http://dcssimpleradio.com/). This can be on a different comput
 
 Launch the DCS server and SRS server. Load a mission on the DCS server.
 
-You will need to download an OpenAI Whisper model. The main source of these models is [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). The larger models have better accuracy but higher memory consumption and take longer to recognize text. 
+You will need to download an OpenAI Whisper model. The main source of these models is [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). The larger models have better accuracy but higher memory consumption and take longer to recognize text.
 
-Recommended models:
+Recommended models for development use:
 
 - `ggml-small.en.bin` - Good balance between accuracy and performance on high end hardware, even if you don't speak perfectly clearly.
 - `ggml-tiny.en.bin` - Significantly faster, but requires you to speak more clearly.
@@ -86,7 +87,7 @@ Run SkyEye from the command line. You can run `./skyeye --help` for an example a
 
 If you get an error, double check the following:
 
-- You are running SkyEye in an MSYS2 UCRT terminal and not a regular Windows terminal/PowerShell/Git Bash.
+- On Windows: You are running SkyEye in an MSYS2 UCRT terminal and not a regular Windows terminal/PowerShell/Git Bash.
 - You are using a Whisper model compatible with your hardware and this software. I use `ggml-small.en.bin` in my testing.
 
 ## Run Using an ACMI File (Experimental)
@@ -103,19 +104,19 @@ The project comes already set up for development with Visual Studio Code, or fro
 
 ```sh
 CGO_ENABLED=1
-C_INCLUDE_PATH=$(pwd)/third_party/whisper.cpp/
+C_INCLUDE_PATH=$(pwd)/third_party/whisper.cpp/ggml/include:$(pwd)/third_party/whisper.cpp/include
 LIBRARY_PATH=$(pwd)/third_party/whisper.cpp/"
 ```
 
 Where `$(pwd)` is the **absolute path** to the repository directory.
 
-You will also need to set the following build tags:
+You will also need to set the following [build tags](https://pkg.go.dev/cmd/go#hdr-Build_constraints):
 
 ```
 nolibopusfile
 ```
 
-A contributor got [JetBrains Goland](https://www.jetbrains.com/go/) working by setting the above configuration.
+I have included a [Zed](https://zed.dev) project settings file with these set. Another contributor got [JetBrains Goland](https://www.jetbrains.com/go/) working by setting the above configuration.
 
 ### Windows
 
@@ -145,7 +146,7 @@ I don't have this project set up to build/run/debug through VSC yet- but it's po
 
 ### Linux/macOS
 
-🐧 🍎 Use your favorite editor. Build with `make`/`go`. Debug with Delve or your IDE.
+🐧 🍎 Use your favorite editor. Build with `make`. Debug with Delve or your IDE.
 
 If your preferred editor is Visual Studio Code, copy `.vscode/settings-linux.json` to `.vscode/settings.json`.
 
@@ -157,11 +158,9 @@ The canonical way to run the unit tests is by running `make test`. This can run 
 
 I have made an effort to structure packages so that CGO is never imported directly or indirectly within packages that aren't directly related to the Speech-To-Text and Text-To-Speech models. This means that most tests can be run though Visual Studio Code without the complexity and performance hit of CGO. **This is the easiest way to test and debug during development.**
 
-
-
 ## Benchmark
 
-SkyEye's performance bottleneck is speech recognition. A small benchmark suite is provided which may be useful to test different speech recognition models or hardware acceleration. Run it with
+SkyEye's performance bottleneck on most systems is speech recognition. A small benchmark suite is provided which may be useful to test different speech recognition models or hardware acceleration. Run it with
 
 ```
 SKYEYE_WHISPER_MODEL=$(pwd)/path/to/whisper-model.bin make benchmark-whisper
@@ -175,19 +174,27 @@ You can run `make lint` and `make vet` to run some linters to catch some common 
 
 This project follows [Go standard project layout](https://github.com/golang-standards/project-layout).
 
+The most important folders and files:
+
 - `cmd/skyeye/main.go`: Main application entrypoint.
-- `cmd/skyeye-scaler/main.go`: Autoscaler companion application.
-- `dist`: Used in CI/CD for packaging releases.
-- `init`: Configuration files related to running SkyEye as a background application.
-- `internal`: [Internal packages](https://go.dev/doc/go1.4#internalpackages)
+- `config.yaml`: Example configuration file.
+- `internal/`: [Internal packages](https://go.dev/doc/go1.4#internalpackages)
   - `application/app.go`: This is the glue that holds the rest of the system together. Sets up all the pieces of the application, wires them together and starts a bunch of concurrent routines.
-  - `cli`: Helpers for integrating with OS shells.
+  - `cli/`: Helpers for integrating with OS shells.
   - `conf/configuration.go`: Application configuration values and miscellaneous globals.
-- `pkg`: Library packages. See https://pkg.go.dev/github.com/dharmab/skyeye for documenation.
-- `third_party`: Used during the build process to build C++ libraries.
+- `pkg/`: Library packages. See https://pkg.go.dev/github.com/dharmab/skyeye for documentation.
 - `Dockerfile`: Linux container build configuration.
 - `Makefile`: Build scripts.
-- `tools.go`: Declares tooling dependencies.
+
+Other notable folders and files:
+
+- `.github/`: Configuration for automated tests and builds in GitHub Actions, and issue templates for GitHub Issues.
+- `docs/`: Documentation.
+- `site/`: Documentation resources.
+- `third_party/`: Used during the build process to build C++ libraries.
+- `dist/`: Used in CI/CD for packaging releases.
+- `init/`: Configuration files related to running SkyEye as a background application.
+- `cmd/skyeye-scaler/main.go`: Autoscaler companion application.
 
 ## Application Workflow
 
@@ -198,10 +205,9 @@ flowchart TD
     SRS[SimpleRadio Standalone] <-->|audio| simpleradio.Client -->|incoming audio| recognizer.Recognizer -->|transcriptions| parser.Parser-->|requests| controller.Controller
     DCS --> Tacview[Tacview Exporter] -->|ACMI data| telemetry.Client -->|simulation updates| radar.Radar
     DCS --> DCS-gRPC --> commands.ChatListener -->|in-game chat| parser.Parser
-    controller.Controller .->|queries| radar.Radar 
+    controller.Controller .->|queries| radar.Radar
     radar.Radar .->|callbacks| controller.Controller
     controller.Controller -->|responses| composer.Composer
     controller.Controller -->|broadcasts| composer.Composer
     composer.Composer -->|natural language| speakers.Speaker -->|outgoing audio| simpleradio.Client
-
 ```

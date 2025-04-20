@@ -55,9 +55,23 @@ flowchart LR
 
 #### Caution: Running SkyEye and DCS World on One Computer
 
-**Running SkyEye with local speech recognition on the same computer as DCS World is not intended and probably won't work. I am not able to effectively provide support for issues with this configuration** If you choose to try this anyway, configure Process Affinity to pin SkyEye to a set of dedicated CPU cores separate from any other CPU-intensive software. The easiest way to do this on Windows is by using the [CPU Affinities feature in Process Lasso](https://bitsum.com/processlasso-docs/#default_affinities). But to emphasize, **I can't provide support for this configuration and recommend against it.**
+**Running SkyEye with local speech recognition on the same computer as DCS World is not intended and probably won't work. I cannott provide support for this configuration.** Even if I wanted to support this configuration, I do not have the appropriate tools to troubleshoot _your specific hardware configuration_. It's difficult enough to troubleshoot these kinds of issues when the hardware is physically in front of me and I have full admin access. Trying to troubleshoot a non-technical user's hardware remotely is impossible. (This is a big reason AI applications, including SkyEye, are so much better on Apple devices; standardized hardware is much easier to support.)
 
-Running SkyEye with cloud speech recognition on the same computer as DCS World _is_ supported.
+**If you open a GitHub Issue regarding performance issues with this configuration, I will tell you to use a second computer or switch to cloud speech recognition.** Almost every report I've received about performance issues with SkyEye have been from users attempting to run SkyEye's local speech recognition on the same computer as DCS World, which is **not an intended way to run SkyEye**. 😾
+
+If you have read all of the above, and are still serious about, attempting this, here is the best advice I have:
+
+1. [Watch this talk by Xe Iaso about running AI workloads using local infrastructure](https://xeiaso.net/talks/2025/ai-chatbot-friends/). It's a good primer on the complexity of the problem you're trying to ignore.
+2. If, after watching that talk, you still want to try this, click the button for some hints:
+
+<details>
+  <summary>I understand what I'm about to try is not supported and probably won't work</summary>
+
+  If you choose to try this anyway, configure Process Affinity to pin SkyEye to a set of dedicated CPU cores separate from any other CPU-intensive software. The easiest way to do this on Windows is by using the [CPU Affinities feature in Process Lasso](https://bitsum.com/processlasso-docs/#default_affinities).
+
+</details>
+
+Running SkyEye with cloud speech recognition on the same computer as DCS World _is_ supported. 🤗
 
 ### Deployment with Cloud Speech Recognition
 
@@ -70,7 +84,7 @@ flowchart TD
 
 ## Software
 
-SkyEye is officially supported on Windows AMD64, Linux AMD64 and Apple Silicon. The Windows version bundles all required libraries within skyeye.exe. The Linux and macOS versions require [Opus](https://opus-codec.org/), [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/) and [OpenBLAS](http://www.openblas.net/) with [OpenMP](https://www.openmp.org/about/openmp-faq/#OMPAPI) to be installed through the package manager or Homebrew, respectively.
+SkyEye is officially supported on Windows AMD64, Linux AMD64 and Apple Silicon. The Windows version bundles all required libraries within skyeye.exe. The Linux and macOS versions require [Opus](https://opus-codec.org/) and [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/) to be installed through the package manager or Homebrew, respectively.
 
 ## Hardware
 
@@ -212,7 +226,9 @@ SkyEye uses AI generated voices built into macOS.
 
 By default, the "Samantha" voice is used. This is the version of Siri's voice from the iPhone 4s, iPhone 5 and iPhone 6, based on [Susan Bennett](https://susancbennett.com/).
 
-It is also possible to use one of the newer Siri voices. This procedure was tested on macOS 15.4 Sequoia.
+It is also possible to use one of the newer Siri voices, which provide much better quality. **I strongly recommend enabling one of the newer voices.**, because they provide excellent quality, nearly indistinguishable from a human voice.
+
+This procedure was tested on macOS 15.4 Sequoia.
 
 1. Open System settings
 2. Click on "Accessibility"
@@ -332,6 +348,8 @@ You will need to enable External AWACS Mode (EAM) in your SRS server settings an
 
 ## Linux
 
+_Note: I am planning to improve the installation on Linux by creating a method to install and run SkyEye using [podman-systemd](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html)._
+
 ### Automated Installation with Container Image
 
 A sample [cloud-init](https://cloudinit.readthedocs.io/en/latest/) config is provided in the `/init/cloud-init` directory in the Git repository ([direct link](https://raw.githubusercontent.com/dharmab/skyeye/refs/heads/main/init/cloud-init/cloud-config.yaml)). This automates the installation and startup on a new cloud server instance, using the container `ghcr.io/dharmab/skyeye`. It should be compatible with most Linux distributions including Debian, Ubuntu, Fedora, Arch Linux and OpenSUSE.
@@ -362,17 +380,20 @@ sudo systemctl restart skyeye
 
 ### Manual Installation with Native Binary
 
-You can install SkyEye on a Linux server by manually downloading a release and installing it. The instructions below should be compatible with Ubuntu and Arch Linux, and should be adaptable to other distributions.
+You can install SkyEye on a Linux server by manually downloading a release and installing it. The instructions below should be compatible with Debian, Ubuntu, Fedora and Arch Linux, and adaptable to other distributions.
 
-Install shared libraries for [Opus](https://opus-codec.org/), [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/) and [OpenBLAS](http://www.openblas.net/) with [OpenMP](https://www.openmp.org/about/openmp-faq/#OMPAPI):
+Install shared libraries for [Opus](https://opus-codec.org/) and [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/):
 
 ```sh
-# Install shared libraries on Ubuntu
+# Install shared libraries on Debian/Ubuntu
 sudo apt-get update
-sudo apt-get install libopus0 libsoxr0 libopenblas0-openmp
+sudo apt-get install libopus0 libsoxr0
+
+# Install shared libraries on Fedora
+sudo dnf install opus sox
 
 # Install shared libraries on Arch Linux
-sudo pacman -Syu opus soxr openblas
+sudo pacman -Syu opus soxr
 ```
 
 Install SkyEye:
@@ -381,8 +402,8 @@ Install SkyEye:
 # Create a user named "skyeye" to run SkyEye
 sudo useradd -G users skyeye
 
-# Download the latest version of SkyEye and install to to /opt/skyeye
-curl -sL https://github.com/dharmab/skyeye/releases/latest/download/skyeye-linux-amd64.tar.gz -o /tmp/skyeye-linux-amd64.tar.gz
+# Download the latest version of SkyEye and install to /opt/skyeye
+curl -sL https://github.com/dharmab/skyeye/releases/download/latest/skyeye-linux-amd64.tar.gz -o /tmp/skyeye-linux-amd64.tar.gz
 tar -xzf /tmp/skyeye-linux-amd64.tar.gz -C /tmp/
 sudo mkdir -p /opt/skyeye/bin
 sudo mv /tmp/skyeye-linux-amd64/skyeye /opt/skyeye/bin/skyeye
@@ -506,19 +527,42 @@ journalctl -u skyeye > skyeye.log
 
 ## macOS
 
-_Work in Progress_
+_Note: I am planning to improve the installation on macOS by creating a method to install and run SkyEye using Homebrew._
 
-Download the SkyEye release ZIP from the [releases page](https://github.com/dharmab/skyeye/releases) and extract it.
+### Manual Installation with Native Binary
 
-Download an AI model.
+Install [Homebrew](https://brew.sh).
 
-Edit `config.yaml` as required.
-
-Open Terminal and run:
+Install shared libraries for Opus and SoX Resampler:
 
 ```sh
-./skyeye --config-file=config.yaml | tee skyeye.log
+brew install libsoxr opus
 ```
+
+Install SkyEye:
+
+```sh
+mkdir ~/skyeye
+# Download the latest version of SkyEye and install to ~/skyeye
+curl -sL https://github.com/dharmab/skyeye/releases/download/latest/skyeye-macos-arm64.tar.gz -o ~/skyeye/skyeye-macos-arm64.tar.gz
+tar -xzf ~/skyeye/skyeye-macos-arm64.tar.gz -C ~/skyeye/
+mv ~/skyeye/skyeye-macos-arm64/* ~/skyeye/
+rm -rf ~/skyeye/skyeye-macos-arm64.tar.gz ~/skyeye/skyeye-macos-arm64
+
+# Download a Whisper speech recognition model
+curl -sL https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin -o ~/skyeye/ggml-small.en.bin
+```
+
+Edit the `~/skyeye/config.yaml` config file as required.
+
+To run SkyEye, automatically restarting it if it crashes or exits:
+
+```sh
+cd ~/skyeye
+while true; do ./skyeye --config-file config.yaml; sleep 60; done
+```
+
+Note that this will not save your logs, and it will not automatically restart SkyEye when the system reboots. This is intended to be a temporary solution until SkyEye is available in Homebrew.
 
 ## Windows
 
