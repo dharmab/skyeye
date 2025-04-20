@@ -5,6 +5,7 @@ This is a technical article on how to deploy SkyEye, targeted at multiplayer ser
 For a step-by-step guide, see one of the quickstart guides:
 
 - [Windows](QUICKSTART-WINDOWS.md)
+- [macOS](QUICKSTART-MACOS.md)
 - [Linux on Hetzner Cloud](QUICKSTART-HETZNER.md)
 - [Linux on Vultr](QUICKSTART-VULTR.md)
 
@@ -493,7 +494,7 @@ sudo systemctl start skyeye.service
 
 ### Service Management
 
-Use `systemctl` to start the bot:
+Use `systemctl` to manage SkyEye:
 
 ```sh
 # Load changes to skyeye.service file
@@ -527,42 +528,82 @@ journalctl -u skyeye > skyeye.log
 
 ## macOS
 
-_Note: I am planning to improve the installation on macOS by creating a method to install and run SkyEye using Homebrew._
-
-### Manual Installation with Native Binary
+### Installation with Homebrew (Recommended)
 
 Install [Homebrew](https://brew.sh).
 
-Install dependencies:
+Install SkyEye. The installation includes the `ggml-small.en.bin` model.
 
 ```sh
-brew install llvm libsoxr opus
+brew tap dharmab/skyeye
+brew install dharmab/skyeye/skyeye
 ```
 
-Install SkyEye:
+Configure SkyEye by editing the config file at `$(brew --prefix)/etc/skyeye/config.yaml` as required.
 
 ```sh
-mkdir ~/skyeye
-# Download the latest version of SkyEye and install to ~/skyeye
-curl -sL https://github.com/dharmab/skyeye/releases/download/latest/skyeye-macos-arm64.tar.gz -o ~/skyeye/skyeye-macos-arm64.tar.gz
-tar -xzf ~/skyeye/skyeye-macos-arm64.tar.gz -C ~/skyeye/
-mv ~/skyeye/skyeye-macos-arm64/* ~/skyeye/
-rm -rf ~/skyeye/skyeye-macos-arm64.tar.gz ~/skyeye/skyeye-macos-arm64
-
-# Download a Whisper speech recognition model
-curl -sL https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin -o ~/skyeye/ggml-small.en.bin
+$EDITOR "$(brew --prefix)/etc/skyeye/config.yaml"
 ```
 
-Edit the `~/skyeye/config.yaml` config file as required.
+You'll likely want to configure local speech recognition, since on macOS it is as fast or faster than cloud speech recognition:
 
-To run SkyEye, automatically restarting it if it crashes or exits:
+```yaml
+recognizer: openai-whisper-local
+whisper-model: /opt/homebrew/share/skyeye/models/ggml-small.en.bin
+```
+
+It also also strongly recommended to configure the system voice as documented in [Speech Synthesis section](#speech-synthesis), and configure SkyEye to use the system voice:
+
+```yaml
+use-system-voice: true
+```
+
+To start SkyEye, and automatically start it on login:
 
 ```sh
-cd ~/skyeye
-while true; do ./skyeye --config-file config.yaml; sleep 60; done
+brew services start dharmab/skyeye/skyeye
 ```
 
-Note that this will not save your logs, and it will not automatically restart SkyEye when the system reboots. This is intended to be a temporary solution until SkyEye is available in Homebrew.
+If you wish to upgrade to the latest version of SkyEye:
+
+```sh
+brew update
+brew upgrade dharmab/skyeye/skyeye
+```
+
+### Service Management
+
+Use `brew services` to manage SkyEye:
+
+```sh
+# Start the bot
+brew services run dharmab/skyeye/skyeye
+
+# Stop the bot
+brew services kill dharmab/skyeye/skyeye
+
+# Autostart the bot when the user logs in
+brew services start dharmab/skyeye/skyeye
+
+# Disable autostart on login
+brew services stop dharmab/skyeye/skyeye
+
+# Restart SkyEye
+brew services restart dharmab/skyeye/skyeye
+
+# Uninstall SkyEye
+brew uninstall dharmab/skyeye/skyeye
+```
+
+Logs will be saved to `$(brew --prefix)/var/log/skyeye.log`:
+
+```sh
+# Follow logs
+tail -f "$(brew --prefix)/var/log/skyeye.log"
+
+# Examine the full log
+less "$(brew --prefix)/var/log/skyeye.log"
+```
 
 ## Windows
 

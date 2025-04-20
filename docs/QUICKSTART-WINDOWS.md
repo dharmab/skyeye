@@ -20,9 +20,9 @@ Install DCS (either the client for singleplayer/hosted multiplayer use, or a ded
 
 Install the TacView Exporter. Within DCS, go to OPTIONS → SPECIAL → Tacview and enable Real-Time Telemetry.  (See https://www.tacview.net/documentation/dcs/en/)
 
-Install SRS. Start and configure the SRS Server.
+Install SRS. Start and configure the SRS Server. Ensure EAM mode is enabled and an EAM password is set.
 
-Make sure DCS is running a mission with both friendly and hostile air units so you can do some tests.
+Make sure DCS is running an unpaused mission with both friendly and hostile air units so you can do some tests.
 
 ## Set up SkyEye
 
