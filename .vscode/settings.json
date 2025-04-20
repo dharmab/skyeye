@@ -1,23 +1,23 @@
 {
-    "go.toolsEnvVars": {
-        "CGO_ENABLED": "1",
-        "C_INCLUDE_PATH": "${workspaceFolder}/third_party/whisper.cpp/",
-        "LIBRARY_PATH": "${workspaceFolder}/third_party/whisper.cpp/",
-        "GOROOT": "C:\\msys64\\ucrt64\\lib\\go",
+  "go.toolsEnvVars": {
+    "CGO_ENABLED": "1",
+    "C_INCLUDE_PATH": "${workspaceFolder}/third_party/whisper.cpp/ggml/include:${workspaceFolder}/third_party/whisper.cpp/include",
+    "LIBRARY_PATH": "${workspaceFolder}/third_party/whisper.cpp/",
+    "GOROOT": "C:\\msys64\\ucrt64\\lib\\go"
+  },
+  "go.buildTags": "nolibopusfile",
+  "logViewer.watch": [
+    {
+      "title": "DCS SRS Server Log",
+      "pattern": "C:\\Program Files\\DCS-SimpleRadio-Standalone\\serverlog.txt"
     },
-    "go.buildTags": "nolibopusfile",
-    "logViewer.watch": [
-        {
-            "title": "DCS SRS Server Log",
-            "pattern": "C:\\Program Files\\DCS-SimpleRadio-Standalone\\serverlog.txt"
-        },
-        {
-            "title": "DCS SRS Clients List",
-            "pattern": "C:\\Program Files\\DCS-SimpleRadio-Standalone\\clients-list.json"
-        },
-        {
-            "title": "DCS SRS Transmission Log",
-            "pattern": "C:\\Program Files\\DCS-SimpleRadio-Standalone\\*-transmissionlog.csv"
-        }
-    ]
+    {
+      "title": "DCS SRS Clients List",
+      "pattern": "C:\\Program Files\\DCS-SimpleRadio-Standalone\\clients-list.json"
+    },
+    {
+      "title": "DCS SRS Transmission Log",
+      "pattern": "C:\\Program Files\\DCS-SimpleRadio-Standalone\\*-transmissionlog.csv"
+    }
+  ]
 }

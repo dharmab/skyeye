@@ -42,7 +42,7 @@ BUILD_FLAGS = -tags nolibopusfile
 ifeq ($(SKYEYE_VERSION),)
 SKYEYE_VERSION=$(shell git describe --tags || echo devel)
 endif
-LDFLAGS= -X "main.Version=$(SKYEYE_VERSION) -fopenmp"
+LDFLAGS= -X "main.Version=$(SKYEYE_VERSION)"
 
 # macOS-specific settings
 ifeq ($(OS_DISTRIBUTION),macOS)
@@ -101,21 +101,33 @@ install-debian-dependencies:
 	sudo apt-get update
 	sudo apt-get install -y \
 	  git \
+	  build-essential \
 	  golang-go \
 	  libopus-dev \
 	  libopus0 \
 	  libsoxr-dev \
 	  libsoxr0
 
+.PHONY: install-fedora-dependencies
+install-fedora-dependencies:
+	sudo dnf install -y \
+	  git \
+      development-tools \
+      c-develeopment \
+	  golang \
+	  opus-devel \
+	  opus \
+	  soxr-devel \
+	  sox
+
 .PHONY: install-macos-dependencies
 install-macos-dependencies:
 	xcode-select --install || true
 	brew install \
 	  git \
+      llvm \
 	  go \
-	  libomp \
 	  libsoxr \
-	  llvm \
 	  opus
 
 $(LIBWHISPER_PATH) $(WHISPER_H_PATH):

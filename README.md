@@ -4,13 +4,12 @@
 
 SkyEye is a [Ground Controlled Intercept](https://en.wikipedia.org/wiki/Ground-controlled_interception) (GCI) bot for the flight simulator [Digital Combat Simulator](https://www.digitalcombatsimulator.com) (DCS). It is an advanced replacement for the in-game E-2, E-3 and A-50 AI aircraft.
 
-
 SkyEye is a substantial improvement over the DCS AWACS:
 
 1. SkyEye offers modern voice recognition using a current-generation AI model. Keyboard input is also supported.
 2. SkyEye has natural sounding voices, instead of robotically clipping together samples. On Windows and Linux, SkyEye uses a neural network to speak in a human-like voice. On macOS, SkyEye speaks using Siri's voice.
 3. SkyEye adheres more closely to real-world [brevity](https://rdl.train.army.mil/catalog-ws/view/100.ATSC/5773E259-8F90-4694-97AD-81EFE6B73E63-1414757496033/atp1-02x1.pdf) and [procedures](https://www.alssa.mil/Portals/9/Documents/mttps/sd_acc_2024.pdf?ver=IZRWZy_DhRSOJWgNSAbMWA%3D%3D) instead of the incorrect brevity used by the in-game AWACS.
-4. SkyEye supports a larger number of commands, including [PICTURE](docs/PLAYER.md#picture), [BOGEY DOPE](docs/PLAYER.md#bogey-dope), [DECLARE](docs/PLAYER.md#declare), [SNAPLOCK](docs/PLAYER.md#snaplock), [SPIKED](docs/PLAYER.md#spiked) , and [ALPHA CHECK](docs/PLAYER.md#alpha-check).
+4. SkyEye supports a larger number of commands, including [PICTURE](docs/PLAYER.md#picture), [BOGEY DOPE](docs/PLAYER.md#bogey-dope), [DECLARE](docs/PLAYER.md#declare), [SNAPLOCK](docs/PLAYER.md#snaplock), [SPIKED](docs/PLAYER.md#spiked), and [ALPHA CHECK](docs/PLAYER.md#alpha-check).
 5. SkyEye intelligently monitors the battlespace, providing automatic [THREAT](docs/PLAYER.md#threat), [MERGED](docs/PLAYER.md#merged) and [FADED](docs/PLAYER.md#faded) callouts to improve situational awareness.
 
 SkyEye uses Speech-To-Text and Text-To-Speech technology which can run locally on the same computer as SkyEye. No cloud APIs are required, although cloud APIs are optionally supported. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can run it for less than a nickel per hour on a cloud server, or run it on a computer in your home running Windows, Linux or macOS.
@@ -112,13 +111,13 @@ SkyEye would not be possible without these people and projects, for whom I am de
 * [DCS-SRS](https://github.com/ciribob/DCS-SimpleRadioStandalone) by @ciribob. Ciribob also patiently answered many of my questions on SRS internals and provided helpful debugging tips whenever I ran into a block in the SRS integration.
 * [Tacview](https://www.tacview.net/) - specifically, [ACMI real time telemetry](https://www.tacview.net/documentation/realtime/en/) - provides the data feed from DCS World.
 * @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against SkyEye during early development, and Jones himself was also patient with my questions on Discord.
-* OpenAI's [Whisper](https://github.com/openai/whisper) provides speech-to-text. @ggerganov's [whisper.cpp](https://github.com/ggerganov/whisper.cpp) allows Whisper to be used locally without requiring cloud services.
+* OpenAI's [Whisper](https://github.com/openai/whisper) provides speech-to-text. @ggerganov's [ggml](https://github.com/ggml-org/ggml) and [whisper.cpp](https://github.com/ggerganov/whisper.cpp) allows Whisper to be used locally without requiring cloud services or complex external software.
 * @rodaine's [numwords](https://github.com/rodaine/numwords) module is invaluable for parsing numeric quantities from voice input.
 * [Piper](https://github.com/rhasspy/piper) by the [Rhasspy](https://rhasspy.readthedocs.io/en/latest/) voice assistant project is used for speech-to-text on Windows and Linux.
 * The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for SkyEye on Windows and Linux.
 * @popey's dataset provides the masculine voice for SkyEye on Windows and Linux.
 * @amitybell's [embedded Piper module](https://github.com/amitybell/piper) makes distribution and implementation of Piper a breeze. @nabbl improved this module.
-* Apple's [Speech Synthesis Manager](https://developer.apple.com/documentation/applicationservices/speech_synthesis_manager) is used for speech-to-text on macOS.
+* Apple's [Speech Synthesis Manager](https://developer.apple.com/documentation/applicationservices/speech_synthesis_manager) is used for text-to-speech on macOS.
 * @mattetti's [go-audio project](https://github.com/go-audio) is used for decoding AIFF audio.
 * The [Opus codec](https://opus-codec.org) and the [`hraban/opus`](https://github.com/hraban/opus) module provides audio compression for the SRS protocol.
 * @hbollon's [go-edlib](https://github.com/hbollon/go-edlib) module provides algorithms to help SkyEye understand when it slightly mishears/the user slightly misspeaks a callsign or command over the radio.

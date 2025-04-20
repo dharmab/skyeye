@@ -1,8 +1,8 @@
 {
-    "go.toolsEnvVars": {
-        "CGO_ENABLED": "1",
-        "C_INCLUDE_PATH": "${workspaceFolder}/third_party/whisper.cpp/",
-        "LIBRARY_PATH": "${workspaceFolder}/third_party/whisper.cpp/"
-    },
-    "go.buildTags": "nolibopusfile"
-},
+  "go.toolsEnvVars": {
+    "CGO_ENABLED": "1",
+    "C_INCLUDE_PATH": "${workspaceFolder}/third_party/whisper.cpp/ggml/include:${workspaceFolder}/third_party/whisper.cpp/include",
+    "LIBRARY_PATH": "${workspaceFolder}/third_party/whisper.cpp/"
+  },
+  "go.buildTags": "nolibopusfile"
+}
