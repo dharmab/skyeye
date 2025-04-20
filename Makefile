@@ -112,8 +112,8 @@ install-debian-dependencies:
 install-fedora-dependencies:
 	sudo dnf install -y \
 	  git \
-      development-tools \
-      c-develeopment \
+	  development-tools \
+	  c-development \
 	  golang \
 	  opus-devel \
 	  opus \
@@ -125,14 +125,15 @@ install-macos-dependencies:
 	xcode-select --install || true
 	brew install \
 	  git \
-      llvm \
+	  llvm \
+	  pkg-config \
 	  go \
 	  libsoxr \
 	  opus
 
 $(LIBWHISPER_PATH) $(WHISPER_H_PATH):
 	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false "$(WHISPER_CPP_REPO)" "$(WHISPER_CPP_PATH)" && $(WHISPER_CPP_BUILD_ENV) make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
-	if [ -f third_party/whisper.cpp/whisper.a ] && [ ! -f third_party/whisper.cpp/libwhisper.a ]; then cp third_party/whisper.cpp/whisper.a third_party/whisper.cpp/libwhisper.a; fi
+	if [ -f third_party/whisper.cpp/whisper.a ] && [ ! -f $(LIBWHISPER_PATH) ]; then cp third_party/whisper.cpp/whisper.a $(LIBWHISPER_PATH); fi
 
 .PHONY: whisper
 whisper: $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
