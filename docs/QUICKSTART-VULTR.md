@@ -8,6 +8,16 @@ It is assumed that you have set up an account, SSH keys and a billing method.
 
 See [the admin guide](ADMIN.md#getting-help) for how to get help if you have a problem.
 
+## Set Up DCS, TacView, and SRS
+
+Install DCS on a Windows computer (either the client for singleplayer/hosted multiplayer use, or a dedicated server for multiplayer use).
+
+Install the TacView Exporter on the DCS machine. Within DCS, go to OPTIONS → SPECIAL → Tacview and enable Real-Time Telemetry.  (See https://www.tacview.net/documentation/dcs/en/)
+
+Install SRS on a Windows computer. Start and configure the SRS Server. Ensure EAM mode is enabled and an EAM password is set.
+
+Make sure DCS is running an unpaused mission with both friendly and hostile air units so you can do some tests.
+
 ## Create a SkyEye Server
 
 Go to https://my.vultr.com. Click "Deploy +" in the top right corner, then "Deploy New Server".
