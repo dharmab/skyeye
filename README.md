@@ -37,9 +37,51 @@ See it in action! Jump to 7:24 in [this demo video by DCS ANZUS](https://youtu.b
 
 ## FAQ
 
+### Where can I try SkyEye?
+
+You can try SkyEye on the Flashpoint Levant server. No installation is required, just connect to their DCS and SRS server and tune to one of these radio frequencies:
+
+- 136.0 AM
+- 255.0 AM
+- 40.0 FM
+
+See https://limakilo.net for server details.
+
+### Where do I download SkyEye?
+
+On Windows and Linux, SkyEye can be downloaded from [GitHub Releases](https://github.com/dharmab/skyeye/releases).
+
+On Linux, SkyEye is also available as a container: `ghcr.io/dharmab/skyeye:latest`. Note this container won't work on Windows or macOS.
+
+On macOS, SkyEye can be installed using [Homebrew](https://brew.sh/):
+
+```bash
+brew tap dharmab/skyeye
+brew install dharmab/skyeye/skyeye
+```
+
+See the [admin guide](docs/ADMIN.md) for detailed instructions on installing, configuring and running SkyEye.
+
+### What do I need to run SkyEye?
+
+There are a few different ways to run SkyEye. In order from best to least recommended:
+
+1. On an Apple Sillicon Mac networked to your DCS server, using local speech recognition. This offers the fastest speech recognition and the highest quality AI voice.
+2. On your DCS server, using the OpenAI API for speech recognition. This offers fast speech recognition and good quality AI voices, but requires a credit card accepted by OpenAI to purchase API credits from OpenAI.
+3. On a separate Windows or Linux computer networked to your DCS server, using local speech recognition. This offers good-enough speech recognition performance and good quality AI voices without any credit card required. This also works with rented cloud servers, some of whom accept other payment methods compared to OpenAI.
+
+Running SkyEye on the same computer as DCS, using local speech recognition, is not recommended and no support can be provided for that configuration. Use a separate computer or OpenAI's API instead.
+
 ### What kind of hardware does it require?
 
-See the [Hardware section of the admin guide](docs/ADMIN.md#hardware).
+Generally, local speech recognition requires one of:
+
+* Any Apple Silicon Mac, such as a Mac Mini or MacBook Air/Pro.
+* A Windows or Linux computer with a fast quad-core CPU from the last 2-3 CPU generations.
+
+Cloud speech recognition requirements are quite modest.
+
+See the [Hardware section of the admin guide](docs/ADMIN.md#hardware) for more details, including a table of benchmarks.
 
 ### Can I train the speech recognition on my voice/accent?
 
