@@ -2,7 +2,7 @@
 
 This is a technical article on how to deploy SkyEye, targeted at multiplayer server administrators. It assumes you are a semi-technical user who is comfortable administering a Linux or Windows server.
 
-For a step-by-step guide, see one of the quickstart guides:
+For an easier step-by-step guide, see one of the quickstart guides:
 
 - [Windows](QUICKSTART-WINDOWS.md)
 - [macOS](QUICKSTART-MACOS.md)
@@ -528,7 +528,7 @@ journalctl -u skyeye > skyeye.log
 
 ## macOS
 
-### Installation with Homebrew (Recommended)
+### Installation
 
 Install [Homebrew](https://brew.sh).
 
@@ -569,6 +569,7 @@ If you wish to upgrade to the latest version of SkyEye:
 ```sh
 brew update
 brew upgrade dharmab/skyeye/skyeye
+brew services restart dharmab/skyeye/skyeye
 ```
 
 ### Service Management
@@ -576,16 +577,16 @@ brew upgrade dharmab/skyeye/skyeye
 Use `brew services` to manage SkyEye:
 
 ```sh
-# Start the bot
+# Start the bot without enabling autostart
 brew services run dharmab/skyeye/skyeye
 
-# Stop the bot
+# Stop the bot without disabling autostart
 brew services kill dharmab/skyeye/skyeye
 
-# Autostart the bot when the user logs in
+# Start the bot and enable autostart on login
 brew services start dharmab/skyeye/skyeye
 
-# Disable autostart on login
+# Stop the bot and disable autostart on login
 brew services stop dharmab/skyeye/skyeye
 
 # Restart SkyEye
