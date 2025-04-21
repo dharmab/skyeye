@@ -28,7 +28,7 @@ For the best possible AI voice, set your macOS voice to Siri Voice 5:
 6. In the list of languages, make sure "English" is selected
 7. Click on "Voice"
 8. Scroll down to "Siri".
-9. Download the English (United States) Siriv Voice 5.
+9. Download the English (United States) Siri Voice 5.
 10. Click "Done"
 11. Set the system voice to Siri Voice 5.
 
@@ -45,7 +45,7 @@ brew tap skyeye/skyeye
 brew install dharmab/skyeye/skyeye
 ```
 
-Open `$(brew --prefix)/etc/skyeye/config.yaml` with a text editor.  (if you don't have one, download [Visual Studio Code](https://code.visualstudio.com). I don't recommend trying to edit YAML with TextEdit because it's easy to make an indentation error.) Edit the file as required and save your changes.
+Open `$(brew --prefix)/etc/skyeye/config.yaml` with a text editor. It's probably at `/opt/homebrew/etc/skyeye/config.yaml`. (If you don't have a text editor, download [Visual Studio Code](https://code.visualstudio.com). I don't recommend trying to edit YAML with TextEdit because it's easy to make an indentation error.) Edit the file as required and save your changes.
 
 A minimal sample config file might look like:
 
@@ -60,7 +60,7 @@ srs-eam-password: yoursrspasswordhere
 use-system-voice: true  # Set to false if you didn't configure Siri Voice 5 above
 ```
 
-Run this command to start SkyEye, and automatically start it whenever you log in:
+Run this command to start SkyEye:
 
 ```sh
 brew services run dharmab/skyeye/skyeye
@@ -77,7 +77,7 @@ The output should indicate that SkyEye is running.
 Also, take a look at the logs:
 
 ```sh
-tail -f $(brew --prefix)/var/log/skyeye.log
+tail -f "$(brew --prefix)/var/log/skyeye.log"
 ```
 
 if you see a lot of repeated WARN or ERROR lines that don't go away, something may be wrong.
