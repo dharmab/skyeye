@@ -67,7 +67,7 @@ See the [admin guide](docs/ADMIN.md) for detailed instructions on installing, co
 There are a few different ways to run SkyEye. In order from best to least recommended:
 
 1. On an Apple Sillicon Mac networked to your DCS server, using local speech recognition. This offers the fastest speech recognition and the highest quality AI voice.
-2. On your DCS server, using the OpenAI API for speech recognition. This offers fast speech recognition and good quality AI voices, but requires a credit card accepted by OpenAI to purchase API credits from OpenAI.
+2. On your DCS server, using the OpenAI API for speech recognition. This offers fast speech recognition and good quality AI voices, but requires a credit card accepted by OpenAI to purchase API credits from OpenAI. At current pricing, $1 of OpenAI credit pays to recognize more than 1000 transmissions over SRS.
 3. On a separate Windows or Linux computer networked to your DCS server, using local speech recognition. This offers good-enough speech recognition performance and good quality AI voices without any credit card required. This also works with rented cloud servers, some of whom accept other payment methods compared to OpenAI.
 
 Running SkyEye on the same computer as DCS, using local speech recognition, is not recommended and no support can be provided for that configuration. Use a separate computer or OpenAI's API instead.
