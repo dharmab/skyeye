@@ -80,7 +80,9 @@ Also, take a look at the logs:
 tail -f "$(brew --prefix)/var/log/skyeye.log"
 ```
 
-if you see a lot of repeated WARN or ERROR lines that don't go away, something may be wrong.
+If you see a lot of repeated WARN or ERROR lines that don't go away, something may be wrong.
+
+If you see an error message containing `connect: no route to host`, see [this issue](https://github.com/dharmab/skyeye/issues/566) for a possible cause and workarounds.
 
 On a Windows computer, connect to your DCS and SRS servers. Switch to one of the SkyEye frequencies you configured. Try some test commands like a RADIO CHECK, ALPHA CHECK and PICTURE. (See the [player guide](PLAYER.md).)
 
