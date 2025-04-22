@@ -75,7 +75,7 @@ func (r DeclareRequest) String() string {
 			s += fmt.Sprintf(", altitude %.0f", r.Altitude.Feet())
 		}
 	} else {
-		s += fmt.Sprintf("bullseye %s", &r.Bullseye)
+		s += fmt.Sprintf("bullseye %s", r.Bullseye)
 	}
 	if r.Track != UnknownDirection {
 		s += fmt.Sprintf(", track %s", r.Track)

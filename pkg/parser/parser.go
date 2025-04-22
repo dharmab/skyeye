@@ -26,13 +26,15 @@ const (
 type Parser struct {
 	controllerCallsign string
 	enableTextLogging  bool
+	locations          []string
 }
 
 // New creates a new parser.
-func New(callsign string, enableTextLogging bool) *Parser {
+func New(callsign string, locations []string, enableTextLogging bool) *Parser {
 	return &Parser{
 		controllerCallsign: strings.ReplaceAll(callsign, " ", ""),
 		enableTextLogging:  enableTextLogging,
+		locations:          locations,
 	}
 }
 
@@ -51,9 +53,11 @@ const (
 	spiked     string = "spiked"
 	strobe     string = "strobe"
 	tripwire   string = "tripwire"
+	vector     string = "vector"
+	tanker     string = "tanker"
 )
 
-var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, strobe, snaplock, tripwire, shopping}
+var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, strobe, snaplock, tripwire, shopping, vector}
 
 // findControllerCallsign searches for the GCI callsign in the given fields.
 // Returns the heard callsign, remaining text after it, and whether it was found.
@@ -83,7 +87,7 @@ func handleNoRequestWord(tx, pilotCallsign string) any {
 
 // parseRequestWithArgs attempts to parse a request that requires additional arguments
 // beyond the request word itself (e.g., BOGEY DOPE, DECLARE, SPIKED).
-func parseRequestWithArgs(requestWord, pilotCallsign string, requestArgs []string) any {
+func (p *Parser) parseRequestWithArgs(requestWord, pilotCallsign string, requestArgs []string) any {
 	stream := token.New(strings.Join(requestArgs, " "))
 
 	switch requestWord {
@@ -105,6 +109,10 @@ func parseRequestWithArgs(requestWord, pilotCallsign string, requestArgs []strin
 		}
 	case snaplock:
 		if request, ok := parseSnaplock(pilotCallsign, stream); ok {
+			return request
+		}
+	case vector:
+		if request, ok := parseVector(pilotCallsign, p.locations, stream); ok {
 			return request
 		}
 	}
@@ -242,5 +250,5 @@ func (p *Parser) Parse(tx string) any {
 	}
 	event.Msg("parsing request arguments")
 
-	return parseRequestWithArgs(requestWord, pilotCallsign, requestArgs)
+	return p.parseRequestWithArgs(requestWord, pilotCallsign, requestArgs)
 }

@@ -109,7 +109,7 @@ func parseDeclareAsBullseye(callsign string, stream *token.Stream, isAmbiguous b
 
 	return &brevity.DeclareRequest{
 		Callsign:    callsign,
-		Bullseye:    *bullseye,
+		Bullseye:    bullseye,
 		Altitude:    altitude,
 		Track:       track,
 		IsAmbiguous: isAmbiguous,

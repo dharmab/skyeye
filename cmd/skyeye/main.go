@@ -76,6 +76,7 @@ var (
 	discordWebhookToken          string
 	exitAfter                    time.Duration
 	enableTerrainDetection       bool
+	locationsFile                string
 )
 
 const (
@@ -152,6 +153,7 @@ func init() {
 	skyeye.Flags().DurationVar(&threatMonitoringInterval, "threat-monitoring-interval", 3*time.Minute, "How often to broadcast THREAT")
 	skyeye.Flags().Float64Var(&mandatoryThreatRadiusNM, "mandatory-threat-radius", 25, "Briefed radius for mandatory THREAT calls, in nautical miles")
 	skyeye.Flags().BoolVar(&threatMonitoringRequiresSRS, "threat-monitoring-requires-srs", true, "Require aircraft to be on SRS to receive THREAT calls. Only useful to disable when debugging")
+	skyeye.Flags().StringVar(&locationsFile, "locations-file", "", "Path to file containing additional locations that may be referenced in ALPHA CHECK and VECTOR calls.")
 
 	// Tracing
 	skyeye.Flags().BoolVar(&enableTracing, "enable-tracing", false, "Enable tracing")
