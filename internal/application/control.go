@@ -55,6 +55,8 @@ func (a *Application) handleRequest(ctx context.Context, r any) {
 		a.controller.HandleSpiked(ctx, request)
 	case *brevity.TripwireRequest:
 		a.controller.HandleTripwire(ctx, request)
+	case *brevity.VectorRequest:
+		a.controller.HandleVector(ctx, request)
 	case *brevity.UnableToUnderstandRequest:
 		a.controller.HandleUnableToUnderstand(ctx, request)
 	default:

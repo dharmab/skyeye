@@ -12,7 +12,7 @@ import (
 
 var bullseyeWords = []string{"bullseye", "bulls"}
 
-func parseBullseye(scanner *bufio.Scanner) *brevity.Bullseye {
+func parseBullseye(scanner *bufio.Scanner) brevity.Bullseye {
 	if !skipWords(scanner, bullseyeWords...) {
 		return nil
 	}
