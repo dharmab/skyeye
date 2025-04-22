@@ -17,6 +17,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/commands"
 	"github.com/dharmab/skyeye/pkg/composer"
 	"github.com/dharmab/skyeye/pkg/controller"
+	loc "github.com/dharmab/skyeye/pkg/locations"
 	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/recognizer"
@@ -167,7 +168,7 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 	}
 
 	log.Info().Msg("constructing request parser")
-	requestParser := parser.New(config.Callsign, config.EnableTranscriptionLogging)
+	requestParser := parser.New(config.Callsign, []string{}, config.EnableTranscriptionLogging)
 
 	log.Info().Msg("constructing radar scope")
 
@@ -182,6 +183,7 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		config.EnableThreatMonitoring,
 		config.ThreatMonitoringInterval,
 		config.ThreatMonitoringRequiresSRS,
+		[]loc.Location{},
 	)
 
 	log.Info().Msg("constructing response composer")
