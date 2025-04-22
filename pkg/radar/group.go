@@ -46,7 +46,7 @@ func (g *group) Contacts() int {
 }
 
 // Bullseye implements [brevity.Group.Bullseye].
-func (g *group) Bullseye() *brevity.Bullseye {
+func (g *group) Bullseye() brevity.Bullseye {
 	if g.bullseye == nil {
 		return nil
 	}

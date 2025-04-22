@@ -100,7 +100,7 @@ func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 	bearing := spatial.TrueBearing(bullseye, latest.Point).Magnetic(declination)
 	log.Debug().Float64("bearing", bearing.Degrees()).Msg("calculated bullseye bearing for group")
 	distance := spatial.Distance(bullseye, latest.Point)
-	return *brevity.NewBullseye(bearing, distance)
+	return brevity.NewBullseye(bearing, distance)
 }
 
 // LastKnown returns the most recent frame in the trackfile.

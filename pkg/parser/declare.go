@@ -11,7 +11,7 @@ import (
 )
 
 func parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity.DeclareRequest, bool) {
-	var bullseye *brevity.Bullseye
+	var bullseye brevity.Bullseye
 	var bearing bearings.Bearing
 	var _range unit.Length
 	var isBRAA bool
@@ -115,7 +115,7 @@ func parseDeclare(callsign string, scanner *bufio.Scanner) (*brevity.DeclareRequ
 	}
 	return &brevity.DeclareRequest{
 		Callsign:    callsign,
-		Bullseye:    *bullseye,
+		Bullseye:    bullseye,
 		Altitude:    altitude,
 		Track:       track,
 		IsAmbiguous: isAmbiguous,
