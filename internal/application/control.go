@@ -51,6 +51,8 @@ func (a *Application) handleRequest(ctx context.Context, r any) {
 		a.controller.HandleSnaplock(ctx, request)
 	case *brevity.SpikedRequest:
 		a.controller.HandleSpiked(ctx, request)
+	case *brevity.StrobeRequest:
+		a.controller.HandleStrobe(ctx, request)
 	case *brevity.TripwireRequest:
 		a.controller.HandleTripwire(ctx, request)
 	case *brevity.UnableToUnderstandRequest:
