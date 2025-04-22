@@ -8,13 +8,13 @@ import (
 )
 
 // HandleSpiked handles a SPIKED request by reporting any enemy groups in the direction of the radar spike.
-func (c *Controller) HandleSpiked(ctx context.Context, request *brevity.SpikedRequest) {
+func (c *Controller) HandleStrobe(ctx context.Context, request *brevity.StrobeRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Float64("bearing", request.Bearing.Degrees()).Logger()
 	correlation := c.correlate(logger, request.Callsign, request.Bearing)
 	if correlation.Callsign == "" {
 		c.calls <- NewCall(ctx, brevity.NegativeRadarContactResponse{Callsign: request.Callsign})
 	} else {
-		response := brevity.SpikedResponseV2{
+		response := brevity.StrobeResponse{
 			Callsign: correlation.Callsign,
 			Status:   correlation.Group != nil,
 			Bearing:  correlation.Bearing,

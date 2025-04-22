@@ -38,10 +38,11 @@ const (
 	shopping   string = "shopping"
 	snaplock   string = "snaplock"
 	spiked     string = "spiked"
+	strobe     string = "strobe"
 	tripwire   string = "tripwire"
 )
 
-var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, snaplock, tripwire, shopping}
+var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, strobe, snaplock, tripwire, shopping}
 
 func (p *Parser) findControllerCallsign(fields []string) (callsign string, rest string, found bool) {
 	for i := range fields {
@@ -209,6 +210,10 @@ func (p *Parser) Parse(tx string) any {
 		}
 	case spiked:
 		if request, ok := parseSpiked(pilotCallsign, scanner); ok {
+			return request
+		}
+	case strobe:
+		if request, ok := parseStrobe(pilotCallsign, scanner); ok {
 			return request
 		}
 	case snaplock:
