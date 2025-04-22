@@ -312,23 +312,28 @@ MOBIUS 1: "Thunderhead Mobius One, snaplock one two five, ten, eight thousand"
 THUNDERHEAD: "Mobius 1, threat group BRAA 125/10, 8000, hot, hostile, two contacts, Flanker."
 ```
 
-### SPIKED
+### SPIKED/STROBE
 
-Keyword: `SPIKED`
+Keyword: `SPIKED` or `STROBE`
 
-Function: You tell the GCI the approximate bearing to an airborne threat on your Radar Warning Receiver (RWR). The GCI responds with information about the nearest potential source within a 30 degree cone in that direction.
+Function: You tell the GCI the approximate bearing to a enemy radar spike or electromagnetic attack. The GCI responds with information about the nearest potential source within a 30 degree cone in that direction.
 
-Use: Can be used to get ranging information to a threat that is visible on the RWR but not the attack radar (or if your aircraft has no attack radar).
+Use: Get ranging information to a threat whose range is unknown.
 
 Arguments:
 
-1. Bearing to the airborne radar threat (required)
+1. Bearing to the threat (required)
 
 Examples:
 
 ```
 MOBIUS 1: "Thunderhead Mobius One, spiked zero eight zero"
 THUNDERHEAD: "Mobius One, spike range 35, 16000, flank northeast, hostile, single contact."
+```
+
+```
+PYTHON 12: "Wizard Python One Two, strobe two eight zero"
+WIZARD: "Python One Two, spike range 40, 25000, flank north, hostile, single contact."
 ```
 
 ```
