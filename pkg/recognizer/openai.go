@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/dharmab/skyeye/pkg/pcm"
 	openai "github.com/openai/openai-go"
@@ -88,6 +89,9 @@ func createWAV(sample []float32) (*bytes.Buffer, error) {
 
 	data := pcm.F32toS16LE(sample)
 	dataSize := len(data) * bytesPerSample
+	if dataSize > math.MaxInt32 || dataSize < 0 {
+		return nil, fmt.Errorf("data size is out of range: %d", dataSize)
+	}
 
 	buf := new(bytes.Buffer)
 	var writeErr error
@@ -131,7 +135,7 @@ func createWAV(sample []float32) (*bytes.Buffer, error) {
 	if _, err := buf.WriteString("data"); err != nil {
 		writeErr = errors.Join(writeErr, err)
 	}
-	if err := writeBinary(buf, dataSize); err != nil {
+	if err := writeBinary(buf, int32(dataSize)); err != nil { //nolint: gosec // dataSize is clamped to safe range
 		writeErr = errors.Join(writeErr, err)
 	}
 	for _, d := range data {
@@ -141,7 +145,10 @@ func createWAV(sample []float32) (*bytes.Buffer, error) {
 	}
 
 	// Update file size
-	fileSize := buf.Len() - 8
+	if buf.Len() <= 8 || buf.Len() > math.MaxInt32 {
+		return nil, fmt.Errorf("buffer length is out of range: %d", buf.Len())
+	}
+	fileSize := int32(buf.Len() - 8) //nolint: gosec // buf.Len() is clamped to safe range
 	fileSizeBytes := new(bytes.Buffer)
 	if err := writeBinary(fileSizeBytes, fileSize); err != nil {
 		writeErr = errors.Join(writeErr, err)
