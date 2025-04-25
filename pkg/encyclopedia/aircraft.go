@@ -580,6 +580,33 @@ var flankerData = Aircraft{
 	threatRadius:        SAR2AR1Threat,
 }
 
+var flagonData = Aircraft{
+	tags: map[AircraftTag]bool{
+		FixedWing: true,
+		Fighter:   true,
+	},
+	PlatformDesignation: "Su-15",
+	NATOReportingName:   "Flagon",
+	threatRadius:        SAR1IRThreat,
+}
+
+func flagonVariants() []Aircraft {
+	return []Aircraft{
+		{
+			ACMIShortName:       "Su_15",
+			tags:                flagonData.tags,
+			PlatformDesignation: flagonData.PlatformDesignation,
+			NATOReportingName:   flagonData.NATOReportingName,
+		},
+		{
+			ACMIShortName:       "Su_15TM",
+			tags:                flagonData.tags,
+			PlatformDesignation: flagonData.PlatformDesignation,
+			NATOReportingName:   flagonData.NATOReportingName,
+		},
+	}
+}
+
 var kc135Data = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
@@ -1034,6 +1061,17 @@ var aircraftData = []Aircraft{
 		threatRadius:        SAR1IRThreat,
 	},
 	{
+		ACMIShortName: "vwv_mig21mf",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Fighter:   true,
+		},
+		PlatformDesignation: "MiG-21",
+		TypeDesignation:     "MiG-21MF",
+		NATOReportingName:   "Fishbed",
+		threatRadius:        SAR1IRThreat,
+	},
+	{
 		ACMIShortName: "MiG-23MLD",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
@@ -1238,6 +1276,27 @@ var aircraftData = []Aircraft{
 		TypeDesignation:     "UH-60A",
 		OfficialName:        "Black Hawk",
 	},
+	{
+		ACMIShortName: "Yak_28",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Fighter:   true,
+		},
+		PlatformDesignation: "Yak-28",
+		TypeDesignation:     "Yak-28",
+		NATOReportingName:   "Brewer",
+	},
+	{
+		ACMIShortName: "Bronco-OV-10A",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Attack:    true,
+		},
+		PlatformDesignation: "OV-10",
+		TypeDesignation:     "OV-10A",
+		OfficialName:        "Bronco",
+		Nickname:            "Bronco",
+	},
 }
 
 // aircraftDataLUT maps the name exported in ACMI data to aircraft data.
@@ -1265,6 +1324,7 @@ func init() {
 		ftVariants(),
 		fencerVariants(),
 		foxbatVariants(),
+		flagonVariants(),
 		fulcrumVariants(),
 		frogfootVariants(),
 		kc135Variants(),
