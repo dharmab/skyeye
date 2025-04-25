@@ -587,7 +587,7 @@ var flagonData = Aircraft{
 	},
 	PlatformDesignation: "Su-15",
 	NATOReportingName:   "Flagon",
-	threatRadius:        SAR1IRThreat,
+	threatRadius:        ExtendedThreat,
 }
 
 func flagonVariants() []Aircraft {
@@ -1285,6 +1285,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "Yak-28",
 		TypeDesignation:     "Yak-28",
 		NATOReportingName:   "Brewer",
+		threatRadius:        SAR1IRThreat,
 	},
 	{
 		ACMIShortName: "Bronco-OV-10A",
