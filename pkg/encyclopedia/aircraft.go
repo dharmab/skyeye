@@ -1039,6 +1039,17 @@ var aircraftData = []Aircraft{
 		OfficialName:        "Havoc",
 	},
 	{
+		ACMIShortName: "vwv_mig17f",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Fighter:   true,
+		},
+		PlatformDesignation: "MiG-17",
+		TypeDesignation:     "MiG-17F",
+		NATOReportingName:   "Fresco",
+		threatRadius:        SAR1IRThreat,
+	},
+	{
 		ACMIShortName: "MiG-19P",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
