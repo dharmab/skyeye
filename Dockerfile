@@ -23,6 +23,7 @@ RUN make skyeye-scaler
 
 FROM debian:bookworm-slim AS base
 RUN apt-get update && apt-get install -y \
+  ca-certificates \
   libopus0 \
   libsoxr0 \
   && rm -rf /var/lib/apt/lists/*
