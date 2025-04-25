@@ -19,6 +19,5 @@
       "title": "DCS SRS Transmission Log",
       "pattern": "C:\\Program Files\\DCS-SimpleRadio-Standalone\\*-transmissionlog.csv"
     }
-  ],
-  "makefile.configureOnOpen": false
+  ]
 }
