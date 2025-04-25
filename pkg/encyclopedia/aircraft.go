@@ -1267,6 +1267,16 @@ var aircraftData = []Aircraft{
 		OfficialName:        "Blackjack",
 	},
 	{
+		ACMIShortName: "Tu-16",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
+		PlatformDesignation: "Tu-16",
+		TypeDesignation:     "Tu-16",
+		OfficialName:        "Badger",
+	},
+	{
 		ACMIShortName: "UH-1H",
 		tags: map[AircraftTag]bool{
 			RotaryWing: true,
