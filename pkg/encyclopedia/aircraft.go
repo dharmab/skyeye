@@ -1319,6 +1319,15 @@ var aircraftData = []Aircraft{
 		OfficialName:        "Bronco",
 		Nickname:            "Bronco",
 	},
+	{
+		ACMIShortName: "Yak-40",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
+		PlatformDesignation: "Yak-40",
+		NATOReportingName:   "Codling",
+	},
 }
 
 // aircraftDataLUT maps the name exported in ACMI data to aircraft data.
