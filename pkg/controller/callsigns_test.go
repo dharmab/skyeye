@@ -128,6 +128,21 @@ func TestCollateCallsigns(t *testing.T) {
 			everyone:  []string{"eagle 2 2", "eagle 2 1", "eagle 2 3"},
 			expected:  []string{"eagle 2 1", "2 2"},
 		},
+		{
+			receivers: []string{"jackal 2 2", "jackal 2 1"},
+			everyone:  []string{"jackal 2 2", "jackal 2 1", "jackal 2 3"},
+			expected:  []string{"jackal 2 1", "2 2"},
+		},
+		{
+			receivers: []string{"jackal 2 2", "jackal 2 1"},
+			everyone:  []string{"jackal 2 2", "jackal 2 3", "jackal 2 1"},
+			expected:  []string{"jackal 2 1", "2 2"},
+		},
+		{
+			receivers: []string{"bravo 1 1", "alpha 1 1"},
+			everyone:  []string{"bravo 1 1", "alpha 1 1"},
+			expected:  []string{"alpha 1 1", "bravo 1 1"},
+		},
 	}
 
 	for i, testCase := range testCases {
