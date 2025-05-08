@@ -110,6 +110,10 @@ func collateCallsigns(receivers, everyone []string) []string {
 		return receivers
 	}
 
+	// Sort the slices for a consistent order.
+	slices.Sort(receivers)
+	slices.Sort(everyone)
+
 	// Parse all callsigns which follow the strict format.
 	callsigns := []strictCallsign{}
 	for _, name := range everyone {
