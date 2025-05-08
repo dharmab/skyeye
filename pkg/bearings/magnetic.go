@@ -33,6 +33,11 @@ func (b *Magnetic) Degrees() float64 {
 	return b.Value().Degrees()
 }
 
+// Radians returns the magnetic bearing in radians.
+func (b *Magnetic) Radians() float64 {
+	return b.Value().Radians()
+}
+
 // RoundedDegrees returns the magnetic bearing in degrees, rounded to the nearest degree.
 func (b *Magnetic) RoundedDegrees() float64 {
 	return math.Round(b.Degrees())

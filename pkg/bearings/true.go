@@ -33,6 +33,11 @@ func (b True) Degrees() float64 {
 	return b.Value().Degrees()
 }
 
+// Radians returns the bearing in radians.
+func (b True) Radians() float64 {
+	return b.Value().Radians()
+}
+
 // RoundedDegrees returns the bearing in degrees, rounded to the nearest degree.
 func (b True) RoundedDegrees() float64 {
 	return math.Round(b.Degrees())

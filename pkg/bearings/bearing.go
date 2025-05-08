@@ -13,6 +13,8 @@ type Bearing interface {
 	Rounded() unit.Angle
 	// Degrees returns the compass heading in degrees, normalized in range (0, 360].
 	Degrees() float64
+	// Radians returns the compass heading in radians, normalized in range (0, 𝜏)
+	Radians() float64
 	// RoundedDegrees returns the compass heading in degrees, normalized in range (0, 360] rounded to the nearest degree.
 	RoundedDegrees() float64
 	// True bearing conversion computed with the given declination.

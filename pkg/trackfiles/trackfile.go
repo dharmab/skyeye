@@ -161,14 +161,55 @@ func (t *Trackfile) Course() bearings.Bearing {
 func (t *Trackfile) Direction() brevity.Track {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
+
 	if t.track.Len() < 2 {
 		return brevity.UnknownDirection
 	}
-	if t.groundSpeed() < 1*unit.MetersPerSecond {
+
+	var (
+		xVector       float64
+		yVector       float64
+		trackDistance unit.Length
+		numSegments   int
+	)
+
+	for i := range t.track.Len() - 1 {
+		cursor := t.track.At(i)
+		previous := t.track.At(i + 1)
+
+		Δt := cursor.Time.Sub(previous.Time)
+		if Δt == 0 {
+			continue
+		}
+
+		trackDistance += spatial.Distance(previous.Point, cursor.Point)
+
+		bearing := spatial.TrueBearing(previous.Point, cursor.Point)
+		course := bearing.Radians()
+		xVector += math.Cos(course)
+		yVector += math.Sin(course)
+
+		numSegments++
+	}
+
+	latest := t.track.Front()
+	oldest := t.track.Back()
+	Δt := latest.Time.Sub(oldest.Time)
+	averageSpeed := unit.Speed(trackDistance.Meters()/Δt.Seconds()) * unit.MetersPerSecond
+
+	if averageSpeed < 1*unit.MetersPerSecond {
 		return brevity.UnknownDirection
 	}
 
-	course := t.Course()
+	// Calculate the average direction vector.
+	averageX := xVector / float64(numSegments)
+	averageY := yVector / float64(numSegments)
+
+	// Convert the average direction vector to a bearing.
+	averageCourse := unit.Angle(math.Atan2(averageY, averageX)) * unit.Radian
+
+	declination := t.bestAvailableDeclination()
+	course := bearings.NewTrueBearing(averageCourse).Magnetic(declination)
 	return brevity.TrackFromBearing(course)
 }
 
