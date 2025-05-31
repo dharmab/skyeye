@@ -44,12 +44,48 @@ func normalize(tx string) string {
 	tx, _, _ = strings.Cut(tx, "|")
 	tx = strings.ToLower(tx)
 	tx = removeSymbols(tx)
+	tx = digitWords(tx)
 	tx = spaceNumbers(tx)
 	tx = strings.TrimSpace(tx)
 	for _, repl := range replacements {
 		tx = strings.ReplaceAll(tx, repl.Original, repl.Normal)
 	}
-	tx = strings.Join(strings.Fields(tx), " ")
+	return tx
+}
+
+// digitWords converts digits from their word form to their numeral form.
+// It is stricter than the numwords package.
+func digitWords(tx string) string {
+	fields := strings.Fields(tx)
+	for i, field := range fields {
+		var n string
+		switch field {
+		case "zero":
+			n = "0"
+		case "one":
+			n = "1"
+		case "two":
+			n = "2"
+		case "three":
+			n = "3"
+		case "four":
+			n = "4"
+		case "five":
+			n = "5"
+		case "six":
+			n = "6"
+		case "seven":
+			n = "7"
+		case "eight":
+			n = "8"
+		case "nine":
+			n = "9"
+		}
+		if n != "" {
+			fields[i] = n
+		}
+	}
+	tx = strings.Join(fields, " ")
 	return tx
 }
 
