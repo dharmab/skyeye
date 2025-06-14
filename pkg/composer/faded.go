@@ -14,7 +14,7 @@ func (c *Composer) ComposeFadedCall(call brevity.FadedCall) (response NaturalLan
 	}
 
 	if bullseye := call.Group.Bullseye(); bullseye != nil {
-		bullseye := c.composeBullseye(*bullseye)
+		bullseye := c.composeBullseye(bullseye)
 		response.WriteResponse(bullseye)
 	}
 

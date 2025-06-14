@@ -2,7 +2,6 @@ package brevity
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/spatial"
@@ -20,10 +19,7 @@ type BRAA interface {
 
 // BRA is an abbreviated form of BRAA without aspect.
 type BRA interface {
-	// Bearing is the heading from the fighter to the contact, rounded to the nearest degree.
-	Bearing() bearings.Bearing
-	// Range is the distance from the fighter to the contact, rounded to the nearest nautical mile.
-	Range() unit.Length
+	Vector
 	// Altitude of the contact above sea level, rounded to the nearest thousands of feet.
 	Altitude() unit.Length
 	// Altitude STACKS of the contact above sea level, rounded to the nearest thousands of feet.
@@ -31,9 +27,8 @@ type BRA interface {
 }
 
 type bra struct {
-	bearing bearings.Bearing
-	_range  unit.Length
-	stacks  []Stack
+	vector
+	stacks []Stack
 }
 
 // NewBRA creates a new [BRA].
@@ -42,20 +37,12 @@ func NewBRA(b bearings.Bearing, r unit.Length, a ...unit.Length) BRA {
 		log.Warn().Stringer("bearing", b).Msg("bearing provided to NewBRA should be magnetic")
 	}
 	return &bra{
-		bearing: b,
-		_range:  r,
-		stacks:  Stacks(a...),
+		vector: vector{
+			bearing:  b,
+			distance: r,
+		},
+		stacks: Stacks(a...),
 	}
-}
-
-// Bearing implements [BRA.Bearing].
-func (b *bra) Bearing() bearings.Bearing {
-	return b.bearing
-}
-
-// Range implements [BRA.Range].
-func (b *bra) Range() unit.Length {
-	return unit.Length(math.Round(b._range.NauticalMiles())) * unit.NauticalMile
 }
 
 // Altitude implements [BRA.Altitude].
