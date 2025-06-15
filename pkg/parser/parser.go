@@ -15,13 +15,15 @@ import (
 type Parser struct {
 	gciCallsign       string
 	enableTextLogging bool
+	locations         []string
 }
 
 // New creates a new parser.
-func New(callsign string, enableTextLogging bool) *Parser {
+func New(callsign string, locations []string, enableTextLogging bool) *Parser {
 	return &Parser{
 		gciCallsign:       strings.ReplaceAll(callsign, " ", ""),
 		enableTextLogging: enableTextLogging,
+		locations:         locations,
 	}
 }
 
@@ -39,9 +41,11 @@ const (
 	snaplock   string = "snaplock"
 	spiked     string = "spiked"
 	tripwire   string = "tripwire"
+	vector     string = "vector"
+	tanker     string = "tanker"
 )
 
-var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, snaplock, tripwire, shopping}
+var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, snaplock, tripwire, shopping, vector}
 
 func (p *Parser) findGCICallsign(fields []string) (callsign string, rest string, found bool) {
 	for i := range fields {
@@ -213,6 +217,10 @@ func (p *Parser) Parse(tx string) any {
 		}
 	case snaplock:
 		if request, ok := parseSnaplock(pilotCallsign, scanner); ok {
+			return request
+		}
+	case vector:
+		if request, ok := parseVector(pilotCallsign, p.locations, scanner); ok {
 			return request
 		}
 	}

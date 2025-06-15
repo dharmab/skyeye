@@ -17,7 +17,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "anyface, chevy one one, declare, 075 26 2000",
 			expected: &brevity.DeclareRequest{
 				Callsign: "chevy 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(75*unit.Degree),
 					26*unit.NauticalMile,
 				),
@@ -30,7 +30,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "anyface, chevy one one, declare, 075 26",
 			expected: &brevity.DeclareRequest{
 				Callsign: "chevy 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(75*unit.Degree),
 					26*unit.NauticalMile,
 				),
@@ -43,7 +43,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "anyface, chevy one one, declare, 075 26 at 2000",
 			expected: &brevity.DeclareRequest{
 				Callsign: "chevy 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(75*unit.Degree),
 					26*unit.NauticalMile,
 				),
@@ -56,7 +56,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "anyface, chevy one one, declare bullseye 075 for 26 at 2000",
 			expected: &brevity.DeclareRequest{
 				Callsign: "chevy 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(75*unit.Degree),
 					26*unit.NauticalMile,
 				),
@@ -68,7 +68,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "anyface, chevy one one, declare, 075 26 altitude 2000",
 			expected: &brevity.DeclareRequest{
 				Callsign: "chevy 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(75*unit.Degree),
 					26*unit.NauticalMile,
 				),
@@ -81,7 +81,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "anyface, tater 1-1, declare bullseye 0-5-4, 123, 3000",
 			expected: &brevity.DeclareRequest{
 				Callsign: "tater 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(54*unit.Degree),
 					123*unit.NauticalMile,
 				),
@@ -93,7 +93,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "anyface Fox 1 2 declare bullseye 043 102 12,000",
 			expected: &brevity.DeclareRequest{
 				Callsign: "fox 1 2",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(43*unit.Degree),
 					102*unit.NauticalMile,
 				),
@@ -105,7 +105,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "anyface, Chaos 11, declare bullseye 076 44 3000.",
 			expected: &brevity.DeclareRequest{
 				Callsign: "chaos 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(76*unit.Degree),
 					44*unit.NauticalMile,
 				),
@@ -117,7 +117,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "anyface, dog one one, declare, bullseye 075-26-2000",
 			expected: &brevity.DeclareRequest{
 				Callsign: "dog 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(75*unit.Degree),
 					26*unit.NauticalMile,
 				),
@@ -129,7 +129,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "Anyface Goblin11, declare 052-77-2000",
 			expected: &brevity.DeclareRequest{
 				Callsign: "goblin 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(52*unit.Degree),
 					77*unit.NauticalMile,
 				),
@@ -204,7 +204,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "anyface mobius1, declare 177.29",
 			expected: &brevity.DeclareRequest{
 				Callsign: "mobius 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(177*unit.Degree),
 					29*unit.NauticalMile,
 				),
@@ -216,7 +216,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "ANYFACE, DAGGER11, DECLARE, BULLSEYE 01464.",
 			expected: &brevity.DeclareRequest{
 				Callsign: "dagger 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(14*unit.Degree),
 					64*unit.NauticalMile,
 				),
@@ -227,7 +227,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "ANYFACE, DAGGER 1-1, DECLARE, BULZYE 01162",
 			expected: &brevity.DeclareRequest{
 				Callsign: "dagger 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(11*unit.Degree),
 					62*unit.NauticalMile,
 				),
@@ -238,7 +238,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "ANYFACE, DAGGER 1-1, DECLARE, BULZYE 011 62, INJELS 18.",
 			expected: &brevity.DeclareRequest{
 				Callsign: "dagger 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(11*unit.Degree),
 					62*unit.NauticalMile,
 				),
@@ -250,7 +250,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "anyface, 140, declare BULLSEYE 058146",
 			expected: &brevity.DeclareRequest{
 				Callsign: "1 4 0",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(58*unit.Degree),
 					146*unit.NauticalMile,
 				),
@@ -271,7 +271,7 @@ func TestParserDeclare(t *testing.T) {
 			text: TestCallsign + ", Thunder 1-1, declare 17631.",
 			expected: &brevity.DeclareRequest{
 				Callsign: "thunder 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(176*unit.Degree),
 					31*unit.NauticalMile,
 				),
@@ -283,7 +283,7 @@ func TestParserDeclare(t *testing.T) {
 			text: TestCallsign + ", Thunder 1-1, declare 177.29.",
 			expected: &brevity.DeclareRequest{
 				Callsign: "thunder 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(177*unit.Degree),
 					29*unit.NauticalMile,
 				),
@@ -295,7 +295,7 @@ func TestParserDeclare(t *testing.T) {
 			text: TestCallsign + " who is saying 11 requests declare 25545.",
 			expected: &brevity.DeclareRequest{
 				Callsign: "who is saying 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(255*unit.Degree),
 					45*unit.NauticalMile,
 				),
@@ -304,7 +304,7 @@ func TestParserDeclare(t *testing.T) {
 			},
 		},
 	}
-	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
+	runParserTestCases(t, New(TestCallsign, []string{}, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
 		expected := test.expected.(*brevity.DeclareRequest)
 		actual := request.(*brevity.DeclareRequest)
@@ -346,7 +346,7 @@ func TestParserDeclareUnable(t *testing.T) {
 		},
 	}
 
-	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
+	runParserTestCases(t, New(TestCallsign, []string{}, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
 		expected := test.expected.(*brevity.UnableToUnderstandRequest)
 		assert.NotNil(t, expected)
