@@ -2,7 +2,6 @@ package composer
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
@@ -12,7 +11,7 @@ func (c *Composer) ComposeThreatCall(call brevity.ThreatCall) NaturalLanguageRes
 	group := c.composeGroup(call.Group)
 	callsignList := c.composeCallsigns(call.Callsigns...)
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", callsignList, applyToFirstCharacter(group.Subtitle, strings.ToLower)),
+		Subtitle: fmt.Sprintf("%s, %s", callsignList, lowerFirst(group.Speech)),
 		Speech:   fmt.Sprintf("%s, %s", callsignList, group.Speech),
 	}
 }
