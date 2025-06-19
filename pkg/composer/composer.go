@@ -3,6 +3,7 @@ package composer
 
 import (
 	"fmt"
+	"strings"
 	"unicode"
 )
 
@@ -66,9 +67,9 @@ func addSpacing(s string) string {
 	return s
 }
 
-func applyToFirstCharacter(s string, f func(string) string) string {
+func lowerFirst(s string) string {
 	if s == "" {
 		return s
 	}
-	return f(s[:1]) + s[1:]
+	return strings.ToLower(s[:1]) + s[1:]
 }

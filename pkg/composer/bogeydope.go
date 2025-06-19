@@ -2,7 +2,6 @@ package composer
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/rs/zerolog/log"
@@ -22,7 +21,7 @@ func (c *Composer) ComposeBogeyDopeResponse(response brevity.BogeyDopeResponse) 
 	}
 	info := c.composeCoreInformationFormat(response.Group)
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", c.composeCallsigns(response.Callsign), applyToFirstCharacter(info.Subtitle, strings.ToLower)),
+		Subtitle: fmt.Sprintf("%s, %s", c.composeCallsigns(response.Callsign), lowerFirst(info.Speech)),
 		Speech:   fmt.Sprintf("%s, %s", c.composeCallsigns(response.Callsign), info.Speech),
 	}
 }

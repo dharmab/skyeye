@@ -18,6 +18,8 @@ func (c *Composer) ComposeCheckInResponse(response brevity.CheckInResponse) Natu
 		", what kind of check did you want? A radio check, an alpha check, or a coat check?",
 		", what kind of check did you want? A radio check, an alpha check, or a reality check?",
 		", I can't tell if you wanted a radio check or an alpha check.",
+		", did you want a radio check or an alpha check? Or maybe you were checking up on me? That's so sweet.",
+		", did you want a radio check or an alpha check? Or are you just checking if I'm still here?",
 	}
 
 	reply := c.composeCallsigns(response.Callsign) + replies[rand.IntN(len(replies))]
