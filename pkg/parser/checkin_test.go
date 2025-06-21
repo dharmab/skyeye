@@ -30,7 +30,7 @@ func TestParserCheckIn(t *testing.T) {
 		},
 	}
 
-	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
+	runParserTestCases(t, New(TestCallsign, []string{}, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
 		expected := test.expected.(*brevity.CheckInRequest)
 		actual := request.(*brevity.CheckInRequest)

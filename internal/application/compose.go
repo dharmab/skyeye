@@ -56,6 +56,8 @@ func (a *Application) composeCall(ctx context.Context, call any, out chan<- Mess
 		response = a.composer.ComposeSpikedResponse(c)
 	case brevity.TripwireResponse:
 		response = a.composer.ComposeTripwireResponse(c)
+	case brevity.VectorResponse:
+		response = a.composer.ComposeVectorResponse(c)
 	case brevity.SunriseCall:
 		response = a.composer.ComposeSunriseCall(c)
 	case brevity.ThreatCall:
