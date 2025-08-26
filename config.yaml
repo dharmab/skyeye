@@ -78,6 +78,9 @@
 # SRS server running remotely:
 #srs-server-address: srs.example.com:5002
 #
+# SRS allow recording. Set this to (dis)allow the bot's audio to be recorded through SRS on clients.
+#srs-allow-recording: true
+#
 # SRS EAM password. Set this to the password used to connect to External AWACS
 # Mode in SRS.
 #srs-eam-password: eampasswordgoeshere

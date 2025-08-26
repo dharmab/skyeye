@@ -44,6 +44,7 @@ var (
 	telemetryConnectionTimeout   time.Duration
 	telemetryPassword            string
 	srsAddress                   string
+	srsAllowRecording            bool
 	srsConnectionTimeout         time.Duration
 	srsExternalAWACSModePassword string
 	srsFrequencies               []string
@@ -96,6 +97,7 @@ func init() {
 
 	// SRS
 	skyeye.Flags().StringVar(&srsAddress, "srs-server-address", "localhost:5002", "Address of the SRS server")
+	skyeye.Flags().BoolVar(&srsAllowRecording, "srs-allow-recording", true, "Allow SkyEye to be recorded")
 	skyeye.Flags().DurationVar(&srsConnectionTimeout, "srs-connection-timeout", 10*time.Second, "Connection timeout for SRS client")
 	skyeye.Flags().StringVar(&srsExternalAWACSModePassword, "srs-eam-password", "", "SRS external AWACS mode password")
 	skyeye.Flags().StringSliceVar(&srsFrequencies, "srs-frequencies", []string{"251.0AM", "133.0AM", "30.0FM"}, "List of SRS frequencies to use")
@@ -368,6 +370,7 @@ func run(_ *cobra.Command, _ []string) {
 		TelemetryClientName:          callsign,
 		TelemetryPassword:            telemetryPassword,
 		SRSAddress:                   srsAddress,
+		SRSAllowRecording:            srsAllowRecording,
 		SRSConnectionTimeout:         srsConnectionTimeout,
 		SRSClientName:                fmt.Sprintf("GCI %s [BOT]", callsign),
 		SRSExternalAWACSModePassword: srsExternalAWACSModePassword,

@@ -30,6 +30,7 @@ var (
 	logLevel                     string
 	logFormat                    string
 	srsAddress                   string
+	srsAllowRecording            bool
 	srsConnectionTimeout         time.Duration
 	srsExternalAWACSModePassword string
 	srsFrequencies               []string
@@ -76,6 +77,7 @@ func init() {
 	scaler.Flags().DurationVar(&stopDelay, "stop-delay", 10*time.Minute, "Delay before sending stop requests after the SRS player count drops to 0")
 
 	scaler.Flags().StringVar(&srsAddress, "srs-server-address", "localhost:5002", "Address of the SRS server")
+	scaler.Flags().BoolVar(&srsAllowRecording, "srs-allow-recording", true, "Allow SkyEye audio to be recorded")
 	scaler.Flags().DurationVar(&srsConnectionTimeout, "srs-connection-timeout", 10*time.Second, "Connection timeout for SRS client")
 	scaler.Flags().StringVar(&srsExternalAWACSModePassword, "srs-eam-password", "", "SRS external AWACS mode password")
 	scaler.Flags().StringSliceVar(&srsFrequencies, "srs-frequencies", []string{"251.0AM", "133.0AM", "30.0FM"}, "List of SRS frequencies to use")
@@ -109,6 +111,7 @@ func run() error {
 	clientName := fmt.Sprintf("SkyEye Scaler %s [BOT]", shortuuid.New())
 	srsConfig := srstypes.ClientConfiguration{
 		Address:                   srsAddress,
+		AllowRecording:            srsAllowRecording,
 		ConnectionTimeout:         srsConnectionTimeout,
 		ClientName:                clientName,
 		ExternalAWACSModePassword: srsExternalAWACSModePassword,

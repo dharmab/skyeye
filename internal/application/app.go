@@ -119,6 +119,7 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 
 	log.Info().
 		Str("address", config.SRSAddress).
+		Bool("allowRecording", config.SRSAllowRecording).
 		Stringer("timeout", config.SRSConnectionTimeout).
 		Str("clientName", config.SRSClientName).
 		Int("coalitionID", int(config.Coalition)).
@@ -126,6 +127,7 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		Msg("constructing SRS client")
 	srsClient, err := simpleradio.NewClient(srs.ClientConfiguration{
 		Address:                   config.SRSAddress,
+		AllowRecording:            config.SRSAllowRecording,
 		ConnectionTimeout:         config.SRSConnectionTimeout,
 		ClientName:                config.SRSClientName,
 		ExternalAWACSModePassword: config.SRSExternalAWACSModePassword,

@@ -34,6 +34,8 @@ type Configuration struct {
 	TelemetryPassword string
 	// SRSAddress is the network address of the SimpleRadio Standalone server (including port)
 	SRSAddress string
+	// SRSAllowRecording (dis)allows SkyEye audio to be recorded through SRS.
+	SRSAllowRecording bool
 	// SRSConnectionTimeout is the connection timeout for connecting to the SimpleRadio Standalone server
 	SRSConnectionTimeout time.Duration
 	// SRSClientName is the name of the bot that will appear in the client list and in in-game transmissions
