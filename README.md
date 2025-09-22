@@ -22,7 +22,7 @@ SkyEye is production ready software. It is used by a few public servers and many
 
 SkyEye is **free software**. It is free as in beer; you can download and run it for free. It is also free as in freedom; the source code is available for you to study and modify to fit your needs.
 
-As of late 2025, SkyEye is curently **maintained but not actively devleoped**. The author hopes to resume active development in the future, but is currently too busy with professional work and other hobbies to dedicate the necessary time.
+As of late 2025, SkyEye is curently **maintained but not actively developed**. The author hopes to resume active development in the future, but is currently too busy with professional work and other hobbies to dedicate the necessary time. The author intends to publish compatibility updates for new versions of DCS/SRS/Tacview as needed, but new features are on pause.
 
 ## Getting Started
 
