@@ -91,6 +91,8 @@ type Configuration struct {
 	// ThreatMonitoringRequiresSRS controls whether threat calls are issued to aircraft that are not on an SRS frequency. This is mostly
 	// for debugging.
 	ThreatMonitoringRequiresSRS bool
+	// Locations is a slice of named locations that can be referenced in ALPHA CHECK and VECTOR calls.
+	Locations []*Location
 	// EnableTracing controls whether to publish traces
 	EnableTracing bool
 	// DiscordWebhookID is the ID of the Discord webhook
@@ -99,6 +101,13 @@ type Configuration struct {
 	DiscorbWebhookToken string
 	// ExitAfter is the duration after which the application will exit
 	ExitAfter time.Duration
+}
+
+type Location struct {
+	// Names of the location
+	Names []string `json:"names"`
+	// Coordinates of the location as a GeoJSON coordinates array with a single member
+	Coordinates [][]float64 `json:"coordinates"`
 }
 
 var DefaultCallsigns = []string{"Sky Eye", "Thunderhead", "Eagle Eye", "Ghost Eye", "Sky Keeper", "Bandog", "Long Caster", "Galaxy"}

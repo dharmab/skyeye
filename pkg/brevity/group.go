@@ -19,7 +19,7 @@ type Group interface {
 	// Contacts is the number of contacts in the group.
 	Contacts() int
 	// Bullseye is the location of the group. This may be nil for BOGEY DOPE, SNAPLOCK, and THREAT calls.
-	Bullseye() *Bullseye
+	Bullseye() Bullseye
 	// Altitude is the group's highest altitude. This may be zero for BOGEY DOPE, SNAPLOCK, and THREAT calls.
 	Altitude() unit.Length
 	// Stacks are the group's altitude STACKS, ordered from highest to lowest in intervals of at least 10,000 feet.

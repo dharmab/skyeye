@@ -304,7 +304,7 @@ func TestParserBogeyDope(t *testing.T) {
 		}
 		testCases = append(testCases, tc)
 	}
-	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
+	runParserTestCases(t, New(TestCallsign, []string{}, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
 		expected := test.expected.(*brevity.BogeyDopeRequest)
 		actual := request.(*brevity.BogeyDopeRequest)
