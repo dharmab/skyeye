@@ -64,9 +64,9 @@ GO = /ucrt64/bin/go
 GOBUILDVARS += GOROOT="/ucrt64/lib/go" GOPATH="/ucrt64"
 # Static linking on Windows to avoid MSYS2 dependency at runtime
 LIBRARIES = opus soxr
-CFLAGS = $(pkg-config $(LIBRARIES) --cflags --static)
-BUILD_VARS += CFLAGS=$(CFLAGS)
-EXTLDFLAGS = $(pkg-config $(LIBRARIES) --libs --static)
+CFLAGS = $(shell pkg-config $(LIBRARIES) --cflags --static)
+BUILD_VARS += CFLAGS='$(CFLAGS)'
+EXTLDFLAGS = $(shell pkg-config $(LIBRARIES) --libs --static)
 LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS) -static"
 endif
 
