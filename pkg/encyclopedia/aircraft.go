@@ -542,6 +542,9 @@ func fulcrumVariants() []Aircraft {
 	return variants(
 		fulcrumData,
 		map[string]string{
+			// Full-Fidelity
+			" Fulcrum": "A",
+			// Flaming Cliffs
 			"A": "A",
 			"G": "A",
 			"S": "S",
