@@ -13,15 +13,15 @@ import (
 
 // Parser converts brevity requests from natural language into structured forms.
 type Parser struct {
-	gciCallsign       string
-	enableTextLogging bool
+	controllerCallsign string
+	enableTextLogging  bool
 }
 
 // New creates a new parser.
 func New(callsign string, enableTextLogging bool) *Parser {
 	return &Parser{
-		gciCallsign:       strings.ReplaceAll(callsign, " ", ""),
-		enableTextLogging: enableTextLogging,
+		controllerCallsign: strings.ReplaceAll(callsign, " ", ""),
+		enableTextLogging:  enableTextLogging,
 	}
 }
 
@@ -43,10 +43,10 @@ const (
 
 var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, snaplock, tripwire, shopping}
 
-func (p *Parser) findGCICallsign(fields []string) (callsign string, rest string, found bool) {
+func (p *Parser) findControllerCallsign(fields []string) (callsign string, rest string, found bool) {
 	for i := range fields {
 		candidate := strings.Join(fields[:i+1], " ")
-		for _, wakePhrase := range []string{p.gciCallsign, Anyface} {
+		for _, wakePhrase := range []string{p.controllerCallsign, Anyface} {
 			if isSimilar(strings.TrimSpace(candidate), strings.ToLower(wakePhrase)) {
 				found = true
 				callsign = candidate
@@ -82,7 +82,7 @@ func findRequestWord(fields []string) (string, int, bool) {
 // uncrushCallsign corrects a corner case where the GCI callsign and the
 // following token have no space between them, e.g. "anyfaceeagle 1".
 func (p *Parser) uncrushCallsign(s string) string {
-	for _, callsign := range []string{p.gciCallsign, Anyface} {
+	for _, callsign := range []string{p.controllerCallsign, Anyface} {
 		lc := strings.ToLower(callsign)
 		if strings.HasPrefix(s, lc) {
 			return lc + " " + s[len(lc):]
@@ -96,7 +96,7 @@ func (p *Parser) uncrushCallsign(s string) string {
 // brevity request, or nil if the text does not start with the GCI
 // callsign.
 func (p *Parser) Parse(tx string) any {
-	logger := log.With().Str("gci", p.gciCallsign).Logger()
+	logger := log.With().Str("gci", p.controllerCallsign).Logger()
 	if p.enableTextLogging {
 		logger = logger.With().Str("text", tx).Logger()
 	}
@@ -129,29 +129,29 @@ func (p *Parser) Parse(tx string) any {
 	// Search the first part of the text for text that looks similar to a GCI
 	// callsign. If we find such text, search the rest for a valid pilot
 	// callsign.
-	heardGCICallsign, afterGCICallsign, foundGCICallsign := p.findGCICallsign(before)
+	heardControllerCallsign, afterControllerCallsign, foundControllerCallsign := p.findControllerCallsign(before)
 
 	// If we didn't hear the GCI callsign, this was probably chatter rather
 	// than a request.
-	if !foundGCICallsign {
+	if !foundControllerCallsign {
 		logger.Trace().Msg("no GCI callsign found")
 		return nil
 	}
-	event := logger.Debug().Str("heard", heardGCICallsign)
+	event := logger.Debug().Str("heard", heardControllerCallsign)
 	if p.enableTextLogging {
-		event = event.Str("rest", afterGCICallsign)
+		event = event.Str("rest", afterControllerCallsign)
 	}
 	event.Msg("found GCI callsign")
-	logger.Debug().Str("heard", heardGCICallsign).Str("after", afterGCICallsign).Msg("found GCI callsign")
+	logger.Debug().Str("heard", heardControllerCallsign).Str("after", afterControllerCallsign).Msg("found GCI callsign")
 
 	event = logger.Debug()
 	if p.enableTextLogging {
-		event = event.Str("rest", afterGCICallsign)
+		event = event.Str("rest", afterControllerCallsign)
 	}
 	event.Msg("searching for pilot callsign in rest of text")
 
-	afterGCICallsign = numwords.ParseString(afterGCICallsign)
-	pilotCallsign, foundPilotCallsign := ParsePilotCallsign(afterGCICallsign)
+	afterControllerCallsign = numwords.ParseString(afterControllerCallsign)
+	pilotCallsign, foundPilotCallsign := ParsePilotCallsign(afterControllerCallsign)
 	if foundPilotCallsign {
 		logger = logger.With().Str("pilot", pilotCallsign).Logger()
 		logger.Debug().Msg("found pilot callsign")

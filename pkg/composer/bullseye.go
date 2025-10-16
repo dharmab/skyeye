@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
 )
 
@@ -12,7 +13,9 @@ func (*Composer) composeBullseye(bullseye brevity.Bullseye) NaturalLanguageRespo
 	if !bullseye.Bearing().IsMagnetic() {
 		log.Error().Stringer("bearing", bullseye.Bearing()).Msg("bearing provided to ComposeBullseye should be magnetic")
 	}
-	if bullseye.Distance().NauticalMiles() <= 5 {
+	_range := bullseye.Distance()
+	const bullseyeRadius = 5 * unit.NauticalMile
+	if _range <= bullseyeRadius {
 		return NaturalLanguageResponse{
 			Subtitle: "at bullseye",
 			Speech:   "at bullseye",
@@ -22,12 +25,12 @@ func (*Composer) composeBullseye(bullseye brevity.Bullseye) NaturalLanguageRespo
 		Subtitle: fmt.Sprintf(
 			"bullseye %s/%d",
 			bullseye.Bearing().String(),
-			int(bullseye.Distance().NauticalMiles()),
+			int(_range.NauticalMiles()),
 		),
 		Speech: fmt.Sprintf(
 			"bullseye %s, %d",
 			pronounceBearing(bullseye.Bearing()),
-			int(bullseye.Distance().NauticalMiles()),
+			int(_range.NauticalMiles()),
 		),
 	}
 }
