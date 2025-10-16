@@ -9,19 +9,19 @@ import (
 // ClientInfo is information about the client included in messages.
 type ClientInfo struct {
 	// GUID a unique client ID.
-	GUID GUID `json:"ClientGuid"`
+	GUID GUID `json:"clientGuid"`
 	// Name is the name that will appear in the client list and in in-game transmissions
-	Name string `json:"Name"`
+	Name string `json:"name"`
 	// Seat is the seat number for multicrew aircraft. For bots, set this to 0.
-	Seat int `json:"Seat"`
+	Seat int `json:"seat"`
 	// Coalition is the side that the client will act on
-	Coalition coalitions.Coalition `json:"Coalition"`
+	Coalition coalitions.Coalition `json:"coalition"`
 	// AllowRecording indicates consent to record audio server-side. For bots, this should usually be set to True.
-	AllowRecording bool `json:"AllowRecord"`
+	AllowRecording bool `json:"allowRecord"`
 	// RadioInfo contains the client's unit, radios, transponder and ambient audio settings.
-	RadioInfo RadioInfo `json:"RadioInfo"`
+	RadioInfo RadioInfo `json:"radioInfo"`
 	// Position is the unit's in-game location. This is omitted for external clients not bound to a unit.
-	Position *Position `json:"LatLngPosition,omitempty"`
+	Position *Position `json:"latLngPosition,omitempty"`
 }
 
 // RadioInfo is information about a client's radios.
