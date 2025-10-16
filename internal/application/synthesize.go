@@ -38,7 +38,7 @@ func (a *Application) synthesizeMessage(ctx context.Context, response composer.N
 
 	log.Info().Str("text", response.Speech).Msg("synthesizing speech")
 	start := time.Now()
-	audio, err := a.speaker.Say(response.Speech)
+	audio, err := a.speaker.SayContext(ctx, response.Speech)
 	if err != nil {
 		log.Error().Err(err).Msg("error synthesizing speech")
 		a.trace(traces.WithRequestError(ctx, err))

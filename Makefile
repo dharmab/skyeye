@@ -166,10 +166,11 @@ vet: generate
 	$(BUILD_VARS) $(GO) vet $(BUILD_FLAGS) ./...
 
 # Note: Running golangci-lint from source like this is not recommended, see https://golangci-lint.run/welcome/install/#install-from-source
-# However, this is the easiest way set the required CGO variables for this project.
+# However, this is the easiest way to set the required CGO variables for this project.
 .PHONY: lint
 lint: whisper generate
 	$(BUILD_VARS) $(GO) tool golangci-lint run ./...
+
 
 .PHONY: format
 format:
