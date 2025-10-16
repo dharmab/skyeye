@@ -1,6 +1,7 @@
 package speakers
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -36,8 +37,8 @@ func NewPiperSpeaker(v voices.Voice, playbackSpeed float64, playbackPause time.D
 	return &piperSynth{tts: tts, speed: playbackSpeed, pauseLength: playbackPause}, nil
 }
 
-// Say implements [Speaker.Say].
-func (s *piperSynth) Say(text string) ([]float32, error) {
+// SayContext implements [Speaker.SayContext].
+func (s *piperSynth) SayContext(_ context.Context, text string) ([]float32, error) {
 	synthesized, err := s.tts.Synthesize(text, piper.WithSpeed(float32(s.speed)), piper.WithPause(float32(s.pauseLength.Seconds())))
 	if err != nil {
 		return nil, fmt.Errorf("failed to synthesize text: %w", err)
@@ -48,4 +49,9 @@ func (s *piperSynth) Say(text string) ([]float32, error) {
 	}
 	f32le := pcm.S16LEBytesToF32LE(downsampled)
 	return f32le, nil
+}
+
+// Say implements [Speaker.Say].
+func (s *piperSynth) Say(text string) ([]float32, error) {
+	return s.SayContext(context.Background(), text)
 }

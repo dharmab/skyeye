@@ -1,6 +1,7 @@
 package speakers
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -49,7 +50,8 @@ func NewMacOSSpeaker(useSystemVoice bool, playbackSpeed float64) Speaker {
 	return synth
 }
 
-func (s *macOSSynth) Say(text string) ([]float32, error) {
+// SayContext implements [Speaker.SayContext].
+func (s *macOSSynth) SayContext(ctx context.Context, text string) ([]float32, error) {
 	outFile, err := os.CreateTemp("", "skyeye-*.aiff")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary AIFF file: %w", err)
@@ -64,7 +66,7 @@ func (s *macOSSynth) Say(text string) ([]float32, error) {
 		args = append(args, "--rate", fmt.Sprintf("%.1f", s.rate.Hertz()))
 	}
 	args = append(args, text)
-	command := exec.Command("say", args...)
+	command := exec.CommandContext(ctx, "say", args...)
 	if err = command.Run(); err != nil {
 		return nil, fmt.Errorf("failed to execute 'say' command: %w", err)
 	}
@@ -83,4 +85,9 @@ func (s *macOSSynth) Say(text string) ([]float32, error) {
 
 	f32le := pcm.S16LEBytesToF32LE(sample)
 	return f32le, nil
+}
+
+// Say implements [Speaker.Say].
+func (s *macOSSynth) Say(text string) ([]float32, error) {
+	return s.SayContext(context.Background(), text)
 }

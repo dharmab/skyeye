@@ -3,6 +3,7 @@ package speakers
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 
 	"github.com/martinlindhe/unit"
@@ -12,7 +13,10 @@ import (
 // Speaker provides text-to-speech.
 type Speaker interface {
 	// Say returns F32LE PCM audio for the given text.
+	//
+	// Deprecated: Use SayContext instead.
 	Say(string) ([]float32, error)
+	SayContext(context.Context, string) ([]float32, error)
 }
 
 func downsample(sample []byte, rate unit.Frequency) ([]byte, error) {
