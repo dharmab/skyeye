@@ -66,15 +66,21 @@ Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
 
 ## Run Against a Live Server
 
+### Installl
+
 Install the [DCS World Dedicated Server](https://www.digitalcombatsimulator.com/en/downloads/world/server/). This can be on a different computer.
 
-Install the [Tacview exporter for DCS](https://www.tacview.net/documentation/dcs/en/) on the same computer as DCS. Enable Real-Time telemetry.
+Install the [Tacview exporter for DCS](https://www.tacview.net/documentation/dcs/en/) on the same computer as the DCS World Dedicated Server. Enable Real-Time telemetry.
 
 Install [DCS-SRS](http://dcssimpleradio.com/). This can be on a different computer.
 
 Launch the DCS server and SRS server. Load a mission on the DCS server.
 
-You will need to download an OpenAI Whisper model. The main source of these models is [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). The larger models have better accuracy but higher memory consumption and take longer to recognize text.
+You will need to download an OpenAI Whisper model, or use the OpenAI API. Downloading and using a local model is free, but performance intensive. Using the OpenAPI API requires payment to OpenAI.
+
+### Using a Local Model
+
+You can download models from [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). The larger models have better accuracy but higher memory consumption and take longer to recognize text.
 
 Recommended models for development use:
 
@@ -82,6 +88,10 @@ Recommended models for development use:
 - `ggml-tiny.en.bin` - Significantly faster, but requires you to speak more clearly.
 
 Whichever model you choose, put the model next to the SkyEye binary.
+
+### Using the OpenAI API
+
+### Running the Application
 
 Run SkyEye from the command line. You can run `./skyeye --help` for an example and a list of available flags, or check out the sample `config.yaml` file. If all goes well, you should see the SkyEye software start up and start logging to the console.
 
