@@ -50,8 +50,8 @@ var (
 	enableGRPC                   bool
 	grpcAddress                  string
 	grpcAPIKey                   string
-	gciCallsign                  string
-	gciCallsigns                 []string
+	controllerCallsign           string
+	controllerCallsigns          []string
 	coalitionName                string
 	telemetryUpdateInterval      time.Duration
 	recognizerName               string
@@ -106,8 +106,8 @@ func init() {
 	skyeye.Flags().StringVar(&grpcAPIKey, "grpc-api-key", "", "API key for DCS-gRPC authentication")
 
 	// Identity
-	skyeye.Flags().StringVar(&gciCallsign, "callsign", "", "GCI callsign used in radio transmissions. Automatically chosen if not provided")
-	skyeye.Flags().StringSliceVar(&gciCallsigns, "callsigns", []string{}, "A list of GCI callsigns to select from")
+	skyeye.Flags().StringVar(&controllerCallsign, "callsign", "", "GCI callsign used in radio transmissions. Automatically chosen if not provided")
+	skyeye.Flags().StringSliceVar(&controllerCallsigns, "callsigns", []string{}, "A list of GCI callsigns to select from")
 	skyeye.MarkFlagsMutuallyExclusive("callsign", "callsigns")
 	coalitionFlag := cli.NewEnum(&coalitionName, "Coalition", "blue", "red")
 	skyeye.Flags().Var(coalitionFlag, "coalition", "GCI coalition (blue, red)")
@@ -289,11 +289,11 @@ func loadVoice(rando *rand.Rand) (voice voices.Voice) {
 
 func loadCallsign(rando *rand.Rand) (callsign string) {
 	var options []string
-	if gciCallsign != "" {
-		options = append(options, gciCallsign)
+	if controllerCallsign != "" {
+		options = append(options, controllerCallsign)
 	}
-	if len(gciCallsigns) > 0 {
-		options = append(options, gciCallsigns...)
+	if len(controllerCallsigns) > 0 {
+		options = append(options, controllerCallsigns...)
 	}
 	if len(options) == 0 {
 		options = conf.DefaultCallsigns

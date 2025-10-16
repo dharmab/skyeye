@@ -9,9 +9,10 @@ import (
 
 // ComposeSunriseCall constructs natural language brevity for announcing GCI services are online.
 func (c *Composer) ComposeSunriseCall(call brevity.SunriseCall) NaturalLanguageResponse {
+	controllerCallsign := c.composeCallsigns(c.Callsign)
 	message := NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("All players: GCI %s (bot) sunrise on ", c.composeCallsigns(c.Callsign)),
-		Speech:   fmt.Sprintf("All players, GCI %s sunrise on ", c.composeCallsigns(c.Callsign)),
+		Subtitle: fmt.Sprintf("All players: GCI %s (bot) sunrise on ", controllerCallsign),
+		Speech:   fmt.Sprintf("All players, GCI %s sunrise on ", controllerCallsign),
 	}
 
 	for i := range len(call.Frequencies) {

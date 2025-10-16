@@ -45,8 +45,10 @@ func (c *Composer) ComposeSpikedResponse(response brevity.SpikedResponseV2) Natu
 		nlr.WriteBoth(message)
 		return nlr
 	}
+	callerCallsign := c.composeCallsigns(response.Callsign)
+	controllerCallsign := c.composeCallsigns(c.Callsign)
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s clean %d.", c.composeCallsigns(response.Callsign), c.composeCallsigns(c.Callsign), int(response.Bearing.Degrees())),
-		Speech:   fmt.Sprintf("%s, %s, clean %s", c.composeCallsigns(response.Callsign), c.composeCallsigns(c.Callsign), pronounceBearing(response.Bearing)),
+		Subtitle: fmt.Sprintf("%s, %s clean %d.", callerCallsign, controllerCallsign, int(response.Bearing.Degrees())),
+		Speech:   fmt.Sprintf("%s, %s, clean %s", callerCallsign, controllerCallsign, pronounceBearing(response.Bearing)),
 	}
 }
