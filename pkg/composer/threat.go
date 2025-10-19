@@ -11,7 +11,7 @@ func (c *Composer) ComposeThreatCall(call brevity.ThreatCall) NaturalLanguageRes
 	group := c.composeGroup(call.Group)
 	callsignList := c.composeCallsigns(call.Callsigns...)
 	return NaturalLanguageResponse{
-		Subtitle: fmt.Sprintf("%s, %s", callsignList, lowerFirst(group.Speech)),
+		Subtitle: fmt.Sprintf("%s, %s", callsignList, lowerFirst(group.Subtitle)),
 		Speech:   fmt.Sprintf("%s, %s", callsignList, group.Speech),
 	}
 }
