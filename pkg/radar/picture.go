@@ -42,10 +42,7 @@ func (r *Radar) Picture(radius unit.Length, coalition coalitions.Coalition, filt
 	slices.SortFunc(groups, r.compareThreat)
 
 	// Return the top 3 groups
-	capacity := 3
-	if len(groups) < capacity {
-		capacity = len(groups)
-	}
+	capacity := min(len(groups), 3)
 	result := make([]brevity.Group, capacity)
 	for i := range capacity {
 		result[i] = groups[i]

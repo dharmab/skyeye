@@ -135,15 +135,13 @@ func run() error {
 		os.Exit(0)
 	}()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		err := srsClient.Run(ctx, &wg)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to run SRS client")
 			cancel()
 		}
-	}()
+	})
 
 	client := &http.Client{Timeout: webhookTimeout}
 

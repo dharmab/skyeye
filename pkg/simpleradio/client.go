@@ -177,11 +177,9 @@ func (c *Client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 
 	defer c.close()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		c.receiveTCP(ctx)
-	}()
+	})
 
 	if initErr := c.initialize(); initErr != nil {
 		return initErr
@@ -189,18 +187,14 @@ func (c *Client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 
 	// We need to send pings to the server to keep our connection alive.
 	// The server won't send us any audio until it receives a ping from us.
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		c.sendPings(ctx)
-	}()
+	})
 
 	udpPingRxChan := make(chan []byte, 0xF)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		c.receivePings(ctx, udpPingRxChan)
-	}()
+	})
 
 	udpVoiceRxChan := make(chan []byte, 64*0xFFFFF)
 	voiceBytesRxChan := make(chan []voice.Packet, 0xFFFFF)

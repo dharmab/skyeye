@@ -14,11 +14,9 @@ import (
 // control runs the GCI controller and routes requests to the controller.
 func (a *Application) control(ctx context.Context, wg *sync.WaitGroup, in <-chan Message[any], out chan<- controller.Call) {
 	log.Info().Msg("running controller")
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		a.controller.Run(ctx, out)
-	}()
+	})
 	for {
 		select {
 		case <-ctx.Done():

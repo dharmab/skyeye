@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/spf13/pflag"
 )
@@ -29,11 +30,9 @@ func (e *Enum) String() string {
 }
 
 func (e *Enum) Set(value string) error {
-	for _, option := range e.options {
-		if option == value {
-			*e.flag = value
-			return nil
-		}
+	if slices.Contains(e.options, value) {
+		*e.flag = value
+		return nil
 	}
 	return fmt.Errorf("invalid value %s", value)
 }
