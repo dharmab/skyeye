@@ -84,7 +84,7 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 		if config.GRPCAPIKey != "" {
 			log.Info().Msg("configuring gRPC client connection with provided API key")
-			opts = append(opts, grpc.WithUnaryInterceptor(func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+			opts = append(opts, grpc.WithUnaryInterceptor(func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 				m := metadata.Pairs("X-API-Key", config.GRPCAPIKey)
 				ctx = metadata.NewOutgoingContext(ctx, m)
 				return invoker(ctx, method, req, reply, cc, opts...)
@@ -238,9 +238,7 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 
 // Run implements Application.Run.
 func (a *Application) Run(ctx context.Context, cancel context.CancelFunc, wg *sync.WaitGroup) error {
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		log.Info().Msg("running telemetry client")
 		if err := a.telemetryClient.Run(ctx); err != nil {
 			if !errors.Is(err, context.Canceled) {
@@ -248,18 +246,14 @@ func (a *Application) Run(ctx context.Context, cancel context.CancelFunc, wg *sy
 				cancel()
 			}
 		}
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		log.Info().Msg("streaming telemetry data to radar")
 		a.telemetryClient.Stream(ctx, wg, a.starts, a.updates, a.fades)
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		log.Info().Msg("updating mission time and bullseye")
 		ticker := time.NewTicker(2*time.Second + 100*time.Millisecond)
 		defer ticker.Stop()
@@ -273,11 +267,9 @@ func (a *Application) Run(ctx context.Context, cancel context.CancelFunc, wg *sy
 				a.updateBullseyes()
 			}
 		}
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		log.Info().Msg("running SRS client")
 		if err := a.srsClient.Run(ctx, wg); err != nil {
 			if !errors.Is(err, context.Canceled) {
@@ -285,7 +277,7 @@ func (a *Application) Run(ctx context.Context, cancel context.CancelFunc, wg *sy
 				cancel()
 			}
 		}
-	}()
+	})
 
 	rxTextChan := make(chan Message[string])
 	requestChan := make(chan Message[any])
@@ -295,24 +287,18 @@ func (a *Application) Run(ctx context.Context, cancel context.CancelFunc, wg *sy
 
 	log.Info().Msg("starting subroutines")
 	log.Info().Msg("starting speech recognition routine")
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		a.recognize(ctx, rxTextChan)
-	}()
+	})
 
 	if a.chatListener != nil {
 		requestChan := make(chan commands.Request)
 		log.Info().Msg("starting chat listener routines")
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			a.chatListener.Run(ctx, requestChan)
-		}()
+		})
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			for {
 				select {
 				case <-ctx.Done():
@@ -325,50 +311,36 @@ func (a *Application) Run(ctx context.Context, cancel context.CancelFunc, wg *sy
 					rxTextChan <- Message[string]{Context: rCtx, Data: request.Text}
 				}
 			}
-		}()
+		})
 	}
 
 	log.Info().Msg("starting request parsing routine")
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		a.parse(ctx, rxTextChan, requestChan)
-	}()
+	})
 	log.Info().Msg("starting radar scope routine")
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		a.radar.Run(ctx, wg)
-	}()
+	})
 	log.Info().Msg("starting GCI controller routine")
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		a.control(ctx, wg, requestChan, callChan)
-	}()
+	})
 	log.Info().Msg("starting response composer routine")
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		a.compose(ctx, callChan, txTextChan)
-	}()
+	})
 	log.Info().Msg("starting speech synthesis routine")
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		a.synthesize(ctx, txTextChan, txAudioChan)
-	}()
+	})
 	log.Info().Msg("starting radio transmission routine")
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		a.transmit(ctx, txAudioChan)
-	}()
+	})
 
 	log.Info().Dur("duration", a.exitAfter).Msg("starting exit timer routine")
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		timer := time.NewTimer(a.exitAfter)
 		defer timer.Stop()
 		select {
@@ -391,7 +363,7 @@ func (a *Application) Run(ctx context.Context, cancel context.CancelFunc, wg *sy
 				}
 			}
 		}
-	}()
+	})
 
 	return nil
 }

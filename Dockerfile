@@ -1,5 +1,5 @@
 ARG SKYEYE_VERSION
-FROM golang:1.24.0 AS builder
+FROM golang:1.25.3 AS builder
 RUN apt-get update && apt-get install -y \
   git \
   make \

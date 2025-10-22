@@ -69,10 +69,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 				}
 			}
 			time.Sleep(backoff)
-			backoff = time.Duration(float64(backoff) * math.Sqrt2)
-			if backoff > time.Minute {
-				backoff = time.Minute
-			}
+			backoff = min(time.Duration(float64(backoff)*math.Sqrt2), time.Minute)
 
 			log.Error().Err(err).Stringer("retryIn", backoff).Msg("failed to reconnect to SRS server, retrying")
 		}

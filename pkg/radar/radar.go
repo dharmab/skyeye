@@ -102,9 +102,7 @@ func (r *Radar) Bullseye(coalition coalitions.Coalition) orb.Point {
 
 // Run consumes updates from the simulation channels until the context is cancelled.
 func (r *Radar) Run(ctx context.Context, wg *sync.WaitGroup) {
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			ticker := time.NewTicker(5 * time.Second)
 			select {
@@ -114,11 +112,9 @@ func (r *Radar) Run(ctx context.Context, wg *sync.WaitGroup) {
 				r.updateCenterPoint()
 			}
 		}
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case <-ctx.Done():
@@ -127,11 +123,9 @@ func (r *Radar) Run(ctx context.Context, wg *sync.WaitGroup) {
 				r.handleStarted()
 			}
 		}
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case <-ctx.Done():
@@ -140,16 +134,12 @@ func (r *Radar) Run(ctx context.Context, wg *sync.WaitGroup) {
 				r.handleUpdate(update)
 			}
 		}
-	}()
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	})
+	wg.Go(func() {
 		r.collectFadedTrackfiles(ctx)
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		ticker := time.NewTicker(10 * time.Second)
 		defer ticker.Stop()
 		for {
@@ -160,7 +150,7 @@ func (r *Radar) Run(ctx context.Context, wg *sync.WaitGroup) {
 				r.handleGarbageCollection()
 			}
 		}
-	}()
+	})
 
 	<-ctx.Done()
 }

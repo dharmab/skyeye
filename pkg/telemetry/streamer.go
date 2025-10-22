@@ -62,9 +62,7 @@ func newStreamingClient(
 func (c *streamingClient) Stream(ctx context.Context, wg *sync.WaitGroup, starts chan<- sim.Started, updates chan<- sim.Updated, fades chan<- sim.Faded) {
 	ticker := time.NewTicker(c.updateInterval)
 	defer ticker.Stop()
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case <-ctx.Done():
@@ -73,11 +71,9 @@ func (c *streamingClient) Stream(ctx context.Context, wg *sync.WaitGroup, starts
 				starts <- start
 			}
 		}
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case <-ctx.Done():
@@ -86,11 +82,9 @@ func (c *streamingClient) Stream(ctx context.Context, wg *sync.WaitGroup, starts
 				fades <- fade
 			}
 		}
-	}()
+	})
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for {
 			select {
 			case <-ctx.Done():
@@ -99,7 +93,7 @@ func (c *streamingClient) Stream(ctx context.Context, wg *sync.WaitGroup, starts
 				c.sendUpdates(updates)
 			}
 		}
-	}()
+	})
 
 	<-ctx.Done()
 }
