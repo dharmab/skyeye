@@ -19,7 +19,9 @@ I do not respond to direct messages on social media or the Eagle Dynamics forums
 
 ## Major Known Issues
 
-- SkyEye will not report about hostile contacts below 50 knots. Unfortunately, this includes hostile helicopters that are moving slowly or hovering. [Bug tracked here](https://github.com/dharmab/skyeye/issues/65).
+- Speed filter fallback:
+  - If using Tacview 1.9.5 beta 16 or newer, SkyEye filters out contacts below 10 meters above the terrain. This works well in most cases.
+  - If using any older version of Tacview, SkyEye does not have access to the terrain height. It instead falls back to a 50 knot speed filter. Unfortunately, this excludes hostile helicopters that are moving slowly or hovering.
 - SkyEye does not work when (1) running on macOS 15 AND (2) as a background service AND (3) connecting to a SRS, Tacview, or DCS-gRPC server running within the same LAN. [Bug tracked here, multiple workarounds available](https://github.com/dharmab/skyeye/issues/566).
 - See also [this section in the player guide](PLAYER.md#a-word-of-warning) about the bot's limitations.
 
