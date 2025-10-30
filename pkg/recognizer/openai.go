@@ -87,7 +87,7 @@ func createWAV(sample []float32) (*bytes.Buffer, error) {
 		bytesPerSecond = sampleRate * bytesPerBlock
 	)
 
-	data := pcm.F32toS16LE(sample)
+	data := pcm.F32LEToS16LE(sample)
 	dataSize := len(data) * bytesPerSample
 	if dataSize > math.MaxInt32 || dataSize < 0 {
 		return nil, fmt.Errorf("data size is out of range: %d", dataSize)

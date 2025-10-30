@@ -74,8 +74,10 @@ type Configuration struct {
 	VoiceLock *flock.Flock
 	// Mute disables SRS transmissions
 	Mute bool
-	// Piper playback speed (default is 1.0) - The higher the value the slower it is.
+	// Voice playback speed (default is 1.0) - The higher the value the slower it is.
 	VoiceSpeed float64
+	// VoiceGain is the gain applied to the synthesized voice audio. Positive values increase volume, negative values decrease volume.
+	VoiceGain float64
 	// Piper playback pause after every sentence in seconds (default is 0.2)
 	VoicePauseLength time.Duration
 	// EnableAutomaticPicture controls whether the controller will automatically broadcast a PICTURE at regular intervals.

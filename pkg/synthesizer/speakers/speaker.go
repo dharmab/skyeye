@@ -19,7 +19,8 @@ type Speaker interface {
 	SayContext(context.Context, string) ([]float32, error)
 }
 
-func downsample(sample []byte, rate unit.Frequency) ([]byte, error) {
+// Downsample resamples audio to 16kHz mono.
+func Downsample(sample []byte, rate unit.Frequency) ([]byte, error) {
 	const newRate = 16000 * unit.Hertz
 	const channels = 1
 	var buf bytes.Buffer

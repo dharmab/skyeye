@@ -24,6 +24,8 @@ import (
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/synthesizer/speakers"
+	"github.com/dharmab/skyeye/pkg/synthesizer/speakers/macos"
+	"github.com/dharmab/skyeye/pkg/synthesizer/speakers/piper"
 	"github.com/dharmab/skyeye/pkg/telemetry"
 	"github.com/dharmab/skyeye/pkg/traces"
 	"github.com/gofrs/flock"
@@ -190,9 +192,23 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 	log.Info().Msg("constructing text-to-speech synthesizer")
 	var synthesizer speakers.Speaker
 	if runtime.GOOS == "darwin" {
-		synthesizer = speakers.NewMacOSSpeaker(config.UseSystemVoice, config.VoiceSpeed)
+		voiceOpts := []macos.Option{
+			macos.WithSpeed(config.VoiceSpeed),
+			macos.WithGain(config.VoiceGain),
+		}
+		if config.UseSystemVoice {
+			voiceOpts = append(voiceOpts, macos.WithSystemVoice())
+		} else {
+			voiceOpts = append(voiceOpts, macos.WithSamanthaVoice())
+		}
+		synthesizer = macos.New(voiceOpts...)
 	} else {
-		synthesizer, err = speakers.NewPiperSpeaker(config.Voice, config.VoiceSpeed, config.VoicePauseLength)
+		synthesizer, err = piper.New(
+			piper.WithVoice(config.Voice),
+			piper.WithSpeed(config.VoiceSpeed),
+			piper.WithGain(config.VoiceGain),
+			piper.WithPause(config.VoicePauseLength),
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to construct application: %w", err)
 		}
