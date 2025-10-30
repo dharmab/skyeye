@@ -37,7 +37,7 @@ func decodeFrame(decoder *opus.Decoder, b []byte) ([]float32, error) {
 // encodeFrame encodes the given F32LE PCM audio data into an Opus frame.
 func encodeFrame(encoder *opus.Encoder, f32le []float32) ([]byte, error) {
 	b := make([]byte, encodingBufferSize)
-	n, err := encoder.Encode(pcm.F32toS16LE(f32le), b)
+	n, err := encoder.Encode(pcm.F32LEToS16LE(f32le), b)
 	if err != nil {
 		return b, fmt.Errorf("failed to encode Opus audio: %w", err)
 	}

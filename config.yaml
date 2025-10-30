@@ -141,6 +141,10 @@
 # while values below 1.0 speed it up.
 #voice-playback-speed: 1.0
 #
+# Adjust the volume of the voice playback, in decibels. Positive values increase
+# the volume, while negative values decrease it.
+#voice-gain-db: 0.0
+#
 # Customize the length of the pause between sentences. This can be useful if
 # the GCI is speaking too quickly for your taste. This option is not available
 # on macOS.

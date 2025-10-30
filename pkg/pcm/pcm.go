@@ -20,8 +20,13 @@ func S16ToF32(s int16) float32 {
 	return float32(s) / math.MaxInt16
 }
 
-// F32toS16LE converts a slice of float32 to a slice of int16. This is useful for converting from F32LE to S16LE.
+// Deprecated: Use F32LEToS16LE instead.
 func F32toS16LE(in []float32) []int16 {
+	return F32LEToS16LE(in)
+}
+
+// F32LEToS16LE converts a slice of float32 to a slice of int16. This is useful for converting from F32LE to S16LE.
+func F32LEToS16LE(in []float32) []int16 {
 	out := make([]int16, 0)
 	for _, f := range in {
 		s := F32ToS16(f)
@@ -30,8 +35,13 @@ func F32toS16LE(in []float32) []int16 {
 	return out
 }
 
-// F32toS16LEBytes converts a slice of float32 to a slice of bytes. This is useful for converting from F32LE to S16LE.
+// Deprecated: Use F32LEtoS16LEBytes instead.
 func F32toS16LEBytes(in []float32) []byte {
+	return F32LEToS16LEBytes(in)
+}
+
+// F32LEToS16LEBytes converts a slice of float32 to a slice of bytes. This is useful for converting from F32LE to S16LE.
+func F32LEToS16LEBytes(in []float32) []byte {
 	out := make([]byte, 0)
 	for _, f := range in {
 		s := F32ToS16(f)

@@ -29,6 +29,7 @@ import (
 	"github.com/dharmab/skyeye/internal/cli"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/pcm"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
@@ -64,6 +65,7 @@ var (
 	voiceSpeed                   float64
 	voicePauseLength             time.Duration
 	voiceLockPath                string
+	voiceGaindB                  float64
 	enableAutomaticPicture       bool
 	automaticPictureInterval     time.Duration
 	enableThreatMonitoring       bool
@@ -124,6 +126,7 @@ func init() {
 	voiceFlag := cli.NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine). Automatically chosen if not provided.")
 	skyeye.Flags().Float64Var(&voiceSpeed, "voice-playback-speed", 1.0, "How quickly the GCI speaks (values below 1.0 are faster and above are slower).")
+	skyeye.Flags().Float64Var(&voiceGaindB, "voice-gain-db", 0.0, "Volume adjustment for the GCI voice in decibels. Positive values increase volume and negative values decrease volume.")
 	skyeye.Flags().BoolVar(&mute, "mute", false, "Mute all SRS transmissions. Useful for testing without disrupting play")
 	skyeye.Flags().StringVar(&voiceLockPath, "voice-lock-path", "", "Path to lock file for concurrent text-to-speech when using multiple instances")
 	if runtime.GOOS == "darwin" {
@@ -356,6 +359,7 @@ func run(_ *cobra.Command, _ []string) {
 	whisperModel := loadWhisperModel()
 	rando := randomizer()
 	voice := loadVoice(rando)
+	voiceGain := pcm.DecibelsToGain(voiceGaindB)
 	callsign := loadCallsign(rando)
 	parsedSRSFrequencies := cli.LoadFrequencies(srsFrequencies)
 	voiceLock := loadLock(voiceLockPath)
@@ -384,6 +388,7 @@ func run(_ *cobra.Command, _ []string) {
 		VoiceLock:                    voiceLock,
 		Mute:                         mute,
 		VoiceSpeed:                   voiceSpeed,
+		VoiceGain:                    voiceGain,
 		VoicePauseLength:             voicePauseLength,
 		EnableAutomaticPicture:       enableAutomaticPicture,
 		PictureBroadcastInterval:     automaticPictureInterval,
