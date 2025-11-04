@@ -16,7 +16,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// FindNearestTrackfile implements [Radar.FindNearestTrackfile].
+// FindNearestTrackfile returns the nearest trackfile to the given origin (up to the given radius), within the
+// given altitude block, filtered by the given coalition and contact category. Returns nil if no trackfile was found.
 func (r *Radar) FindNearestTrackfile(
 	origin orb.Point,
 	minAltitude unit.Length,
@@ -91,7 +92,7 @@ func (r *Radar) FindNearestGroupWithBRAA(
 	return grp
 }
 
-// FindNearestGroupInSector returns the nearest group to the given origin (up to the given distance), within a 2D
+// FindNearestGroupWithBullseye returns the nearest group to the given origin (up to the given distance), within a 2D
 // circular sector defined by the given origin ,radius, bearing and arc, within the given altitude block, filtered
 // by the given coalition and contact category. The group has BRAA set relative to the given origin. Returns nil if
 // no group was found.
@@ -109,7 +110,9 @@ func (r *Radar) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxA
 	return grp
 }
 
-// FindNearestGroupInSector implements [Radar.FindNearestGroupInSector].
+// FindNearestGroupInSector returns the nearest group to the given origin within a 2D sector defined by the given
+// origin, length, bearing and arc, within the given altitude block, filtered by the given coalition and contact category.
+// The group has BRAA set relative to the given origin. Returns nil if no group was found.
 func (r *Radar) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltitude, length unit.Length, bearing bearings.Bearing, arc unit.Angle, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	logger := log.With().Any("origin", origin).Stringer("bearing", bearing).Float64("arc", arc.Degrees()).Logger()
 

@@ -46,7 +46,7 @@ func (r *Radar) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {
 	if trackfile == nil {
 		return nil
 	}
-	bullseye := r.Bullseye(trackfile.Contact.Coalition)
+	bullseye := r.Bullseye(r.coalition)
 	grp := &group{
 		bullseye:    &bullseye,
 		contacts:    make([]*trackfiles.Trackfile, 0),

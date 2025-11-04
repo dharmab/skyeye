@@ -29,6 +29,8 @@ type Radar struct {
 	missionTime time.Time
 	// missionTimeLock protects missionTime.
 	missionTimeLock sync.RWMutex
+	// coalition is the player coalition.
+	coalition coalitions.Coalition
 	// bullsyses maps coalitions to their respective bullseye points.
 	bullseyes sync.Map
 	// contacts contains trackfiles for each aircraft.
@@ -58,8 +60,9 @@ type Radar struct {
 }
 
 // New creates a radar scope that consumes updates from the provided channels.
-func New(starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length) *Radar {
+func New(coalition coalitions.Coalition, starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length) *Radar {
 	return &Radar{
+		coalition:             coalition,
 		starts:                starts,
 		updates:               updates,
 		fades:                 fades,
