@@ -171,7 +171,7 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 
 	log.Info().Msg("constructing radar scope")
 
-	rdr := radar.New(starts, updates, fades, config.MandatoryThreatRadius)
+	rdr := radar.New(config.Coalition, starts, updates, fades, config.MandatoryThreatRadius)
 	log.Info().Msg("constructing GCI controller")
 	gciController := controller.New(
 		rdr,
