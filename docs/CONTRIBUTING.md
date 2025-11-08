@@ -66,7 +66,7 @@ Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
 
 ## Run Against a Live Server
 
-### Installl
+### Install
 
 Install the [DCS World Dedicated Server](https://www.digitalcombatsimulator.com/en/downloads/world/server/). This can be on a different computer.
 
@@ -88,6 +88,8 @@ Recommended models for development use:
 - `ggml-tiny.en.bin` - Significantly faster, but requires you to speak more clearly.
 
 Whichever model you choose, put the model next to the SkyEye binary.
+
+> Tip: Use `make download-whisper-ggml-small.en` to quickly download `ggml-small.en.bin`, or `make download-whisper-ggml-tiny.en.bin` to download `ggml-tiny.en.bin`.
 
 ### Using the OpenAI API
 
