@@ -131,6 +131,10 @@ install-macos-dependencies:
 	  libsoxr \
 	  opus
 
+.PHONY: download-whisper-%
+download-whisper-%:
+	curl -L -o $*.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/$*.bin
+
 $(LIBWHISPER_PATH) $(WHISPER_H_PATH):
 	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false "$(WHISPER_CPP_REPO)" "$(WHISPER_CPP_PATH)" && $(WHISPER_CPP_BUILD_ENV) make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
 	if [ -f third_party/whisper.cpp/whisper.a ] && [ ! -f $(LIBWHISPER_PATH) ]; then cp third_party/whisper.cpp/whisper.a $(LIBWHISPER_PATH); fi
