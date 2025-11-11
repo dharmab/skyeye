@@ -23,25 +23,17 @@ func (c *Client) connectTCP() error {
 		Stringer("timeout", c.connectionTimeout).
 		Msg("connecting to SRS server TCP socket")
 
-	dialer := &net.Dialer{
-		Timeout: c.connectionTimeout,
-	}
-
 	tcpAddress, err := net.ResolveTCPAddr("tcp", c.address)
 	if err != nil {
 		return fmt.Errorf("failed to resolve SRS server address %v: %w", c.address, err)
 	}
 
-	connection, err := dialer.Dial("tcp", tcpAddress.String())
+	connection, err := net.DialTimeout("tcp", tcpAddress.String(), c.connectionTimeout)
 	if err != nil {
 		return fmt.Errorf("failed to connect to data socket: %w", err)
 	}
 
-	tcpConn, ok := connection.(*net.TCPConn)
-	if !ok {
-		return fmt.Errorf("expected *net.TCPConn but got %T", connection)
-	}
-	c.tcpConnection = tcpConn
+	c.tcpConnection = connection.(*net.TCPConn)
 	return nil
 }
 
@@ -69,11 +61,7 @@ func (c *Client) connectUDP() error {
 		return fmt.Errorf("failed to connect to UDP socket: %w", err)
 	}
 
-	udpConn, ok := connection.(*net.UDPConn)
-	if !ok {
-		return fmt.Errorf("expected *net.UDPConn but got %T", connection)
-	}
-	c.udpConnection = udpConn
+	c.udpConnection = connection.(*net.UDPConn)
 	return nil
 }
 
@@ -114,7 +102,10 @@ func (c *Client) receiveUDP(ctx context.Context, pingChan chan<- []byte, voiceCh
 
 	// Set initial read deadline
 	if err := c.udpConnection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
-		log.Warn().Err(err).Msg("failed to set initial UDP read deadline")
+		log.Warn().
+			Err(err).
+			Stringer("readTimeout", readTimeout).
+			Msg("failed to set initial UDP read deadline")
 	}
 
 	for {
@@ -125,7 +116,10 @@ func (c *Client) receiveUDP(ctx context.Context, pingChan chan<- []byte, voiceCh
 		default:
 			// Set read deadline before each read
 			if err := c.udpConnection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
-				log.Warn().Err(err).Msg("failed to set UDP read deadline")
+				log.Warn().
+					Err(err).
+					Stringer("readTimeout", readTimeout).
+					Msg("failed to set UDP read deadline")
 			}
 
 			buf := make([]byte, 1500)
@@ -167,7 +161,10 @@ func (c *Client) receiveTCP(ctx context.Context) {
 
 	// Set initial read deadline
 	if err := c.tcpConnection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
-		log.Warn().Err(err).Msg("failed to set initial TCP read deadline")
+		log.Warn().
+			Err(err).
+			Stringer("readTimeout", readTimeout).
+			Msg("failed to set initial TCP read deadline")
 	}
 
 	for {
@@ -178,7 +175,10 @@ func (c *Client) receiveTCP(ctx context.Context) {
 		default:
 			// Set read deadline before each read
 			if err := c.tcpConnection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
-				log.Warn().Err(err).Msg("failed to set TCP read deadline")
+				log.Warn().
+					Err(err).
+					Stringer("readTimeout", readTimeout).
+					Msg("failed to set TCP read deadline")
 			}
 
 			line, err := reader.ReadBytes(byte('\n'))

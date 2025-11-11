@@ -1,12 +1,29 @@
-// package net provides common network configuration constants and utilities
+// Package net provides common network configuration constants and utilities
 // for the skyeye application.
 //
-// The constants defined in this package represent recommended defaults for
-// network operations. While they are exported and can be referenced, they
-// are primarily intended as centralized configuration values used throughout
-// the codebase. Operators needing different timeout behavior should configure
-// their systems accordingly (e.g., adjusting infrastructure-level timeouts,
-// network quality, or load balancers).
+// # Timeout Configuration
+//
+// The constants defined in this package represent recommended defaults that
+// balance reliability and responsiveness for typical deployment scenarios.
+// These defaults assume reasonably stable network conditions and may need
+// adjustment based on your environment:
+//
+//   - LAN deployments: Current defaults are suitable
+//   - WAN/Internet deployments: May need longer timeouts for connection establishment
+//   - High-latency links: Should increase timeout values proportionally
+//   - Unstable networks: May benefit from shorter timeouts with more aggressive retry logic
+//
+// # Usage
+//
+// Application code should use these constants as defaults for CLI flags,
+// allowing operators to override based on their network conditions:
+//
+//	flag.DurationVar(&timeout, "timeout", net.DefaultConnectionTimeout, "connection timeout")
+//
+// The package also provides helper functions for calculating related timeouts:
+//
+//   - CalculateReadTimeout: Determines read timeout from connection timeout
+//   - CalculateDeadlineRefreshInterval: Determines how often to refresh deadlines
 package net
 
 import "time"

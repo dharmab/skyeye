@@ -99,7 +99,13 @@ func (c *RealTimeClient) read(ctx context.Context) error {
 				return
 			case <-ticker.C:
 				if err := connection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
-					log.Warn().Err(err).Msg("failed to refresh telemetry read deadline")
+					log.Warn().
+						Err(err).
+						Stringer("readTimeout", readTimeout).
+						Time("attemptedDeadline", time.Now().Add(readTimeout)).
+						Msg("failed to refresh telemetry read deadline")
+					// Connection may be in bad state, but read will fail
+					// and trigger reconnect naturally
 				}
 			}
 		}
@@ -107,7 +113,10 @@ func (c *RealTimeClient) read(ctx context.Context) error {
 
 	// Set initial deadline
 	if err := connection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
-		log.Warn().Err(err).Msg("failed to set initial telemetry read deadline")
+		log.Warn().
+			Err(err).
+			Stringer("readTimeout", readTimeout).
+			Msg("failed to set initial telemetry read deadline")
 	}
 
 	if err := c.handleLines(ctx, reader); err != nil {
