@@ -90,13 +90,13 @@ func init() {
 	skyeye.Flags().StringVar(&acmiFile, "acmi-file", "", "path to ACMI file")
 	skyeye.Flags().StringVar(&telemetryAddress, "telemetry-address", "localhost:42674", "Address of the real-time telemetry service")
 	skyeye.MarkFlagsMutuallyExclusive("acmi-file", "telemetry-address")
-	skyeye.Flags().DurationVar(&telemetryConnectionTimeout, "telemetry-connection-timeout", 10*time.Second, "Connection timeout for real-time telemetry client")
+	skyeye.Flags().DurationVar(&telemetryConnectionTimeout, "telemetry-connection-timeout", 30*time.Second, "Connection timeout for real-time telemetry client")
 	skyeye.Flags().StringVar(&telemetryPassword, "telemetry-password", "", "Password for the real-time telemetry service")
 	skyeye.Flags().DurationVar(&telemetryUpdateInterval, "telemetry-update-interval", 2*time.Second, "Interval at which trackfiles are updated from telemetry data")
 
 	// SRS
 	skyeye.Flags().StringVar(&srsAddress, "srs-server-address", "localhost:5002", "Address of the SRS server")
-	skyeye.Flags().DurationVar(&srsConnectionTimeout, "srs-connection-timeout", 10*time.Second, "Connection timeout for SRS client")
+	skyeye.Flags().DurationVar(&srsConnectionTimeout, "srs-connection-timeout", 30*time.Second, "Connection timeout for SRS client")
 	skyeye.Flags().StringVar(&srsExternalAWACSModePassword, "srs-eam-password", "", "SRS external AWACS mode password")
 	skyeye.Flags().StringSliceVar(&srsFrequencies, "srs-frequencies", []string{"251.0AM", "133.0AM", "30.0FM"}, "List of SRS frequencies to use")
 

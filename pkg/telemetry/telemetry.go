@@ -82,6 +82,34 @@ func (c *RealTimeClient) read(ctx context.Context) error {
 		return fmt.Errorf("error during client handhake: %w", err)
 	}
 
+	// Read timeout is 2x connection timeout for streaming data
+	readTimeout := c.connectionTimeout * 2
+
+	// Set up periodic deadline refresh to keep connection alive during long reads
+	deadlineCtx, deadlineCancel := context.WithCancel(ctx)
+	defer deadlineCancel()
+
+	go func() {
+		ticker := time.NewTicker(readTimeout / 2) // Refresh at halfway point
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-deadlineCtx.Done():
+				return
+			case <-ticker.C:
+				if err := connection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+					log.Warn().Err(err).Msg("failed to refresh telemetry read deadline")
+				}
+			}
+		}
+	}()
+
+	// Set initial deadline
+	if err := connection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+		log.Warn().Err(err).Msg("failed to set initial telemetry read deadline")
+	}
+
 	if err := c.handleLines(ctx, reader); err != nil {
 		return fmt.Errorf("error reading updates: %w", err)
 	}

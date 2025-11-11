@@ -34,6 +34,8 @@ type Client struct {
 
 	// address is the address of the SRS server, including the port.
 	address string
+	// connectionTimeout is the timeout for establishing connections to the SRS server.
+	connectionTimeout time.Duration
 	// tcpConnection is the TCP connection to the SRS server used for messages.
 	tcpConnection *net.TCPConn
 	// udpConnection is the UDP connection to the SRS server used for audio and pings.
@@ -81,7 +83,8 @@ func NewClient(config types.ClientConfiguration) (*Client, error) {
 	}
 
 	client := &Client{
-		address: config.Address,
+		address:           config.Address,
+		connectionTimeout: config.ConnectionTimeout,
 		clientInfo: types.ClientInfo{
 			Name:      config.ClientName,
 			GUID:      guid,

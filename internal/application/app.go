@@ -30,6 +30,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -81,7 +82,15 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 	var chatListener *commands.ChatListener
 	if config.EnableGRPC {
 		log.Info().Str("address", config.GRPCAddress).Msg("constructing gRPC clients")
-		opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+		opts := []grpc.DialOption{
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			// Add gRPC-level keepalive (not TCP keepalive)
+			grpc.WithKeepaliveParams(keepalive.ClientParameters{
+				Time:                30 * time.Second, // Send gRPC keepalive ping every 30s
+				Timeout:             10 * time.Second, // Wait 10s for ping ack
+				PermitWithoutStream: true,             // Send pings even without active streams
+			}),
+		}
 		if config.GRPCAPIKey != "" {
 			log.Info().Msg("configuring gRPC client connection with provided API key")
 			opts = append(opts, grpc.WithUnaryInterceptor(func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
@@ -94,6 +103,8 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		if err != nil {
 			return nil, err
 		}
+		// Note: gRPC connections are lazy - they dial on first RPC
+		// The keepalive params will detect dead connections
 		missionClient := mission.NewMissionServiceClient(grpcClient)
 		coalitionClient := grpccoalition.NewCoalitionServiceClient(grpcClient)
 		netClient := net.NewNetServiceClient(grpcClient)
