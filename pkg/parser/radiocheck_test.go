@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParserRadioCheck(t *testing.T) {
@@ -87,6 +87,6 @@ func TestParserRadioCheck(t *testing.T) {
 		t.Helper()
 		expected := test.expected.(*brevity.RadioCheckRequest)
 		actual := request.(*brevity.RadioCheckRequest)
-		require.Equal(t, expected.Callsign, actual.Callsign)
+		assert.Equal(t, expected.Callsign, actual.Callsign)
 	})
 }

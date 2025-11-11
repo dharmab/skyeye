@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPronounceInt(t *testing.T) {
@@ -44,7 +44,7 @@ func TestPronounceInt(t *testing.T) {
 		t.Run(strconv.Itoa(test.arg), func(t *testing.T) {
 			t.Parallel()
 			actual := pronounceInt(test.arg)
-			require.Equal(t, test.expect, actual)
+			assert.Equal(t, test.expect, actual)
 		})
 	}
 }
@@ -67,7 +67,7 @@ func TestPronounceDecimal(t *testing.T) {
 		t.Run(fmt.Sprintf("%v %v %v", test.arg, test.precision, test.separator), func(t *testing.T) {
 			t.Parallel()
 			actual := pronounceDecimal(test.arg, test.precision, test.separator)
-			require.Equal(t, test.expect, actual)
+			assert.Equal(t, test.expect, actual)
 		})
 	}
 }

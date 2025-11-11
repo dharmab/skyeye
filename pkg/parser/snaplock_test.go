@@ -6,7 +6,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/martinlindhe/unit"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParserSnaplock(t *testing.T) {
@@ -72,9 +72,9 @@ func TestParserSnaplock(t *testing.T) {
 		t.Helper()
 		expected := test.expected.(*brevity.SnaplockRequest)
 		actual := request.(*brevity.SnaplockRequest)
-		require.Equal(t, expected.Callsign, actual.Callsign)
-		require.InDelta(t, expected.BRA.Bearing().Degrees(), actual.BRA.Bearing().Degrees(), 0.5)
-		require.InDelta(t, expected.BRA.Range().NauticalMiles(), actual.BRA.Range().NauticalMiles(), 0.5)
-		require.InDelta(t, expected.BRA.Altitude().Feet(), actual.BRA.Altitude().Feet(), 50)
+		assert.Equal(t, expected.Callsign, actual.Callsign)
+		assert.InDelta(t, expected.BRA.Bearing().Degrees(), actual.BRA.Bearing().Degrees(), 0.5)
+		assert.InDelta(t, expected.BRA.Range().NauticalMiles(), actual.BRA.Range().NauticalMiles(), 0.5)
+		assert.InDelta(t, expected.BRA.Altitude().Feet(), actual.BRA.Altitude().Feet(), 50)
 	})
 }
