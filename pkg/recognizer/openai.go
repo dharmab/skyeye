@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"time"
 
+	skynet "github.com/dharmab/skyeye/pkg/net"
 	"github.com/dharmab/skyeye/pkg/pcm"
 	openai "github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
@@ -28,7 +28,7 @@ func newOpenAIRecognizer(apiKey, model, callsign string) Recognizer {
 	// Create HTTP client with timeout
 	// Use 60s for audio transcription which can be slow for large files
 	httpClient := &http.Client{
-		Timeout: 60 * time.Second,
+		Timeout: skynet.OpenAIHTTPTimeout,
 	}
 
 	return &openAIRecognizer{

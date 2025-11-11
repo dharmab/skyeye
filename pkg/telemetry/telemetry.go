@@ -10,6 +10,7 @@ import (
 	"net"
 	"time"
 
+	skynet "github.com/dharmab/skyeye/pkg/net"
 	"github.com/rs/zerolog/log"
 )
 
@@ -82,15 +83,14 @@ func (c *RealTimeClient) read(ctx context.Context) error {
 		return fmt.Errorf("error during client handhake: %w", err)
 	}
 
-	// Read timeout is 2x connection timeout for streaming data
-	readTimeout := c.connectionTimeout * 2
+	readTimeout := skynet.CalculateReadTimeout(c.connectionTimeout)
 
 	// Set up periodic deadline refresh to keep connection alive during long reads
 	deadlineCtx, deadlineCancel := context.WithCancel(ctx)
 	defer deadlineCancel()
 
 	go func() {
-		ticker := time.NewTicker(readTimeout / 2) // Refresh at halfway point
+		ticker := time.NewTicker(skynet.CalculateDeadlineRefreshInterval(readTimeout))
 		defer ticker.Stop()
 
 		for {

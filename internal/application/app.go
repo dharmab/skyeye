@@ -17,6 +17,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/commands"
 	"github.com/dharmab/skyeye/pkg/composer"
 	"github.com/dharmab/skyeye/pkg/controller"
+	skynet "github.com/dharmab/skyeye/pkg/net"
 	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/recognizer"
@@ -86,9 +87,9 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 			// Add gRPC-level keepalive (not TCP keepalive)
 			grpc.WithKeepaliveParams(keepalive.ClientParameters{
-				Time:                30 * time.Second, // Send gRPC keepalive ping every 30s
-				Timeout:             10 * time.Second, // Wait 10s for ping ack
-				PermitWithoutStream: true,             // Send pings even without active streams
+				Time:                skynet.GRPCKeepaliveTime,    // Send gRPC keepalive ping every 30s
+				Timeout:             skynet.GRPCKeepaliveTimeout, // Wait 10s for ping ack
+				PermitWithoutStream: true,                        // Send pings even without active streams
 			}),
 		}
 		if config.GRPCAPIKey != "" {

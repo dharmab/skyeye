@@ -11,6 +11,7 @@ import (
 	"net"
 	"time"
 
+	skynet "github.com/dharmab/skyeye/pkg/net"
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/rs/zerolog/log"
 )
@@ -100,8 +101,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 
 // receiveUDP listens for incoming UDP packets and routes them to the appropriate channel.
 func (c *Client) receiveUDP(ctx context.Context, pingChan chan<- []byte, voiceChan chan<- []byte) {
-	// Read timeout is 2x connection timeout for streaming data
-	readTimeout := c.connectionTimeout * 2
+	readTimeout := skynet.CalculateReadTimeout(c.connectionTimeout)
 
 	for {
 		select {
@@ -149,8 +149,7 @@ func (c *Client) receiveUDP(ctx context.Context, pingChan chan<- []byte, voiceCh
 // receiveTCP listens for incoming TCP messages and routes them to the appropriate handler.
 func (c *Client) receiveTCP(ctx context.Context) {
 	reader := bufio.NewReader(c.tcpConnection)
-	// Read timeout is 2x connection timeout for streaming data
-	readTimeout := c.connectionTimeout * 2
+	readTimeout := skynet.CalculateReadTimeout(c.connectionTimeout)
 
 	for {
 		select {
