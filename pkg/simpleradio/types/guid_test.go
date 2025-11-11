@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestNewGUID tests that the NewGUID function returns a GUID of the correct length.
@@ -12,6 +12,6 @@ func TestNewGUID(t *testing.T) {
 	t.Parallel()
 	for range 9999 {
 		g := NewGUID()
-		require.Len(t, []byte(g), GUIDLength)
+		assert.Len(t, []byte(g), GUIDLength)
 	}
 }

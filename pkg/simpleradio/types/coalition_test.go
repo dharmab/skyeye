@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIsSpectator(t *testing.T) {
 	t.Parallel()
-	require.True(t, IsSpectator(coalitions.Neutrals))
-	require.False(t, IsSpectator(coalitions.Red))
-	require.False(t, IsSpectator(coalitions.Blue))
+	assert.True(t, IsSpectator(coalitions.Neutrals))
+	assert.False(t, IsSpectator(coalitions.Red))
+	assert.False(t, IsSpectator(coalitions.Blue))
 }

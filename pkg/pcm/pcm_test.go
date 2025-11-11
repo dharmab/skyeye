@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestF32ToS16(t *testing.T) {
@@ -38,7 +38,7 @@ func TestF32ToS16(t *testing.T) {
 		t.Run(fmt.Sprint(test.arg), func(t *testing.T) {
 			t.Parallel()
 			actual := F32ToS16(test.arg)
-			require.Equal(t, test.expected, actual, "got %v, expected %v", actual, test.expected)
+			assert.Equal(t, test.expected, actual, "got %v, expected %v", actual, test.expected)
 		})
 	}
 }
@@ -71,7 +71,7 @@ func TestS16toF32toS16RoundTrip(t *testing.T) {
 			t.Parallel()
 			intermediate := S16ToF32(test.arg)
 			result := F32ToS16(intermediate)
-			require.Equal(t, test.arg, result, "got %v, expected %v, intemediate %v", result, test.arg, intermediate)
+			assert.Equal(t, test.arg, result, "got %v, expected %v, intemediate %v", result, test.arg, intermediate)
 		})
 	}
 }

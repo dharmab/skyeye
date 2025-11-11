@@ -138,13 +138,13 @@ func TestDelete(t *testing.T) {
 	database.set(trackfile)
 
 	_, ok := database.getByID(1)
-	require.True(t, ok)
+	assert.True(t, ok)
 
 	ok = database.delete(1)
 	require.True(t, ok)
 
 	_, ok = database.getByID(1)
-	require.False(t, ok)
+	assert.False(t, ok)
 
 	ok = database.delete(2)
 	require.False(t, ok)

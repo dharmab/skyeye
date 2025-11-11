@@ -10,6 +10,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -176,12 +177,12 @@ func TestTracking(t *testing.T) {
 				Heading:  test.heading,
 			})
 
-			require.InDelta(t, test.expectedApproxSpeed.MetersPerSecond(), trackfile.Speed().MetersPerSecond(), 0.5)
-			require.Equal(t, test.expectedDirection, trackfile.Direction())
+			assert.InDelta(t, test.expectedApproxSpeed.MetersPerSecond(), trackfile.Speed().MetersPerSecond(), 0.5)
+			assert.Equal(t, test.expectedDirection, trackfile.Direction())
 			if test.expectedDirection != brevity.UnknownDirection {
 				declination, err := bearings.Declination(dest, now)
 				require.NoError(t, err)
-				require.InDelta(t, bearings.NewTrueBearing(test.expectedApproxCourse).Magnetic(declination).Degrees(), trackfile.Course().Degrees(), 0.5)
+				assert.InDelta(t, bearings.NewTrueBearing(test.expectedApproxCourse).Magnetic(declination).Degrees(), trackfile.Course().Degrees(), 0.5)
 			}
 		})
 	}
