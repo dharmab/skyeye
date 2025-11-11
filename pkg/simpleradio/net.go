@@ -28,7 +28,10 @@ func (c *Client) connectTCP() error {
 		return fmt.Errorf("failed to resolve SRS server address %v: %w", c.address, err)
 	}
 
-	connection, err := net.DialTimeout("tcp", tcpAddress.String(), c.connectionTimeout)
+	dialer := &net.Dialer{
+		Timeout: c.connectionTimeout,
+	}
+	connection, err := dialer.Dial("tcp", tcpAddress.String())
 	if err != nil {
 		return fmt.Errorf("failed to connect to data socket: %w", err)
 	}
