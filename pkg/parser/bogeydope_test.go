@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParserBogeyDope(t *testing.T) {
@@ -293,6 +293,27 @@ func TestParserBogeyDope(t *testing.T) {
 		"BOBIDOP",
 		"BOGGY DOPE",
 		"BOYADOP",
+		"BOGGIT",
+		"POGGY",
+		"POGGITOK",
+		"POGET",
+		"VOGETOBE",
+		"BOP-DOPE",
+		"ogedo",
+		"BOGGIE DOP",
+		"BOGGERDOKE",
+		"BUGDUP",
+		"BOGEDUP",
+		"BOGO DOP",
+		"BOGGEDOP",
+		"Bogedok",
+		"BOGDO",
+		"Boogedope",
+		"BUGGED OP",
+		"Boogedop",
+		"BUCKDOP",
+		"BOGGADOP",
+		"Buck it up",
 	}
 	for _, text := range simpleCases {
 		tc := parserTestCase{
@@ -308,7 +329,7 @@ func TestParserBogeyDope(t *testing.T) {
 		t.Helper()
 		expected := test.expected.(*brevity.BogeyDopeRequest)
 		actual := request.(*brevity.BogeyDopeRequest)
-		require.Equal(t, expected.Callsign, actual.Callsign)
-		require.Equal(t, expected.Filter, actual.Filter)
+		assert.Equal(t, expected.Callsign, actual.Callsign)
+		assert.Equal(t, expected.Filter, actual.Filter)
 	})
 }
