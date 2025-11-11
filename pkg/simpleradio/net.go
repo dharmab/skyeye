@@ -37,7 +37,11 @@ func (c *Client) connectTCP() error {
 		return fmt.Errorf("failed to connect to data socket: %w", err)
 	}
 
-	c.tcpConnection = connection.(*net.TCPConn)
+	tcpConn, ok := connection.(*net.TCPConn)
+	if !ok {
+		return fmt.Errorf("expected *net.TCPConn but got %T", connection)
+	}
+	c.tcpConnection = tcpConn
 	return nil
 }
 
@@ -48,8 +52,9 @@ func (c *Client) connectUDP() error {
 		Stringer("timeout", c.connectionTimeout).
 		Msg("connecting to SRS server UDP socket")
 
-	// Note: UDP is connectionless. The timeout here only applies to DNS resolution
-	// and local socket setup, not connection establishment (which doesn't exist for UDP).
+	// Note: UDP is connectionless, so there's no actual "connection" to timeout.
+	// The timeout here applies only to DNS resolution and local socket setup,
+	// not to data transmission (which is handled by read deadlines).
 	dialer := &net.Dialer{
 		Timeout: c.connectionTimeout,
 	}
@@ -64,7 +69,11 @@ func (c *Client) connectUDP() error {
 		return fmt.Errorf("failed to connect to UDP socket: %w", err)
 	}
 
-	c.udpConnection = connection.(*net.UDPConn)
+	udpConn, ok := connection.(*net.UDPConn)
+	if !ok {
+		return fmt.Errorf("expected *net.UDPConn but got %T", connection)
+	}
+	c.udpConnection = udpConn
 	return nil
 }
 
@@ -102,6 +111,11 @@ func (c *Client) reconnect(ctx context.Context) error {
 // receiveUDP listens for incoming UDP packets and routes them to the appropriate channel.
 func (c *Client) receiveUDP(ctx context.Context, pingChan chan<- []byte, voiceChan chan<- []byte) {
 	readTimeout := skynet.CalculateReadTimeout(c.connectionTimeout)
+
+	// Set initial read deadline
+	if err := c.udpConnection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+		log.Warn().Err(err).Msg("failed to set initial UDP read deadline")
+	}
 
 	for {
 		select {
@@ -150,6 +164,11 @@ func (c *Client) receiveUDP(ctx context.Context, pingChan chan<- []byte, voiceCh
 func (c *Client) receiveTCP(ctx context.Context) {
 	reader := bufio.NewReader(c.tcpConnection)
 	readTimeout := skynet.CalculateReadTimeout(c.connectionTimeout)
+
+	// Set initial read deadline
+	if err := c.tcpConnection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+		log.Warn().Err(err).Msg("failed to set initial TCP read deadline")
+	}
 
 	for {
 		select {

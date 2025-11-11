@@ -56,7 +56,7 @@ func (c *RealTimeClient) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		default:
-			nextAttempt := time.Now().Add(10 * time.Second)
+			nextAttempt := time.Now().Add(skynet.ReconnectDelay)
 			if err := c.read(ctx); err != nil {
 				if errors.Is(err, context.Canceled) {
 					return nil
