@@ -108,7 +108,7 @@ var replacementLUT = map[string]string{
 	"boog it":            bogeyDope,
 	"boogado":            bogeyDope,
 	"boogalup":           bogeyDope,
-	"booge":              bogeyDope,
+	"booged":             bogeyDope,
 	"boogido":            bogeyDope,
 	"boogie":             bogeyDope,
 	"boogiedope":         bogeyDope,
