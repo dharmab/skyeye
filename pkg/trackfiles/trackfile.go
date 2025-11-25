@@ -96,7 +96,7 @@ func (t *Trackfile) Update(f Frame) {
 // Bullseye returns the bearing and distance from the bullseye to the track's last known position.
 func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 	latest := t.LastKnown()
-	declination, _ := bearings.Declination(bullseye, latest.Time)
+	declination, _ := bearings.Declination(latest.Point, latest.Time)
 	bearing := spatial.TrueBearing(bullseye, latest.Point).Magnetic(declination)
 	log.Debug().Float64("bearing", bearing.Degrees()).Msg("calculated bullseye bearing for group")
 	distance := spatial.Distance(bullseye, latest.Point)
