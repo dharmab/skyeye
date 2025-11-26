@@ -80,4 +80,16 @@ func main() {
 	distance := spatial.Distance(origin, target)
 	fmt.Printf("Distance: %.0f nm\n", distance.NauticalMiles())
 	fmt.Printf("Expected distance: 129 nm\n")
+
+	// Test with swapped coordinates to see if that's the issue
+	fmt.Println("\n=== Testing with Swapped Coordinates ===")
+	originSwapped := orb.Point{69.04555556, 33.40388889} // [lat, lon] instead of [lon, lat]
+	targetSwapped := orb.Point{69.56305556, 27.60638889} // [lat, lon] instead of [lon, lat]
+
+	trueBearingSwapped := spatial.TrueBearing(originSwapped, targetSwapped)
+	fmt.Printf("True bearing with swapped coordinates: %.1f°\n", trueBearingSwapped.Degrees())
+
+	// Calculate magnetic bearing with swapped coordinates
+	magneticBearingSwapped := trueBearingSwapped.Magnetic(declination)
+	fmt.Printf("Magnetic bearing with swapped coordinates: %.1f°\n", magneticBearingSwapped.Degrees())
 }
