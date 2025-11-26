@@ -66,6 +66,7 @@ func (r *Radar) FindNearestGroupWithBRAA(
 	filter brevity.ContactCategory,
 ) brevity.Group {
 	trackfile := r.FindNearestTrackfile(origin, minAltitude, maxAltitude, radius, coalition, filter)
+	log.Debug().Any("origin", origin).Msg("finding nearest group with BRAA")
 	if trackfile == nil || trackfile.IsLastKnownPointZero() {
 		return nil
 	}
@@ -76,7 +77,10 @@ func (r *Radar) FindNearestGroupWithBRAA(
 	}
 
 	declination := r.Declination(origin)
+	log.Debug().Float64("declination", declination.Degrees()).Msg("calculated declination")
+	log.Debug().Any("truebearing", spatial.TrueBearing(origin, grp.point())).Msg("calculated true bearing")
 	bearing := spatial.TrueBearing(origin, grp.point()).Magnetic(declination)
+	log.Debug().Float64("bearing", bearing.Degrees()).Msg("calculated magnetic bearing")
 	_range := spatial.Distance(origin, grp.point())
 	aspect := brevity.AspectFromAngle(bearing, trackfile.Course())
 	grp.braa = brevity.NewBRAA(
