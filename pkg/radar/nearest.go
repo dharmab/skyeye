@@ -78,7 +78,7 @@ func (r *Radar) FindNearestGroupWithBRAA(
 
 	declination := r.Declination(origin)
 	log.Debug().Float64("declination", declination.Degrees()).Msg("calculated declination")
-	log.Debug().Any("truebearing", spatial.TrueBearing(origin, grp.point())).Msg("calculated true bearing")
+	log.Debug().Any("truebearing", spatial.TrueBearing(origin, grp.point()).Degrees()).Msg("calculated true bearing")
 	bearing := spatial.TrueBearing(origin, grp.point()).Magnetic(declination)
 	log.Debug().Float64("bearing", bearing.Degrees()).Msg("calculated magnetic bearing")
 	_range := spatial.Distance(origin, grp.point())
