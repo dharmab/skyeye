@@ -254,7 +254,7 @@ func (r *Radar) Declination(p orb.Point) unit.Angle {
 	r.missionTimeLock.RLock()
 	defer r.missionTimeLock.RUnlock()
 	declination, err := bearings.Declination(p, r.missionTime)
-	log.Debug().Any("declination", declination).Msgf("computed magnetic radar declination at point %v", p)
+	log.Debug().Any("declination", declination.Degrees()).Msgf("computed magnetic radar declination at point %v", p)
 
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get declination")

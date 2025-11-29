@@ -97,7 +97,7 @@ func (t *Trackfile) Update(f Frame) {
 func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 	latest := t.LastKnown()
 	declination, _ := bearings.Declination(latest.Point, latest.Time)
-	log.Debug().Any("declination", declination).Msgf("computed magnetic trackfilebullseye declination at point")
+	log.Debug().Any("declination", declination.Degrees()).Msgf("computed magnetic trackfilebullseye declination at point")
 
 	bearing := spatial.TrueBearing(bullseye, latest.Point).Magnetic(declination)
 	log.Debug().Float64("bearing", bearing.Degrees()).Msg("calculated bullseye bearing for group")
