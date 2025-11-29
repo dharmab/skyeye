@@ -21,7 +21,7 @@ func (c *Controller) HandleBogeyDope(ctx context.Context, request *brevity.Bogey
 	logger = logger.With().Str("callsign", foundCallsign).Logger()
 
 	origin := trackfile.LastKnown().Point
-	logger.Debug().Any("origin", origin).Msgf("determined origin point for BOGEY DOPE, lat %s, lon %s", origin.Lat(), origin.Lon())
+	logger.Debug().Any("origin", origin).Msgf("determined origin point for BOGEY DOPE, lat %f, lon %f", origin.Lat(), origin.Lon())
 	radius := 300 * unit.NauticalMile
 	nearestGroup := c.scope.FindNearestGroupWithBRAA(
 		origin,
