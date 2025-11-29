@@ -97,7 +97,7 @@ func (t *Trackfile) Update(f Frame) {
 func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 	latest := t.LastKnown()
 	declination, _ := bearings.Declination(latest.Point, latest.Time)
-	log.Debug().Any("declination", declination).Msgf("computed magnetic declination at point")
+	log.Debug().Any("declination", declination).Msgf("computed magnetic trackfilebullseye declination at point")
 
 	bearing := spatial.TrueBearing(bullseye, latest.Point).Magnetic(declination)
 	log.Debug().Float64("bearing", bearing.Degrees()).Msg("calculated bullseye bearing for group")
@@ -131,7 +131,7 @@ func (t *Trackfile) IsLastKnownPointZero() bool {
 func (t *Trackfile) bestAvailableDeclination() unit.Angle {
 	latest := t.unsafeLastKnown()
 	declination, err := bearings.Declination(latest.Point, latest.Time)
-	log.Debug().Any("declination", declination).Msgf("computed magnetic declination at point %v", latest.Point)
+	log.Debug().Any("declination", declination).Msgf("computed bestAvailableDeclination magnetic declination at point %v", latest.Point)
 
 	if err != nil {
 		return 0

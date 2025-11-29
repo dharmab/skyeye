@@ -52,7 +52,7 @@ func (g *group) Bullseye() *brevity.Bullseye {
 	}
 
 	declination, err := bearings.Declination(*g.bullseye, g.missionTime())
-	log.Debug().Any("declination", declination).Msgf("computed magnetic declination at bulleye %v", *g.bullseye)
+	log.Debug().Any("declination", declination).Msgf("computed magnetic groupbullseyedeclination at bulleye %v", *g.bullseye)
 
 	if err != nil {
 		log.Error().Err(err).Stringer("group", g).Msg("failed to get declination for group")
