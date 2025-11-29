@@ -131,7 +131,7 @@ func (t *Trackfile) IsLastKnownPointZero() bool {
 func (t *Trackfile) bestAvailableDeclination() unit.Angle {
 	latest := t.unsafeLastKnown()
 	declination, err := bearings.Declination(latest.Point, latest.Time)
-	log.Debug().Any("declination", declination).Msgf("computed bestAvailableDeclination magnetic declination at point %v", latest.Point)
+	log.Debug().Any("declination", declination).Msgf("computed bestAvailableDeclination magnetic declination at point lat %s lon %s", latest.Point.Lat(), latest.Point.Lon())
 
 	if err != nil {
 		return 0

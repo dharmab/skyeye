@@ -66,7 +66,7 @@ func (r *Radar) FindNearestGroupWithBRAA(
 	filter brevity.ContactCategory,
 ) brevity.Group {
 	trackfile := r.FindNearestTrackfile(origin, minAltitude, maxAltitude, radius, coalition, filter)
-	log.Debug().Any("origin", origin).Msg("finding nearest group with BRAA")
+	log.Debug().Any("origin", origin).Msgf("finding nearest group with BRAA- lat %s, lon %s", origin.Lat(), origin.Lon())
 	if trackfile == nil || trackfile.IsLastKnownPointZero() {
 		return nil
 	}
