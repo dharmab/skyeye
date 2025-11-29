@@ -21,6 +21,7 @@ func Distance(a, b orb.Point) unit.Length {
 
 // TrueBearing returns the true bearing between two points.
 func TrueBearing(a, b orb.Point) bearings.Bearing {
+	log.Debug().Any("theoretical angle", geo.Bearing(a, b))
 	direction := unit.Angle(geo.Bearing(a, b)) * unit.Degree
 	return bearings.NewTrueBearing(direction)
 }
