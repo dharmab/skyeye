@@ -25,5 +25,6 @@ func Declination(p orb.Point, t time.Time) (unit.Angle, error) {
 	if err != nil {
 		return 0, fmt.Errorf("failed to compute magnetic declination: %w", err)
 	}
+	igrfLogger.Debug().Any("declination", field.Declination).Msgf("computed magnetic declination at point %.6f, %.6f for date %s", p.Lat(), p.Lon(), t.Format("2006-01-02"))
 	return normalize(unit.Angle(field.Declination) * unit.Degree), nil
 }
