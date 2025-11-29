@@ -21,7 +21,7 @@ func Declination(p orb.Point, t time.Time) (unit.Angle, error) {
 		igrfLogger.Warn().Time("date", t).Msgf("year is outside IGRF model range, replacing with %d", stubDate.Year())
 		t = stubDate
 	}
-	field, err := igrfData.IGRF(p.Lon(), p.Lat(), 0, float64(t.Year())+float64(t.YearDay())/366)
+	field, err := igrfData.IGRF(p.Lat(), p.Lon(), 0, float64(t.Year())+float64(t.YearDay())/366)
 	if err != nil {
 		return 0, fmt.Errorf("failed to compute magnetic declination: %w", err)
 	}
