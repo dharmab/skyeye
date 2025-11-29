@@ -97,6 +97,8 @@ func (t *Trackfile) Update(f Frame) {
 func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 	latest := t.LastKnown()
 	declination, _ := bearings.Declination(latest.Point, latest.Time)
+	log.Debug().Any("declination", declination).Msgf("computed magnetic declination at point")
+
 	bearing := spatial.TrueBearing(bullseye, latest.Point).Magnetic(declination)
 	log.Debug().Float64("bearing", bearing.Degrees()).Msg("calculated bullseye bearing for group")
 	distance := spatial.Distance(bullseye, latest.Point)
@@ -128,11 +130,13 @@ func (t *Trackfile) IsLastKnownPointZero() bool {
 
 func (t *Trackfile) bestAvailableDeclination() unit.Angle {
 	latest := t.unsafeLastKnown()
-	declincation, err := bearings.Declination(latest.Point, latest.Time)
+	declination, err := bearings.Declination(latest.Point, latest.Time)
+	log.Debug().Any("declination", declination).Msgf("computed magnetic declination at point %v", latest.Point)
+
 	if err != nil {
 		return 0
 	}
-	return declincation
+	return declination
 }
 
 // Course returns the angle that the track is moving in.
