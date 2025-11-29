@@ -21,6 +21,7 @@ func (c *Controller) HandleBogeyDope(ctx context.Context, request *brevity.Bogey
 	logger = logger.With().Str("callsign", foundCallsign).Logger()
 
 	origin := trackfile.LastKnown().Point
+	logger.Debug().Any("origin", origin).Msg("determined origin point for BOGEY DOPE")
 	radius := 300 * unit.NauticalMile
 	nearestGroup := c.scope.FindNearestGroupWithBRAA(
 		origin,
@@ -39,6 +40,8 @@ func (c *Controller) HandleBogeyDope(ctx context.Context, request *brevity.Bogey
 
 	nearestGroup.SetDeclaration(brevity.Hostile)
 	c.fillInMergeDetails(nearestGroup)
+	logger.Debug().Any("braa", nearestGroup.BRAA()).Msg("determined BRAA for nearest hostile group")
+	logger.Debug().Any("bullseye", nearestGroup.Bullseye()).Msg("determined Bullseye for nearest hostile group")
 
 	logger.Info().
 		Strs("platforms", nearestGroup.Platforms()).
