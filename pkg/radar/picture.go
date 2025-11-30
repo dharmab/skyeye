@@ -22,9 +22,9 @@ func (r *Radar) Picture(radius unit.Length, coalition coalitions.Coalition, filt
 	origin := r.center
 	if spatial.IsZero(origin) {
 		log.Warn().Msg("center point is not set yet, using bullseye")
-		origin = r.Bullseye(coalition)
+		origin = r.Bullseye(coalition.Opposite())
 		log.Debug().Any("origin", origin).Msgf("latlong of bullseye used for picture center, lat %f, lon %f", origin.Lat(), origin.Lon())
-		log.Debug().Any("coalition", coalition).Msgf("coalition of bullseye = %s", coalition.String())
+		log.Debug().Any("coalition", coalition.Opposite()).Msgf("coalition of bullseye = %s", coalition.String())
 		if spatial.IsZero(origin) {
 			log.Warn().Msg("bullseye point is not yet set, picture will be incoherent")
 		}
