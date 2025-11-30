@@ -24,8 +24,11 @@ func TrueBearing(a, b orb.Point) bearings.Bearing {
 
 	//log.Debug().Any("test", a).Msg("entered TrueBearing")
 	//log.Debug().Any("theoretical angle", BearingPlanar(a, b)).Msg("theoretical angle")
+	//log.Debug().Any("test", a).Msg("entered TrueBearing")
+	//log.Debug().Any("theoretical angle", BearingPlanar(a, b)).Msg("theoretical angle")
 	//direction := unit.Angle(geo.Bearing(a, b)) * unit.Degree
 	direction := unit.Angle(BearingPlanar(a, b)) * unit.Degree
+	//log.Debug().Any("direction", bearings.NewTrueBearing(direction)).Msg("direction")
 	//log.Debug().Any("direction", bearings.NewTrueBearing(direction)).Msg("direction")
 	return bearings.NewTrueBearing(direction)
 
