@@ -112,9 +112,11 @@ func TestTrueBearing(t *testing.T) {
 			expected: 225 * unit.Degree,
 		},
 		{
-			a:        orb.Point{69.047471, 33.405794},
-			b:        orb.Point{69.157219, 32.14515},
-			expected: 273 * unit.Degree,
+			//a:        orb.Point{69.047471, 33.405794},
+			//b:        orb.Point{69.157219, 32.14515},
+			a:        orb.Point{33.405794, 69.047471},
+			b:        orb.Point{32.14515, 69.157219},
+			expected: 274 * unit.Degree,
 		},
 	}
 
