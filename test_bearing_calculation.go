@@ -69,3 +69,7 @@ func main() {
 	fmt.Printf("If magnetic bearing is 266° and declination is 12.8°:\n")
 	fmt.Printf("  True bearing would be: %.1f°\n", 266.0+12.8)
 }
+es(), "Magnetic bearing should not be 261")
+}:\n")
+	fmt.Printf("  True bearing would be: %.1f°\n", 266.0+12.8)
+}

@@ -111,6 +111,11 @@ func TestTrueBearing(t *testing.T) {
 			b:        orb.Point{-1, -1},
 			expected: 225 * unit.Degree,
 		},
+		{
+			a:        orb.Point{69.047471, 33.405794},
+			b:        orb.Point{69.157219, 32.14515},
+			expected: 273 * unit.Degree,
+		},
 	}
 
 	for _, test := range testCases {
