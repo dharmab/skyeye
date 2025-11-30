@@ -34,41 +34,6 @@ func TrueBearing(a, b orb.Point) bearings.Bearing {
 
 }
 
-func BearingPlanar(from, to orb.Point) float64 {
-	// Delta X (Longitude difference)
-	deltaX := to[0] - from[0]
-
-	// Delta Y (Latitude difference)
-	deltaY := to[1] - from[1]
-
-	// Use math.Atan2(y, x) for the angle from the positive X-axis.
-	// However, in GIS/navigation, we want the angle from the positive Y-axis (North).
-	// The planar bearing formula from North is commonly: atan2(deltaX, deltaY).
-	// The result is in radians, ranging from -Pi to +Pi.
-	//rad := math.Atan2(deltaX, deltaY)
-
-	// Convert result from radians to degrees
-	//degrees := rad2deg(rad)
-
-	// Normalize result to a 0-360 degree range (if it's negative)
-	// The great circle code returns a signed degree (-180 to 180),
-	// but often planar bearing is 0-360.
-	// To match the output style of your great circle code, we will return the
-	// raw degree value from rad2deg, which is -180 to 180.
-
-	// However, if you *must* maintain the functions `rad2deg` and `deg2rad`,
-	// the simple math looks like this:
-	return rad2deg(math.Atan2(deltaX, deltaY))
-}
-
-func deg2rad(d float64) float64 {
-	return d * math.Pi / 180.0
-}
-
-func rad2deg(r float64) float64 {
-	return 180.0 * r / math.Pi
-}
-
 // PointAtBearingAndDistance returns the point at the given bearing and distance from the origin point.
 func PointAtBearingAndDistance(origin orb.Point, bearing bearings.Bearing, distance unit.Length) orb.Point {
 	if bearing.IsMagnetic() {
