@@ -26,7 +26,8 @@ func (c *Controller) broadcastPicture(ctx context.Context, logger *zerolog.Logge
 		}
 		c.scope.WaitUntilFadesResolve(ctx)
 	}
-	count, groups := c.scope.Picture(conf.DefaultPictureRadius, c.coalition.Opposite(), brevity.FixedWing)
+	//count, groups := c.scope.Picture(conf.DefaultPictureRadius, c.coalition.Opposite(), brevity.FixedWing)
+	count, groups := c.scope.Picture(conf.DefaultPictureRadius, c.coalition, brevity.FixedWing) // removed .Opposite() to show all
 	isPictureClean := count == 0
 	for _, group := range groups {
 		group.SetDeclaration(brevity.Hostile)
