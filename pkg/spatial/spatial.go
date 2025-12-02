@@ -72,6 +72,7 @@ func deg2rad(d float64) float64 {
 func rad2deg(r float64) float64 {
 	return 180.0 * r / math.Pi
 }
+
 // PointAtBearingAndDistance returns the point at the given bearing and distance from the origin point.
 func PointAtBearingAndDistance(origin orb.Point, bearing bearings.Bearing, distance unit.Length) orb.Point {
 	if bearing.IsMagnetic() {
