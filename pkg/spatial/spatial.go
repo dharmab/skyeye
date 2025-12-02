@@ -16,19 +16,27 @@ import (
 
 // Distance returns the absolute distance between two points on the earth.
 func Distance(a, b orb.Point) unit.Length {
-	return unit.Length(math.Abs(geo.Distance(a, b))) * unit.Meter
+	distanceNM, err := CalculateDistanceNauticalMiles(a.Lat(), a.Lon(), b.Lat(), b.Lon())
+	if err != nil {
+		// Fallback to the original method if there's an error
+		return unit.Length(math.Abs(geo.Distance(a, b))) * unit.Meter
+	}
+
+	// Convert nautical miles to meters (1 nautical mile = 1852 meters)
+	distanceMeters := distanceNM * 1852
+	return unit.Length(distanceMeters) * unit.Meter
 }
 
 // TrueBearing returns the true bearing between two points.
 func TrueBearing(a, b orb.Point) bearings.Bearing {
+	bearing, err := CalculateBearing(a.Lat(), a.Lon(), b.Lat(), b.Lon())
+	if err != nil {
+		// Fallback to the original method if there's an error
+		direction := unit.Angle(BearingPlanar(a, b)) * unit.Degree
+		return bearings.NewTrueBearing(direction)
+	}
 
-	//log.Debug().Any("test", a).Msg("entered TrueBearing")
-	//log.Debug().Any("theoretical angle", BearingPlanar(a, b)).Msg("theoretical angle")
-	//direction := unit.Angle(geo.Bearing(a, b)) * unit.Degree
-	direction := unit.Angle(BearingPlanar(a, b)) * unit.Degree
-	//log.Debug().Any("direction", bearings.NewTrueBearing(direction)).Msg("direction")
-	return bearings.NewTrueBearing(direction)
-
+	return bearings.NewTrueBearing(unit.Angle(bearing) * unit.Degree)
 }
 
 func BearingPlanar(from, to orb.Point) float64 {
