@@ -16,7 +16,7 @@ import (
 
 // Distance returns the absolute distance between two points on the earth.
 func Distance(a, b orb.Point) unit.Length {
-	distanceMeters, err := CalculateDistanceNauticalMiles(a.Lat(), a.Lon(), b.Lat(), b.Lon())
+	distanceMeters, err := CalculateDistance(a.Lat(), a.Lon(), b.Lat(), b.Lon())
 	if err != nil {
 		// Fallback to the original method if there's an error
 		return unit.Length(math.Abs(geo.Distance(a, b))) * unit.Meter

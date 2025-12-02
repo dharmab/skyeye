@@ -74,8 +74,8 @@ func LatLongToProjection(lat, lon float64) (float64, float64, error) {
 	return result.Y(), result.X(), nil
 }
 
-// CalculateDistanceNauticalMiles calculates the distance between two points in nautical miles
-func CalculateDistanceNauticalMiles(lat1, lon1, lat2, lon2 float64) (float64, error) {
+// CalculateDistance calculates the distance between two points in meters
+func CalculateDistance(lat1, lon1, lat2, lon2 float64) (float64, error) {
 	// Convert both points to projection coordinates
 	x1, z1, err := LatLongToProjection(lat1, lon1)
 	if err != nil {
