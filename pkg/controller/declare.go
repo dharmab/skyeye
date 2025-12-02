@@ -59,7 +59,7 @@ func (c *Controller) HandleDeclare(ctx context.Context, request *brevity.Declare
 		}
 		origin = trackfile.LastKnown().Point
 		declination := c.scope.Declination(origin)
-		bearing = request.Bearing.Magnetic(declination)
+		bearing = request.Bearing.True(declination)
 		distance = request.Range
 	} else {
 		logger.Debug().Msg("locating point of interest using bullseye")
