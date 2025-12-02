@@ -91,9 +91,9 @@ func CalculateDistanceNauticalMiles(lat1, lon1, lat2, lon2 float64) (float64, er
 	distanceMeters := math.Sqrt(math.Pow(x2-x1, 2) + math.Pow(z2-z1, 2))
 
 	// Convert meters to nautical miles (1 nautical mile = 1852 meters)
-	distanceNauticalMiles := distanceMeters / 1852
+	//distanceNauticalMiles := distanceMeters / 1852
 
-	return distanceNauticalMiles, nil
+	return distanceMeters, nil
 }
 
 // CalculateBearing calculates the true bearing from first point to second point using projection coordinates
@@ -128,6 +128,7 @@ func CalculateBearing(lat1, lon1, lat2, lon2 float64) (float64, error) {
 	return compassBearing, nil
 }
 
+/*
 func main() {
 	fmt.Println("Distance Calculator using Kola Terrain Projection")
 	fmt.Println("==================================================")
@@ -163,3 +164,4 @@ func main() {
 		fmt.Println()
 	}
 }
+*/
