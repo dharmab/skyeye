@@ -76,7 +76,7 @@ func (r *Radar) FindNearestGroupWithBRAA(
 		return nil
 	}
 	log.Debug().Any("target latlong", grp).Msgf("target latlong lat %f lon %f", grp.point().Lat(), grp.point().Lon())
-	declination := r.Declination(origin)
+	declination := r.Declination(trackfile.LastKnown().Point)
 	log.Debug().Float64("declination", declination.Degrees()).Msg("calculated declination")
 	log.Debug().Any("truebearing", spatial.TrueBearing(origin, grp.point()).Degrees()).Msg("calculated true bearing") // here is the problem, i think //FIXME
 	bearing := spatial.TrueBearing(origin, grp.point()).Magnetic(declination)
