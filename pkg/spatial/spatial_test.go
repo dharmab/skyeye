@@ -71,7 +71,7 @@ func TestDistance(t *testing.T) {
 		t.Run(fmt.Sprintf("%v -> %v", test.a, test.b), func(t *testing.T) {
 			t.Parallel()
 			actual := Distance(test.a, test.b)
-			assert.InDelta(t, test.expected.Kilometers(), actual.Kilometers(), 1)
+			assert.InDelta(t, test.expected.NauticalMiles(), actual.NauticalMiles(), 1)
 		})
 	}
 }
