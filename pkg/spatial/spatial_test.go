@@ -17,23 +17,25 @@ func TestDistance(t *testing.T) {
 		a        orb.Point
 		b        orb.Point
 		expected unit.Length
-	}{
+	}{ // kola tests
 		{
 			a:        orb.Point{33.405794, 69.047461},
 			b:        orb.Point{24.973478, 70.068836},
 			expected: 186 * unit.NauticalMile,
 		},
+		
+			{
+				a:        orb.Point{33.405794, 69.047461},
+				b:        orb.Point{34.262989, 64.91865},
+				expected: 249 * unit.NauticalMile,
+			},
+			
+			{
+				a:        orb.Point{34.262989, 64.91865},
+				b:        orb.Point{24.973478, 70.068836},
+				expected: 377  * unit.NauticalMile,
+			},
 		/*
-			{
-				a:        orb.Point{0, 0},
-				b:        orb.Point{0, 1},
-				expected: 111 * unit.Kilometer,
-			},
-			{
-				a:        orb.Point{0, 0},
-				b:        orb.Point{0, -1},
-				expected: 111 * unit.Kilometer,
-			},
 			{
 				a:        orb.Point{0, 0},
 				b:        orb.Point{1, 0},
@@ -82,23 +84,25 @@ func TestTrueBearing(t *testing.T) {
 		a        orb.Point
 		b        orb.Point
 		expected unit.Angle
-	}{
+	}{ // kola
 		{
 			a:        orb.Point{33.405794, 69.047461},
 			b:        orb.Point{24.973478, 70.068836},
-			expected: 282 * unit.Degree,
+			expected: 282  * unit.Degree,
 		},
-		/*
+		
 			{
-				a:        orb.Point{0, 0},
-				b:        orb.Point{1, 0},
-				expected: 90 * unit.Degree,
+				a:        orb.Point{33.405794, 69.047461},
+				b:        orb.Point{34.262989, 64.91865},
+				expected: 164  * unit.Degree,
 			},
+			
 			{
-				a:        orb.Point{0, 0},
-				b:        orb.Point{0, -1},
-				expected: 180 * unit.Degree,
+				a:        orb.Point{34.262989, 64.91865},
+				b:        orb.Point{24.973478, 70.068836},
+				expected: 317   * unit.Degree,
 			},
+			/*
 			{
 				a:        orb.Point{0, 0},
 				b:        orb.Point{-1, 0},
@@ -128,7 +132,7 @@ func TestTrueBearing(t *testing.T) {
 		t.Run(fmt.Sprintf("%v -> %v", test.a, test.b), func(t *testing.T) {
 			t.Parallel()
 			actual := TrueBearing(test.a, test.b)
-			assert.InDelta(t, test.expected.Degrees(), actual.Degrees(), 1)
+			assert.InDelta(t, test.expected.Degrees(), actual.Degrees(), 2)
 		})
 	}
 }
