@@ -19,8 +19,8 @@ func TestDistance(t *testing.T) {
 		expected unit.Length
 	}{
 		{
-			a:        orb.Point{69.047461, 33.405794},
-			b:        orb.Point{70.068836, 24.973478},
+			a:        orb.Point{33.405794, 69.047461},
+			b:        orb.Point{24.973478, 70.068836},
 			expected: 186 * unit.NauticalMile,
 		},
 		/*
