@@ -78,6 +78,33 @@ func TestDistance(t *testing.T) {
 	}
 }
 
+func TestBullseye(t *testing.T) {
+	t.Parallel()
+	testCases := []struct {
+		a        orb.Point
+		b        orb.Point
+		expectedBearing unit.Angle
+		expectedDistance unit.Length
+
+	}{ // kola tests
+		{
+			a:        orb.Point{33.405794, 69.047461},
+			b:        orb.Point{24.973478, 70.068836},
+			expectedDistance: 186 * unit.NauticalMile,
+			expectedBearing: 282  * unit.Degree,	
+		},
+
+		}
+		for _, test := range testCases {
+		t.Run(fmt.Sprintf("%v -> %v", test.a, test.b), func(t *testing.T) {
+			t.Parallel()
+			actual := Bullseye(test.a, test.b)
+			assert.InDelta(t, test.expected.NauticalMiles(), actual.NauticalMiles(), 5)
+		})
+	}
+}
+
+
 func TestTrueBearing(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
