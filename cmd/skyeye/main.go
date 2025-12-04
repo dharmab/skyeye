@@ -106,7 +106,7 @@ func init() {
 	skyeye.Flags().StringVar(&grpcAPIKey, "grpc-api-key", "", "API key for DCS-gRPC authentication")
 
 	// Identity
-	skyeye.Flags().StringVar(&controllerCallsign, "callsign1", "", "GCI callsign used in radio transmissions. Automatically chosen if not provided")
+	skyeye.Flags().StringVar(&controllerCallsign, "callsign", "", "GCI callsign used in radio transmissions. Automatically chosen if not provided")
 	skyeye.Flags().StringSliceVar(&controllerCallsigns, "callsigns", []string{}, "A list of GCI callsigns to select from")
 	skyeye.MarkFlagsMutuallyExclusive("callsign", "callsigns")
 	coalitionFlag := cli.NewEnum(&coalitionName, "Coalition", "blue", "red")
