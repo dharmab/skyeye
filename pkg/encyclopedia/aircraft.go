@@ -583,6 +583,33 @@ var flankerData = Aircraft{
 	threatRadius:        SAR2AR1Threat,
 }
 
+var flagonData = Aircraft{
+	tags: map[AircraftTag]bool{
+		FixedWing: true,
+		Fighter:   true,
+	},
+	PlatformDesignation: "Su-15",
+	NATOReportingName:   "Flagon",
+	threatRadius:        ExtendedThreat,
+}
+
+func flagonVariants() []Aircraft {
+	return []Aircraft{
+		{
+			ACMIShortName:       "Su_15",
+			tags:                flagonData.tags,
+			PlatformDesignation: flagonData.PlatformDesignation,
+			NATOReportingName:   flagonData.NATOReportingName,
+		},
+		{
+			ACMIShortName:       "Su_15TM",
+			tags:                flagonData.tags,
+			PlatformDesignation: flagonData.PlatformDesignation,
+			NATOReportingName:   flagonData.NATOReportingName,
+		},
+	}
+}
+
 var kc135Data = Aircraft{
 	tags: map[AircraftTag]bool{
 		FixedWing: true,
@@ -1015,6 +1042,17 @@ var aircraftData = []Aircraft{
 		OfficialName:        "Havoc",
 	},
 	{
+		ACMIShortName: "vwv_mig17f",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Fighter:   true,
+		},
+		PlatformDesignation: "MiG-17",
+		TypeDesignation:     "MiG-17F",
+		NATOReportingName:   "Fresco",
+		threatRadius:        SAR1IRThreat,
+	},
+	{
 		ACMIShortName: "MiG-19P",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
@@ -1033,6 +1071,17 @@ var aircraftData = []Aircraft{
 		},
 		PlatformDesignation: "MiG-21",
 		TypeDesignation:     "MiG-21bis",
+		NATOReportingName:   "Fishbed",
+		threatRadius:        SAR1IRThreat,
+	},
+	{
+		ACMIShortName: "vwv_mig21mf",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Fighter:   true,
+		},
+		PlatformDesignation: "MiG-21",
+		TypeDesignation:     "MiG-21MF",
 		NATOReportingName:   "Fishbed",
 		threatRadius:        SAR1IRThreat,
 	},
@@ -1221,6 +1270,16 @@ var aircraftData = []Aircraft{
 		OfficialName:        "Blackjack",
 	},
 	{
+		ACMIShortName: "Tu-16",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
+		PlatformDesignation: "Tu-16",
+		TypeDesignation:     "Tu-16",
+		OfficialName:        "Badger",
+	},
+	{
 		ACMIShortName: "UH-1H",
 		tags: map[AircraftTag]bool{
 			RotaryWing: true,
@@ -1240,6 +1299,46 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "UH-60",
 		TypeDesignation:     "UH-60A",
 		OfficialName:        "Black Hawk",
+	},
+	{
+		ACMIShortName: "Yak_28",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Fighter:   true,
+		},
+		PlatformDesignation: "Yak-28",
+		TypeDesignation:     "Yak-28",
+		NATOReportingName:   "Brewer",
+		threatRadius:        SAR1IRThreat,
+	},
+	{
+		ACMIShortName: "Bronco-OV-10A",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Attack:    true,
+		},
+		PlatformDesignation: "OV-10",
+		TypeDesignation:     "OV-10A",
+		OfficialName:        "Bronco",
+		Nickname:            "Bronco",
+	},
+	{
+		ACMIShortName: "Yak-40",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
+		PlatformDesignation: "Yak-40",
+		NATOReportingName:   "Codling",
+	},
+	{
+		ACMIShortName: "Tu-126",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
+		PlatformDesignation: "Tu-126",
+		NATOReportingName:   "Moss",
 	},
 }
 
@@ -1276,6 +1375,7 @@ func init() {
 		s3Variants(),
 		tornadoVariants(),
 		mq9Variants(),
+		flagonVariants(),
 	} {
 		for _, data := range vars {
 			aircraftDataLUT[data.ACMIShortName] = data
