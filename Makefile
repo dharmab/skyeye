@@ -63,11 +63,11 @@ SKYEYE_SCALER_BIN = skyeye-scaler.exe
 GO = /ucrt64/bin/go
 GOBUILDVARS += GOROOT="/ucrt64/lib/go" GOPATH="/ucrt64"
 # Static linking on Windows to avoid MSYS2 dependency at runtime
-LIBRARIES = opus soxr
+LIBRARIES = opus soxr proj
 CFLAGS = $(shell pkg-config $(LIBRARIES) --cflags --static)
 BUILD_VARS += CFLAGS='$(CFLAGS)'
 EXTLDFLAGS = $(shell pkg-config $(LIBRARIES) --libs --static)
-LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS) -static"
+LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS)" #-static"
 endif
 
 BUILD_VARS += LDFLAGS='$(LDFLAGS)'
