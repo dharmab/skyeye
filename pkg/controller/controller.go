@@ -86,7 +86,7 @@ func New(
 	threatMonitoringCooldown time.Duration,
 	threatMonitoringRequiresSRS bool,
 ) *Controller {
-	log.Debug().Msgf("enableAutomaticPicture is %v", enableAutomaticPicture)
+	//log.Debug().Msgf("enableAutomaticPicture is %v", enableAutomaticPicture)
 	return &Controller{
 		coalition:                   coalition,
 		scope:                       rdr,
