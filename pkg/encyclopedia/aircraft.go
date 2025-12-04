@@ -1340,6 +1340,15 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "Tu-126",
 		NATOReportingName:   "Moss",
 	},
+	{
+		ACMIShortName: "Tu_126",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Unarmed:   true,
+		},
+		PlatformDesignation: "Tu-126",
+		NATOReportingName:   "Moss",
+	},
 }
 
 // aircraftDataLUT maps the name exported in ACMI data to aircraft data.
