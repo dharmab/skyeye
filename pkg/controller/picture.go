@@ -50,7 +50,7 @@ func (c *Controller) broadcastPicture(ctx context.Context, logger *zerolog.Logge
 }
 
 func (c *Controller) broadcastAutomaticPicture(ctx context.Context) {
-	log.Debug().Msgf("automaticPicture is %s", c.enableAutomaticPicture)
+	log.Debug().Msgf("automaticPicture is %v", c.enableAutomaticPicture)
 	if !c.enableAutomaticPicture {
 		return
 	}
