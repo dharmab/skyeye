@@ -18,6 +18,7 @@ require (
 	github.com/jba/omap v0.1.0
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6
+	github.com/michiho/go-proj/v10 v10.5.11
 	github.com/nabbl/piper v0.0.0-20240819160100-e51f2288a5c0
 	github.com/openai/openai-go v0.1.0-alpha.41
 	github.com/pasztorpisti/go-crc v1.0.0
@@ -258,7 +259,6 @@ require (
 	honnef.co/go/tools v0.6.1 // indirect
 	mvdan.cc/gofumpt v0.9.1 // indirect
 	mvdan.cc/unparam v0.0.0-20250301125049-0df0534333a4 // indirect
-		github.com/michiho/go-proj/v10 v10.5.11 // indirect
 )
 
 tool (

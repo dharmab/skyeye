@@ -12,7 +12,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/bearings"
 )
 
-// TransverseMercator represents the parameters for a Transverse Mercator projection
+// TransverseMercator represents the parameters for a Transverse Mercator projection.
 type TransverseMercator struct {
 	CentralMeridian int
 	FalseEasting    float64
@@ -20,7 +20,7 @@ type TransverseMercator struct {
 	ScaleFactor     float64
 }
 
-// KolaProjection returns the TransverseMercator parameters for the Kola terrain
+// KolaProjection returns the TransverseMercator parameters for the Kola terrain.
 func KolaProjection() TransverseMercator {
 	return TransverseMercator{
 		CentralMeridian: 21,
@@ -30,7 +30,7 @@ func KolaProjection() TransverseMercator {
 	}
 }
 
-// ToProjString converts the TransverseMercator parameters to a PROJ string
+// ToProjString converts the TransverseMercator parameters to a PROJ string.
 func (tm TransverseMercator) ToProjString() string {
 	return fmt.Sprintf(
 		"+proj=tmerc +lat_0=0 +lon_0=%d +k=%f +x_0=%f +y_0=%f +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs",
@@ -41,8 +41,8 @@ func (tm TransverseMercator) ToProjString() string {
 	)
 }
 
-// LatLongToProjection converts latitude/longitude to projection coordinates using Kola terrain parameters
-func LatLongToProjection(lat, lon float64) (float64, float64, error) {
+// LatLongToProjection converts latitude/longitude to projection coordinates using Kola terrain parameters.
+func LatLongToProjection(lat float64, lon float64) (float64, float64, error) {
 	// Validate input coordinates
 	if lat < -90 || lat > 90 {
 		return 0, 0, fmt.Errorf("latitude must be between -90 and 90, got %f", lat)
@@ -54,63 +54,63 @@ func LatLongToProjection(lat, lon float64) (float64, float64, error) {
 	// Get the Kola projection parameters
 	projection := KolaProjection()
 
-	// Create transformer from WGS84 to the Kola projection
-	// Using the exact PROJ string from the Python implementation
+	// Create transformer from WGS84 to the Kola projection.
+	// Using the exact PROJ string from the Python implementation.
 	source := "+proj=longlat +datum=WGS84 +no_defs +type=crs"
 	target := projection.ToProjString()
 
 	pj, err := proj.NewCRSToCRS(source, target, nil)
 	if err != nil {
-		return 0, 0, fmt.Errorf("failed to create projection: %v", err)
+		return 0, 0, fmt.Errorf("failed to create projection: %w", err)
 	}
 	defer pj.Destroy()
 
-	// Create coordinate from lon/lat (PROJ uses lon,lat order)
+	// Create coordinate from lon/lat (PROJ uses lon,lat order).
 	coord := proj.NewCoord(lon, lat, 0, 0)
 
 	// Transform the coordinates
 	result, err := pj.Forward(coord)
 	if err != nil {
-		return 0, 0, fmt.Errorf("failed to transform coordinates: %v", err)
+		return 0, 0, fmt.Errorf("failed to transform coordinates: %w", err)
 	}
 
-	// In DCS, z coordinate corresponds to the y coordinate from projection
-	// But in our case, we need to swap x and y to match the Python results
+	// In DCS, z coordinate corresponds to the y coordinate from projection.
+	// But in our case, we need to swap x and y to match the Python results.
 	return result.Y(), result.X(), nil
 }
 
-// ProjectionToLatLong converts projection coordinates to latitude/longitude using Kola terrain parameters
+// ProjectionToLatLong converts projection coordinates to latitude/longitude using Kola terrain parameters.
 func ProjectionToLatLong(x, z float64) (float64, float64, error) {
-	// Get the Kola projection parameters
+	// Get the Kola projection parameters.
 	projection := KolaProjection()
 
-	// Create transformer from the Kola projection to WGS84
-	// This is the inverse of LatLongToProjection
+	// Create transformer from the Kola projection to WGS84.
+	// This is the inverse of LatLongToProjection.
 	source := projection.ToProjString()
 	target := "+proj=longlat +datum=WGS84 +no_defs +type=crs"
 
 	pj, err := proj.NewCRSToCRS(source, target, nil)
 	if err != nil {
-		return 0, 0, fmt.Errorf("failed to create projection: %v", err)
+		return 0, 0, fmt.Errorf("failed to create projection: %w", err)
 	}
 	defer pj.Destroy()
 
-	// Create coordinate from x/z (swapped to match the forward transformation)
-	// In LatLongToProjection we return (result.Y(), result.X())
-	// So here we need to input (z, x) to get back the original (lon, lat)
+	// Create coordinate from x/z (swapped to match the forward transformation).
+	// In LatLongToProjection we return (result.Y(), result.X()).
+	// So here we need to input (z, x) to get back the original (lon, lat).
 	coord := proj.NewCoord(z, x, 0, 0)
 
-	// Transform the coordinates (inverse transformation)
+	// Transform the coordinates (inverse transformation).
 	result, err := pj.Forward(coord)
 	if err != nil {
-		return 0, 0, fmt.Errorf("failed to transform coordinates: %v", err)
+		return 0, 0, fmt.Errorf("failed to transform coordinates: %w", err)
 	}
 
-	// Result contains lon, lat (in that order)
+	// Result contains lon, lat (in that order).
 	lon := result.X()
 	lat := result.Y()
 
-	// Validate output coordinates
+	// Validate output coordinates.
 	if lat < -90 || lat > 90 {
 		return 0, 0, fmt.Errorf("result latitude out of range: %f", lat)
 	}
@@ -121,39 +121,39 @@ func ProjectionToLatLong(x, z float64) (float64, float64, error) {
 	return lat, lon, nil
 }
 
-// CalculateDistance calculates the distance between two points in meters
+// CalculateDistance calculates the distance between two points in meters.
 func CalculateDistance(lat1, lon1, lat2, lon2 float64) (float64, error) {
-	// Convert both points to projection coordinates
+	// Convert both points to projection coordinates.
 	x1, z1, err := LatLongToProjection(lat1, lon1)
 	if err != nil {
-		return 0, fmt.Errorf("failed to convert first point: %v", err)
+		return 0, fmt.Errorf("failed to convert first point: %w", err)
 	}
 
 	x2, z2, err := LatLongToProjection(lat2, lon2)
 	if err != nil {
-		return 0, fmt.Errorf("failed to convert second point: %v", err)
+		return 0, fmt.Errorf("failed to convert second point: %w", err)
 	}
 
-	// Calculate Euclidean distance in meters
+	// Calculate Euclidean distance in meters.
 	distanceMeters := math.Sqrt(math.Pow(x2-x1, 2) + math.Pow(z2-z1, 2))
 
-	// Convert meters to nautical miles (1 nautical mile = 1852 meters)
-	//distanceNauticalMiles := distanceMeters / 1852
+	// Convert meters to nautical miles (1 nautical mile = 1852 meters).
+	//distanceNauticalMiles := distanceMeters / 1852.
 
 	return distanceMeters, nil
 }
 
-// CalculateBearing calculates the true bearing from first point to second point using projection coordinates
+// CalculateBearing calculates the true bearing from first point to second point using projection coordinates.
 func CalculateBearing(lat1, lon1, lat2, lon2 float64) (float64, error) {
-	// Convert both points to projection coordinates
+	// Convert both points to projection coordinates.
 	x1, z1, err := LatLongToProjection(lat1, lon1)
 	if err != nil {
-		return 0, fmt.Errorf("failed to convert first point: %v", err)
+		return 0, fmt.Errorf("failed to convert first point: %w", err)
 	}
 
 	x2, z2, err := LatLongToProjection(lat2, lon2)
 	if err != nil {
-		return 0, fmt.Errorf("failed to convert second point: %v", err)
+		return 0, fmt.Errorf("failed to convert second point: %w", err)
 	}
 
 	// Calculate bearing using atan2
@@ -175,8 +175,8 @@ func CalculateBearing(lat1, lon1, lat2, lon2 float64) (float64, error) {
 	return compassBearing, nil
 }
 
-// PointAtBearingAndDistanceUTM calculates a new point at the given bearing and distance
-// from an origin point using Transverse Mercator projection
+// PointAtBearingAndDistanceUTM calculates a new point at the given bearing and distance.
+// from an origin point using Transverse Mercator projection.
 func PointAtBearingAndDistanceUTM(lat1 float64, lon1 float64, bearing bearings.Bearing, distance unit.Length) orb.Point {
 	if bearing.IsMagnetic() {
 		log.Warn().Stringer("bearing", bearing).Msg("bearing provided to PointAtBearingAndDistance should not be magnetic")

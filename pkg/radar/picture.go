@@ -39,7 +39,7 @@ func (r *Radar) Picture(radius unit.Length, coalition coalitions.Coalition, filt
 		filter,
 		[]uint64{},
 	)
-	
+
 	// Sort groups from highest to lowest threat
 	slices.SortFunc(groups, r.compareThreat)
 
