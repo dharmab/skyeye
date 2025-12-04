@@ -79,6 +79,7 @@ func (c *Controller) HandleDeclare(ctx context.Context, request *brevity.Declare
 	pointOfInterest := spatial.PointAtBearingAndDistance(origin, bearing, distance)
 
 	radius := 7 * unit.NauticalMile
+	logger.Debug().Msgf("point of interest located at %f,%f, range %f", pointOfInterest.Lat(), pointOfInterest.Lon(), radius.NauticalMiles())
 
 	minAltitude := lowestAltitude
 	maxAltitude := highestAltitude
