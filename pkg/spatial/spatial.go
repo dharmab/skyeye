@@ -76,7 +76,10 @@ func PointAtBearingAndDistance(origin orb.Point, bearing bearings.Bearing, dista
 	if bearing.IsMagnetic() {
 		log.Warn().Stringer("bearing", bearing).Msg("bearing provided to PointAtBearingAndDistance should not be magnetic")
 	}
-	return geo.PointAtBearingAndDistance(origin, bearing.Degrees(), distance.Meters())
+	//return geo.PointAtBearingAndDistance(origin, bearing.Degrees(), distance.Meters())
+
+	return PointAtBearingAndDistanceUTM(origin.Lat(), origin.Lon(), bearing, distance)
+
 }
 
 // IsZero returns true if the point is the origin.

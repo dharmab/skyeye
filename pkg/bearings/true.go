@@ -13,7 +13,7 @@ type True struct {
 
 var _ Bearing = True{}
 
-// NewTrueBearing creates a new bearing from the given value.
+// NewTrueBearing creates a new bearing from the given value, relative to true north.
 func NewTrueBearing(value unit.Angle) True {
 	return True{θ: normalize(value)}
 }
