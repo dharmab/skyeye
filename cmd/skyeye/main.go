@@ -62,6 +62,7 @@ var (
 	useSystemVoice               bool
 	mute                         bool
 	voiceSpeed                   float64
+	voiceVolume                  float64
 	voicePauseLength             time.Duration
 	voiceLockPath                string
 	enableAutomaticPicture       bool
@@ -124,6 +125,7 @@ func init() {
 	voiceFlag := cli.NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine). Automatically chosen if not provided.")
 	skyeye.Flags().Float64Var(&voiceSpeed, "voice-playback-speed", 1.0, "How quickly the GCI speaks (values below 1.0 are faster and above are slower).")
+	skyeye.Flags().Float64Var(&voiceVolume, "volume", 1.0, "Volume level for audio output (0.0 = silent, 1.0 = normal, 2.0 = double volume)")
 	skyeye.Flags().BoolVar(&mute, "mute", false, "Mute all SRS transmissions. Useful for testing without disrupting play")
 	skyeye.Flags().StringVar(&voiceLockPath, "voice-lock-path", "", "Path to lock file for concurrent text-to-speech when using multiple instances")
 	if runtime.GOOS == "darwin" {
@@ -381,9 +383,11 @@ func run(_ *cobra.Command, _ []string) {
 		WhisperModel:                 whisperModel,
 		OpenAIAPIKey:                 openAIAPIKey,
 		Voice:                        voice,
+		UseSystemVoice:               useSystemVoice,
 		VoiceLock:                    voiceLock,
 		Mute:                         mute,
 		VoiceSpeed:                   voiceSpeed,
+		Volume:                       voiceVolume,
 		VoicePauseLength:             voicePauseLength,
 		EnableAutomaticPicture:       enableAutomaticPicture,
 		PictureBroadcastInterval:     automaticPictureInterval,

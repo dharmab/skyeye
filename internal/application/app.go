@@ -59,6 +59,8 @@ type Application struct {
 	speaker speakers.Speaker
 	// speakerLock prevents multiple instances from running the speaker at the same time
 	speakerLock *flock.Flock
+	// volume is the audio output volume level
+	volume float64
 	// enableTranscriptionLogging controls whether transcriptions are included in logs
 	enableTranscriptionLogging bool
 	// tracers are destinations where traces are sent when tracing is enabled
@@ -227,6 +229,7 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		composer:                   responseComposer,
 		speaker:                    synthesizer,
 		speakerLock:                config.VoiceLock,
+		volume:                     config.Volume,
 		tracers:                    tracers,
 		starts:                     starts,
 		updates:                    updates,

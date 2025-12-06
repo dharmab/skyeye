@@ -75,3 +75,51 @@ func TestS16toF32toS16RoundTrip(t *testing.T) {
 		})
 	}
 }
+
+func TestAdjustVolume(t *testing.T) {
+	t.Parallel()
+	testCases := []struct {
+		name     string
+		samples  []float32
+		volume   float64
+		expected []float32
+	}{
+		{
+			name:     "volume 1.0 returns unchanged",
+			samples:  []float32{-1.0, -0.5, 0.0, 0.5, 1.0},
+			volume:   1.0,
+			expected: []float32{-1.0, -0.5, 0.0, 0.5, 1.0},
+		},
+		{
+			name:     "volume 0.5 halves amplitude",
+			samples:  []float32{-1.0, -0.5, 0.0, 0.5, 1.0},
+			volume:   0.5,
+			expected: []float32{-0.5, -0.25, 0.0, 0.25, 0.5},
+		},
+		{
+			name:     "volume 0.0 silences audio",
+			samples:  []float32{-1.0, -0.5, 0.0, 0.5, 1.0},
+			volume:   0.0,
+			expected: []float32{0.0, 0.0, 0.0, 0.0, 0.0},
+		},
+		{
+			name:     "volume 2.0 doubles amplitude but clamps",
+			samples:  []float32{-0.75, -0.5, 0.0, 0.5, 0.75},
+			volume:   2.0,
+			expected: []float32{-1.0, -1.0, 0.0, 1.0, 1.0},
+		},
+		{
+			name:     "volume > 1.0 clamps at limits",
+			samples:  []float32{-1.0, 1.0},
+			volume:   1.5,
+			expected: []float32{-1.0, 1.0},
+		},
+	}
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			actual := AdjustVolume(test.samples, test.volume)
+			assert.Equal(t, test.expected, actual)
+		})
+	}
+}

@@ -141,6 +141,11 @@
 # while values below 1.0 speed it up.
 #voice-playback-speed: 1.0
 #
+# Set the volume level for audio output. Values below 1.0 reduce volume, while
+# values above 1.0 increase it. 0.0 is silent, 1.0 is the default produced by
+# the selected speech synthesizer.
+#volume: 1.0
+#
 # Customize the length of the pause between sentences. This can be useful if
 # the GCI is speaking too quickly for your taste. This option is not available
 # on macOS.
