@@ -381,6 +381,7 @@ func run(_ *cobra.Command, _ []string) {
 		WhisperModel:                 whisperModel,
 		OpenAIAPIKey:                 openAIAPIKey,
 		Voice:                        voice,
+		UseSystemVoice:               useSystemVoice,
 		VoiceLock:                    voiceLock,
 		Mute:                         mute,
 		VoiceSpeed:                   voiceSpeed,
