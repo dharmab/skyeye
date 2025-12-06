@@ -2,7 +2,7 @@
 
 SkyEye is an AI-powered GCI bot for DCS World that uses Whisper speech recognition, Tacview telemetry, and TTS to replace in-game AWACS with natural language command processing following real-world aviation brevity codes.
 
-**Stack:** Go 1.25 + CGO, whisper.cpp (C++), Piper TTS (Windows/Linux), macOS Speech Synthesis, Tacview ACMI, SRS protocol
+**Stack:** Go 1.25.5 + CGO, whisper.cpp (C++), Piper TTS (Windows/Linux), macOS Speech Synthesis, Tacview ACMI, SRS protocol
 
 ## Platform Support
 

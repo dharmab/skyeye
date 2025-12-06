@@ -1,6 +1,6 @@
 module github.com/dharmab/skyeye
 
-go 1.25
+go 1.25.5
 
 require (
 	github.com/DCS-gRPC/go-bindings v0.7.1
