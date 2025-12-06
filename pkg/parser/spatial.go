@@ -1,8 +1,7 @@
 package parser
 
 import (
-	"bufio"
-
+	"github.com/dharmab/skyeye/internal/parser/token"
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/martinlindhe/unit"
@@ -12,19 +11,22 @@ import (
 
 var bullseyeWords = []string{"bullseye", "bulls"}
 
-func parseBullseye(scanner *bufio.Scanner) *brevity.Bullseye {
-	if !skipWords(scanner, bullseyeWords...) {
-		return nil
+func parseBullseye(stream *token.Stream) *brevity.Bullseye {
+	// Skip bullseye keyword if present
+	for _, word := range bullseyeWords {
+		if isSimilar(stream.Text(), word) {
+			stream.Advance()
+			break
+		}
 	}
 
-	b, extra, ok := parseBearing(scanner)
+	b, ok := parseBearing(stream)
 	if !ok {
 		log.Debug().Msg("failed to parse bullseye bearing")
 		return nil
 	}
-	scanner = prependToScanner(scanner, extra)
 
-	r, ok := parseRange(scanner)
+	r, ok := parseRange(stream)
 	if !ok {
 		log.Debug().Msg("failed to parse bullseye range")
 		return nil
@@ -35,24 +37,28 @@ func parseBullseye(scanner *bufio.Scanner) *brevity.Bullseye {
 
 var braaWords = []string{"bra", "brah", "braa"}
 
-func parseBRA(scanner *bufio.Scanner) (brevity.BRA, bool) {
-	if !skipWords(scanner, braaWords...) {
-		return nil, false
+func parseBRA(stream *token.Stream) (brevity.BRA, bool) {
+	// Skip BRAA keyword if present
+	for _, word := range braaWords {
+		if isSimilar(stream.Text(), word) {
+			stream.Advance()
+			break
+		}
 	}
-	b, extra, ok := parseBearing(scanner)
+
+	b, ok := parseBearing(stream)
 	if !ok {
 		log.Debug().Msg("failed to parse BRA bearing")
 		return nil, false
 	}
-	scanner = prependToScanner(scanner, extra)
 
-	r, ok := parseRange(scanner)
+	r, ok := parseRange(stream)
 	if !ok {
 		log.Debug().Msg("failed to parse BRA range")
 		return nil, false
 	}
 
-	a, ok := parseAltitude(scanner)
+	a, ok := parseAltitude(stream)
 	if !ok {
 		log.Debug().Msg("failed to parse BRA altitude")
 	}
@@ -62,82 +68,115 @@ func parseBRA(scanner *bufio.Scanner) (brevity.BRA, bool) {
 
 // parseBearing parses a 3 digit magnetic bearing. Each digit should be
 // individually pronounced. Zeroes must be prefixed to values below 100.
-// Returns the bearing (if successfully parsed), the remaining text if any
-// characters were left in a token after parsing 3 digits, and a boolean
-// indicating if the bearing was successfully parsed.
-func parseBearing(scanner *bufio.Scanner) (bearings.Bearing, string, bool) {
+func parseBearing(stream *token.Stream) (bearings.Bearing, bool) {
 	bearing := 0 * unit.Degree
 	digitsParsed := 0
-	for digitsParsed < 3 {
-		token := scanner.Text()
-		if !hasDigits(token) {
-			if !scanner.Scan() {
-				return bearings.NewMagneticBearing(0), "", false
-			}
+
+	for digitsParsed < 3 && !stream.AtEnd() {
+		tokenText := stream.Text()
+		if tokenText == "" {
+			stream.Advance()
 			continue
 		}
-		extra := token
-		for _, char := range token {
+
+		if !hasDigits(tokenText) {
+			stream.Advance()
+			continue
+		}
+
+		// Parse digits from current token
+		charsConsumed := 0
+		for _, char := range tokenText {
 			if d, err := numwords.ParseInt(string(char)); err == nil {
 				bearing = bearing*10 + unit.Degree*unit.Angle(d)
 				digitsParsed++
-			}
-			extra = extra[1:]
-			if digitsParsed == 3 {
-				return bearings.NewMagneticBearing(bearing), extra, true
+				charsConsumed++
+				if digitsParsed == 3 {
+					// If there are more characters in this token, save them as partial
+					if charsConsumed < len(tokenText) {
+						stream.SetPartialToken(tokenText[charsConsumed:])
+					} else {
+						stream.Advance()
+					}
+					return bearings.NewMagneticBearing(bearing), true
+				}
 			}
 		}
-		if !scanner.Scan() {
-			return bearings.NewMagneticBearing(bearing), extra, true
-		}
+
+		stream.Advance()
 	}
-	return bearings.NewMagneticBearing(0), "", false
+
+	return bearings.NewMagneticBearing(bearing), digitsParsed == 3
 }
 
 // parseRange parses a distance. The number must be pronounced as a whole cardinal number.
-func parseRange(scanner *bufio.Scanner) (unit.Length, bool) {
-	if !scanner.Scan() {
+func parseRange(stream *token.Stream) (unit.Length, bool) {
+	if stream.AtEnd() {
 		return 0, false
 	}
-	if !skipWords(scanner, "for") {
+
+	// Skip optional "for" keyword
+	if isSimilar(stream.Text(), "for") {
+		stream.Advance()
+	}
+
+	if stream.AtEnd() {
 		return 0, false
 	}
-	d, ok := parseNaturalNumber(scanner)
+
+	d, ok := parseNaturalNumber(stream)
 	if !ok {
 		return 0, false
 	}
+
 	return unit.Length(d) * unit.NauticalMile, true
 }
 
-func parseAltitude(scanner *bufio.Scanner) (unit.Length, bool) {
-	if !scanner.Scan() {
+func parseAltitude(stream *token.Stream) (unit.Length, bool) {
+	if stream.AtEnd() {
 		return 0, false
 	}
-	if !skipWords(scanner, "at", "altitude", "angels") {
+
+	// Skip optional altitude keywords
+	text := stream.Text()
+	if isSimilar(text, "at") || isSimilar(text, "altitude") || isSimilar(text, "angels") {
+		stream.Advance()
+	}
+
+	if stream.AtEnd() {
 		return 0, false
 	}
-	d, ok := parseNaturalNumber(scanner)
+
+	d, ok := parseNaturalNumber(stream)
 	if !ok {
 		return 0, false
 	}
 
 	altitude := unit.Length(d) * unit.Foot
-	// Values below 100 are likely a player incorrectly saying "angels XX" intead of thousands of feet.
+	// Values below 100 are likely a player incorrectly saying "angels XX" instead of thousands of feet.
 	if d < 100 {
 		altitude = altitude * 1000
 	}
 	return altitude, true
 }
 
-func parseTrack(scanner *bufio.Scanner) brevity.Track {
-	for scanner.Text() == "track" {
-		ok := scanner.Scan()
-		if !ok {
+func parseTrack(stream *token.Stream) brevity.Track {
+	if stream.AtEnd() {
+		return brevity.UnknownDirection
+	}
+
+	// Skip "track" keyword if present
+	for isSimilar(stream.Text(), "track") {
+		if !stream.Advance() {
 			return brevity.UnknownDirection
 		}
 	}
 
-	switch scanner.Text() {
+	if stream.AtEnd() {
+		return brevity.UnknownDirection
+	}
+
+	switch stream.Text() {
 	case "north":
 		return brevity.North
 	case "northeast":
@@ -159,12 +198,13 @@ func parseTrack(scanner *bufio.Scanner) brevity.Track {
 	}
 }
 
-func parseNaturalNumber(scanner *bufio.Scanner) (int, bool) {
-	s := scanner.Text()
+func parseNaturalNumber(stream *token.Stream) (int, bool) {
+	s := stream.Text()
 	d, err := numwords.ParseInt(s)
 	if err != nil {
 		log.Error().Err(err).Str("text", s).Msg("failed to parse natural number")
 		return 0, false
 	}
+	stream.Advance()
 	return d, true
 }
