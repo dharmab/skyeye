@@ -160,12 +160,16 @@ func (c *Composer) composeAltitudeStacks(stacks []brevity.Stack, declaration bre
 		return c.composeAltitude(stacks[0].Altitude, declaration)
 	}
 
-	s := "stack " + c.composeAltitude(stacks[0].Altitude, declaration)
+	var sb strings.Builder
+	sb.WriteString("stack ")
+	sb.WriteString(c.composeAltitude(stacks[0].Altitude, declaration))
 	for i := 1; i < len(stacks)-1; i++ {
-		s += ", " + c.composeAltitude(stacks[i].Altitude, declaration)
+		sb.WriteString(", ")
+		sb.WriteString(c.composeAltitude(stacks[i].Altitude, declaration))
 	}
-	s += " and " + c.composeAltitude(stacks[len(stacks)-1].Altitude, declaration)
-	return s
+	sb.WriteString(" and ")
+	sb.WriteString(c.composeAltitude(stacks[len(stacks)-1].Altitude, declaration))
+	return sb.String()
 }
 
 func (*Composer) composeAltitudeFillIns(stacks []brevity.Stack) string {
