@@ -50,16 +50,16 @@ linters:
     - whitespace
     - zerologlint
   disable:
-    - asciicheck  # Unicode is fine!
-    - contextcheck  # Neat but doesn't understand request contexts in this project
-    - exhaustruct  # Too verbose
-    - godox  # The point of a TODO is something you can't do yet...
-    - testpackage  # Test packages only allow blackbox testing
+    - asciicheck # Unicode is fine!
+    - contextcheck # Neat but doesn't understand request contexts in this project
+    - exhaustruct # Too verbose
+    - godox # The point of a TODO is something you can't do yet...
+    - testpackage # Test packages only allow blackbox testing
   settings:
     gosec:
       excludes:
-        - G107  # Intentional use of custom webhooks
-        - G404  # We aren't using math/rand/v2 for secure purposes
+        - G107 # Intentional use of custom webhooks
+        - G404 # We aren't using math/rand/v2 for secure purposes
     revive:
       rules:
         - name: bool-literal-in-expr
@@ -120,6 +120,8 @@ linters:
           disabled: false
         - name: unhandled-error
           disabled: false
+          arguments:
+            - "strings\\.Builder\\.WriteString"
         - name: unnecessary-stmt
           disabled: false
         - name: unreachable-code
