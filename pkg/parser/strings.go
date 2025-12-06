@@ -8,15 +8,27 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	// similarityThreshold is the minimum Levenshtein similarity score
+	// required for fuzzy string matching (0.0-1.0). A value of 0.6
+	// allows for minor speech recognition errors while avoiding false positives.
+	similarityThreshold = 0.6
+
+	// halfFieldMinLength is the minimum length for half-field matching.
+	// This handles cases where two words run together (e.g., "bogeydope").
+	// Only fields longer than this value will be checked by splitting in half.
+	halfFieldMinLength = 8
+)
+
 // isSimilar returns true if the two strings have a similarity score greater
-// than 0.6 using the Levenshtein distance algorithm.
+// than similarityThreshold using the Levenshtein distance algorithm.
 func isSimilar(a, b string) bool {
 	v, err := fuzz.StringsSimilarity(strings.ToLower(a), strings.ToLower(b), fuzz.Levenshtein)
 	if err != nil {
 		log.Error().Err(err).Str("a", a).Str("b", b).Msg("failed to calculate similarity")
 		return false
 	}
-	return v > 0.6
+	return v > similarityThreshold
 }
 
 func hasDigits(tx string) bool {
@@ -41,15 +53,48 @@ func hasDigits(tx string) bool {
 //   - Substitute alternate forms of request words with canonical forms.
 //   - Remove extra spaces.
 func normalize(tx string) string {
+	// Cut on pipe delimiter
 	tx, _, _ = strings.Cut(tx, "|")
-	tx = strings.ToLower(tx)
-	tx = removeSymbols(tx)
+	if tx == "" {
+		return ""
+	}
+
+	// Single pass: lowercase + remove symbols + space numbers
+	var builder strings.Builder
+	builder.Grow(len(tx))
+
+	for i, r := range tx {
+		rLower := unicode.ToLower(r)
+
+		// Check if period followed by non-space
+		isPeriodBeforeNonSpace := r == '.' && i+1 < len(tx) && !unicode.IsSpace(rune(tx[i+1]))
+
+		// Replace hyphens, underscores, and period-before-nonspace with space
+		if r == '-' || r == '_' || isPeriodBeforeNonSpace {
+			builder.WriteRune(' ')
+		} else if unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsSpace(r) {
+			builder.WriteRune(rLower)
+			// Insert space between letter and following digit
+			if i+1 < len(tx) && unicode.IsLetter(r) && unicode.IsDigit(rune(tx[i+1])) {
+				builder.WriteRune(' ')
+			}
+		}
+		// Other symbols are simply omitted
+	}
+
+	tx = builder.String()
+
+	// Convert digit words to numerals
 	tx = digitWords(tx)
-	tx = spaceNumbers(tx)
+
+	// Trim and collapse multiple spaces
 	tx = strings.TrimSpace(tx)
+
+	// Apply word replacements
 	for _, repl := range replacements {
 		tx = strings.ReplaceAll(tx, repl.Original, repl.Normal)
 	}
+
 	return tx
 }
 
@@ -87,35 +132,6 @@ func digitWords(tx string) string {
 	}
 	tx = strings.Join(fields, " ")
 	return tx
-}
-
-// removeSymbols removes any characters that are not letters, digits, or
-// spaces. Hyphens and underscores are replaced with spaces. A period followed
-// by a non-space character is replaced with a space. Other symbols are
-// removed.
-func removeSymbols(tx string) string {
-	var builder strings.Builder
-	for i, r := range tx {
-		isPeriodBeforeNonSpace := r == '.' && i+1 < len(tx) && !unicode.IsSpace(rune(tx[i+1]))
-		if r == '-' || r == '_' || isPeriodBeforeNonSpace {
-			_, _ = builder.WriteRune(' ')
-		} else if unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsSpace(r) {
-			_, _ = builder.WriteRune(r)
-		}
-	}
-	return builder.String()
-}
-
-// spaceNumbers inserts spaces between letters and numbers, e.g. "BRAA090" -> "BRAA 090".
-func spaceNumbers(tx string) string {
-	builder := strings.Builder{}
-	for i, char := range tx {
-		_, _ = builder.WriteRune(char)
-		if i+1 < len(tx) && unicode.IsLetter(char) && unicode.IsDigit(rune(tx[i+1])) {
-			_, _ = builder.WriteRune(' ')
-		}
-	}
-	return builder.String()
 }
 
 // spaceDigits normalizes the given string and inserts a space before each

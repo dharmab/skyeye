@@ -6,7 +6,7 @@ import (
 )
 
 func parseSpiked(callsign string, stream *token.Stream) (*brevity.SpikedRequest, bool) {
-	bearing, ok := parseBearing(stream)
+	bearing, ok := parseBearingOnly(stream)
 	if !ok {
 		return nil, false
 	}

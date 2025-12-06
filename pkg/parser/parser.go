@@ -10,6 +10,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	// maxInputLength is the maximum length of input text to process.
+	// Prevents processing extremely long inputs that may indicate garbage data.
+	maxInputLength = 1000
+)
+
 // Parser converts brevity requests from natural language into structured forms.
 type Parser struct {
 	controllerCallsign string
@@ -43,6 +49,8 @@ const (
 
 var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, strobe, snaplock, tripwire, shopping}
 
+// findControllerCallsign searches for the GCI callsign in the given fields.
+// Returns the heard callsign, remaining text after it, and whether it was found.
 func (p *Parser) findControllerCallsign(fields []string) (callsign string, rest string, found bool) {
 	for i := range fields {
 		candidate := strings.Join(fields[:i+1], " ")
@@ -58,6 +66,48 @@ func (p *Parser) findControllerCallsign(fields []string) (callsign string, rest 
 	return "", "", false
 }
 
+// handleNoRequestWord handles cases where we heard the GCI callsign and pilot callsign
+// but couldn't identify a specific request word.
+func handleNoRequestWord(tx, pilotCallsign string) any {
+	// Fallback: Possibly an ambiguous check-in request.
+	if strings.Contains(tx, checkIn) {
+		return &brevity.CheckInRequest{Callsign: pilotCallsign}
+	}
+	return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
+}
+
+// parseRequestWithArgs attempts to parse a request that requires additional arguments
+// beyond the request word itself (e.g., BOGEY DOPE, DECLARE, SPIKED).
+func parseRequestWithArgs(requestWord, pilotCallsign string, requestArgs []string) any {
+	// Create token stream from remaining arguments
+	stream := token.New(strings.Join(requestArgs, " "))
+
+	switch requestWord {
+	case bogeyDope:
+		if request, ok := parseBogeyDope(pilotCallsign, stream); ok {
+			return request
+		}
+	case declare:
+		if request, ok := parseDeclare(pilotCallsign, stream); ok {
+			return request
+		}
+	case spiked:
+		if request, ok := parseSpiked(pilotCallsign, stream); ok {
+			return request
+		}
+	case strobe:
+		if request, ok := parseStrobe(pilotCallsign, stream); ok {
+			return request
+		}
+	case snaplock:
+		if request, ok := parseSnaplock(pilotCallsign, stream); ok {
+			return request
+		}
+	}
+
+	return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
+}
+
 func findRequestWord(fields []string) (string, int, bool) {
 	for i, field := range fields {
 		field = strings.TrimPrefix(field, "request")
@@ -68,7 +118,7 @@ func findRequestWord(fields []string) (string, int, bool) {
 			// HACK: Also compare the first half of long fields separately.
 			// Handles some cases of two words running together, e.g.
 			// "bogeydope" instead of "bogey dope".
-			if len(field) > 8 {
+			if len(field) > halfFieldMinLength {
 				halfField := field[:len(field)/2]
 				if isSimilar(word, halfField) {
 					return word, i, true
@@ -96,6 +146,15 @@ func (p *Parser) uncrushCallsign(s string) string {
 // brevity request, or nil if the text does not start with the GCI
 // callsign.
 func (p *Parser) Parse(tx string) any {
+	// Early validation - reject empty or excessively long inputs
+	if tx == "" {
+		return nil
+	}
+	if len(tx) > maxInputLength {
+		log.Warn().Int("length", len(tx)).Msg("unusually long input truncated")
+		tx = tx[:maxInputLength]
+	}
+
 	logger := log.With().Str("gci", p.controllerCallsign).Logger()
 	if p.enableTextLogging {
 		logger = logger.With().Str("text", tx).Logger()
@@ -154,28 +213,25 @@ func (p *Parser) Parse(tx string) any {
 	if foundPilotCallsign {
 		logger = logger.With().Str("pilot", pilotCallsign).Logger()
 		logger.Debug().Msg("found pilot callsign")
+	} else {
+		logger.Trace().Msg("no pilot callsign found")
 	}
 
 	// Handle cases where we heard our own callsign, but couldn't understand
 	// the request.
-	if !foundPilotCallsign && foundRequestWord && requestWord == picture {
-		return &brevity.PictureRequest{Callsign: ""}
-	}
 	if !foundPilotCallsign {
-		logger.Trace().Msg("no pilot callsign found")
+		if foundRequestWord && requestWord == picture {
+			return &brevity.PictureRequest{Callsign: ""}
+		}
 		return &brevity.UnableToUnderstandRequest{}
 	}
 	if !foundRequestWord {
-		// Fallback: Possibly an ambiguous check-in request.
-		if strings.Contains(tx, checkIn) {
-			return &brevity.CheckInRequest{Callsign: pilotCallsign}
-		}
-
 		logger.Trace().Msg("no request word found")
-		return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
+		return handleNoRequestWord(tx, pilotCallsign)
 	}
 
 	// Try to parse a request from the remaining text.
+	// Simple requests that don't require additional arguments
 	switch requestWord {
 	case alphaCheck:
 		return &brevity.AlphaCheckRequest{Callsign: pilotCallsign}
@@ -189,38 +245,12 @@ func (p *Parser) Parse(tx string) any {
 		return &brevity.ShoppingRequest{Callsign: pilotCallsign}
 	}
 
+	// Complex requests that require parsing additional arguments
 	event = logger.Debug()
 	if p.enableTextLogging {
 		event = event.Strs("args", requestArgs)
 	}
 	event.Msg("parsing request arguments")
 
-	// Create token stream from remaining arguments
-	stream := token.New(strings.Join(requestArgs, " "))
-
-	switch requestWord {
-	case bogeyDope:
-		if request, ok := parseBogeyDope(pilotCallsign, stream); ok {
-			return request
-		}
-	case declare:
-		if request, ok := parseDeclare(pilotCallsign, stream); ok {
-			return request
-		}
-	case spiked:
-		if request, ok := parseSpiked(pilotCallsign, stream); ok {
-			return request
-		}
-	case strobe:
-		if request, ok := parseStrobe(pilotCallsign, stream); ok {
-			return request
-		}
-	case snaplock:
-		if request, ok := parseSnaplock(pilotCallsign, stream); ok {
-			return request
-		}
-	}
-
-	logger.Debug().Msg("unrecognized request")
-	return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
+	return parseRequestWithArgs(requestWord, pilotCallsign, requestArgs)
 }

@@ -50,47 +50,6 @@ func TestNormalize(t *testing.T) {
 	}
 }
 
-func TestRemoveSymbols(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		input    string
-		expected string
-	}{
-		{"Eagle-12", "Eagle 12"},
-		{"Hello, World!", "Hello World"},
-		{"180.", "180"},
-		{"180.3", "180 3"},
-	}
-
-	for _, test := range tests {
-		t.Run(test.input, func(t *testing.T) {
-			t.Parallel()
-			actual := removeSymbols(test.input)
-			assert.Equal(t, test.expected, actual)
-		})
-	}
-}
-
-func TestSpaceNumbers(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		input    string
-		expected string
-	}{
-		{"Eagle12", "Eagle 12"},
-		{"BRAA090", "BRAA 090"},
-		{"Eagle 12", "Eagle 12"},
-	}
-
-	for _, test := range tests {
-		t.Run(test.input, func(t *testing.T) {
-			t.Parallel()
-			actual := spaceNumbers(test.input)
-			assert.Equal(t, test.expected, actual)
-		})
-	}
-}
-
 func TestSpaceDigits(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

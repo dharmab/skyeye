@@ -6,6 +6,12 @@ import (
 	"unicode"
 )
 
+const (
+	// maxCallsignDigits is the maximum number of digits allowed in a pilot callsign.
+	// Aviation callsigns typically have 1-3 digit suffixes (e.g., "Eagle 1", "Viper 21").
+	maxCallsignDigits = 3
+)
+
 // ParsePilotCallsign attempts to parse a callsign in one of the following formats:
 //   - A single word, followed by a number consisting of any digits
 //   - A number consisting of up to 3 digits
@@ -31,7 +37,7 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	var builder strings.Builder
 	numDigits := 0
 	for _, char := range tx {
-		if numDigits >= 3 {
+		if numDigits >= maxCallsignDigits {
 			break
 		}
 		if unicode.IsDigit(char) {
