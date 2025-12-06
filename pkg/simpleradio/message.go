@@ -31,7 +31,7 @@ func (c *Client) Send(message types.Message) error {
 // newMessage creates a new message with the client's version, the given message type, and the client's info.
 func (c *Client) newMessage(t types.MessageType) types.Message {
 	message := types.Message{
-		Version: "2.3.2.1", // stubbing fake SRS version, TODO add flag
+		Version: "2.1.0.2", // stubbing fake SRS version, TODO add flag
 		Type:    t,
 	}
 	message.Client = c.clientInfo
