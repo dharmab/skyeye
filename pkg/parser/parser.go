@@ -2,10 +2,9 @@
 package parser
 
 import (
-	"bufio"
-	"bytes"
 	"strings"
 
+	"github.com/dharmab/skyeye/internal/parser/token"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/rodaine/numwords"
 	"github.com/rs/zerolog/log"
@@ -143,7 +142,6 @@ func (p *Parser) Parse(tx string) any {
 		event = event.Str("rest", afterControllerCallsign)
 	}
 	event.Msg("found GCI callsign")
-	logger.Debug().Str("heard", heardControllerCallsign).Str("after", afterControllerCallsign).Msg("found GCI callsign")
 
 	event = logger.Debug()
 	if p.enableTextLogging {
@@ -196,56 +194,33 @@ func (p *Parser) Parse(tx string) any {
 		event = event.Strs("args", requestArgs)
 	}
 	event.Msg("parsing request arguments")
-	scanner := bufio.NewScanner(strings.NewReader(strings.Join(requestArgs, " ")))
-	scanner.Split(bufio.ScanWords)
+
+	// Create token stream from remaining arguments
+	stream := token.New(strings.Join(requestArgs, " "))
 
 	switch requestWord {
 	case bogeyDope:
-		if request, ok := parseBogeyDope(pilotCallsign, scanner); ok {
+		if request, ok := parseBogeyDope(pilotCallsign, stream); ok {
 			return request
 		}
 	case declare:
-		if request, ok := parseDeclare(pilotCallsign, scanner); ok {
+		if request, ok := parseDeclare(pilotCallsign, stream); ok {
 			return request
 		}
 	case spiked:
-		if request, ok := parseSpiked(pilotCallsign, scanner); ok {
+		if request, ok := parseSpiked(pilotCallsign, stream); ok {
 			return request
 		}
 	case strobe:
-		if request, ok := parseStrobe(pilotCallsign, scanner); ok {
+		if request, ok := parseStrobe(pilotCallsign, stream); ok {
 			return request
 		}
 	case snaplock:
-		if request, ok := parseSnaplock(pilotCallsign, scanner); ok {
+		if request, ok := parseSnaplock(pilotCallsign, stream); ok {
 			return request
 		}
 	}
 
 	logger.Debug().Msg("unrecognized request")
 	return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
-}
-
-func skipWords(scanner *bufio.Scanner, words ...string) bool {
-	for _, word := range words {
-		if isSimilar(scanner.Text(), word) {
-			return scanner.Scan()
-		}
-	}
-	return true
-}
-
-func prependToScanner(scanner *bufio.Scanner, s string) *bufio.Scanner {
-	if s == "" {
-		return scanner
-	}
-	var buffer bytes.Buffer
-	_, _ = buffer.WriteString(s + " ")
-
-	for scanner.Scan() {
-		_, _ = buffer.WriteString(scanner.Text() + " ")
-	}
-	newScanner := bufio.NewScanner(&buffer)
-	newScanner.Split(bufio.ScanWords)
-	return newScanner
 }
