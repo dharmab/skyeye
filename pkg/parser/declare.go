@@ -9,7 +9,6 @@ import (
 )
 
 func parseDeclare(callsign string, stream *token.Stream) (*brevity.DeclareRequest, bool) {
-	// If no data at all, return sour declare
 	if stream.AtEnd() {
 		return &brevity.DeclareRequest{
 			Callsign: callsign,
@@ -17,11 +16,9 @@ func parseDeclare(callsign string, stream *token.Stream) (*brevity.DeclareReques
 		}, true
 	}
 
-	// Search for format keywords, skipping filler words
 	for !stream.AtEnd() {
 		text := stream.Text()
 
-		// Explicit BRAA format
 		for _, word := range braaWords {
 			if isSimilar(text, word) {
 				log.Debug().Str("text", text).Msg("found BRAA keyword")
@@ -30,7 +27,6 @@ func parseDeclare(callsign string, stream *token.Stream) (*brevity.DeclareReques
 			}
 		}
 
-		// Explicit Bullseye format
 		for _, word := range bullseyeWords {
 			if isSimilar(text, word) {
 				log.Debug().Str("text", text).Msg("found bullseye keyword")
@@ -39,7 +35,6 @@ func parseDeclare(callsign string, stream *token.Stream) (*brevity.DeclareReques
 			}
 		}
 
-		// Implicit bullseye format (starts with digits, ambiguous)
 		isNumeric := true
 		for _, r := range text {
 			if !unicode.IsDigit(r) {
@@ -53,11 +48,9 @@ func parseDeclare(callsign string, stream *token.Stream) (*brevity.DeclareReques
 			return parseDeclareAsBullseye(callsign, stream, true)
 		}
 
-		// Skip this filler word and try next token
 		stream.Advance()
 	}
 
-	// No recognized format found
 	log.Debug().Msg("unable to determine declare format")
 	return nil, false
 }
@@ -69,7 +62,7 @@ func parseDeclareAsBRAA(callsign string, stream *token.Stream) (*brevity.Declare
 		return nil, false
 	}
 
-	rang, ok := parseRange(stream)
+	rng, ok := parseRange(stream)
 	if !ok {
 		log.Debug().Msg("failed to parse BRAA range")
 		return nil, false
@@ -86,7 +79,7 @@ func parseDeclareAsBRAA(callsign string, stream *token.Stream) (*brevity.Declare
 	return &brevity.DeclareRequest{
 		Callsign:    callsign,
 		Bearing:     bearing,
-		Range:       rang,
+		Range:       rng,
 		Altitude:    altitude,
 		Track:       track,
 		IsBRAA:      true,

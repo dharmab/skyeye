@@ -66,11 +66,9 @@ func normalize(tx string) string {
 	for i, r := range tx {
 		rLower := unicode.ToLower(r)
 
-		// Check if period followed by non-space
-		isPeriodBeforeNonSpace := r == '.' && i+1 < len(tx) && !unicode.IsSpace(rune(tx[i+1]))
+		periodBeforeNonSpace := r == '.' && i+1 < len(tx) && !unicode.IsSpace(rune(tx[i+1]))
 
-		// Replace hyphens, underscores, and period-before-nonspace with space
-		if r == '-' || r == '_' || isPeriodBeforeNonSpace {
+		if r == '-' || r == '_' || periodBeforeNonSpace {
 			builder.WriteRune(' ')
 		} else if unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsSpace(r) {
 			builder.WriteRune(rLower)

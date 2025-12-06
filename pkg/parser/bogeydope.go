@@ -21,7 +21,6 @@ var bogeyFilterMap = map[string]brevity.ContactCategory{
 func parseBogeyDope(callsign string, stream *token.Stream) (*brevity.BogeyDopeRequest, bool) {
 	filter := brevity.Aircraft
 
-	// Collect all remaining text to search for filter keywords
 	remainingText := stream.RemainingText()
 
 	for k, v := range bogeyFilterMap {

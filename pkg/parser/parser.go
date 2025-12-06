@@ -51,13 +51,13 @@ var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture,
 
 // findControllerCallsign searches for the GCI callsign in the given fields.
 // Returns the heard callsign, remaining text after it, and whether it was found.
-func (p *Parser) findControllerCallsign(fields []string) (callsign string, rest string, found bool) {
+func (p *Parser) findControllerCallsign(fields []string) (heard string, rest string, ok bool) {
 	for i := range fields {
 		candidate := strings.Join(fields[:i+1], " ")
 		for _, wakePhrase := range []string{p.controllerCallsign, Anyface} {
 			if isSimilar(strings.TrimSpace(candidate), strings.ToLower(wakePhrase)) {
-				found = true
-				callsign = candidate
+				ok = true
+				heard = candidate
 				rest = strings.Join(fields[i+1:], " ")
 				return
 			}
@@ -69,7 +69,6 @@ func (p *Parser) findControllerCallsign(fields []string) (callsign string, rest 
 // handleNoRequestWord handles cases where we heard the GCI callsign and pilot callsign
 // but couldn't identify a specific request word.
 func handleNoRequestWord(tx, pilotCallsign string) any {
-	// Fallback: Possibly an ambiguous check-in request.
 	if strings.Contains(tx, checkIn) {
 		return &brevity.CheckInRequest{Callsign: pilotCallsign}
 	}
@@ -79,7 +78,6 @@ func handleNoRequestWord(tx, pilotCallsign string) any {
 // parseRequestWithArgs attempts to parse a request that requires additional arguments
 // beyond the request word itself (e.g., BOGEY DOPE, DECLARE, SPIKED).
 func parseRequestWithArgs(requestWord, pilotCallsign string, requestArgs []string) any {
-	// Create token stream from remaining arguments
 	stream := token.New(strings.Join(requestArgs, " "))
 
 	switch requestWord {
@@ -146,7 +144,6 @@ func (p *Parser) uncrushCallsign(s string) string {
 // brevity request, or nil if the text does not start with the GCI
 // callsign.
 func (p *Parser) Parse(tx string) any {
-	// Early validation - reject empty or excessively long inputs
 	if tx == "" {
 		return nil
 	}
@@ -171,67 +168,55 @@ func (p *Parser) Parse(tx string) any {
 	}
 	logger.Debug().Msg("normalized text")
 
-	// Tokenize the text.
 	fields := strings.Fields(tx)
 
-	// Search for a token that looks similar to a request word, and split
-	// the text around it.
 	before := fields
 	var requestArgs []string
-	requestWord, requestWordIndex, foundRequestWord := findRequestWord(fields)
-	if foundRequestWord {
+	requestWord, idx, ok := findRequestWord(fields)
+	if ok {
 		logger = logger.With().Str("request", requestWord).Logger()
-		logger.Debug().Int("position", requestWordIndex).Msg("found request word")
-		before, requestArgs = fields[:requestWordIndex], fields[requestWordIndex+1:]
+		logger.Debug().Int("position", idx).Msg("found request word")
+		before, requestArgs = fields[:idx], fields[idx+1:]
 	}
 
-	// Search the first part of the text for text that looks similar to a GCI
-	// callsign. If we find such text, search the rest for a valid pilot
-	// callsign.
-	heardControllerCallsign, afterControllerCallsign, foundControllerCallsign := p.findControllerCallsign(before)
+	heard, rest, ok := p.findControllerCallsign(before)
 
-	// If we didn't hear the GCI callsign, this was probably chatter rather
-	// than a request.
-	if !foundControllerCallsign {
+	if !ok {
 		logger.Trace().Msg("no GCI callsign found")
 		return nil
 	}
-	event := logger.Debug().Str("heard", heardControllerCallsign)
+	event := logger.Debug().Str("heard", heard)
 	if p.enableTextLogging {
-		event = event.Str("rest", afterControllerCallsign)
+		event = event.Str("rest", rest)
 	}
 	event.Msg("found GCI callsign")
 
 	event = logger.Debug()
 	if p.enableTextLogging {
-		event = event.Str("rest", afterControllerCallsign)
+		event = event.Str("rest", rest)
 	}
 	event.Msg("searching for pilot callsign in rest of text")
 
-	afterControllerCallsign = numwords.ParseString(afterControllerCallsign)
-	pilotCallsign, foundPilotCallsign := ParsePilotCallsign(afterControllerCallsign)
-	if foundPilotCallsign {
+	rest = numwords.ParseString(rest)
+	pilotCallsign, ok := ParsePilotCallsign(rest)
+	if ok {
 		logger = logger.With().Str("pilot", pilotCallsign).Logger()
 		logger.Debug().Msg("found pilot callsign")
 	} else {
 		logger.Trace().Msg("no pilot callsign found")
 	}
 
-	// Handle cases where we heard our own callsign, but couldn't understand
-	// the request.
-	if !foundPilotCallsign {
-		if foundRequestWord && requestWord == picture {
+	if !ok {
+		if requestWord != "" && requestWord == picture {
 			return &brevity.PictureRequest{Callsign: ""}
 		}
 		return &brevity.UnableToUnderstandRequest{}
 	}
-	if !foundRequestWord {
+	if requestWord == "" {
 		logger.Trace().Msg("no request word found")
 		return handleNoRequestWord(tx, pilotCallsign)
 	}
 
-	// Try to parse a request from the remaining text.
-	// Simple requests that don't require additional arguments
 	switch requestWord {
 	case alphaCheck:
 		return &brevity.AlphaCheckRequest{Callsign: pilotCallsign}
@@ -245,7 +230,6 @@ func (p *Parser) Parse(tx string) any {
 		return &brevity.ShoppingRequest{Callsign: pilotCallsign}
 	}
 
-	// Complex requests that require parsing additional arguments
 	event = logger.Debug()
 	if p.enableTextLogging {
 		event = event.Strs("args", requestArgs)
