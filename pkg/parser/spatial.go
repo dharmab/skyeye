@@ -208,3 +208,14 @@ func parseNaturalNumber(stream *token.Stream) (int, bool) {
 	stream.Advance()
 	return d, true
 }
+
+// parseBearingOnly is a helper for requests that only require a bearing
+// (e.g., SPIKED, STROBE). Returns the parsed bearing and success status.
+func parseBearingOnly(stream *token.Stream) (bearings.Bearing, bool) {
+	bearing, ok := parseBearing(stream)
+	if !ok {
+		log.Debug().Msg("failed to parse bearing")
+		return bearings.NewMagneticBearing(0), false
+	}
+	return bearing, true
+}

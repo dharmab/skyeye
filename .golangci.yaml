@@ -122,6 +122,7 @@ linters:
           disabled: false
           arguments:
             - "strings\\.Builder\\.WriteString"
+            - "strings\\.Builder\\.WriteRune"
         - name: unnecessary-stmt
           disabled: false
         - name: unreachable-code
