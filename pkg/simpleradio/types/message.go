@@ -19,15 +19,15 @@ const (
 // The order of fields in this type matches the order of fields in the official SRS client, just in case a different order were to trigger some obscure bug.
 type Message struct {
 	// Version is the SRS client version.
-	Version string `json:"version"`
+	Version string `json:"Version"`
 	// Client is used in messages that reference a single client.
-	Client ClientInfo `json:"client"` // TODO v2: Change type to *ClientInfo and set omitempty
+	Client ClientInfo `json:"Client"` // TODO v2: Change type to *ClientInfo and set omitempty
 	// Clients is used in messages that reference multiple clients.
-	Clients []ClientInfo `json:"clients,omitempty"`
+	Clients []ClientInfo `json:"Clients,omitempty"`
 	// ServerSettings is a map of server settings and their values. It sometimes appears in Sync messages.
-	ServerSettings map[string]string `json:"serverSettings,omitempty"`
+	ServerSettings map[string]string `json:"ServerSettings,omitempty"`
 	// ExternalAWACSModePassword is the External AWACS Mode password, used in ExternalAWACSModePassword messages to authenticate a client as an AWACS.
-	ExternalAWACSModePassword string `json:"externalAWACSModePassword,omitempty"`
+	ExternalAWACSModePassword string `json:"ExternalAWACSModePassword,omitempty"`
 	// Type is the type of the message.
-	Type MessageType `json:"msgType"`
+	Type MessageType `json:"MsgType"`
 }
