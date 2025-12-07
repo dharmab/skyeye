@@ -69,6 +69,15 @@ func init() {
 	}
 }
 
+func terrainDefByName(name string) (terrainDef, bool) {
+	for _, td := range terrainDefs {
+		if td.name == name {
+			return td, true
+		}
+	}
+	return terrainDef{}, false
+}
+
 func computeLatLonBounds(td *terrainDef) error {
 	// boundsXY are DCS projected coords: x=easting, y=northing in meters.
 	x1, y1, x2, y2 := td.boundsXY[0], td.boundsXY[1], td.boundsXY[2], td.boundsXY[3]
@@ -198,6 +207,16 @@ func DetectTerrainFromBullseye(bullseye orb.Point) (string, bool) {
 	prevSet := lastBullseyeSet.Load()
 	current := currentTerrain
 	projectionMu.RUnlock()
+
+	if terrainDetected.Load() {
+		if td, ok := terrainDefByName(current); ok && bullseyeInsideBounds(td, bullseye) {
+			projectionMu.Lock()
+			lastBullseye = bullseye
+			lastBullseyeSet.Store(true)
+			projectionMu.Unlock()
+			return current, false
+		}
+	}
 
 	if terrainDetected.Load() && prevSet && bullseye.Equal(prev) {
 		return current, false
