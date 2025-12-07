@@ -14,6 +14,18 @@ import (
 	"github.com/dharmab/skyeye/pkg/bearings"
 )
 
+func greatCircleDeg(lat1, lon1, lat2, lon2 float64) float64 {
+	lat1r := lat1 * math.Pi / 180
+	lon1r := lon1 * math.Pi / 180
+	lat2r := lat2 * math.Pi / 180
+	lon2r := lon2 * math.Pi / 180
+	dLat := lat2r - lat1r
+	dLon := lon2r - lon1r
+	a := math.Sin(dLat/2)*math.Sin(dLat/2) + math.Cos(lat1r)*math.Cos(lat2r)*math.Sin(dLon/2)*math.Sin(dLon/2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+	return c // radians
+}
+
 // TransverseMercator represents the parameters for a Transverse Mercator projection.
 type TransverseMercator struct {
 	CentralMeridian int
@@ -34,6 +46,8 @@ type terrainDef struct {
 	tm        TransverseMercator
 	boundsXY  [4]float64 // x1, y1, x2, y2 in projected coordinates (DCS x/y)
 	latLonBox latLonBounds
+	centerLat float64
+	centerLon float64
 }
 
 func (l latLonBounds) contains(lat, lon float64) bool {
@@ -53,19 +67,19 @@ var (
 )
 
 var terrainDefs = []terrainDef{
-	{name: "Afghanistan", tm: AfghanistanProjection(), boundsXY: [4]float64{532000.0, -534000.0, -512000.0, 757000.0}},
-	{name: "Caucasus", tm: CaucasusProjection(), boundsXY: [4]float64{380 * 1000, -560 * 1000, -600 * 1000, 1130 * 1000}},
-	{name: "Falklands", tm: FalklandsProjection(), boundsXY: [4]float64{74967, -114995, -129982, 129991}},
-	{name: "GermanyCW", tm: GermanyColdWarProjection(), boundsXY: [4]float64{260000.0, -1100000.0, -600000.0, -425000.0}},
-	{name: "Iraq", tm: IraqProjection(), boundsXY: [4]float64{440000.0, -500000.0, -950000.0, 850000.0}},
-	{name: "Kola", tm: KolaProjection(), boundsXY: [4]float64{-315000, -890000, 900000, 856000}},
-	{name: "MarianaIslands", tm: MarianasProjection(), boundsXY: [4]float64{1000 * 10000, -1000 * 1000, -300 * 1000, 500 * 1000}},
-	{name: "Nevada", tm: NevadaProjection(), boundsXY: [4]float64{-167000.0, -330000.0, -500000.0, 210000.0}},
-	{name: "Normandy", tm: NormandyProjection(), boundsXY: [4]float64{-132707.843750, -389942.906250, 185756.156250, 165065.078125}},
-	{name: "PersianGulf", tm: PersianGulfProjection(), boundsXY: [4]float64{-218768.750000, -392081.937500, 197357.906250, 333129.125000}},
-	{name: "Sinai", tm: SinaiProjection(), boundsXY: [4]float64{-450000, -280000, 500000, 560000}},
-	{name: "Syria", tm: SyriaProjection(), boundsXY: [4]float64{-320000, -579986, 300000, 579998}},
-	{name: "TheChannel", tm: TheChannelProjection(), boundsXY: [4]float64{74967, -114995, -129982, 129991}},
+	{name: "Afghanistan", tm: AfghanistanProjection(), boundsXY: [4]float64{532000.0, -534000.0, -512000.0, 757000.0}, centerLat: 33.9346, centerLon: 66.24705},
+	{name: "Caucasus", tm: CaucasusProjection(), boundsXY: [4]float64{380 * 1000, -560 * 1000, -600 * 1000, 1130 * 1000}, centerLat: 43.69666, centerLon: 32.96},
+	{name: "Falklands", tm: FalklandsProjection(), boundsXY: [4]float64{74967, -114995, -129982, 129991}, centerLat: 52.468, centerLon: 59.173},
+	{name: "GermanyCW", tm: GermanyColdWarProjection(), boundsXY: [4]float64{260000.0, -1100000.0, -600000.0, -425000.0}, centerLat: 51.0, centerLon: 11.0},
+	{name: "Iraq", tm: IraqProjection(), boundsXY: [4]float64{440000.0, -500000.0, -950000.0, 850000.0}, centerLat: 30.76, centerLon: 59.07},
+	{name: "Kola", tm: KolaProjection(), boundsXY: [4]float64{-315000, -890000, 900000, 856000}, centerLat: 68.0, centerLon: 22.5},
+	{name: "MarianaIslands", tm: MarianasProjection(), boundsXY: [4]float64{1000 * 10000, -1000 * 1000, -300 * 1000, 500 * 1000}, centerLat: 13.485, centerLon: 144.798},
+	{name: "Nevada", tm: NevadaProjection(), boundsXY: [4]float64{-167000.0, -330000.0, -500000.0, 210000.0}, centerLat: 39.81806, centerLon: -114.73333},
+	{name: "Normandy", tm: NormandyProjection(), boundsXY: [4]float64{-132707.843750, -389942.906250, 185756.156250, 165065.078125}, centerLat: 41.3, centerLon: 0.18},
+	{name: "PersianGulf", tm: PersianGulfProjection(), boundsXY: [4]float64{-218768.750000, -392081.937500, 197357.906250, 333129.125000}, centerLat: 0, centerLon: 0},
+	{name: "Sinai", tm: SinaiProjection(), boundsXY: [4]float64{-450000, -280000, 500000, 560000}, centerLat: 30.047, centerLon: 31.224},
+	{name: "Syria", tm: SyriaProjection(), boundsXY: [4]float64{-320000, -579986, 300000, 579998}, centerLat: 35.021, centerLon: 35.901},
+	{name: "TheChannel", tm: TheChannelProjection(), boundsXY: [4]float64{74967, -114995, -129982, 129991}, centerLat: 50.875, centerLon: 1.5875},
 }
 
 func init() {
@@ -122,6 +136,10 @@ func computeLatLonBounds(td *terrainDef) error {
 		maxLat: maxLat,
 		minLon: minLon,
 		maxLon: maxLon,
+	}
+	if td.centerLat == 0 && td.centerLon == 0 {
+		td.centerLat = (minLat + maxLat) / 2
+		td.centerLon = (minLon + maxLon) / 2
 	}
 	return nil
 }
@@ -238,7 +256,32 @@ func DetectTerrainFromBullseye(source string, bullseye orb.Point) (string, bool)
 		return bestName, true
 	}
 
-	// No terrain fits all bullseyes.
+	// Fallback: pick the terrain with minimal total center distance to all bullseyes.
+	minTotal := math.Inf(1)
+	for _, td := range terrainDefs {
+		total := 0.0
+		for _, p := range points {
+			total += greatCircleDeg(p.Lat(), p.Lon(), td.centerLat, td.centerLon)
+		}
+		if total < minTotal || (total == minTotal && td.name < bestName) {
+			minTotal = total
+			bestName = td.name
+			bestTM = td.tm
+		}
+	}
+
+	if bestName != "" {
+		setCurrentTerrain(bestName, bestTM)
+		terrainDetected.Store(true)
+		log.Info().
+			Str("terrain", bestName).
+			Float64("lat", bullseye.Lat()).
+			Float64("lon", bullseye.Lon()).
+			Msg("detected terrain from bullseye (fallback to closest center)")
+		return bestName, true
+	}
+
+	// No terrain fits or can be inferred.
 	return "", false
 }
 
