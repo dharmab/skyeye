@@ -98,6 +98,22 @@ func computeLatLonBounds(td *terrainDef) error {
 			if lon > maxLon {
 				maxLon = lon
 			}
+
+			// Also try swapped ordering in case axis interpretation differs.
+			if lat2, lon2, err2 := ProjectionToLatLongFor(td.tm, east, north); err2 == nil {
+				if lat2 < minLat {
+					minLat = lat2
+				}
+				if lat2 > maxLat {
+					maxLat = lat2
+				}
+				if lon2 < minLon {
+					minLon = lon2
+				}
+				if lon2 > maxLon {
+					maxLon = lon2
+				}
+			}
 		}
 	}
 
@@ -124,16 +140,27 @@ func bullseyeInsideBounds(td terrainDef, bullseye orb.Point) bool {
 	yMax := math.Max(td.boundsXY[1], td.boundsXY[3])
 
 	x, z, err := LatLongToProjectionFor(td.tm, bullseye.Lat(), bullseye.Lon())
-	if err != nil {
-		log.Warn().Err(err).Str("terrain", td.name).Msg("failed to project bullseye for terrain detection")
-		return false
+	if err == nil {
+		north := x
+		east := z
+		if east >= xMin && east <= xMax && north >= yMin && north <= yMax {
+			return true
+		}
 	}
 
-	// boundsXY are DCS projected coords: x=easting, y=northing; our LatLongToProjectionFor returns x=northing, z=easting.
-	north := x
-	east := z
+	// Try swapped ordering if the first projection failed or was outside bounds.
+	if xAlt, zAlt, errAlt := LatLongToProjectionFor(td.tm, bullseye.Lon(), bullseye.Lat()); errAlt == nil {
+		north := xAlt
+		east := zAlt
+		if east >= xMin && east <= xMax && north >= yMin && north <= yMax {
+			return true
+		}
+	}
 
-	return east >= xMin && east <= xMax && north >= yMin && north <= yMax
+	if err != nil {
+		log.Warn().Err(err).Str("terrain", td.name).Msg("failed to project bullseye for terrain detection")
+	}
+	return false
 }
 
 func setCurrentTerrain(name string, tm TransverseMercator) {
