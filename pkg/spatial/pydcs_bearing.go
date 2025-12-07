@@ -110,6 +110,25 @@ func computeLatLonBounds(td *terrainDef) error {
 	return nil
 }
 
+func bullseyeInsideBounds(td terrainDef, bullseye orb.Point) bool {
+	xMin := math.Min(td.boundsXY[0], td.boundsXY[2])
+	xMax := math.Max(td.boundsXY[0], td.boundsXY[2])
+	yMin := math.Min(td.boundsXY[1], td.boundsXY[3])
+	yMax := math.Max(td.boundsXY[1], td.boundsXY[3])
+
+	x, z, err := LatLongToProjectionFor(td.tm, bullseye.Lat(), bullseye.Lon())
+	if err != nil {
+		log.Warn().Err(err).Str("terrain", td.name).Msg("failed to project bullseye for terrain detection")
+		return false
+	}
+
+	// boundsXY are DCS projected coords: x=easting, y=northing; our LatLongToProjectionFor returns x=northing, z=easting.
+	north := x
+	east := z
+
+	return east >= xMin && east <= xMax && north >= yMin && north <= yMax
+}
+
 func setCurrentTerrain(name string, tm TransverseMercator) {
 	projectionMu.Lock()
 	defer projectionMu.Unlock()
@@ -151,8 +170,7 @@ func DetectTerrainFromBullseye(bullseye orb.Point) (string, bool) {
 	}
 
 	for _, td := range terrainDefs {
-		if bullseye.Lat() >= td.latLonBox.minLat && bullseye.Lat() <= td.latLonBox.maxLat &&
-			bullseye.Lon() >= td.latLonBox.minLon && bullseye.Lon() <= td.latLonBox.maxLon {
+		if bullseyeInsideBounds(td, bullseye) {
 			setCurrentTerrain(td.name, td.tm)
 			terrainDetected.Store(true)
 			projectionMu.Lock()
