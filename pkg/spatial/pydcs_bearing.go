@@ -36,13 +36,20 @@ type terrainDef struct {
 	latLonBox latLonBounds
 }
 
+func (l latLonBounds) contains(lat, lon float64) bool {
+	return lat >= l.minLat && lat <= l.maxLat && lon >= l.minLon && lon <= l.maxLon
+}
+
+func (l latLonBounds) area() float64 {
+	return math.Abs(l.maxLat-l.minLat) * math.Abs(l.maxLon-l.minLon)
+}
+
 var (
 	projectionMu      sync.RWMutex
 	currentProjection = CaucasusProjection()
 	currentTerrain    = "Caucasus"
 	terrainDetected   atomic.Bool
-	lastBullseye      orb.Point
-	lastBullseyeSet   atomic.Bool
+	bullseyes         = make(map[string]orb.Point) // coalition or source label -> bullseye
 )
 
 var terrainDefs = []terrainDef{
@@ -107,22 +114,6 @@ func computeLatLonBounds(td *terrainDef) error {
 			if lon > maxLon {
 				maxLon = lon
 			}
-
-			// Also try swapped ordering in case axis interpretation differs.
-			if lat2, lon2, err2 := ProjectionToLatLongFor(td.tm, east, north); err2 == nil {
-				if lat2 < minLat {
-					minLat = lat2
-				}
-				if lat2 > maxLat {
-					maxLat = lat2
-				}
-				if lon2 < minLon {
-					minLon = lon2
-				}
-				if lon2 > maxLon {
-					maxLon = lon2
-				}
-			}
 		}
 	}
 
@@ -136,13 +127,10 @@ func computeLatLonBounds(td *terrainDef) error {
 }
 
 func bullseyeInsideBounds(td terrainDef, bullseye orb.Point) bool {
-	// First try precomputed lat/lon box.
-	if bullseye.Lat() >= td.latLonBox.minLat && bullseye.Lat() <= td.latLonBox.maxLat &&
-		bullseye.Lon() >= td.latLonBox.minLon && bullseye.Lon() <= td.latLonBox.maxLon {
+	if td.latLonBox.contains(bullseye.Lat(), bullseye.Lon()) {
 		return true
 	}
 
-	// Fallback to projected bounds in case of numerical differences.
 	xMin := math.Min(td.boundsXY[0], td.boundsXY[2])
 	xMax := math.Max(td.boundsXY[0], td.boundsXY[2])
 	yMin := math.Min(td.boundsXY[1], td.boundsXY[3])
@@ -157,18 +145,6 @@ func bullseyeInsideBounds(td terrainDef, bullseye orb.Point) bool {
 		}
 	}
 
-	// Try swapped ordering if the first projection failed or was outside bounds.
-	if xAlt, zAlt, errAlt := LatLongToProjectionFor(td.tm, bullseye.Lon(), bullseye.Lat()); errAlt == nil {
-		north := xAlt
-		east := zAlt
-		if east >= xMin && east <= xMax && north >= yMin && north <= yMax {
-			return true
-		}
-	}
-
-	if err != nil {
-		log.Warn().Err(err).Str("terrain", td.name).Msg("failed to project bullseye for terrain detection")
-	}
 	return false
 }
 
@@ -183,14 +159,18 @@ func setCurrentTerrain(name string, tm TransverseMercator) {
 func ForceTerrain(name string, tm TransverseMercator) {
 	setCurrentTerrain(name, tm)
 	terrainDetected.Store(true)
-	lastBullseyeSet.Store(false)
+	projectionMu.Lock()
+	bullseyes = make(map[string]orb.Point)
+	projectionMu.Unlock()
 }
 
 // ResetTerrainToDefault resets terrain selection to the default (Caucasus) and re-enables auto-detection.
 func ResetTerrainToDefault() {
 	setCurrentTerrain("Caucasus", CaucasusProjection())
 	terrainDetected.Store(false)
-	lastBullseyeSet.Store(false)
+	projectionMu.Lock()
+	bullseyes = make(map[string]orb.Point)
+	projectionMu.Unlock()
 }
 
 func getCurrentProjection() TransverseMercator {
@@ -199,50 +179,66 @@ func getCurrentProjection() TransverseMercator {
 	return currentProjection
 }
 
-// DetectTerrainFromBullseye attempts to pick the terrain based on bullseye lat/lon.
-// If the bullseye changes, detection is re-run; returns whether the terrain changed.
-func DetectTerrainFromBullseye(bullseye orb.Point) (string, bool) {
-	projectionMu.RLock()
-	prev := lastBullseye
-	prevSet := lastBullseyeSet.Load()
-	current := currentTerrain
-	projectionMu.RUnlock()
+func allBullseyesInside(td terrainDef, points []orb.Point) bool {
+	for _, p := range points {
+		if !bullseyeInsideBounds(td, p) {
+			return false
+		}
+	}
+	return true
+}
 
+// DetectTerrainFromBullseye attempts to pick the terrain based on all known bullseyes.
+// Provide a source label (e.g., coalition) to track multiple bullseyes. Returns whether the terrain changed.
+func DetectTerrainFromBullseye(source string, bullseye orb.Point) (string, bool) {
+	projectionMu.Lock()
+	bullseyes[source] = bullseye
+	current := currentTerrain
+	points := make([]orb.Point, 0, len(bullseyes))
+	for _, p := range bullseyes {
+		points = append(points, p)
+	}
+	projectionMu.Unlock()
+
+	// If current terrain fits all bullseyes, no change.
 	if terrainDetected.Load() {
-		if td, ok := terrainDefByName(current); ok && bullseyeInsideBounds(td, bullseye) {
-			projectionMu.Lock()
-			lastBullseye = bullseye
-			lastBullseyeSet.Store(true)
-			projectionMu.Unlock()
+		if td, ok := terrainDefByName(current); ok && allBullseyesInside(td, points) {
 			return current, false
 		}
 	}
 
-	if terrainDetected.Load() && prevSet && bullseye.Equal(prev) {
-		return current, false
-	}
+	// Pick the smallest-area terrain that contains all bullseyes.
+	bestName := ""
+	bestTM := TransverseMercator{}
+	bestArea := math.Inf(1)
 
 	for _, td := range terrainDefs {
-		if bullseyeInsideBounds(td, bullseye) {
-			setCurrentTerrain(td.name, td.tm)
-			terrainDetected.Store(true)
-			projectionMu.Lock()
-			lastBullseye = bullseye
-			lastBullseyeSet.Store(true)
-			projectionMu.Unlock()
-			log.Info().
-				Str("terrain", td.name).
-				Float64("lat", bullseye.Lat()).
-				Float64("lon", bullseye.Lon()).
-				Msg("detected terrain from bullseye")
-			return td.name, true
+		if !allBullseyesInside(td, points) {
+			continue
+		}
+		area := td.latLonBox.area()
+		if area == 0 || math.IsNaN(area) || math.IsInf(area, 0) {
+			area = math.Abs(td.boundsXY[0]-td.boundsXY[2]) * math.Abs(td.boundsXY[1]-td.boundsXY[3])
+		}
+		if area < bestArea || (area == bestArea && td.name < bestName) {
+			bestArea = area
+			bestName = td.name
+			bestTM = td.tm
 		}
 	}
 
-	projectionMu.Lock()
-	lastBullseye = bullseye
-	lastBullseyeSet.Store(true)
-	projectionMu.Unlock()
+	if bestName != "" {
+		setCurrentTerrain(bestName, bestTM)
+		terrainDetected.Store(true)
+		log.Info().
+			Str("terrain", bestName).
+			Float64("lat", bullseye.Lat()).
+			Float64("lon", bullseye.Lon()).
+			Msg("detected terrain from bullseye")
+		return bestName, true
+	}
+
+	// No terrain fits all bullseyes.
 	return "", false
 }
 
