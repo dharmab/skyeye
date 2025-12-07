@@ -15,6 +15,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func init() {
+	spatial.ForceTerrain("Kola", spatial.KolaProjection())
+}
+
 func TestTracking(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {

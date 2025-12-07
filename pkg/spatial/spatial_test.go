@@ -3,6 +3,7 @@ package spatial
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
@@ -10,6 +11,13 @@ import (
 	"github.com/paulmach/orb"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestMain(m *testing.M) {
+	ForceTerrain("Kola", KolaProjection())
+	code := m.Run()
+	ResetTerrainToDefault()
+	os.Exit(code)
+}
 
 func TestDistance(t *testing.T) {
 	t.Parallel()

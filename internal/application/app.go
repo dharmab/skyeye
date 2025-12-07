@@ -23,6 +23,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/dharmab/skyeye/pkg/synthesizer/speakers"
 	"github.com/dharmab/skyeye/pkg/telemetry"
 	"github.com/dharmab/skyeye/pkg/traces"
@@ -382,6 +383,9 @@ func (a *Application) updateBullseyes() {
 			log.Warn().Err(err).Msg("error reading bullseye")
 		} else {
 			a.radar.SetBullseye(bullseye, coalition)
+			if name, ok := spatial.DetectTerrainFromBullseye(bullseye); ok {
+				log.Info().Str("terrain", name).Msg("terrain detected from bullseye")
+			}
 		}
 	}
 }

@@ -3,6 +3,8 @@ package spatial
 import (
 	"fmt"
 	"math"
+	"sync"
+	"sync/atomic"
 
 	"github.com/martinlindhe/unit"
 	"github.com/michiho/go-proj/v10"
@@ -20,12 +22,256 @@ type TransverseMercator struct {
 	ScaleFactor     float64
 }
 
+type latLonBounds struct {
+	minLat float64
+	maxLat float64
+	minLon float64
+	maxLon float64
+}
+
+type terrainDef struct {
+	name      string
+	tm        TransverseMercator
+	boundsXY  [4]float64 // x1, y1, x2, y2 in projected coordinates (DCS x/y)
+	latLonBox latLonBounds
+}
+
+var (
+	projectionMu      sync.RWMutex
+	currentProjection = CaucasusProjection()
+	currentTerrain    = "Caucasus"
+	terrainDetected   atomic.Bool
+)
+
+var terrainDefs = []terrainDef{
+	{name: "Afghanistan", tm: AfghanistanProjection(), boundsXY: [4]float64{532000.0, -534000.0, -512000.0, 757000.0}},
+	{name: "Caucasus", tm: CaucasusProjection(), boundsXY: [4]float64{380 * 1000, -560 * 1000, -600 * 1000, 1130 * 1000}},
+	{name: "Falklands", tm: FalklandsProjection(), boundsXY: [4]float64{74967, -114995, -129982, 129991}},
+	{name: "GermanyCW", tm: GermanyColdWarProjection(), boundsXY: [4]float64{260000.0, -1100000.0, -600000.0, -425000.0}},
+	{name: "Iraq", tm: IraqProjection(), boundsXY: [4]float64{440000.0, -500000.0, -950000.0, 850000.0}},
+	{name: "Kola", tm: KolaProjection(), boundsXY: [4]float64{-315000, -890000, 900000, 856000}},
+	{name: "MarianaIslands", tm: MarianasProjection(), boundsXY: [4]float64{1000 * 10000, -1000 * 1000, -300 * 1000, 500 * 1000}},
+	{name: "Nevada", tm: NevadaProjection(), boundsXY: [4]float64{-167000.0, -330000.0, -500000.0, 210000.0}},
+	{name: "Normandy", tm: NormandyProjection(), boundsXY: [4]float64{-132707.843750, -389942.906250, 185756.156250, 165065.078125}},
+	{name: "PersianGulf", tm: PersianGulfProjection(), boundsXY: [4]float64{-218768.750000, -392081.937500, 197357.906250, 333129.125000}},
+	{name: "Sinai", tm: SinaiProjection(), boundsXY: [4]float64{-450000, -280000, 500000, 560000}},
+	{name: "Syria", tm: SyriaProjection(), boundsXY: [4]float64{-320000, -579986, 300000, 579998}},
+	{name: "TheChannel", tm: TheChannelProjection(), boundsXY: [4]float64{74967, -114995, -129982, 129991}},
+}
+
+func init() {
+	for i := range terrainDefs {
+		if err := computeLatLonBounds(&terrainDefs[i]); err != nil {
+			log.Warn().Err(err).Str("terrain", terrainDefs[i].name).Msg("failed to compute lat/lon bounds for terrain")
+		}
+	}
+}
+
+func computeLatLonBounds(td *terrainDef) error {
+	// boundsXY are DCS projected coords: x=easting, y=northing in meters.
+	x1, y1, x2, y2 := td.boundsXY[0], td.boundsXY[1], td.boundsXY[2], td.boundsXY[3]
+	norths := []float64{y1, y2}
+	easts := []float64{x1, x2}
+
+	minLat := math.Inf(1)
+	maxLat := math.Inf(-1)
+	minLon := math.Inf(1)
+	maxLon := math.Inf(-1)
+
+	for _, north := range norths {
+		for _, east := range easts {
+			lat, lon, err := ProjectionToLatLongFor(td.tm, north, east)
+			if err != nil {
+				return fmt.Errorf("convert bounds corner: %w", err)
+			}
+			if lat < minLat {
+				minLat = lat
+			}
+			if lat > maxLat {
+				maxLat = lat
+			}
+			if lon < minLon {
+				minLon = lon
+			}
+			if lon > maxLon {
+				maxLon = lon
+			}
+		}
+	}
+
+	td.latLonBox = latLonBounds{
+		minLat: minLat,
+		maxLat: maxLat,
+		minLon: minLon,
+		maxLon: maxLon,
+	}
+	return nil
+}
+
+func setCurrentTerrain(name string, tm TransverseMercator) {
+	projectionMu.Lock()
+	defer projectionMu.Unlock()
+	currentTerrain = name
+	currentProjection = tm
+}
+
+// ForceTerrain overrides the current terrain selection and disables auto-detection.
+func ForceTerrain(name string, tm TransverseMercator) {
+	setCurrentTerrain(name, tm)
+	terrainDetected.Store(true)
+}
+
+// ResetTerrainToDefault resets terrain selection to the default (Caucasus) and re-enables auto-detection.
+func ResetTerrainToDefault() {
+	setCurrentTerrain("Caucasus", CaucasusProjection())
+	terrainDetected.Store(false)
+}
+
+func getCurrentProjection() TransverseMercator {
+	projectionMu.RLock()
+	defer projectionMu.RUnlock()
+	return currentProjection
+}
+
+// DetectTerrainFromBullseye attempts to pick the terrain based on bullseye lat/lon.
+// It only sets once; subsequent calls are no-ops. Returns the chosen terrain and whether detection succeeded.
+func DetectTerrainFromBullseye(bullseye orb.Point) (string, bool) {
+	if terrainDetected.Load() {
+		projectionMu.RLock()
+		defer projectionMu.RUnlock()
+		return currentTerrain, true
+	}
+	for _, td := range terrainDefs {
+		if bullseye.Lat() >= td.latLonBox.minLat && bullseye.Lat() <= td.latLonBox.maxLat &&
+			bullseye.Lon() >= td.latLonBox.minLon && bullseye.Lon() <= td.latLonBox.maxLon {
+			setCurrentTerrain(td.name, td.tm)
+			terrainDetected.Store(true)
+			log.Info().
+				Str("terrain", td.name).
+				Float64("lat", bullseye.Lat()).
+				Float64("lon", bullseye.Lon()).
+				Msg("detected terrain from bullseye")
+			return td.name, true
+		}
+	}
+	return "", false
+}
+
+// Terrain projection parameter helpers (sourced from pydcs terrain definitions).
+func AfghanistanProjection() TransverseMercator {
+	return TransverseMercator{
+		CentralMeridian: 63,
+		FalseEasting:    -300149.9999999864,
+		FalseNorthing:   -3759657.000000049,
+		ScaleFactor:     0.9996,
+	}
+}
+
+func CaucasusProjection() TransverseMercator {
+	return TransverseMercator{
+		CentralMeridian: 33,
+		FalseEasting:    -99516.9999999732,
+		FalseNorthing:   -4998114.999999984,
+		ScaleFactor:     0.9996,
+	}
+}
+
+func FalklandsProjection() TransverseMercator {
+	return TransverseMercator{
+		CentralMeridian: -57,
+		FalseEasting:    147639.99999997593,
+		FalseNorthing:   5815417.000000032,
+		ScaleFactor:     0.9996,
+	}
+}
+
+func GermanyColdWarProjection() TransverseMercator {
+	return TransverseMercator{
+		CentralMeridian: 21,
+		FalseEasting:    35427.619999985734,
+		FalseNorthing:   -6061633.128000011,
+		ScaleFactor:     0.9996,
+	}
+}
+
+func IraqProjection() TransverseMercator {
+	return TransverseMercator{
+		CentralMeridian: 45,
+		FalseEasting:    72290.00000004497,
+		FalseNorthing:   -3680057.0,
+		ScaleFactor:     0.9996,
+	}
+}
+
 // KolaProjection returns the TransverseMercator parameters for the Kola terrain.
 func KolaProjection() TransverseMercator {
 	return TransverseMercator{
 		CentralMeridian: 21,
 		FalseEasting:    -62702.00000000087,
 		FalseNorthing:   -7543624.999999979,
+		ScaleFactor:     0.9996,
+	}
+}
+
+func MarianasProjection() TransverseMercator {
+	return TransverseMercator{
+		CentralMeridian: 147,
+		FalseEasting:    238417.99999989968,
+		FalseNorthing:   -1491840.000000048,
+		ScaleFactor:     0.9996,
+	}
+}
+
+func NevadaProjection() TransverseMercator {
+	return TransverseMercator{
+		CentralMeridian: -117,
+		FalseEasting:    -193996.80999964548,
+		FalseNorthing:   -4410028.063999966,
+		ScaleFactor:     0.9996,
+	}
+}
+
+func NormandyProjection() TransverseMercator {
+	return TransverseMercator{
+		CentralMeridian: -3,
+		FalseEasting:    -195526.00000000204,
+		FalseNorthing:   -5484812.999999951,
+		ScaleFactor:     0.9996,
+	}
+}
+
+func PersianGulfProjection() TransverseMercator {
+	return TransverseMercator{
+		CentralMeridian: 57,
+		FalseEasting:    75755.99999999645,
+		FalseNorthing:   -2894933.0000000377,
+		ScaleFactor:     0.9996,
+	}
+}
+
+func SinaiProjection() TransverseMercator {
+	return TransverseMercator{
+		CentralMeridian: 33,
+		FalseEasting:    169221.9999999585,
+		FalseNorthing:   -3325312.9999999693,
+		ScaleFactor:     0.9996,
+	}
+}
+
+func SyriaProjection() TransverseMercator {
+	return TransverseMercator{
+		CentralMeridian: 39,
+		FalseEasting:    282801.00000003993,
+		FalseNorthing:   -3879865.9999999935,
+		ScaleFactor:     0.9996,
+	}
+}
+
+func TheChannelProjection() TransverseMercator {
+	return TransverseMercator{
+		CentralMeridian: 3,
+		FalseEasting:    99376.00000000288,
+		FalseNorthing:   -5636889.00000001,
 		ScaleFactor:     0.9996,
 	}
 }
@@ -41,8 +287,13 @@ func (tm TransverseMercator) ToProjString() string {
 	)
 }
 
-// LatLongToProjection converts latitude/longitude to projection coordinates using Kola terrain parameters.
+// LatLongToProjection converts latitude/longitude to projection coordinates using the current terrain parameters.
 func LatLongToProjection(lat float64, lon float64) (float64, float64, error) {
+	return LatLongToProjectionFor(getCurrentProjection(), lat, lon)
+}
+
+// LatLongToProjectionFor converts latitude/longitude to projection coordinates using the provided projection parameters.
+func LatLongToProjectionFor(tm TransverseMercator, lat float64, lon float64) (float64, float64, error) {
 	// Validate input coordinates
 	if lat < -90 || lat > 90 {
 		return 0, 0, fmt.Errorf("latitude must be between -90 and 90, got %f", lat)
@@ -51,13 +302,10 @@ func LatLongToProjection(lat float64, lon float64) (float64, float64, error) {
 		return 0, 0, fmt.Errorf("longitude must be between -180 and 180, got %f", lon)
 	}
 
-	// Get the Kola projection parameters
-	projection := KolaProjection()
-
-	// Create transformer from WGS84 to the Kola projection.
+	// Create transformer from WGS84 to the projection.
 	// Using the exact PROJ string from the Python implementation.
 	source := "+proj=longlat +datum=WGS84 +no_defs +type=crs"
-	target := projection.ToProjString()
+	target := tm.ToProjString()
 
 	pj, err := proj.NewCRSToCRS(source, target, nil)
 	if err != nil {
@@ -79,14 +327,16 @@ func LatLongToProjection(lat float64, lon float64) (float64, float64, error) {
 	return result.Y(), result.X(), nil
 }
 
-// ProjectionToLatLong converts projection coordinates to latitude/longitude using Kola terrain parameters.
+// ProjectionToLatLong converts projection coordinates to latitude/longitude using the current terrain parameters.
 func ProjectionToLatLong(x, z float64) (float64, float64, error) {
-	// Get the Kola projection parameters.
-	projection := KolaProjection()
+	return ProjectionToLatLongFor(getCurrentProjection(), x, z)
+}
 
-	// Create transformer from the Kola projection to WGS84.
+// ProjectionToLatLongFor converts projection coordinates to latitude/longitude using the provided projection parameters.
+func ProjectionToLatLongFor(tm TransverseMercator, x, z float64) (float64, float64, error) {
+	// Create transformer from the projection to WGS84.
 	// This is the inverse of LatLongToProjection.
-	source := projection.ToProjString()
+	source := tm.ToProjString()
 	target := "+proj=longlat +datum=WGS84 +no_defs +type=crs"
 
 	pj, err := proj.NewCRSToCRS(source, target, nil)
