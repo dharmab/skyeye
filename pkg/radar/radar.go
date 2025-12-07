@@ -170,11 +170,13 @@ func (r *Radar) handleUpdate(update sim.Updated) {
 	trackfile, ok := r.contacts.getByID(update.Labels.ID)
 	if ok {
 		trackfile.Update(update.Frame)
-	} else {
-		trackfile = trackfiles.New(update.Labels)
-		r.contacts.set(trackfile)
-		logger.Info().Msg("created new trackfile")
+		return
 	}
+
+	trackfile = trackfiles.New(update.Labels)
+	trackfile.Update(update.Frame)
+	r.contacts.set(trackfile)
+	logger.Info().Msg("created new trackfile")
 }
 
 // handleGarbageCollection removes trackfiles that have not been updated in a long time.
