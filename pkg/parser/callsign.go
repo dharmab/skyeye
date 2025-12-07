@@ -8,7 +8,6 @@ import (
 
 const (
 	// maxCallsignDigits is the maximum number of digits allowed in a pilot callsign.
-	// Aviation callsigns typically have 1-3 digit suffixes (e.g., "Eagle 1", "Viper 21").
 	maxCallsignDigits = 3
 )
 
