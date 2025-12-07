@@ -41,6 +41,8 @@ var (
 	currentProjection = CaucasusProjection()
 	currentTerrain    = "Caucasus"
 	terrainDetected   atomic.Bool
+	lastBullseye      orb.Point
+	lastBullseyeSet   atomic.Bool
 )
 
 var terrainDefs = []terrainDef{
@@ -119,12 +121,14 @@ func setCurrentTerrain(name string, tm TransverseMercator) {
 func ForceTerrain(name string, tm TransverseMercator) {
 	setCurrentTerrain(name, tm)
 	terrainDetected.Store(true)
+	lastBullseyeSet.Store(false)
 }
 
 // ResetTerrainToDefault resets terrain selection to the default (Caucasus) and re-enables auto-detection.
 func ResetTerrainToDefault() {
 	setCurrentTerrain("Caucasus", CaucasusProjection())
 	terrainDetected.Store(false)
+	lastBullseyeSet.Store(false)
 }
 
 func getCurrentProjection() TransverseMercator {
@@ -134,18 +138,27 @@ func getCurrentProjection() TransverseMercator {
 }
 
 // DetectTerrainFromBullseye attempts to pick the terrain based on bullseye lat/lon.
-// It only sets once; subsequent calls return false to indicate no change. Returns the chosen terrain and whether detection changed.
+// If the bullseye changes, detection is re-run; returns whether the terrain changed.
 func DetectTerrainFromBullseye(bullseye orb.Point) (string, bool) {
-	if terrainDetected.Load() {
-		projectionMu.RLock()
-		defer projectionMu.RUnlock()
-		return currentTerrain, false
+	projectionMu.RLock()
+	prev := lastBullseye
+	prevSet := lastBullseyeSet.Load()
+	current := currentTerrain
+	projectionMu.RUnlock()
+
+	if terrainDetected.Load() && prevSet && bullseye.Equal(prev) {
+		return current, false
 	}
+
 	for _, td := range terrainDefs {
 		if bullseye.Lat() >= td.latLonBox.minLat && bullseye.Lat() <= td.latLonBox.maxLat &&
 			bullseye.Lon() >= td.latLonBox.minLon && bullseye.Lon() <= td.latLonBox.maxLon {
 			setCurrentTerrain(td.name, td.tm)
 			terrainDetected.Store(true)
+			projectionMu.Lock()
+			lastBullseye = bullseye
+			lastBullseyeSet.Store(true)
+			projectionMu.Unlock()
 			log.Info().
 				Str("terrain", td.name).
 				Float64("lat", bullseye.Lat()).
@@ -154,6 +167,11 @@ func DetectTerrainFromBullseye(bullseye orb.Point) (string, bool) {
 			return td.name, true
 		}
 	}
+
+	projectionMu.Lock()
+	lastBullseye = bullseye
+	lastBullseyeSet.Store(true)
+	projectionMu.Unlock()
 	return "", false
 }
 
