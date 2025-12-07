@@ -169,6 +169,12 @@ func bullseyeInsideBounds(td terrainDef, bullseye orb.Point) bool {
 func setCurrentTerrain(name string, tm TransverseMercator) {
 	projectionMu.Lock()
 	defer projectionMu.Unlock()
+	if currentTerrain != name {
+		log.Debug().
+			Str("from", currentTerrain).
+			Str("to", name).
+			Msg("switching terrain projection")
+	}
 	currentTerrain = name
 	currentProjection = tm
 }
