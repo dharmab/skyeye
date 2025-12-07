@@ -111,6 +111,13 @@ func computeLatLonBounds(td *terrainDef) error {
 }
 
 func bullseyeInsideBounds(td terrainDef, bullseye orb.Point) bool {
+	// First try precomputed lat/lon box.
+	if bullseye.Lat() >= td.latLonBox.minLat && bullseye.Lat() <= td.latLonBox.maxLat &&
+		bullseye.Lon() >= td.latLonBox.minLon && bullseye.Lon() <= td.latLonBox.maxLon {
+		return true
+	}
+
+	// Fallback to projected bounds in case of numerical differences.
 	xMin := math.Min(td.boundsXY[0], td.boundsXY[2])
 	xMax := math.Max(td.boundsXY[0], td.boundsXY[2])
 	yMin := math.Min(td.boundsXY[1], td.boundsXY[3])
