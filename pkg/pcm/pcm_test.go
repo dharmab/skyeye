@@ -76,7 +76,7 @@ func TestS16toF32toS16RoundTrip(t *testing.T) {
 	}
 }
 
-func TestAdjustVolume(t *testing.T) {
+func TestF32LEAdjustVolume(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
 		name     string
@@ -118,7 +118,7 @@ func TestAdjustVolume(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			actual := AdjustVolume(test.samples, test.volume)
+			actual := F32AdjustVolume(test.samples, test.volume)
 			assert.Equal(t, test.expected, actual)
 		})
 	}

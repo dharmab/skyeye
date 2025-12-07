@@ -45,8 +45,7 @@ func (a *Application) synthesizeMessage(ctx context.Context, response composer.N
 		a.trace(traces.WithRequestError(ctx, err))
 	} else {
 		log.Info().Stringer("clockTime", time.Since(start)).Msg("synthesized audio")
-		// Apply volume adjustment
-		audio = pcm.AdjustVolume(audio, a.volume)
+		audio = pcm.F32AdjustVolume(audio, a.volume)
 		out <- AsMessage(
 			traces.WithSynthesizedAt(ctx, time.Now()),
 			simpleradio.Audio(audio),

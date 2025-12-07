@@ -77,6 +77,13 @@ var (
 	exitAfter                    time.Duration
 )
 
+const (
+	// voiceVolumeMin is the minimum allowed value for --voice-volume, configuring silence.
+	voiceVolumeMin = 0.0
+	// voiceVolumeDefault is the default value used for --voice-volume, which configures no change in volume.
+	voiceVolumeDefault = 1.0
+)
+
 func init() {
 	skyeye.Flags().StringVar(&configFile, "config-file", "/etc/skyeye/config.yaml", "Path to config file")
 
@@ -125,7 +132,7 @@ func init() {
 	voiceFlag := cli.NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
 	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine). Automatically chosen if not provided.")
 	skyeye.Flags().Float64Var(&voiceSpeed, "voice-playback-speed", 1.0, "How quickly the GCI speaks (values below 1.0 are faster and above are slower).")
-	skyeye.Flags().Float64Var(&voiceVolume, "volume", 1.0, "Volume level for audio output (0.0 = silent, 1.0 = normal, 2.0 = double volume)")
+	skyeye.Flags().Float64Var(&voiceVolume, "voice-volume", voiceVolumeDefault, fmt.Sprintf("Volume level for audio output (%v = silent, %v = normal)", voiceVolumeMin, voiceVolumeDefault))
 	skyeye.Flags().BoolVar(&mute, "mute", false, "Mute all SRS transmissions. Useful for testing without disrupting play")
 	skyeye.Flags().StringVar(&voiceLockPath, "voice-lock-path", "", "Path to lock file for concurrent text-to-speech when using multiple instances")
 	if runtime.GOOS == "darwin" {
@@ -316,6 +323,14 @@ func loadLock(path string) *flock.Flock {
 	return flock.New(path)
 }
 
+func loadVoiceVolume() float64 {
+	clamped := max(voiceVolumeMin, min(voiceVolume, voiceVolumeDefault))
+	if clamped != voiceVolume {
+		log.Warn().Float64("configured", voiceVolume).Float64("clamped", clamped).Msg("clamping voice volume to valid range")
+	}
+	return clamped
+}
+
 func preRun(cmd *cobra.Command, _ []string) error {
 	if err := initializeConfig(cmd); err != nil {
 		return fmt.Errorf("failed to initialize config: %w", err)
@@ -362,6 +377,7 @@ func run(_ *cobra.Command, _ []string) {
 	parsedSRSFrequencies := cli.LoadFrequencies(srsFrequencies)
 	voiceLock := loadLock(voiceLockPath)
 	recognizerLock := loadLock(recognizerLockPath)
+	volume := loadVoiceVolume()
 
 	config := conf.Configuration{
 		ACMIFile:                     acmiFile,
@@ -387,7 +403,7 @@ func run(_ *cobra.Command, _ []string) {
 		VoiceLock:                    voiceLock,
 		Mute:                         mute,
 		VoiceSpeed:                   voiceSpeed,
-		Volume:                       voiceVolume,
+		Volume:                       volume,
 		VoicePauseLength:             voicePauseLength,
 		EnableAutomaticPicture:       enableAutomaticPicture,
 		PictureBroadcastInterval:     automaticPictureInterval,
