@@ -230,11 +230,31 @@ SkyEye uses AI generated voices built into macOS.
 
 By default, the "Samantha" voice is used. This is the version of Siri's voice from the iPhone 4s, iPhone 5 and iPhone 6, based on [Susan Bennett](https://susancbennett.com/).
 
-It is also possible to use one of the newer Siri voices, which provide much better quality. **I strongly recommend enabling one of the newer voices.**, because they provide excellent quality, nearly indistinguishable from a human voice.
+It is also possible to use one of the newer Siri voices. **I strongly recommend enabling one of the newer voices.**, because they provide excellent quality, nearly indistinguishable from a human voice.
 
-This procedure was tested on macOS 15.4 Sequoia.
+Not all Siri voices work equally well; many struggle to pronounce aviation terminology. I've manually validated a voice for each version of macOS:
 
-1. Open System settings
+#### macOS 26 Tahoe
+
+On macOS 26 Tahoe, the best voice is **Siri Voice 2**.
+
+1. Open System Settings
+2. Click on "Accessibility"
+3. Click on "Siri"
+4. If the system language is not English, set the system speech language to English
+5. Next to "System Voice", click the "i" button
+6. In the list of languages, make sure "English" is selected
+7. Click on "Voice"
+8. Scroll down to "Siri".
+9. Download Siri Voice 2.
+10. Click "Done"
+11. Set the system voice to Siri Voice 2.
+
+#### macOS 15 Tahoe
+
+On macOS 15 Sequoia, the best voice is **Siri Voice 5**.
+
+1. Open System Settings
 2. Click on "Accessibility"
 3. Click on "Spoken Content"
 4. If the system language is not English, set the system speech language to English
@@ -242,9 +262,11 @@ This procedure was tested on macOS 15.4 Sequoia.
 6. In the list of languages, make sure "English" is selected
 7. Click on "Voice"
 8. Scroll down to "Siri".
-9. Listen to the previews and download a Siri voice you like. I've found that of the 5 US English voices, Voice 5 sounds best, and Voice 1 and Voice 2 are acceptable, but Voice 3 and Voice 4 have a strange pronunciation of the word "bullseye."
+9. Download the English (United States) Siri Voice 5.
 10. Click "Done"
-11. Set the system voice to your choice of Siri voice
+11. Set the system voice to Siri Voice 5.
+
+#### Testing the System Voice
 
 To test your change, open Terminal and run this command:
 

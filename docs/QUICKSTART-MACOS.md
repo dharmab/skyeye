@@ -18,19 +18,7 @@ Make sure DCS is running an unpaused mission with both friendly and hostile air 
 
 ## Configure System Voice (Optional, Strongly Recommended)
 
-For the best possible AI voice, set your macOS voice to Siri Voice 5:
-
-1. Open System settings
-2. Click on "Accessibility"
-3. Click on "Spoken Content"
-4. If the system language is not English, set the system speech language to English
-5. Next to "System Voice", click the "i" button
-6. In the list of languages, make sure "English" is selected
-7. Click on "Voice"
-8. Scroll down to "Siri".
-9. Download the English (United States) Siri Voice 5.
-10. Click "Done"
-11. Set the system voice to Siri Voice 5.
+For the best possible AI voice, set your macOS system voice to Siri Voice 2 (macOS Tahoe) or Siri Voice 5 (macOS Sequoia). Step by step instructions are in the admin guide [here](ADMIN.md#macos-1).
 
 ## Install Homebrew
 
