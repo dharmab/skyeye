@@ -15,6 +15,7 @@ import (
 )
 
 func TestNearest(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name       string
 		origin     orb.Point

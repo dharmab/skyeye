@@ -383,7 +383,7 @@ func (a *Application) updateBullseyes() {
 			log.Warn().Err(err).Msg("error reading bullseye")
 		} else {
 			a.radar.SetBullseye(bullseye, coalition)
-			if name, ok := spatial.DetectTerrainFromBullseye(bullseye); ok {
+			if name, changed := spatial.DetectTerrainFromBullseye(bullseye); changed {
 				log.Info().Str("terrain", name).Msg("terrain detected from bullseye")
 			}
 		}

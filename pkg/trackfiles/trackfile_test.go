@@ -168,12 +168,12 @@ func TestTracking(t *testing.T) {
 				Coalition: coalitions.Blue,
 			})
 			//now := time.Now()
-			time := time.Date(1999, 06, 11, 12, 0, 0, 0, time.UTC)
+			now := time.Date(1999, 06, 11, 12, 0, 0, 0, time.UTC)
 
 			alt := 20000 * unit.Foot
 
 			trackfile.Update(Frame{
-				Time:     time.Add(-1 * test.ΔT),
+				Time:     now.Add(-1 * test.ΔT),
 				Point:    orb.Point{33.405794, 69.047461},
 				Altitude: alt,
 				Heading:  test.heading,
@@ -181,7 +181,7 @@ func TestTracking(t *testing.T) {
 			dest := spatial.PointAtBearingAndDistance(trackfile.LastKnown().Point, bearings.NewTrueBearing(0), test.ΔY) // translate point in Y axis
 			dest = spatial.PointAtBearingAndDistance(dest, bearings.NewTrueBearing(90*unit.Degree), test.ΔX)            // translate point in X axis
 			trackfile.Update(Frame{
-				Time:     time,
+				Time:     now,
 				Point:    dest,
 				Altitude: alt + test.ΔZ,
 				Heading:  test.heading,
@@ -190,7 +190,7 @@ func TestTracking(t *testing.T) {
 			assert.InDelta(t, test.expectedApproxSpeed.MetersPerSecond(), trackfile.Speed().MetersPerSecond(), 1)
 			assert.Equal(t, test.expectedDirection, trackfile.Direction())
 			if test.expectedDirection != brevity.UnknownDirection {
-				declination, err := bearings.Declination(dest, time)
+				declination, err := bearings.Declination(dest, now)
 				//fmt.Printf("declination at %f,%f is %f\n", dest.Lat(), dest.Lon(), declination.Degrees())
 				require.NoError(t, err)
 				//fmt.Printf("NewTrueBearing(test.expectedApproxCourse) %f\n", bearings.NewTrueBearing(test.expectedApproxCourse).Degrees())
@@ -213,7 +213,7 @@ func TestBullseye(t *testing.T) { // tests bullseye calculations - bearing and d
 		Name:      "Eagle 1",
 		Coalition: coalitions.Blue,
 	}) //		target:           orb.Point{33.405794, 69.047461},
-	time := time.Date(1999, 06, 11, 12, 0, 0, 0, time.UTC)
+	now := time.Date(1999, 06, 11, 12, 0, 0, 0, time.UTC)
 	alt := 20000 * unit.Foot
 	heading := 0 * unit.Degree
 	testCases := []struct {
@@ -245,7 +245,7 @@ func TestBullseye(t *testing.T) { // tests bullseye calculations - bearing and d
 		t.Run(fmt.Sprintf("%v -> %v", test.bullseye, test.tf_point), func(t *testing.T) {
 			t.Parallel()
 			trackfile.Update(Frame{
-				Time:     time,
+				Time:     now,
 				Point:    test.tf_point,
 				Altitude: alt,
 				Heading:  heading,

@@ -10,6 +10,7 @@ import (
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMain(m *testing.M) {
@@ -319,11 +320,11 @@ func TestProjectionRoundTrip(t *testing.T) {
 
 			// Convert lat/lon to projection
 			x, z, err := LatLongToProjection(test.lat, test.lon)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			// Convert back to lat/lon
 			lat2, lon2, err := ProjectionToLatLong(x, z)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			// Verify round-trip accuracy (within 0.000001 degrees, ~0.1 meters)
 			assert.InDelta(t, test.lat, lat2, 0.000001, "latitude mismatch")

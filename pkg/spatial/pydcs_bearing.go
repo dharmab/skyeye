@@ -134,12 +134,12 @@ func getCurrentProjection() TransverseMercator {
 }
 
 // DetectTerrainFromBullseye attempts to pick the terrain based on bullseye lat/lon.
-// It only sets once; subsequent calls are no-ops. Returns the chosen terrain and whether detection succeeded.
+// It only sets once; subsequent calls return false to indicate no change. Returns the chosen terrain and whether detection changed.
 func DetectTerrainFromBullseye(bullseye orb.Point) (string, bool) {
 	if terrainDetected.Load() {
 		projectionMu.RLock()
 		defer projectionMu.RUnlock()
-		return currentTerrain, true
+		return currentTerrain, false
 	}
 	for _, td := range terrainDefs {
 		if bullseye.Lat() >= td.latLonBox.minLat && bullseye.Lat() <= td.latLonBox.maxLat &&
@@ -288,12 +288,12 @@ func (tm TransverseMercator) ToProjString() string {
 }
 
 // LatLongToProjection converts latitude/longitude to projection coordinates using the current terrain parameters.
-func LatLongToProjection(lat float64, lon float64) (float64, float64, error) {
+func LatLongToProjection(lat float64, lon float64) (x float64, z float64, err error) {
 	return LatLongToProjectionFor(getCurrentProjection(), lat, lon)
 }
 
 // LatLongToProjectionFor converts latitude/longitude to projection coordinates using the provided projection parameters.
-func LatLongToProjectionFor(tm TransverseMercator, lat float64, lon float64) (float64, float64, error) {
+func LatLongToProjectionFor(tm TransverseMercator, lat float64, lon float64) (x float64, z float64, err error) {
 	// Validate input coordinates
 	if lat < -90 || lat > 90 {
 		return 0, 0, fmt.Errorf("latitude must be between -90 and 90, got %f", lat)
@@ -328,12 +328,12 @@ func LatLongToProjectionFor(tm TransverseMercator, lat float64, lon float64) (fl
 }
 
 // ProjectionToLatLong converts projection coordinates to latitude/longitude using the current terrain parameters.
-func ProjectionToLatLong(x, z float64) (float64, float64, error) {
+func ProjectionToLatLong(x, z float64) (lat float64, lon float64, err error) {
 	return ProjectionToLatLongFor(getCurrentProjection(), x, z)
 }
 
 // ProjectionToLatLongFor converts projection coordinates to latitude/longitude using the provided projection parameters.
-func ProjectionToLatLongFor(tm TransverseMercator, x, z float64) (float64, float64, error) {
+func ProjectionToLatLongFor(tm TransverseMercator, x, z float64) (lat float64, lon float64, err error) {
 	// Create transformer from the projection to WGS84.
 	// This is the inverse of LatLongToProjection.
 	source := tm.ToProjString()
@@ -357,8 +357,8 @@ func ProjectionToLatLongFor(tm TransverseMercator, x, z float64) (float64, float
 	}
 
 	// Result contains lon, lat (in that order).
-	lon := result.X()
-	lat := result.Y()
+	lon = result.X()
+	lat = result.Y()
 
 	// Validate output coordinates.
 	if lat < -90 || lat > 90 {
@@ -385,7 +385,9 @@ func CalculateDistance(lat1, lon1, lat2, lon2 float64) (float64, error) {
 	}
 
 	// Calculate Euclidean distance in meters.
-	distanceMeters := math.Sqrt(math.Pow(x2-x1, 2) + math.Pow(z2-z1, 2))
+	dx := x2 - x1
+	dz := z2 - z1
+	distanceMeters := math.Sqrt(dx*dx + dz*dz)
 
 	// Convert meters to nautical miles (1 nautical mile = 1852 meters).
 	//distanceNauticalMiles := distanceMeters / 1852.
