@@ -246,6 +246,9 @@ func DetectTerrainFromBullseye(source string, bullseye orb.Point) (string, bool)
 	}
 
 	if bestName != "" {
+		if bestName == current {
+			return current, false
+		}
 		setCurrentTerrain(bestName, bestTM)
 		terrainDetected.Store(true)
 		return bestName, true
@@ -266,6 +269,9 @@ func DetectTerrainFromBullseye(source string, bullseye orb.Point) (string, bool)
 	}
 
 	if bestName != "" {
+		if bestName == current {
+			return current, false
+		}
 		setCurrentTerrain(bestName, bestTM)
 		terrainDetected.Store(true)
 		return bestName, true
