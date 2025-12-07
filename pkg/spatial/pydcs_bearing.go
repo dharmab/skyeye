@@ -219,7 +219,8 @@ func DetectTerrainFromBullseye(source string, bullseye orb.Point) (string, bool)
 	projectionMu.Unlock()
 
 	// If current terrain fits all bullseyes, no change.
-	if terrainDetected.Load() {
+	detected := terrainDetected.Load()
+	if detected {
 		if td, ok := terrainDefByName(current); ok && allBullseyesInside(td, points) {
 			return current, false
 		}
@@ -246,12 +247,10 @@ func DetectTerrainFromBullseye(source string, bullseye orb.Point) (string, bool)
 	}
 
 	if bestName != "" {
-		if bestName == current {
-			return current, false
-		}
+		changed := !detected || bestName != current
 		setCurrentTerrain(bestName, bestTM)
 		terrainDetected.Store(true)
-		return bestName, true
+		return bestName, changed
 	}
 
 	// Fallback: pick the terrain with minimal total center distance to all bullseyes.
@@ -269,12 +268,10 @@ func DetectTerrainFromBullseye(source string, bullseye orb.Point) (string, bool)
 	}
 
 	if bestName != "" {
-		if bestName == current {
-			return current, false
-		}
+		changed := !detected || bestName != current
 		setCurrentTerrain(bestName, bestTM)
 		terrainDetected.Store(true)
-		return bestName, true
+		return bestName, changed
 	}
 
 	// No terrain fits or can be inferred.
