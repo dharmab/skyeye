@@ -96,3 +96,8 @@ dev/
 .vscode/settings.json
 
 *.zip
+
+# PROJ build artifacts (downloaded source, build, and install trees)
+third_party/proj-*/
+third_party/proj-install/
+third_party/proj-*.tar.gz
