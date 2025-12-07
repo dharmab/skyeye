@@ -226,17 +226,19 @@ func (c *streamingClient) handleUpdate(reader *bufio.Reader) error {
 	}
 
 	if strings.HasSuffix(line, "\\\n") {
-		line = line[:len(line)-2]
+		var sb strings.Builder
+		sb.WriteString(line[:len(line)-2])
 		for {
 			next, err := reader.ReadString('\n')
 			if err != nil {
 				return fmt.Errorf("error reading continuation line: %w", err)
 			}
-			line += next
+			sb.WriteString(next)
 			if !strings.HasSuffix(next, "\\\n") {
 				break
 			}
 		}
+		line = sb.String()
 	}
 	line = strings.TrimSpace(line)
 	if line == "" {
