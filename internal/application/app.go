@@ -384,12 +384,7 @@ func (a *Application) updateBullseyes() {
 		} else {
 			a.radar.SetBullseye(bullseye, coalition)
 			if name, changed := spatial.DetectTerrainFromBullseye(coalition.String(), bullseye); changed {
-				log.Info().Str("terrain", name).Msg("terrain detected from bullseye")
-			} else if name == "" {
-				log.Error().
-					Float64("lat", bullseye.Lat()).
-					Float64("lon", bullseye.Lon()).
-					Msg("failed to detect terrain from bullseye")
+				log.Info().Str("terrain", name).Msg("terrain detected from bullseyes")
 			}
 		}
 	}

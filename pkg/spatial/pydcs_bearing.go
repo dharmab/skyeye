@@ -248,11 +248,6 @@ func DetectTerrainFromBullseye(source string, bullseye orb.Point) (string, bool)
 	if bestName != "" {
 		setCurrentTerrain(bestName, bestTM)
 		terrainDetected.Store(true)
-		log.Info().
-			Str("terrain", bestName).
-			Float64("lat", bullseye.Lat()).
-			Float64("lon", bullseye.Lon()).
-			Msg("detected terrain from bullseye")
 		return bestName, true
 	}
 
@@ -273,11 +268,6 @@ func DetectTerrainFromBullseye(source string, bullseye orb.Point) (string, bool)
 	if bestName != "" {
 		setCurrentTerrain(bestName, bestTM)
 		terrainDetected.Store(true)
-		log.Info().
-			Str("terrain", bestName).
-			Float64("lat", bullseye.Lat()).
-			Float64("lon", bullseye.Lon()).
-			Msg("detected terrain from bullseye (fallback to closest center)")
 		return bestName, true
 	}
 
