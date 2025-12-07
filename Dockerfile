@@ -1,13 +1,13 @@
 ARG SKYEYE_VERSION
-FROM golang:1.25.3 AS builder
+FROM golang:1.25.5 AS builder
 RUN apt-get update && apt-get install -y \
-  git \
-  make \
-  lsb-release \
-  gcc \
-  libopus-dev \
-  libsoxr-dev \
-  && rm -rf /var/lib/apt/lists/*
+    git \
+    make \
+    lsb-release \
+    gcc \
+    libopus-dev \
+    libsoxr-dev \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /skyeye
 COPY third_party third_party
 COPY Makefile Makefile
@@ -23,10 +23,10 @@ RUN make skyeye-scaler
 
 FROM debian:bookworm-slim AS base
 RUN apt-get update && apt-get install -y \
-  ca-certificates \
-  libopus0 \
-  libsoxr0 \
-  && rm -rf /var/lib/apt/lists/*
+    ca-certificates \
+    libopus0 \
+    libsoxr0 \
+    && rm -rf /var/lib/apt/lists/*
 
 FROM base AS skyeye
 COPY --from=builder /skyeye/skyeye /opt/skyeye/bin/skyeye

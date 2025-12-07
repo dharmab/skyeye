@@ -285,9 +285,10 @@ func f14Variants() []Aircraft {
 	return variants(
 		f14Data,
 		map[string]string{
-			"A-135-GR": "A",
-			"A":        "A",
-			"B":        "B",
+			"A-135-GR-Early": "A",
+			"A-135-GR":       "A",
+			"A":              "A",
+			"B":              "B",
 		},
 	)
 }

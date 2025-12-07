@@ -1,11 +1,12 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
-	"golang.org/x/net/context"
 )
 
 // HandleSnaplock handles a SNAPLOCK by reporting information about the target group.
