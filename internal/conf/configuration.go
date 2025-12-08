@@ -76,6 +76,8 @@ type Configuration struct {
 	Mute bool
 	// Piper playback speed (default is 1.0) - The higher the value the slower it is.
 	VoiceSpeed float64
+	// Volume level for audio output (default is 1.0)
+	Volume float64
 	// Piper playback pause after every sentence in seconds (default is 0.2)
 	VoicePauseLength time.Duration
 	// EnableAutomaticPicture controls whether the controller will automatically broadcast a PICTURE at regular intervals.

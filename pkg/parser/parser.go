@@ -2,13 +2,18 @@
 package parser
 
 import (
-	"bufio"
-	"bytes"
 	"strings"
 
+	"github.com/dharmab/skyeye/internal/parser/token"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/rodaine/numwords"
 	"github.com/rs/zerolog/log"
+)
+
+const (
+	// maxInputLength is the maximum length of input text to process.
+	// Prevents processing extremely long inputs that may indicate garbage data.
+	maxInputLength = 1000
 )
 
 // Parser converts brevity requests from natural language into structured forms.
@@ -44,19 +49,61 @@ const (
 
 var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, strobe, snaplock, tripwire, shopping}
 
-func (p *Parser) findControllerCallsign(fields []string) (callsign string, rest string, found bool) {
+// findControllerCallsign searches for the GCI callsign in the given fields.
+// Returns the heard callsign, remaining text after it, and whether it was found.
+func (p *Parser) findControllerCallsign(fields []string) (heard string, rest string, ok bool) {
 	for i := range fields {
 		candidate := strings.Join(fields[:i+1], " ")
 		for _, wakePhrase := range []string{p.controllerCallsign, Anyface} {
 			if isSimilar(strings.TrimSpace(candidate), strings.ToLower(wakePhrase)) {
-				found = true
-				callsign = candidate
+				ok = true
+				heard = candidate
 				rest = strings.Join(fields[i+1:], " ")
 				return
 			}
 		}
 	}
 	return "", "", false
+}
+
+// handleNoRequestWord handles cases where we heard the GCI callsign and pilot callsign
+// but couldn't identify a specific request word.
+func handleNoRequestWord(tx, pilotCallsign string) any {
+	if strings.Contains(tx, checkIn) {
+		return &brevity.CheckInRequest{Callsign: pilotCallsign}
+	}
+	return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
+}
+
+// parseRequestWithArgs attempts to parse a request that requires additional arguments
+// beyond the request word itself (e.g., BOGEY DOPE, DECLARE, SPIKED).
+func parseRequestWithArgs(requestWord, pilotCallsign string, requestArgs []string) any {
+	stream := token.New(strings.Join(requestArgs, " "))
+
+	switch requestWord {
+	case bogeyDope:
+		if request, ok := parseBogeyDope(pilotCallsign, stream); ok {
+			return request
+		}
+	case declare:
+		if request, ok := parseDeclare(pilotCallsign, stream); ok {
+			return request
+		}
+	case spiked:
+		if request, ok := parseSpiked(pilotCallsign, stream); ok {
+			return request
+		}
+	case strobe:
+		if request, ok := parseStrobe(pilotCallsign, stream); ok {
+			return request
+		}
+	case snaplock:
+		if request, ok := parseSnaplock(pilotCallsign, stream); ok {
+			return request
+		}
+	}
+
+	return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
 }
 
 func findRequestWord(fields []string) (string, int, bool) {
@@ -69,7 +116,7 @@ func findRequestWord(fields []string) (string, int, bool) {
 			// HACK: Also compare the first half of long fields separately.
 			// Handles some cases of two words running together, e.g.
 			// "bogeydope" instead of "bogey dope".
-			if len(field) > 8 {
+			if len(field) > halfFieldMinLength {
 				halfField := field[:len(field)/2]
 				if isSimilar(word, halfField) {
 					return word, i, true
@@ -97,6 +144,14 @@ func (p *Parser) uncrushCallsign(s string) string {
 // brevity request, or nil if the text does not start with the GCI
 // callsign.
 func (p *Parser) Parse(tx string) any {
+	if tx == "" {
+		return nil
+	}
+	if len(tx) > maxInputLength {
+		log.Warn().Int("length", len(tx)).Msg("unusually long input truncated")
+		tx = tx[:maxInputLength]
+	}
+
 	logger := log.With().Str("gci", p.controllerCallsign).Logger()
 	if p.enableTextLogging {
 		logger = logger.With().Str("text", tx).Logger()
@@ -113,71 +168,55 @@ func (p *Parser) Parse(tx string) any {
 	}
 	logger.Debug().Msg("normalized text")
 
-	// Tokenize the text.
 	fields := strings.Fields(tx)
 
-	// Search for a token that looks similar to a request word, and split
-	// the text around it.
 	before := fields
 	var requestArgs []string
-	requestWord, requestWordIndex, foundRequestWord := findRequestWord(fields)
-	if foundRequestWord {
+	requestWord, idx, ok := findRequestWord(fields)
+	if ok {
 		logger = logger.With().Str("request", requestWord).Logger()
-		logger.Debug().Int("position", requestWordIndex).Msg("found request word")
-		before, requestArgs = fields[:requestWordIndex], fields[requestWordIndex+1:]
+		logger.Debug().Int("position", idx).Msg("found request word")
+		before, requestArgs = fields[:idx], fields[idx+1:]
 	}
 
-	// Search the first part of the text for text that looks similar to a GCI
-	// callsign. If we find such text, search the rest for a valid pilot
-	// callsign.
-	heardControllerCallsign, afterControllerCallsign, foundControllerCallsign := p.findControllerCallsign(before)
+	heard, rest, ok := p.findControllerCallsign(before)
 
-	// If we didn't hear the GCI callsign, this was probably chatter rather
-	// than a request.
-	if !foundControllerCallsign {
+	if !ok {
 		logger.Trace().Msg("no GCI callsign found")
 		return nil
 	}
-	event := logger.Debug().Str("heard", heardControllerCallsign)
+	event := logger.Debug().Str("heard", heard)
 	if p.enableTextLogging {
-		event = event.Str("rest", afterControllerCallsign)
+		event = event.Str("rest", rest)
 	}
 	event.Msg("found GCI callsign")
-	logger.Debug().Str("heard", heardControllerCallsign).Str("after", afterControllerCallsign).Msg("found GCI callsign")
 
 	event = logger.Debug()
 	if p.enableTextLogging {
-		event = event.Str("rest", afterControllerCallsign)
+		event = event.Str("rest", rest)
 	}
 	event.Msg("searching for pilot callsign in rest of text")
 
-	afterControllerCallsign = numwords.ParseString(afterControllerCallsign)
-	pilotCallsign, foundPilotCallsign := ParsePilotCallsign(afterControllerCallsign)
-	if foundPilotCallsign {
+	rest = numwords.ParseString(rest)
+	pilotCallsign, ok := ParsePilotCallsign(rest)
+	if ok {
 		logger = logger.With().Str("pilot", pilotCallsign).Logger()
 		logger.Debug().Msg("found pilot callsign")
+	} else {
+		logger.Trace().Msg("no pilot callsign found")
 	}
 
-	// Handle cases where we heard our own callsign, but couldn't understand
-	// the request.
-	if !foundPilotCallsign && foundRequestWord && requestWord == picture {
-		return &brevity.PictureRequest{Callsign: ""}
-	}
-	if !foundPilotCallsign {
-		logger.Trace().Msg("no pilot callsign found")
+	if !ok {
+		if requestWord != "" && requestWord == picture {
+			return &brevity.PictureRequest{Callsign: ""}
+		}
 		return &brevity.UnableToUnderstandRequest{}
 	}
-	if !foundRequestWord {
-		// Fallback: Possibly an ambiguous check-in request.
-		if strings.Contains(tx, checkIn) {
-			return &brevity.CheckInRequest{Callsign: pilotCallsign}
-		}
-
+	if requestWord == "" {
 		logger.Trace().Msg("no request word found")
-		return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
+		return handleNoRequestWord(tx, pilotCallsign)
 	}
 
-	// Try to parse a request from the remaining text.
 	switch requestWord {
 	case alphaCheck:
 		return &brevity.AlphaCheckRequest{Callsign: pilotCallsign}
@@ -196,56 +235,6 @@ func (p *Parser) Parse(tx string) any {
 		event = event.Strs("args", requestArgs)
 	}
 	event.Msg("parsing request arguments")
-	scanner := bufio.NewScanner(strings.NewReader(strings.Join(requestArgs, " ")))
-	scanner.Split(bufio.ScanWords)
 
-	switch requestWord {
-	case bogeyDope:
-		if request, ok := parseBogeyDope(pilotCallsign, scanner); ok {
-			return request
-		}
-	case declare:
-		if request, ok := parseDeclare(pilotCallsign, scanner); ok {
-			return request
-		}
-	case spiked:
-		if request, ok := parseSpiked(pilotCallsign, scanner); ok {
-			return request
-		}
-	case strobe:
-		if request, ok := parseStrobe(pilotCallsign, scanner); ok {
-			return request
-		}
-	case snaplock:
-		if request, ok := parseSnaplock(pilotCallsign, scanner); ok {
-			return request
-		}
-	}
-
-	logger.Debug().Msg("unrecognized request")
-	return &brevity.UnableToUnderstandRequest{Callsign: pilotCallsign}
-}
-
-func skipWords(scanner *bufio.Scanner, words ...string) bool {
-	for _, word := range words {
-		if isSimilar(scanner.Text(), word) {
-			return scanner.Scan()
-		}
-	}
-	return true
-}
-
-func prependToScanner(scanner *bufio.Scanner, s string) *bufio.Scanner {
-	if s == "" {
-		return scanner
-	}
-	var buffer bytes.Buffer
-	_, _ = buffer.WriteString(s + " ")
-
-	for scanner.Scan() {
-		_, _ = buffer.WriteString(scanner.Text() + " ")
-	}
-	newScanner := bufio.NewScanner(&buffer)
-	newScanner.Split(bufio.ScanWords)
-	return newScanner
+	return parseRequestWithArgs(requestWord, pilotCallsign, requestArgs)
 }

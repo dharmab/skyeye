@@ -1,13 +1,12 @@
 package parser
 
 import (
-	"bufio"
-
+	"github.com/dharmab/skyeye/internal/parser/token"
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
-func parseSpiked(callsign string, scanner *bufio.Scanner) (*brevity.SpikedRequest, bool) {
-	bearing, _, ok := parseBearing(scanner)
+func parseSpiked(callsign string, stream *token.Stream) (*brevity.SpikedRequest, bool) {
+	bearing, ok := parseBearingOnly(stream)
 	if !ok {
 		return nil, false
 	}

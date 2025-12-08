@@ -6,6 +6,11 @@ import (
 	"unicode"
 )
 
+const (
+	// maxCallsignDigits is the maximum number of digits allowed in a pilot callsign.
+	maxCallsignDigits = 3
+)
+
 // ParsePilotCallsign attempts to parse a callsign in one of the following formats:
 //   - A single word, followed by a number consisting of any digits
 //   - A number consisting of up to 3 digits
@@ -29,15 +34,15 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	}
 
 	var builder strings.Builder
-	numDigits := 0
+	n := 0
 	for _, char := range tx {
-		if numDigits >= 3 {
+		if n >= maxCallsignDigits {
 			break
 		}
 		if unicode.IsDigit(char) {
-			numDigits++
+			n++
 		}
-		if numDigits == 0 || unicode.IsDigit(char) || unicode.IsSpace(char) {
+		if n == 0 || unicode.IsDigit(char) || unicode.IsSpace(char) {
 			_, _ = builder.WriteRune(char)
 		}
 	}
@@ -50,8 +55,8 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	return callsign, true
 }
 
-var clanTagExpression = regexp.MustCompile(`\[.*?\]`)
+var clanTagRe = regexp.MustCompile(`\[.*?\]`)
 
 func removeClanTags(tx string) string {
-	return clanTagExpression.ReplaceAllString(tx, "")
+	return clanTagRe.ReplaceAllString(tx, "")
 }
