@@ -20,6 +20,7 @@ func init() {
 }
 
 func TestTracking(t *testing.T) {
+	t.Parallel()
 	spatial.ResetTerrainToDefault()
 	spatial.ForceTerrain("Kola", spatial.KolaProjection())
 	testCases := []struct {
@@ -207,6 +208,7 @@ func TestTracking(t *testing.T) {
 }
 
 func TestBullseye(t *testing.T) { // tests bullseye calculations - bearing and distance to trackfile point given bullseye point
+	t.Parallel()
 	spatial.ResetTerrainToDefault()
 	spatial.ForceTerrain("Kola", spatial.KolaProjection())
 	trackfile := New(Labels{
