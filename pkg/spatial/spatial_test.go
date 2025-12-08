@@ -93,11 +93,11 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+//nolint:paralleltest // serialized because tests mutate global terrain state
 func TestDistance(t *testing.T) {
 	testCases := loadSpatialFixtures(t)
 
 	for _, terrain := range testCases {
-		terrain := terrain
 		t.Run(terrain.Terrain, func(t *testing.T) {
 			td, ok := terrainByName(terrain.Terrain)
 			require.True(t, ok, "unknown terrain %s", terrain.Terrain)
@@ -186,11 +186,11 @@ func TestDistance(t *testing.T) {
 		}
 	}
 */
+//nolint:paralleltest // serial because tests mutate global terrain state
 func TestTrueBearing(t *testing.T) {
 	testCases := loadSpatialFixtures(t)
 
 	for _, terrain := range testCases {
-		terrain := terrain
 		t.Run(terrain.Terrain, func(t *testing.T) {
 			td, ok := terrainByName(terrain.Terrain)
 			require.True(t, ok, "unknown terrain %s", terrain.Terrain)
@@ -399,7 +399,6 @@ func TestProjectionRoundTrip(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(fmt.Sprintf("lat=%f,lon=%f", test.lat, test.lon), func(t *testing.T) {
 			t.Parallel()
-
 			// Convert lat/lon to projection
 			x, z, err := LatLongToProjection(test.lat, test.lon)
 			require.NoError(t, err)
