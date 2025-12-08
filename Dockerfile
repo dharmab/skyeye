@@ -5,7 +5,9 @@ RUN apt-get update && apt-get install -y \
     make \
     lsb-release \
     gcc \
+    pkg-config \
     libopus-dev \
+    libproj-dev \
     libsoxr-dev \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /skyeye
@@ -18,6 +20,7 @@ RUN go mod download -x
 COPY cmd cmd
 COPY internal internal
 COPY pkg pkg
+ENV PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:${PKG_CONFIG_PATH}
 RUN make skyeye
 RUN make skyeye-scaler
 
@@ -25,6 +28,7 @@ FROM debian:bookworm-slim AS base
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     libopus0 \
+    libproj25 \
     libsoxr0 \
     && rm -rf /var/lib/apt/lists/*
 
