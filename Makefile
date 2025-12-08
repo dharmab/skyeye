@@ -30,6 +30,16 @@ WHISPER_CPP_REPO = https://github.com/dharmab/whisper.cpp.git
 WHISPER_CPP_VERSION = v1.7.2-windows-fix
 WHISPER_CPP_BUILD_ENV =
 
+# PROJ (built from source for static linking on Windows)
+PROJ_VERSION = 9.4.1
+PROJ_TARBALL = third_party/proj-$(PROJ_VERSION).tar.gz
+PROJ_SRC_DIR = third_party/proj-$(PROJ_VERSION)
+PROJ_PREFIX = $(abspath third_party/proj-install)
+PROJ_LIB = $(PROJ_PREFIX)/lib/libproj.a
+PROJ_PC_PATH = $(PROJ_PREFIX)/lib/pkgconfig
+PROJ_DEP =
+PROJ_CMAKE_FLAGS =
+
 # Compiler variables and flags
 GOBUILDVARS = GOARCH=$(GOARCH)
 ABS_WHISPER_CPP_PATH = $(abspath $(WHISPER_CPP_PATH))
@@ -63,11 +73,15 @@ SKYEYE_SCALER_BIN = skyeye-scaler.exe
 GO = /ucrt64/bin/go
 GOBUILDVARS += GOROOT="/ucrt64/lib/go" GOPATH="/ucrt64"
 # Static linking on Windows to avoid MSYS2 dependency at runtime
-LIBRARIES = opus soxr
-CFLAGS = $(shell pkg-config $(LIBRARIES) --cflags --static)
-BUILD_VARS += CFLAGS='$(CFLAGS)'
-EXTLDFLAGS = $(shell pkg-config $(LIBRARIES) --libs --static)
+LIBRARIES = opus soxr proj
+PKG_CONFIG_ENV = PKG_CONFIG_PATH="$(PROJ_PC_PATH):$${PKG_CONFIG_PATH}"
+CFLAGS = $(shell $(PKG_CONFIG_ENV) pkg-config $(LIBRARIES) --cflags --static)
+BUILD_VARS += CFLAGS='$(CFLAGS)' PKG_CONFIG_PATH="$(PROJ_PC_PATH):$${PKG_CONFIG_PATH}"
+EXTLDFLAGS = $(shell $(PKG_CONFIG_ENV) pkg-config $(LIBRARIES) --libs --static)
 LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS) -static"
+PROJ_DEP = $(PROJ_LIB)
+# MinGW builds of PROJ 9.4.1 miss <cstdint> in filemanager.cpp; force-include to fix.
+PROJ_CMAKE_FLAGS += -DCMAKE_CXX_FLAGS="-include cstdint"
 endif
 
 BUILD_VARS += LDFLAGS='$(LDFLAGS)'
@@ -84,6 +98,8 @@ install-msys2-dependencies:
 	  base-devel \
 	  $(MINGW_PACKAGE_PREFIX)-toolchain \
 	  $(MINGW_PACKAGE_PREFIX)-go \
+	  $(MINGW_PACKAGE_PREFIX)-cmake \
+	  $(MINGW_PACKAGE_PREFIX)-sqlite3 \
 	  $(MINGW_PACKAGE_PREFIX)-opus \
 	  $(MINGW_PACKAGE_PREFIX)-libsoxr
 
@@ -93,6 +109,7 @@ install-arch-linux-dependencies:
 	  git \
 	  base-devel \
 	  go \
+	  proj \
 	  opus \
 	  libsoxr
 
@@ -103,6 +120,7 @@ install-debian-dependencies:
 	  git \
 	  build-essential \
 	  golang-go \
+	  libproj-dev \
 	  libopus-dev \
 	  libopus0 \
 	  libsoxr-dev \
@@ -115,6 +133,7 @@ install-fedora-dependencies:
 	  development-tools \
 	  c-development \
 	  golang \
+	  proj-devel \
 	  opus-devel \
 	  opus \
 	  soxr-devel \
@@ -128,6 +147,7 @@ install-macos-dependencies:
 	  llvm \
 	  pkg-config \
 	  go \
+	  proj \
 	  libsoxr \
 	  opus
 
@@ -139,17 +159,47 @@ $(LIBWHISPER_PATH) $(WHISPER_H_PATH):
 	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false "$(WHISPER_CPP_REPO)" "$(WHISPER_CPP_PATH)" && $(WHISPER_CPP_BUILD_ENV) make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
 	if [ -f third_party/whisper.cpp/whisper.a ] && [ ! -f $(LIBWHISPER_PATH) ]; then cp third_party/whisper.cpp/whisper.a $(LIBWHISPER_PATH); fi
 
+.PHONY: proj
+proj: $(PROJ_LIB)
+
+$(PROJ_TARBALL):
+	curl -L -o $(PROJ_TARBALL) https://download.osgeo.org/proj/proj-$(PROJ_VERSION).tar.gz
+
+$(PROJ_LIB): $(PROJ_TARBALL)
+	rm -rf "$(PROJ_SRC_DIR)" "$(PROJ_PREFIX)"
+	tar -xzf "$(PROJ_TARBALL)" -C third_party
+	cmake -S "$(PROJ_SRC_DIR)" -B "$(PROJ_SRC_DIR)/build" \
+	  -DCMAKE_BUILD_TYPE=Release \
+	  -DCMAKE_INSTALL_PREFIX="$(PROJ_PREFIX)" \
+	  -DBUILD_SHARED_LIBS=OFF \
+	  -DBUILD_APPS=OFF \
+	  -DBUILD_PROJSYNC=OFF \
+	  -DBUILD_CS2CS=OFF \
+	  -DBUILD_GIE=OFF \
+	  -DBUILD_GEOD=OFF \
+	  -DBUILD_PROJ=OFF \
+	  -DBUILD_PROJINFO=OFF \
+	  -DBUILD_CCT=OFF \
+	  -DENABLE_CURL=OFF \
+	  -DENABLE_TIFF=OFF \
+	  -DENABLE_PROJSYNC=OFF \
+	  -DENABLE_CCT=OFF \
+	  -DBUILD_TESTING=OFF \
+	  -DBUILD_EXAMPLES=OFF \
+	  $(PROJ_CMAKE_FLAGS)
+	cmake --build "$(PROJ_SRC_DIR)/build" --target install --config Release
+
 .PHONY: whisper
 whisper: $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
 
 .PHONY: generate
-generate:
+generate: $(PROJ_DEP)
 	$(BUILD_VARS) $(GO) generate $(BUILD_FLAGS) ./...
 
-$(SKYEYE_BIN): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
+$(SKYEYE_BIN): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH) $(PROJ_DEP)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
 
-$(SKYEYE_SCALER_BIN): generate $(SKYEYE_SOURCES)
+$(SKYEYE_SCALER_BIN): generate $(SKYEYE_SOURCES) $(PROJ_DEP)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye-scaler/
 
 .PHONY: run
@@ -187,4 +237,4 @@ mostlyclean:
 
 .PHONY: clean
 clean: mostlyclean
-	rm -rf "$(WHISPER_CPP_PATH)"
+	rm -rf "$(WHISPER_CPP_PATH)" "$(PROJ_SRC_DIR)" "$(PROJ_PREFIX)" "$(PROJ_TARBALL)"

@@ -1,0 +1,14 @@
+prefix=/usr
+libdir=${prefix}/lib
+includedir=${prefix}/include
+datarootdir=${prefix}/x86_64-linux-gnu
+datadir=${datarootdir}/proj
+
+Name: PROJ
+Description: Coordinate transformation software library
+Requires:
+Version: 9.7.0
+Libs: -L${libdir} -lproj
+Libs.private: -lole32 -lshell32
+Cflags: -I${includedir}
+

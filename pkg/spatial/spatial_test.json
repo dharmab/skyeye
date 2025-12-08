@@ -1,0 +1,119 @@
+{"test data":
+  {"date": "1999-06-91",
+  "terrains":
+   [
+    {"terrain":"kola",
+      "points":
+    {
+       "a": { "lat":69.047461,
+       "lon":33.405794} ,  
+      "b":  { "lat": 70.068836,
+       "lon":24.973478 }   ,
+       "c": { "lat":64.91865, "lon": 34.262989 },
+       "bullseye": { "lat":68.474419, "lon": 22.867128 }
+      },
+    "bearings": { "true": {
+        "ab": 282,
+        "ac": 164,
+        "cb": 317,
+        "bullsA": 75,
+        "bullsB": 22,
+        "bullsC": 121
+    },
+      "magnetic": {
+      }
+    },
+    "distances": {
+        "ab": 186,
+        "ac": 249,
+        "cb": 377,
+        "bullsA": 232,
+        "bullsB": 106,
+        "bullsC": 345
+      }
+    },
+   {
+    "terrain":"caucasus",
+      "points":
+    {
+       "a": { "lat":43.909111,
+       "lon":40.639508} ,  
+      "b":  { "lat": 44.744667,
+       "lon":38.690408
+ }   ,
+       "c": { "lat":41.596803
+, "lon": 44.957461 },
+       "bullseye": { "lat":45.279483
+, "lon": 38.352586
+ }
+      },
+    "bearings": { "true": {
+        "ab": 296,
+        "ac": 119,
+        "cb": 299,
+        "bullsA": 126,
+        "bullsB": 152,
+        "bullsC": 121
+    },
+      "magnetic": {
+        "ab": 291,
+        "ac": 114,
+        "cb": 293,
+        "bullsA": 120,
+        "bullsB": 146,
+        "bullsC": 116
+      }
+    },
+    "distances": {
+        "ab": 98.07671117490244,
+        "ac": 237.71593940742162,
+        "cb": 335.6882260864296,
+        "bullsA": 128.32672772957633,
+        "bullsB": 35.23439272765455,
+        "bullsC": 365.5713735362105
+      }
+    },
+       {
+    "terrain":"germanycw",
+      "points":
+    {
+       "a": { "lat":52.926933,
+       "lon":7.451983} ,  
+      "b":  { "lat": 49.713083,
+       "lon":5.617433
+ }   ,
+       "c": { "lat":54.340283
+, "lon": 13.27365 },
+       "bullseye": { "lat":49.625117
+, "lon": 6.946017
+ }
+      },
+    "bearings": { "true": {
+        "ab": 211,
+        "ac": 77,
+        "cb": 235,
+        "bullsA": 16,
+        "bullsB": 287,
+        "bullsC": 48
+    },
+      "magnetic": {
+        "ab": 212,
+        "ac": 75,
+        "cb": 236,
+        "bullsA": 17,
+        "bullsB": 288,
+        "bullsC": 47
+      }
+    },
+    "distances": {
+        "ab": 208,
+        "ac": 225,
+        "cb": 400,
+        "bullsA": 202,
+        "bullsB": 53,
+        "bullsC": 369
+      }
+    }
+   ]
+}
+}

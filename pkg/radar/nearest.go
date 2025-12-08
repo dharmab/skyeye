@@ -74,8 +74,8 @@ func (r *Radar) FindNearestGroupWithBRAA(
 	if grp == nil {
 		return nil
 	}
-
-	declination := r.Declination(origin)
+	log.Debug().Any("target latlong", grp).Msgf("target latlong lat %f lon %f", grp.point().Lat(), grp.point().Lon())
+	declination := r.Declination(trackfile.LastKnown().Point)
 	bearing := spatial.TrueBearing(origin, grp.point()).Magnetic(declination)
 	_range := spatial.Distance(origin, grp.point())
 	aspect := brevity.AspectFromAngle(bearing, trackfile.Course())

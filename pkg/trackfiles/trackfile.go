@@ -14,7 +14,6 @@ import (
 	"github.com/gammazero/deque"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
-	"github.com/rs/zerolog/log"
 )
 
 // Labels are identifying information attached to a trackfile.
@@ -53,7 +52,7 @@ type Frame struct {
 	Altitude unit.Length
 	// Altitude above ground level, if available.
 	AGL *unit.Length
-	// Heading is the direction the contact is moving. This is not necessarily the direction the nose is poining.
+	// Heading is the direction the contact is moving. This is not necessarily the direction the nose is pointing.
 	Heading unit.Angle
 }
 
@@ -96,9 +95,11 @@ func (t *Trackfile) Update(f Frame) {
 // Bullseye returns the bearing and distance from the bullseye to the track's last known position.
 func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
 	latest := t.LastKnown()
-	declination, _ := bearings.Declination(bullseye, latest.Time)
+	declination, _ := bearings.Declination(latest.Point, latest.Time)
+	//log.Debug().Any("declination", declination.Degrees()).Msgf("computed magnetic trackfilebullseye declination at point")
+
 	bearing := spatial.TrueBearing(bullseye, latest.Point).Magnetic(declination)
-	log.Debug().Float64("bearing", bearing.Degrees()).Msg("calculated bullseye bearing for group")
+	//log.Debug().Float64("bearing", bearing.Degrees()).Msg("calculated bullseye bearing for group")
 	distance := spatial.Distance(bullseye, latest.Point)
 	return *brevity.NewBullseye(bearing, distance)
 }
@@ -128,14 +129,16 @@ func (t *Trackfile) IsLastKnownPointZero() bool {
 
 func (t *Trackfile) bestAvailableDeclination() unit.Angle {
 	latest := t.unsafeLastKnown()
-	declincation, err := bearings.Declination(latest.Point, latest.Time)
+	declination, err := bearings.Declination(latest.Point, latest.Time)
+	//log.Debug().Any("declination", declination).Msgf("computed bestAvailableDeclination magnetic declination at point lat %f lon %f", latest.Point.Lat(), latest.Point.Lon())
+
 	if err != nil {
 		return 0
 	}
-	return declincation
+	return declination
 }
 
-// Course returns the angle that the track is moving in.
+// Course returns the angle that the track is moving in, relative to magnetic north.
 // If the track has not moved very far, the course may be unreliable.
 // You can check for this condition by checking if [Trackfile.Direction] returns [brevity.UnknownDirection].
 func (t *Trackfile) Course() bearings.Bearing {

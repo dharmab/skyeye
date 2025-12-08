@@ -52,6 +52,7 @@ func (g *group) Bullseye() *brevity.Bullseye {
 	}
 
 	declination, err := bearings.Declination(*g.bullseye, g.missionTime())
+
 	if err != nil {
 		log.Error().Err(err).Stringer("group", g).Msg("failed to get declination for group")
 	}
