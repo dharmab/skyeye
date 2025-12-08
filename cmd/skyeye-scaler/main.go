@@ -15,6 +15,7 @@ import (
 
 	"github.com/dharmab/skyeye/internal/cli"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	skynet "github.com/dharmab/skyeye/pkg/net"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	srstypes "github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/lithammer/shortuuid/v3"
@@ -76,7 +77,7 @@ func init() {
 	scaler.Flags().DurationVar(&stopDelay, "stop-delay", 10*time.Minute, "Delay before sending stop requests after the SRS player count drops to 0")
 
 	scaler.Flags().StringVar(&srsAddress, "srs-server-address", "localhost:5002", "Address of the SRS server")
-	scaler.Flags().DurationVar(&srsConnectionTimeout, "srs-connection-timeout", 10*time.Second, "Connection timeout for SRS client")
+	scaler.Flags().DurationVar(&srsConnectionTimeout, "srs-connection-timeout", skynet.DefaultConnectionTimeout, "Connection timeout for SRS client")
 	scaler.Flags().StringVar(&srsExternalAWACSModePassword, "srs-eam-password", "", "SRS external AWACS mode password")
 	scaler.Flags().StringSliceVar(&srsFrequencies, "srs-frequencies", []string{"251.0AM", "133.0AM", "30.0FM"}, "List of SRS frequencies to use")
 }

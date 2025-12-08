@@ -11,37 +11,60 @@ import (
 	"net"
 	"time"
 
+	skynet "github.com/dharmab/skyeye/pkg/net"
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/rs/zerolog/log"
 )
 
 // connectTCP connects to the SRS server over TCP.
 func (c *Client) connectTCP() error {
-	log.Info().Str("address", c.address).Msg("connecting to SRS server TCP socket")
+	log.Info().
+		Str("address", c.address).
+		Stringer("timeout", c.connectionTimeout).
+		Msg("connecting to SRS server TCP socket")
+
 	tcpAddress, err := net.ResolveTCPAddr("tcp", c.address)
 	if err != nil {
 		return fmt.Errorf("failed to resolve SRS server address %v: %w", c.address, err)
 	}
-	connection, err := net.DialTCP("tcp", nil, tcpAddress)
+
+	dialer := &net.Dialer{
+		Timeout: c.connectionTimeout,
+	}
+	connection, err := dialer.Dial("tcp", tcpAddress.String())
 	if err != nil {
 		return fmt.Errorf("failed to connect to data socket: %w", err)
 	}
-	c.tcpConnection = connection
+
+	c.tcpConnection = connection.(*net.TCPConn)
 	return nil
 }
 
 // connectUDP connects to the SRS server over UDP.
 func (c *Client) connectUDP() error {
-	log.Info().Str("address", c.address).Msg("connecting to SRS server UDP socket")
+	log.Info().
+		Str("address", c.address).
+		Stringer("timeout", c.connectionTimeout).
+		Msg("connecting to SRS server UDP socket")
+
+	// Note: UDP is connectionless, so there's no actual "connection" to timeout.
+	// The timeout here applies only to DNS resolution and local socket setup,
+	// not to data transmission (which is handled by read deadlines).
+	dialer := &net.Dialer{
+		Timeout: c.connectionTimeout,
+	}
+
 	udpAddress, err := net.ResolveUDPAddr("udp", c.address)
 	if err != nil {
 		return fmt.Errorf("failed to resolve SRS server address %v: %w", c.address, err)
 	}
-	connection, err := net.DialUDP("udp", nil, udpAddress)
+
+	connection, err := dialer.Dial("udp", udpAddress.String())
 	if err != nil {
 		return fmt.Errorf("failed to connect to UDP socket: %w", err)
 	}
-	c.udpConnection = connection
+
+	c.udpConnection = connection.(*net.UDPConn)
 	return nil
 }
 
@@ -78,12 +101,30 @@ func (c *Client) reconnect(ctx context.Context) error {
 
 // receiveUDP listens for incoming UDP packets and routes them to the appropriate channel.
 func (c *Client) receiveUDP(ctx context.Context, pingChan chan<- []byte, voiceChan chan<- []byte) {
+	readTimeout := skynet.CalculateReadTimeout(c.connectionTimeout)
+
+	// Set initial read deadline
+	if err := c.udpConnection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+		log.Warn().
+			Err(err).
+			Stringer("readTimeout", readTimeout).
+			Msg("failed to set initial UDP read deadline")
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
 			log.Info().Msg("stopping SRS packet receiver due to context cancellation")
 			return
 		default:
+			// Set read deadline before each read
+			if err := c.udpConnection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+				log.Warn().
+					Err(err).
+					Stringer("readTimeout", readTimeout).
+					Msg("failed to set UDP read deadline")
+			}
+
 			buf := make([]byte, 1500)
 			n, err := c.udpConnection.Read(buf)
 			switch {
@@ -119,12 +160,30 @@ func (c *Client) receiveUDP(ctx context.Context, pingChan chan<- []byte, voiceCh
 // receiveTCP listens for incoming TCP messages and routes them to the appropriate handler.
 func (c *Client) receiveTCP(ctx context.Context) {
 	reader := bufio.NewReader(c.tcpConnection)
+	readTimeout := skynet.CalculateReadTimeout(c.connectionTimeout)
+
+	// Set initial read deadline
+	if err := c.tcpConnection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+		log.Warn().
+			Err(err).
+			Stringer("readTimeout", readTimeout).
+			Msg("failed to set initial TCP read deadline")
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
 			log.Info().Msg("stopping SRS client due to context cancellation")
 			return
 		default:
+			// Set read deadline before each read
+			if err := c.tcpConnection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+				log.Warn().
+					Err(err).
+					Stringer("readTimeout", readTimeout).
+					Msg("failed to set TCP read deadline")
+			}
+
 			line, err := reader.ReadBytes(byte('\n'))
 			if err != nil {
 				if errors.Is(err, net.ErrClosed) && ctx.Err() != nil {
