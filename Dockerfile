@@ -20,7 +20,7 @@ RUN go mod download -x
 COPY cmd cmd
 COPY internal internal
 COPY pkg pkg
-ENV PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:${PKG_CONFIG_PATH}
+ENV PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
 RUN make skyeye
 RUN make skyeye-scaler
 
