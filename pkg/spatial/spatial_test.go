@@ -2,8 +2,11 @@
 package spatial
 
 import (
+	_ "embed"
+	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
@@ -13,6 +16,76 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//go:embed spatial_test.json
+var spatialTestJSON []byte
+
+type coordinate struct {
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
+}
+
+func (c coordinate) point() orb.Point {
+	return orb.Point{c.Lon, c.Lat}
+}
+
+type bearingSet struct {
+	AB     float64 `json:"ab"`
+	AC     float64 `json:"ac"`
+	CB     float64 `json:"cb"`
+	BullsA float64 `json:"bullsA"`
+	BullsB float64 `json:"bullsB"`
+	BullsC float64 `json:"bullsC"`
+}
+
+type terrainFixture struct {
+	Terrain string `json:"terrain"`
+	Points  struct {
+		A        coordinate `json:"a"`
+		B        coordinate `json:"b"`
+		C        coordinate `json:"c"`
+		Bullseye coordinate `json:"bullseye"`
+	} `json:"points"`
+	Bearings struct {
+		True     bearingSet `json:"true"`
+		Magnetic bearingSet `json:"magnetic"`
+	} `json:"bearings"`
+	Distances struct {
+		AB     float64 `json:"ab"`
+		AC     float64 `json:"ac"`
+		CB     float64 `json:"cb"`
+		BullsA float64 `json:"bullsA"`
+		BullsB float64 `json:"bullsB"`
+		BullsC float64 `json:"bullsC"`
+	} `json:"distances"`
+}
+
+type spatialTestFixtures struct {
+	TestData struct {
+		Date     string           `json:"date"`
+		Terrains []terrainFixture `json:"terrains"`
+	} `json:"test data"`
+}
+
+func loadSpatialFixtures(t *testing.T) []terrainFixture {
+	t.Helper()
+
+	var fixtures spatialTestFixtures
+	err := json.Unmarshal(spatialTestJSON, &fixtures)
+	require.NoError(t, err, "failed to decode spatial_test.json")
+	require.NotEmpty(t, fixtures.TestData.Terrains, "no terrain fixtures loaded")
+
+	return fixtures.TestData.Terrains
+}
+
+func terrainByName(name string) (terrainDef, bool) {
+	for _, td := range terrainDefs {
+		if strings.EqualFold(td.name, name) {
+			return td, true
+		}
+	}
+	return terrainDef{}, false
+}
+
 func TestMain(m *testing.M) {
 	ForceTerrain("Kola", KolaProjection())
 	code := m.Run()
@@ -21,68 +94,69 @@ func TestMain(m *testing.M) {
 }
 
 func TestDistance(t *testing.T) {
-	t.Parallel()
-	testCases := []struct {
-		a        orb.Point
-		b        orb.Point
-		expected unit.Length
-	}{ // kola tests
-		{
-			a:        orb.Point{33.405794, 69.047461},
-			b:        orb.Point{24.973478, 70.068836},
-			expected: 186 * unit.NauticalMile,
-		},
+	testCases := loadSpatialFixtures(t)
 
-		{
-			a:        orb.Point{33.405794, 69.047461},
-			b:        orb.Point{34.262989, 64.91865},
-			expected: 249 * unit.NauticalMile,
-		},
+	for _, terrain := range testCases {
+		terrain := terrain
+		t.Run(terrain.Terrain, func(t *testing.T) {
+			td, ok := terrainByName(terrain.Terrain)
+			require.True(t, ok, "unknown terrain %s", terrain.Terrain)
+			ForceTerrain(td.name, td.tm)
+			t.Cleanup(func() {
+				ForceTerrain("Kola", KolaProjection())
+			})
 
-		{
-			a:        orb.Point{34.262989, 64.91865},
-			b:        orb.Point{24.973478, 70.068836},
-			expected: 377 * unit.NauticalMile,
-		},
-		/*
-			{
-				a:        orb.Point{0, 0},
-				b:        orb.Point{1, 0},
-				expected: 111 * unit.Kilometer,
-			},
-			{
-				a:        orb.Point{0, 0},
-				b:        orb.Point{-1, 0},
-				expected: 111 * unit.Kilometer,
-			},
-			{
-				a:        orb.Point{0, 75},
-				b:        orb.Point{1, 75},
-				expected: 28.9 * unit.Kilometer,
-			},
-			{
-				a:        orb.Point{0, -75},
-				b:        orb.Point{1, -75},
-				expected: 28.9 * unit.Kilometer,
-			},
-			{
-				a:        orb.Point{0, 90},
-				b:        orb.Point{1, 90},
-				expected: 0,
-			},
-			{
-				a:        orb.Point{0, -90},
-				b:        orb.Point{1, -90},
-				expected: 0,
-			},
-		*/
-	}
+			bullseye := terrain.Points.Bullseye.point()
+			cases := []struct {
+				name     string
+				a        orb.Point
+				b        orb.Point
+				expected unit.Length
+			}{
+				{
+					name:     "ab",
+					a:        terrain.Points.A.point(),
+					b:        terrain.Points.B.point(),
+					expected: unit.Length(terrain.Distances.AB) * unit.NauticalMile,
+				},
+				{
+					name:     "ac",
+					a:        terrain.Points.A.point(),
+					b:        terrain.Points.C.point(),
+					expected: unit.Length(terrain.Distances.AC) * unit.NauticalMile,
+				},
+				{
+					name:     "bc",
+					a:        terrain.Points.C.point(),
+					b:        terrain.Points.B.point(),
+					expected: unit.Length(terrain.Distances.CB) * unit.NauticalMile,
+				},
+				{
+					name:     "bullsA",
+					a:        bullseye,
+					b:        terrain.Points.A.point(),
+					expected: unit.Length(terrain.Distances.BullsA) * unit.NauticalMile,
+				},
+				{
+					name:     "bullsB",
+					a:        bullseye,
+					b:        terrain.Points.B.point(),
+					expected: unit.Length(terrain.Distances.BullsB) * unit.NauticalMile,
+				},
+				{
+					name:     "bullsC",
+					a:        bullseye,
+					b:        terrain.Points.C.point(),
+					expected: unit.Length(terrain.Distances.BullsC) * unit.NauticalMile,
+				},
+			}
 
-	for _, test := range testCases {
-		t.Run(fmt.Sprintf("%v -> %v", test.a, test.b), func(t *testing.T) {
-			t.Parallel()
-			actual := Distance(test.a, test.b)
-			assert.InDelta(t, test.expected.NauticalMiles(), actual.NauticalMiles(), 5)
+			for _, test := range cases {
+				t.Run(test.name, func(t *testing.T) {
+					actual := Distance(test.a, test.b)
+					assert.InDelta(t, test.expected.NauticalMiles(), actual.NauticalMiles(), 5)
+				})
+			}
 		})
 	}
 }
@@ -113,61 +187,69 @@ func TestDistance(t *testing.T) {
 	}
 */
 func TestTrueBearing(t *testing.T) {
-	t.Parallel()
-	testCases := []struct {
-		a        orb.Point
-		b        orb.Point
-		expected unit.Angle
-	}{ // kola
-		{
-			a:        orb.Point{33.405794, 69.047461},
-			b:        orb.Point{24.973478, 70.068836},
-			expected: 282 * unit.Degree,
-		},
+	testCases := loadSpatialFixtures(t)
 
-		{
-			a:        orb.Point{33.405794, 69.047461},
-			b:        orb.Point{34.262989, 64.91865},
-			expected: 164 * unit.Degree,
-		},
+	for _, terrain := range testCases {
+		terrain := terrain
+		t.Run(terrain.Terrain, func(t *testing.T) {
+			td, ok := terrainByName(terrain.Terrain)
+			require.True(t, ok, "unknown terrain %s", terrain.Terrain)
+			ForceTerrain(td.name, td.tm)
+			t.Cleanup(func() {
+				ForceTerrain("Kola", KolaProjection())
+			})
 
-		{
-			a:        orb.Point{34.262989, 64.91865},
-			b:        orb.Point{24.973478, 70.068836},
-			expected: 317 * unit.Degree,
-		},
-		/*
-			{
-				a:        orb.Point{0, 0},
-				b:        orb.Point{-1, 0},
-				expected: 270 * unit.Degree,
-			},
-			{
-				a:        orb.Point{0, 0},
-				b:        orb.Point{1, 1},
-				expected: 45 * unit.Degree,
-			},
-			{
-				a:        orb.Point{0, 0},
-				b:        orb.Point{-1, -1},
-				expected: 225 * unit.Degree,
-			},
-		*/
+			bullseye := terrain.Points.Bullseye.point()
+			cases := []struct {
+				name     string
+				a        orb.Point
+				b        orb.Point
+				expected unit.Angle
+			}{
+				{
+					name:     "ab",
+					a:        terrain.Points.A.point(),
+					b:        terrain.Points.B.point(),
+					expected: unit.Angle(terrain.Bearings.True.AB) * unit.Degree,
+				},
+				{
+					name:     "ac",
+					a:        terrain.Points.A.point(),
+					b:        terrain.Points.C.point(),
+					expected: unit.Angle(terrain.Bearings.True.AC) * unit.Degree,
+				},
+				{
+					name:     "bc",
+					a:        terrain.Points.C.point(),
+					b:        terrain.Points.B.point(),
+					expected: unit.Angle(terrain.Bearings.True.CB) * unit.Degree,
+				},
+				{
+					name:     "bullsA",
+					a:        bullseye,
+					b:        terrain.Points.A.point(),
+					expected: unit.Angle(terrain.Bearings.True.BullsA) * unit.Degree,
+				},
+				{
+					name:     "bullsB",
+					a:        bullseye,
+					b:        terrain.Points.B.point(),
+					expected: unit.Angle(terrain.Bearings.True.BullsB) * unit.Degree,
+				},
+				{
+					name:     "bullsC",
+					a:        bullseye,
+					b:        terrain.Points.C.point(),
+					expected: unit.Angle(terrain.Bearings.True.BullsC) * unit.Degree,
+				},
+			}
 
-		{
-			//a:        orb.Point{69.047471, 33.405794},
-			//b:        orb.Point{69.157219, 32.14515},
-			a:        orb.Point{33.405794, 69.047471},
-			b:        orb.Point{32.14515, 69.157219},
-			expected: 274 * unit.Degree,
-		},
-	}
-
-	for _, test := range testCases {
-		t.Run(fmt.Sprintf("%v -> %v", test.a, test.b), func(t *testing.T) {
-			t.Parallel()
-			actual := TrueBearing(test.a, test.b)
-			assert.InDelta(t, test.expected.Degrees(), actual.Degrees(), 2)
+			for _, test := range cases {
+				t.Run(test.name, func(t *testing.T) {
+					actual := TrueBearing(test.a, test.b)
+					assert.InDelta(t, test.expected.Degrees(), actual.Degrees(), 2)
+				})
+			}
 		})
 	}
 }
