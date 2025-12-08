@@ -72,3 +72,17 @@ func S16LEBytesToF32LE(in []byte) []float32 {
 	}
 	return out
 }
+
+// F32AdjustVolume multiplies each sample in the F32LE PCM data by the given volume factor.
+// A volume of 1.0 leaves the audio unchanged, and values below 1.0 reduce volume.
+func F32AdjustVolume(samples []float32, volume float64) []float32 {
+	if volume == 1.0 {
+		return samples
+	}
+
+	out := make([]float32, len(samples))
+	for i, sample := range samples {
+		out[i] = min(1.0, max(-1.0, float32(float64(sample)*volume)))
+	}
+	return out
+}

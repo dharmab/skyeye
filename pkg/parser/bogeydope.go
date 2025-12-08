@@ -1,10 +1,9 @@
 package parser
 
 import (
-	"bufio"
-	"fmt"
 	"strings"
 
+	"github.com/dharmab/skyeye/internal/parser/token"
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
@@ -19,17 +18,17 @@ var bogeyFilterMap = map[string]brevity.ContactCategory{
 	"rotary wing": brevity.RotaryWing,
 }
 
-func parseBogeyDope(callsign string, scanner *bufio.Scanner) (*brevity.BogeyDopeRequest, bool) {
+func parseBogeyDope(callsign string, stream *token.Stream) (*brevity.BogeyDopeRequest, bool) {
 	filter := brevity.Aircraft
-	s := scanner.Text()
-	for scanner.Scan() {
-		s = fmt.Sprintf("%s %s", s, scanner.Text())
-	}
+
+	remainingText := stream.RemainingText()
+
 	for k, v := range bogeyFilterMap {
-		if strings.Contains(s, k) {
+		if strings.Contains(remainingText, k) {
 			filter = v
 			break
 		}
 	}
+
 	return &brevity.BogeyDopeRequest{Callsign: callsign, Filter: filter}, true
 }
