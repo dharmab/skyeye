@@ -28,7 +28,7 @@ type tmProjector struct {
 	tm TransverseMercator
 }
 
-func (p tmProjector) forward(latDeg, lonDeg float64) (float64, float64) {
+func (p tmProjector) forward(latDeg, lonDeg float64) (easting, northing float64) {
 	lat := deg2rad(latDeg)
 	lon := deg2rad(lonDeg)
 	origin := deg2rad(float64(p.tm.CentralMeridian))
@@ -55,12 +55,12 @@ func (p tmProjector) forward(latDeg, lonDeg float64) (float64, float64) {
 		eta += coeffs.alpha[j] * math.Cos(twoJXi) * math.Sinh(twoJEta)
 	}
 
-	easting := p.tm.FalseEasting + k0*coeffs.a1*eta
-	northing := p.tm.FalseNorthing + k0*coeffs.a1*xi
+	easting = p.tm.FalseEasting + k0*coeffs.a1*eta
+	northing = p.tm.FalseNorthing + k0*coeffs.a1*xi
 	return easting, northing
 }
 
-func (p tmProjector) inverse(easting, northing float64) (float64, float64) {
+func (p tmProjector) inverse(easting, northing float64) (latDeg, lonDeg float64) {
 	k0 := p.tm.ScaleFactor
 	coeffs := tmCoefficients()
 
@@ -87,7 +87,9 @@ func (p tmProjector) inverse(easting, northing float64) (float64, float64) {
 	lat := math.Atan(tau)
 	lon := deg2rad(float64(p.tm.CentralMeridian)) + lam
 
-	return rad2deg(lat), rad2deg(lon)
+	latDeg = rad2deg(lat)
+	lonDeg = rad2deg(lon)
+	return latDeg, lonDeg
 }
 
 type tmSeriesCoefficients struct {
@@ -142,7 +144,7 @@ func tauFromTaup(taup float64) float64 {
 		return 0
 	}
 	tau := taup
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		sqrt1pTau2 := math.Sqrt(1 + tau*tau)
 		sinPhi := tau / sqrt1pTau2
 		e := math.Sqrt(wgs84E2)
