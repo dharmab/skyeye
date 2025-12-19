@@ -16,13 +16,33 @@ import (
 
 // Distance returns the absolute distance between two points on the earth.
 func Distance(a, b orb.Point) unit.Length {
-	return unit.Length(math.Abs(geo.Distance(a, b))) * unit.Meter
+	distanceMeters, err := CalculateDistance(a.Lat(), a.Lon(), b.Lat(), b.Lon())
+	if err != nil {
+		return unit.Length(math.Abs(geo.Distance(a, b))) * unit.Meter
+	}
+
+	return unit.Length(distanceMeters) * unit.Meter
 }
 
 // TrueBearing returns the true bearing between two points.
 func TrueBearing(a, b orb.Point) bearings.Bearing {
-	direction := unit.Angle(geo.Bearing(a, b)) * unit.Degree
-	return bearings.NewTrueBearing(direction)
+	bearing, err := CalculateBearing(a.Lat(), a.Lon(), b.Lat(), b.Lon())
+	if err != nil {
+		direction := unit.Angle(BearingPlanar(a, b)) * unit.Degree
+		return bearings.NewTrueBearing(direction)
+	}
+
+	return bearings.NewTrueBearing(unit.Angle(bearing) * unit.Degree)
+}
+
+func BearingPlanar(from, to orb.Point) float64 {
+	deltaX := to[0] - from[0]
+	deltaY := to[1] - from[1]
+	return rad2deg(math.Atan2(deltaX, deltaY))
+}
+
+func rad2deg(r float64) float64 {
+	return 180.0 * r / math.Pi
 }
 
 // PointAtBearingAndDistance returns the point at the given bearing and distance from the origin point.
@@ -30,7 +50,7 @@ func PointAtBearingAndDistance(origin orb.Point, bearing bearings.Bearing, dista
 	if bearing.IsMagnetic() {
 		log.Warn().Stringer("bearing", bearing).Msg("bearing provided to PointAtBearingAndDistance should not be magnetic")
 	}
-	return geo.PointAtBearingAndDistance(origin, bearing.Degrees(), distance.Meters())
+	return PointAtBearingAndDistanceUTM(origin.Lat(), origin.Lon(), bearing, distance)
 }
 
 // IsZero returns true if the point is the origin.

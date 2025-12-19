@@ -1,6 +1,7 @@
 package trackfiles
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -14,8 +15,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func init() {
+	spatial.ForceTerrain("Kola", spatial.KolaProjection())
+}
+
 func TestTracking(t *testing.T) {
 	t.Parallel()
+	spatial.ResetTerrainToDefault()
+	spatial.ForceTerrain("Kola", spatial.KolaProjection())
 	testCases := []struct {
 		name                 string
 		heading              unit.Angle
@@ -27,6 +34,7 @@ func TestTracking(t *testing.T) {
 		expectedDirection    brevity.Track
 		expectedApproxSpeed  unit.Speed
 	}{
+
 		{
 			name:                 "North",
 			heading:              0 * unit.Degree,
@@ -104,6 +112,7 @@ func TestTracking(t *testing.T) {
 			expectedDirection:    brevity.West,
 			expectedApproxSpeed:  100 * unit.MetersPerSecond,
 		},
+
 		{
 			name:                 "Northwest",
 			heading:              315 * unit.Degree,
@@ -115,6 +124,7 @@ func TestTracking(t *testing.T) {
 			expectedDirection:    brevity.Northwest,
 			expectedApproxSpeed:  70.7 * unit.MetersPerSecond,
 		},
+
 		{
 			name:                 "Vertical climb",
 			heading:              0 * unit.Degree,
@@ -159,12 +169,13 @@ func TestTracking(t *testing.T) {
 				Name:      "Eagle 1",
 				Coalition: coalitions.Blue,
 			})
-			now := time.Now()
+			now := time.Date(1999, 06, 11, 12, 0, 0, 0, time.UTC)
+
 			alt := 20000 * unit.Foot
 
 			trackfile.Update(Frame{
 				Time:     now.Add(-1 * test.ΔT),
-				Point:    orb.Point{-115.0338, 36.2350},
+				Point:    orb.Point{33.405794, 69.047461},
 				Altitude: alt,
 				Heading:  test.heading,
 			})
@@ -177,13 +188,67 @@ func TestTracking(t *testing.T) {
 				Heading:  test.heading,
 			})
 
-			assert.InDelta(t, test.expectedApproxSpeed.MetersPerSecond(), trackfile.Speed().MetersPerSecond(), 0.5)
+			assert.InDelta(t, test.expectedApproxSpeed.MetersPerSecond(), trackfile.Speed().MetersPerSecond(), 1)
 			assert.Equal(t, test.expectedDirection, trackfile.Direction())
 			if test.expectedDirection != brevity.UnknownDirection {
 				declination, err := bearings.Declination(dest, now)
 				require.NoError(t, err)
 				assert.InDelta(t, bearings.NewTrueBearing(test.expectedApproxCourse).Magnetic(declination).Degrees(), trackfile.Course().Degrees(), 0.5)
 			}
+		})
+	}
+}
+
+func TestBullseye(t *testing.T) {
+	t.Parallel()
+	spatial.ResetTerrainToDefault()
+	spatial.ForceTerrain("Kola", spatial.KolaProjection())
+	trackfile := New(Labels{
+		ID:        1,
+		ACMIName:  "F-15C",
+		Name:      "Eagle 1",
+		Coalition: coalitions.Blue,
+	})
+	now := time.Date(1999, 06, 11, 12, 0, 0, 0, time.UTC)
+	alt := 20000 * unit.Foot
+	heading := 0 * unit.Degree
+	testCases := []struct {
+		bullseye         orb.Point
+		expectedBearing  unit.Angle
+		expectedDistance unit.Length
+		tfPoint          orb.Point
+	}{
+		{
+			bullseye:         orb.Point{22.867128, 68.474419},
+			tfPoint:          orb.Point{33.405794, 69.047461},
+			expectedBearing:  62 * unit.Degree,
+			expectedDistance: 232 * unit.NauticalMile,
+		},
+		{
+			bullseye:         orb.Point{22.867128, 68.474419},
+			tfPoint:          orb.Point{24.973478, 70.068836},
+			expectedBearing:  14 * unit.Degree,
+			expectedDistance: 106 * unit.NauticalMile,
+		},
+		{
+			bullseye:         orb.Point{22.867128, 68.474419},
+			tfPoint:          orb.Point{34.262989, 64.91865},
+			expectedBearing:  110 * unit.Degree,
+			expectedDistance: 345 * unit.NauticalMile,
+		},
+	}
+	for _, test := range testCases {
+		t.Run(fmt.Sprintf("%v -> %v", test.bullseye, test.tfPoint), func(t *testing.T) {
+			t.Parallel()
+			trackfile.Update(Frame{
+				Time:     now,
+				Point:    test.tfPoint,
+				Altitude: alt,
+				Heading:  heading,
+			})
+			actual := trackfile.Bullseye(test.bullseye)
+			assert.InDelta(t, test.expectedDistance.NauticalMiles(), actual.Distance().NauticalMiles(), 5)
+			assert.InDelta(t, test.expectedBearing.Degrees(), actual.Bearing().Degrees(), 5)
 		})
 	}
 }
