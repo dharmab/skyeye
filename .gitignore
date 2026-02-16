@@ -80,6 +80,9 @@ third_party/whisper.cpp
 # whisper.cpp models
 *.bin
 
+# parakeet modles
+*.nemo
+
 # ELF binary
 /skyeye
 
