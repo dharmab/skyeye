@@ -1,18 +1,10 @@
 # Simple Quickstart on Windows
 
-This guide is a step-by-step on how to run SkyEye on Windows alongside DCS, TacView and SRS Server using the OpenAI API for cloud speech recognition.
+This guide is a step-by-step on how to run SkyEye on Windows alongside DCS, TacView and SRS Server.
 
 ## Getting Help
 
 See [the admin guide](ADMIN.md#getting-help) for how to get help if you have a problem.
-
-## Set up OpenAI API
-
-Go to https://platform.openai.com. If you haven't previously set up the OpenAI API, you'll go through a step-by-step process to set up an organization, buy credits, create a Project and generate an API key.
-
-Otherwise, go to https://platform.openai.com/settings/organization/api-keys and generate a new API key for SkyEye. I recommend adding this API key to a new Project named "SkyEye".
-
-Be sure to review the pricing of the "Whisper" audio model at https://openai.com/api/pricing. You will pay per-second for each second a player transmits on a SkyEye frequency in SRS. (You are not charged for the time SkyEye itself spends transmitting, nor are you charged for transmissions on other frequencies.)
 
 ## Set Up DCS, TacView, and SRS
 
@@ -48,7 +40,7 @@ Next, run this command to start SkyEye:
 ./skyeye-service.exe start
 ```
 
-Confirm SkyEye is running using 
+Confirm SkyEye is running using
 
 ```powershell
 ./skyeye-service.exe status

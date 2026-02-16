@@ -10,16 +10,15 @@ require (
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/dharmab/goacmi v1.0.3
 	github.com/gammazero/deque v0.2.1
-	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20241121150429-8c6a9b8bb6a0
 	github.com/go-audio/aiff v1.1.0
 	github.com/gofrs/flock v0.13.0
-	github.com/gopxl/beep/v2 v2.0.3
+	github.com/gopxl/beep/v2 v2.1.1
 	github.com/hbollon/go-edlib v1.6.0
 	github.com/jba/omap v0.1.0
+	github.com/k2-fsa/sherpa-onnx-go v1.12.24
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6
 	github.com/nabbl/piper v0.0.0-20240819160100-e51f2288a5c0
-	github.com/openai/openai-go v0.1.0-alpha.41
 	github.com/pasztorpisti/go-crc v1.0.0
 	github.com/paulmach/orb v0.11.1
 	github.com/proway2/go-igrf v0.5.1
@@ -31,7 +30,6 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/zaf/resample v1.5.0
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
-	golang.org/x/sys v0.38.0
 	google.golang.org/grpc v1.75.0
 	gopkg.in/hraban/opus.v2 v2.0.0-20230925203106-0188a62cb302
 )
@@ -145,6 +143,9 @@ require (
 	github.com/jingyugao/rowserrcheck v1.1.1 // indirect
 	github.com/jjti/go-spancheck v0.6.5 // indirect
 	github.com/julz/importas v0.2.0 // indirect
+	github.com/k2-fsa/sherpa-onnx-go-linux v1.12.25 // indirect
+	github.com/k2-fsa/sherpa-onnx-go-macos v1.12.25 // indirect
+	github.com/k2-fsa/sherpa-onnx-go-windows v1.12.25 // indirect
 	github.com/karamaru-alpha/copyloopvar v1.2.2 // indirect
 	github.com/kisielk/errcheck v1.9.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.6 // indirect
@@ -217,10 +218,6 @@ require (
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tetafro/godot v1.5.4 // indirect
-	github.com/tidwall/gjson v1.18.0 // indirect
-	github.com/tidwall/match v1.1.1 // indirect
-	github.com/tidwall/pretty v1.2.1 // indirect
-	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/timakin/bodyclose v0.0.0-20241222091800-1db5c5ca4d67 // indirect
 	github.com/timonwong/loggercheck v0.11.0 // indirect
 	github.com/tomarrell/wrapcheck/v2 v2.12.0 // indirect
@@ -247,6 +244,7 @@ require (
 	golang.org/x/mod v0.30.0 // indirect
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/term v0.37.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/tools v0.39.0 // indirect

@@ -16,8 +16,6 @@ import (
 	"syscall"
 	"time"
 
-	"golang.org/x/sys/cpu"
-
 	"github.com/gofrs/flock"
 	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
@@ -30,7 +28,6 @@ import (
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
-	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
 
 // Used for CLI configuration values.
@@ -54,10 +51,7 @@ var (
 	controllerCallsigns          []string
 	coalitionName                string
 	telemetryUpdateInterval      time.Duration
-	recognizerName               string
-	whisperModelPath             string
 	recognizerLockPath           string
-	openAIAPIKey                 string
 	voiceName                    string
 	useSystemVoice               bool
 	mute                         bool
@@ -122,11 +116,6 @@ func init() {
 	skyeye.Flags().Var(coalitionFlag, "coalition", "GCI coalition (blue, red)")
 
 	// Speech-to-text
-	recognizerFlag := cli.NewEnum(&recognizerName, "Recognizer", string(conf.WhisperLocal), string(conf.WhisperAPI), string(conf.GPT4o), string(conf.GPT4oMini))
-	skyeye.Flags().Var(recognizerFlag, "recognizer", "Speech-to-text recognizer to use")
-	skyeye.Flags().StringVar(&whisperModelPath, "whisper-model", "", "Path to whisper.cpp model")
-	skyeye.Flags().StringVar(&openAIAPIKey, "openai-api-key", "", "API key for OpenAPI AI")
-	skyeye.MarkFlagsOneRequired("whisper-model", "openai-api-key")
 	skyeye.Flags().StringVar(&recognizerLockPath, "recognizer-lock-path", "", "Path to lock file for concurrent speech-to-text when using multiple instances")
 
 	// Text-to-speech
@@ -183,10 +172,10 @@ var skyeye = &cobra.Command{
 			"skyeye --config-file='/home/user/xyz.yaml'",
 			"",
 			"Remote TacView and SRS server",
-			"skyeye --telemetry-address=your-tacview-server:42674 --telemetry-password=your-tacview-password --srs-server-address=your-srs-server:5002 --srs-eam-password=your-srs-eam-password --whisper-model=ggml-small.en.bin",
+			"skyeye --telemetry-address=your-tacview-server:42674 --telemetry-password=your-tacview-password --srs-server-address=your-srs-server:5002 --srs-eam-password=your-srs-eam-password",
 			"",
 			"Local TacView and SRS server",
-			"skyeye --telemetry-password=your-tacview-password --srs-eam-password=your-srs-eam-password --whisper-model=ggml-small.en.bin",
+			"skyeye --telemetry-password=your-tacview-password --srs-eam-password=your-srs-eam-password",
 		},
 		"\n  ",
 	),
@@ -245,29 +234,6 @@ func loadCoalition() (coalition coalitions.Coalition) {
 	}
 	log.Info().Int("id", int(coalition)).Msg("GCI coalition set")
 	return
-}
-
-func loadWhisperModel() *whisper.Model {
-	if recognizerName != string(conf.WhisperLocal) {
-		return nil
-	}
-	if whisperModelPath == "" {
-		log.Fatal().Msg("whisper-model is required when recognizer is set to " + string(conf.WhisperLocal))
-	}
-	if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX2 {
-		log.Fatal().Msg("The CPU on this machine does not support AVX2 instructions.")
-	}
-
-	log.Info().Str("path", whisperModelPath).Msg("loading whisper model")
-	whisperModel, err := whisper.New(whisperModelPath)
-	if err != nil {
-		log.Fatal().Err(err).Str("path", whisperModelPath).Err(err).Msg("failed to load whisper model")
-	}
-	log.Info().
-		Bool("multilingual", whisperModel.IsMultilingual()).
-		Strs("languages", whisperModel.Languages()).
-		Msg("whisper model loaded")
-	return &whisperModel
 }
 
 func randomizer() (rando *rand.Rand) {
@@ -374,7 +340,6 @@ func run(_ *cobra.Command, _ []string) {
 
 	log.Info().Msg("loading configuration")
 	coalition := loadCoalition()
-	whisperModel := loadWhisperModel()
 	rando := randomizer()
 	voice := loadVoice(rando)
 	callsign := loadCallsign(rando)
@@ -398,10 +363,7 @@ func run(_ *cobra.Command, _ []string) {
 		Callsign:                     callsign,
 		Coalition:                    coalition,
 		RadarSweepInterval:           telemetryUpdateInterval,
-		Recognizer:                   conf.Recognizer(recognizerName),
 		RecognizerLock:               recognizerLock,
-		WhisperModel:                 whisperModel,
-		OpenAIAPIKey:                 openAIAPIKey,
 		Voice:                        voice,
 		UseSystemVoice:               useSystemVoice,
 		VoiceLock:                    voiceLock,

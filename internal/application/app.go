@@ -154,18 +154,9 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 	}
 
 	log.Info().Msg("constructing speech-to-text recognizer")
-	var speechRecognizer recognizer.Recognizer
-	switch config.Recognizer {
-	case conf.WhisperLocal:
-		speechRecognizer = recognizer.NewWhisperRecognizer(config.WhisperModel, config.Callsign)
-	case conf.WhisperAPI:
-		speechRecognizer = recognizer.NewWhisperAPIRecognizer(config.OpenAIAPIKey, config.Callsign)
-	case conf.GPT4o:
-		speechRecognizer = recognizer.NewGPT4oRecognizer(config.OpenAIAPIKey, config.Callsign)
-	case conf.GPT4oMini:
-		speechRecognizer = recognizer.NewGPT4oMiniRecognizer(config.OpenAIAPIKey, config.Callsign)
-	default:
-		return nil, fmt.Errorf("failed to construct application: unrecognized recognizer %q", config.Recognizer)
+	speechRecognizer, err := recognizer.NewParakeetRecognizer()
+	if err != nil {
+		return nil, fmt.Errorf("failed to construct speech recognizer: %w", err)
 	}
 
 	log.Info().Msg("constructing request parser")

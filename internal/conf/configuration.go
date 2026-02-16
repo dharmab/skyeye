@@ -6,18 +6,8 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
-	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 	"github.com/gofrs/flock"
 	"github.com/martinlindhe/unit"
-)
-
-type Recognizer string
-
-const (
-	WhisperLocal Recognizer = "openai-whisper-local"
-	WhisperAPI   Recognizer = "openai-whisper-api"
-	GPT4o        Recognizer = "openai-gpt4o"
-	GPT4oMini    Recognizer = "openai-gpt4o-mini"
 )
 
 // Configuration for the SkyEye application.
@@ -57,14 +47,8 @@ type Configuration struct {
 	// RadarSweepInterval is the rate at which the radar will update. This does not impact performance - ACMI data is still streamed at the same rate.
 	// It only impacts the update rate of the GCI radar picture.
 	RadarSweepInterval time.Duration
-	// Recognizer selects which speech-to-text recognizer to use.
-	Recognizer Recognizer
 	// RecognizerLock is a file-based lock to control multiple instances running the recognizer at the same time.
 	RecognizerLock *flock.Flock
-	// WhisperModel is a whisper.cpp model used for Speech To Text. It may be nil if OpenAI API transcription is configured.
-	WhisperModel *whisper.Model
-	// OpenAIAPIKey is the API key for the OpenAI API. It may be empty if local transcription is configured.
-	OpenAIAPIKey string
 	// Voice is the voice used for SRS transmissions
 	Voice voices.Voice
 	// UseSystemVoice controls whether to use the System Voice on macOS. This allows use of current Siri voices,

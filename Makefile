@@ -23,19 +23,13 @@ SKYEYE_SOURCES += go.mod go.sum
 SKYEYE_BIN = skyeye
 SKYEYE_SCALER_BIN = skyeye-scaler
 
-WHISPER_CPP_PATH = third_party/whisper.cpp
-LIBWHISPER_PATH = $(WHISPER_CPP_PATH)/libwhisper.a
-WHISPER_H_PATH = $(WHISPER_CPP_PATH)/include/whisper.h
-WHISPER_CPP_REPO = https://github.com/dharmab/whisper.cpp.git
-WHISPER_CPP_VERSION = v1.7.2-windows-fix
-WHISPER_CPP_BUILD_ENV =
+# Parakeet TDT speech recognition model
+PARAKEET_MODEL_DIR = pkg/recognizer/model
+PARAKEET_MODEL_FILES = $(PARAKEET_MODEL_DIR)/encoder.int8.onnx $(PARAKEET_MODEL_DIR)/decoder.int8.onnx $(PARAKEET_MODEL_DIR)/joiner.int8.onnx $(PARAKEET_MODEL_DIR)/tokens.txt
 
 # Compiler variables and flags
 GOBUILDVARS = GOARCH=$(GOARCH)
-ABS_WHISPER_CPP_PATH = $(abspath $(WHISPER_CPP_PATH))
-BUILD_VARS = CGO_ENABLED=1 \
-  C_INCLUDE_PATH="$(ABS_WHISPER_CPP_PATH)/ggml/include:$(ABS_WHISPER_CPP_PATH)/include" \
-  LIBRARY_PATH="$(ABS_WHISPER_CPP_PATH)"
+BUILD_VARS = CGO_ENABLED=1
 BUILD_FLAGS = -tags nolibopusfile
 
 # Populate --version from Git tag
@@ -46,12 +40,10 @@ LDFLAGS= -X "main.Version=$(SKYEYE_VERSION)"
 
 # macOS-specific settings
 ifeq ($(OS_DISTRIBUTION),macOS)
-# Use Homebrew LLVM/Clang for OpenMP support
+# Use Homebrew LLVM/Clang for OpenMP support (required by opus)
 CC=$(shell brew --prefix llvm)/bin/clang
 CXX=$(shell brew --prefix llvm)/bin/clang++
 BUILD_VARS += CC=$(CC) CXX=$(CXX)
-# Enable GPU acceleration
-WHISPER_CPP_BUILD_ENV = GGML_METAL=1
 endif
 
 # Windows-specific settings
@@ -131,22 +123,15 @@ install-macos-dependencies:
 	  libsoxr \
 	  opus
 
-.PHONY: download-whisper-%
-download-whisper-%:
-	curl -L -o $*.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/$*.bin
-
-$(LIBWHISPER_PATH) $(WHISPER_H_PATH):
-	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false "$(WHISPER_CPP_REPO)" "$(WHISPER_CPP_PATH)" && $(WHISPER_CPP_BUILD_ENV) make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
-	if [ -f third_party/whisper.cpp/whisper.a ] && [ ! -f $(LIBWHISPER_PATH) ]; then cp third_party/whisper.cpp/whisper.a $(LIBWHISPER_PATH); fi
-
-.PHONY: whisper
-whisper: $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
+.PHONY: download-model
+download-model:
+	./scripts/download-model.sh
 
 .PHONY: generate
 generate:
 	$(BUILD_VARS) $(GO) generate $(BUILD_FLAGS) ./...
 
-$(SKYEYE_BIN): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
+$(SKYEYE_BIN): download-model generate $(SKYEYE_SOURCES)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
 
 $(SKYEYE_SCALER_BIN): generate $(SKYEYE_SOURCES)
@@ -157,22 +142,21 @@ run:
 	$(BUILD_VARS) $(GO) run -race $(BUILD_FLAGS) ./cmd/skyeye/ $(ARGS)
 
 .PHONY: test
-test: generate
+test: download-model generate
 	$(BUILD_VARS) $(GO) tool gotestsum -- $(BUILD_FLAGS) $(TEST_FLAGS) ./...
 
-.PHONY: benchmark-whisper
-benchmark-whisper: whisper
-	test -n "$(SKYEYE_WHISPER_MODEL)"  # Set SKYEYE_WHISPER_MODEL to the absolute path to the model's .bin file
-	$(BUILD_VARS) $(GO) test -bench=. -run BenchmarkWhisperRecognizer ./pkg/recognizer
+.PHONY: benchmark-parakeet
+benchmark-parakeet:
+	$(BUILD_VARS) $(GO) test -bench=. -run BenchmarkParakeetRecognizer ./pkg/recognizer
 
 .PHONY: vet
-vet: generate
+vet: download-model generate
 	$(BUILD_VARS) $(GO) vet $(BUILD_FLAGS) ./...
 
 # Note: Running golangci-lint from source like this is not recommended, see https://golangci-lint.run/welcome/install/#install-from-source
 # However, this is the easiest way to set the required CGO variables for this project.
 .PHONY: lint
-lint: whisper generate
+lint: download-model generate
 	$(BUILD_VARS) $(GO) tool golangci-lint run ./...
 
 
@@ -191,4 +175,4 @@ mostlyclean:
 
 .PHONY: clean
 clean: mostlyclean
-	rm -rf "$(WHISPER_CPP_PATH)"
+	rm -f $(PARAKEET_MODEL_FILES)

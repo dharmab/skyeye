@@ -23,37 +23,8 @@
 
 # SPEECH RECOGNITION
 #
-# Choose "openai-whisper-local" to use local speech recognition, which has
-# more intense system requirements.
-# Choose "openai-whisper-api" to use the OpenAI API for speech recognition,
-# which requires paying OpenAI for credits.
-# See docs/ADMIN.md for more details and advantages and disadvantages of each.
-# "openai-gpt4o" and "openai-gpt4o-mini" are also valid, but are not recommended
-# at this time due to higher error rates than Whisper.
-#recognizer: openai-whisper-local
-#
-# If you chose local speech recogntion, SkyEye requires a whisper.cpp model from
-# https://huggingface.co/ggerganov/whisper.cpp/tree/main. Note that the
-# cloud-init and WinSW YAML files provided with the release will download the
-# model on your behalf before starting SkyEye. You probably only need to change
-# the value of whisper-model here if you're manually installing SkyEye or
-# are running a development build.
-#
-# The small English-only model provides a good balance between performance, RAM
-# usage and quality.
-#whisper-model: ggml-small.en.bin
-#
-# The medium English-only model has better quality, but requires a powerful CPU
-# and additional RAM.
-#whisper-model: ggml-medium.en.bin
-#
-# Only resort to the tiny model if the small model is too slow. It has poor
-# speech recognition quality.
-#whisper-model: ggml-tiny.en.bin
-#
-# If you chose the OpenAI API for cloud-based speech recognition, you need to
-# provide an API key. You can get an API key at https://openai.com/api.
-#openai-api-key: apikeygoeshere
+# SkyEye uses NVIDIA Parakeet TDT for local speech recognition. The model is
+# embedded in the binary, so no additional configuration is required.
 
 # TELEMETRY
 # Telemetry service address. Set this to the host and port of the TacView

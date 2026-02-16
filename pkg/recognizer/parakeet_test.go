@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 	"github.com/gopxl/beep/v2"
 	"github.com/gopxl/beep/v2/wav"
 	"github.com/stretchr/testify/assert"
@@ -15,8 +14,6 @@ import (
 )
 
 const dataDir = "testdata"
-
-var modelPath = os.Getenv("SKYEYE_WHISPER_MODEL")
 
 type sample struct {
 	filename string
@@ -71,16 +68,15 @@ func loadSamples(b *testing.B) []sample {
 	return samples
 }
 
-func BenchmarkWhisperRecognizer(b *testing.B) {
+func BenchmarkParakeetRecognizer(b *testing.B) {
 	samples := loadSamples(b)
-	model, err := whisper.New(modelPath)
+	rec, err := NewParakeetRecognizer()
 	require.NoError(b, err)
-	recognizer := NewWhisperRecognizer(&model, "Thunderhead")
 	b.ResetTimer()
 	for _, sample := range samples {
 		b.Run(sample.filename, func(b *testing.B) {
 			for b.Loop() {
-				_, err := recognizer.Recognize(b.Context(), sample.pcm, true)
+				_, err := rec.Recognize(b.Context(), sample.pcm, true)
 				require.NoError(b, err)
 			}
 		})
