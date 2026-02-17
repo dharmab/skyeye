@@ -65,8 +65,8 @@ func (r *Radar) compareThreat(a, b *group) int {
 	}
 
 	// Prioritize aircraft within threat radius over aircraft outside threat radius
-	distanceA := spatial.Distance(r.center, a.point())
-	distanceB := spatial.Distance(r.center, b.point())
+	distanceA := spatial.Distance(r.center, a.point(), r.withProjection())
+	distanceB := spatial.Distance(r.center, b.point(), r.withProjection())
 	aIsThreat := distanceA < a.threatRadius()
 	bIsThreat := distanceB < b.threatRadius()
 	if aIsThreat && !bIsThreat {

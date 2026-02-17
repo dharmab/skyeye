@@ -46,8 +46,8 @@ func (r *Radar) updateCenterPoint() {
 	} else {
 		newCenter = geo.Midpoint(blue, red)
 	}
-	distance := spatial.Distance(r.center, newCenter)
-	bearing := spatial.TrueBearing(r.center, newCenter)
+	distance := spatial.Distance(r.center, newCenter, r.withProjection())
+	bearing := spatial.TrueBearing(r.center, newCenter, r.withProjection())
 	r.center = newCenter
 	log.Trace().
 		Float64("lon", r.center.Lon()).

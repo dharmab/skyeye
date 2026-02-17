@@ -22,7 +22,8 @@ I do not respond to direct messages on social media or the Eagle Dynamics forums
 - Speed filter fallback:
   - If using Tacview 1.9.5 beta 16 or newer, SkyEye filters out contacts below 10 meters above the terrain. This works well in most cases.
   - If using any older version of Tacview, SkyEye does not have access to the terrain height. It instead falls back to a 50 knot speed filter. Unfortunately, this excludes hostile helicopters that are moving slowly or hovering.
-- SkyEye does not work when (1) running on macOS 15 AND (2) as a background service AND (3) connecting to a SRS, Tacview, or DCS-gRPC server running within the same LAN. [Bug tracked here, multiple workarounds available](https://github.com/dharmab/skyeye/issues/566).
+- By default, SkyEye uses a simple spherical earth model for calculating distance and bearings. This is accurate enough near the equator, but becomes increasingly inaccurate at extreme latitudes, such as on the Kola and South Atlantic maps. Workaround: See the `x-detect-terrain` experimental config option. This is not enabled by default because it uses a "best guess" method to detect the current map, which may actually reduce accuracy in certain cases, such as when playing on a map that was released after the current version of SkyEye.
+- SkyEye does not work when (1) running on macOS 15 or newer AND (2) as a background service AND (3) connecting to a SRS, Tacview, or DCS-gRPC server running within the same LAN. [Bug tracked here, multiple workarounds available](https://github.com/dharmab/skyeye/issues/566).
 - See also [this section in the player guide](PLAYER.md#a-word-of-warning) about the bot's limitations.
 
 ## System Architecture

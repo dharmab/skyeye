@@ -35,6 +35,7 @@ func (c *Controller) HandleSnaplock(ctx context.Context, request *brevity.Snaplo
 		origin,
 		request.BRA.Bearing().True(c.scope.Declination(origin)),
 		request.BRA.Range(),
+		c.withProjection(),
 	)
 	radius := 10 * unit.NauticalMile
 	altitudeMargin := unit.Length(5000) * unit.Foot

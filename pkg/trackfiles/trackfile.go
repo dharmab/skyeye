@@ -94,12 +94,12 @@ func (t *Trackfile) Update(f Frame) {
 }
 
 // Bullseye returns the bearing and distance from the bullseye to the track's last known position.
-func (t *Trackfile) Bullseye(bullseye orb.Point) brevity.Bullseye {
+func (t *Trackfile) Bullseye(bullseye orb.Point, opts ...spatial.Option) brevity.Bullseye {
 	latest := t.LastKnown()
 	declination, _ := bearings.Declination(bullseye, latest.Time)
-	bearing := spatial.TrueBearing(bullseye, latest.Point).Magnetic(declination)
+	bearing := spatial.TrueBearing(bullseye, latest.Point, opts...).Magnetic(declination)
 	log.Debug().Float64("bearing", bearing.Degrees()).Msg("calculated bullseye bearing for group")
-	distance := spatial.Distance(bullseye, latest.Point)
+	distance := spatial.Distance(bullseye, latest.Point, opts...)
 	return *brevity.NewBullseye(bearing, distance)
 }
 
@@ -138,7 +138,7 @@ func (t *Trackfile) bestAvailableDeclination() unit.Angle {
 // Course returns the angle that the track is moving in.
 // If the track has not moved very far, the course may be unreliable.
 // You can check for this condition by checking if [Trackfile.Direction] returns [brevity.UnknownDirection].
-func (t *Trackfile) Course() bearings.Bearing {
+func (t *Trackfile) Course(opts ...spatial.Option) bearings.Bearing {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
 	if t.track.Len() == 1 {
@@ -153,7 +153,7 @@ func (t *Trackfile) Course() bearings.Bearing {
 	previous := t.track.At(1)
 
 	declination := t.bestAvailableDeclination()
-	course := spatial.TrueBearing(previous.Point, latest.Point).Magnetic(declination)
+	course := spatial.TrueBearing(previous.Point, latest.Point, opts...).Magnetic(declination)
 	return course
 }
 
@@ -173,7 +173,7 @@ func (t *Trackfile) Direction() brevity.Track {
 }
 
 // groundSpeed returns the approximate speed of the track along the ground (i.e. in two dimensions).
-func (t *Trackfile) groundSpeed() unit.Speed {
+func (t *Trackfile) groundSpeed(opts ...spatial.Option) unit.Speed {
 	if t.track.Len() < 2 {
 		return 0
 	}
@@ -186,7 +186,7 @@ func (t *Trackfile) groundSpeed() unit.Speed {
 		return 0
 	}
 
-	groundDistance := spatial.Distance(latest.Point, previous.Point)
+	groundDistance := spatial.Distance(latest.Point, previous.Point, opts...)
 	groundSpeed := unit.Speed(
 		groundDistance.Meters()/
 			timeDelta.Seconds(),

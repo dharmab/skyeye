@@ -101,6 +101,9 @@ type Configuration struct {
 	DiscorbWebhookToken string
 	// ExitAfter is the duration after which the application will exit
 	ExitAfter time.Duration
+	// EnableTerrainDetection controls whether terrain detection is used to select a Transverse Mercator projection
+	// for spatial calculations. When disabled, spherical Earth calculations are used instead.
+	EnableTerrainDetection bool
 }
 
 var DefaultCallsigns = []string{"Sky Eye", "Thunderhead", "Eagle Eye", "Ghost Eye", "Sky Keeper", "Bandog", "Long Caster", "Galaxy"}

@@ -221,3 +221,13 @@
 # time. It may be prudent to restart the bot every few days. The bot won't exit
 # if there are humans on any configured SRS channels, until they leave.
 #exit-after: 72h
+
+# EXPERIMENTS
+#
+# Set this to true to enable an experimental feature to auto-detect which DCS
+# terrain ("map") is currently running, and use that knowledge to improve
+# coordinate accuracy. This should drastically improve coordinate accuracy at
+# extreme latitudes such as on the Kola and South Atlantic terrains. However,
+# this can reduce accuracy in other cases, such as if you are using a terrain
+# which was released after this build of SkyEye.
+#x-detect-terrain: false

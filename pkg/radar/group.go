@@ -4,16 +4,13 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
-	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
-	"github.com/rs/zerolog/log"
 
 	"github.com/paulmach/orb/geo"
 )
@@ -21,7 +18,7 @@ import (
 type group struct {
 	isThreat    bool
 	contacts    []*trackfiles.Trackfile
-	bullseye    *orb.Point
+	bullseye    *brevity.Bullseye
 	braa        brevity.BRAA
 	aspect      *brevity.Aspect
 	declaration brevity.Declaration
@@ -47,18 +44,7 @@ func (g *group) Contacts() int {
 
 // Bullseye implements [brevity.Group.Bullseye].
 func (g *group) Bullseye() *brevity.Bullseye {
-	if g.bullseye == nil {
-		return nil
-	}
-
-	declination, err := bearings.Declination(*g.bullseye, g.missionTime())
-	if err != nil {
-		log.Error().Err(err).Stringer("group", g).Msg("failed to get declination for group")
-	}
-	point := g.point()
-	bearing := spatial.TrueBearing(*g.bullseye, point).Magnetic(declination)
-	distance := spatial.Distance(*g.bullseye, point)
-	return brevity.NewBullseye(bearing, distance)
+	return g.bullseye
 }
 
 func (g *group) Stacks() []brevity.Stack {
@@ -268,17 +254,6 @@ func (g *group) point() orb.Point {
 		center = geo.Midpoint(center, trackfile.LastKnown().Point)
 	}
 	return center
-}
-
-// missionTime returns the mission-time timestamp of the most recent trackfile in the group.
-func (g *group) missionTime() time.Time {
-	var latest time.Time
-	for _, trackfile := range g.contacts {
-		if trackfile.LastKnown().Time.After(latest) {
-			latest = trackfile.LastKnown().Time
-		}
-	}
-	return latest
 }
 
 // threatRadius returns the highest threat radius of all contacts in the group.
