@@ -31,7 +31,7 @@ func (r *Radar) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 		// Populate threats map with hostile-friendly relations that meet threat criteria.
 		ids := make([]uint64, 0)
 		for _, friendlyGroup := range friendlyGroups {
-			distance := spatial.Distance(grp.point(), friendlyGroup.point())
+			distance := spatial.Distance(grp.point(), friendlyGroup.point(), r.withProjection())
 			withinThreatRadius := r.isGroupWithinThreatRadius(grp, distance)
 			hostileIsHelo := grp.category() == brevity.RotaryWing
 			friendlyIsPlane := friendlyGroup.category() == brevity.FixedWing
@@ -52,8 +52,8 @@ func (r *Radar) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 				continue
 			}
 			declination := r.Declination(trackfile.LastKnown().Point)
-			bearing := spatial.TrueBearing(trackfile.LastKnown().Point, grp.point()).Magnetic(declination)
-			_range := spatial.Distance(trackfile.LastKnown().Point, grp.point())
+			bearing := spatial.TrueBearing(trackfile.LastKnown().Point, grp.point(), r.withProjection()).Magnetic(declination)
+			_range := spatial.Distance(trackfile.LastKnown().Point, grp.point(), r.withProjection())
 			aspect := brevity.AspectFromAngle(bearing, grp.course())
 			grp.braa = brevity.NewBRAA(bearing, _range, grp.altitudes(), aspect)
 			grp.bullseye = nil

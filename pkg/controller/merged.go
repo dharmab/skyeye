@@ -193,7 +193,7 @@ func (c *Controller) updateMergesForContact(hostile, friendly *trackfiles.Trackf
 		c.merges.separate(hostile.Contact.ID, friendly.Contact.ID)
 		return false
 	}
-	distance := spatial.Distance(friendly.LastKnown().Point, hostile.LastKnown().Point)
+	distance := spatial.Distance(friendly.LastKnown().Point, hostile.LastKnown().Point, c.withProjection())
 	enteredMerge := distance < brevity.MergeEntryDistance
 	exitedMerge := distance > brevity.MergeExitDistance
 

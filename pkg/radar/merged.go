@@ -15,7 +15,6 @@ import (
 func (r *Radar) Merges(coalition coalitions.Coalition) map[brevity.Group][]*trackfiles.Trackfile {
 	visited := make(map[uint64]struct{})
 	merges := make(map[brevity.Group][]*trackfiles.Trackfile)
-	bullseye := r.Bullseye(coalition)
 	for contact := range r.contacts.values() {
 		if _, ok := visited[contact.Contact.ID]; ok {
 			continue
@@ -46,7 +45,6 @@ func (r *Radar) Merges(coalition coalitions.Coalition) map[brevity.Group][]*trac
 			continue
 		}
 		grp.isThreat = true
-		grp.bullseye = &bullseye
 		grp.SetDeclaration(brevity.Furball)
 
 		merges[grp] = slices.Collect(maps.Values(mergedWith))
@@ -67,7 +65,7 @@ func (r *Radar) mergesForContact(trackfile *trackfiles.Trackfile) []*trackfiles.
 		if other.IsLastKnownPointZero() {
 			continue
 		}
-		distance := spatial.Distance(trackfile.LastKnown().Point, other.LastKnown().Point)
+		distance := spatial.Distance(trackfile.LastKnown().Point, other.LastKnown().Point, r.withProjection())
 		if distance < brevity.MergeExitDistance {
 			mergedWith = append(mergedWith, other)
 		}

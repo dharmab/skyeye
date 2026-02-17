@@ -10,7 +10,10 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
+	"github.com/dharmab/skyeye/pkg/encyclopedia/terrains"
 	"github.com/dharmab/skyeye/pkg/sim"
+	"github.com/dharmab/skyeye/pkg/spatial"
+	"github.com/dharmab/skyeye/pkg/spatial/projections"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -57,19 +60,32 @@ type Radar struct {
 	pendingFades []sim.Faded
 	// pendingFadesLock protects pendingFades.
 	pendingFadesLock sync.RWMutex
+	// enableTerrainDetection controls whether terrain detection and Transverse Mercator projection are used.
+	// When false, spatial functions use spherical Earth calculations.
+	enableTerrainDetection bool
+	// projection is a best guess at the current map projection based on the bullseye.
+	// This improves accuracy for distance/bearing calculations at extreme latitudes.
+	// If it is nil, either because terrain detection is disabled or because no bullseye has been set,
+	// spatial functions fall back to spherical Earth calculations.
+	projection projections.Projection
+	// projectionLock protects projection.
+	projectionLock sync.RWMutex
 }
 
 // New creates a radar scope that consumes updates from the provided channels.
-func New(coalition coalitions.Coalition, starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length) *Radar {
+// When enableTerrainDetection is true, SetBullseye will detect the closest DCS terrain and use its
+// Transverse Mercator projection for spatial calculations. When false, spherical Earth calculations are used.
+func New(coalition coalitions.Coalition, starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length, enableTerrainDetection bool) *Radar {
 	return &Radar{
-		coalition:             coalition,
-		starts:                starts,
-		updates:               updates,
-		fades:                 fades,
-		contacts:              newContactDatabase(),
-		mandatoryThreatRadius: mandatoryThreatRadius,
-		completedFades:        map[uint64]time.Time{},
-		pendingFades:          []sim.Faded{},
+		coalition:              coalition,
+		starts:                 starts,
+		updates:                updates,
+		fades:                  fades,
+		contacts:               newContactDatabase(),
+		mandatoryThreatRadius:  mandatoryThreatRadius,
+		enableTerrainDetection: enableTerrainDetection,
+		completedFades:         map[uint64]time.Time{},
+		pendingFades:           []sim.Faded{},
 	}
 }
 
@@ -82,14 +98,30 @@ func (r *Radar) SetMissionTime(t time.Time) {
 
 // SetBullseye updates the bullseye point for the given coalition.
 // The bullseye point is the reference point for polar coordinates provided in [Group.Bullseye].
+// When terrain detection is enabled, this also detects the closest DCS terrain and updates
+// the Transverse Mercator projection used for spatial calculations.
 func (r *Radar) SetBullseye(bullseye orb.Point, coalition coalitions.Coalition) {
 	current := r.Bullseye(coalition)
 	if current.Lon() != bullseye.Lon() || current.Lat() != bullseye.Lat() {
-		log.Info().
-			Int("coalitionID", int(coalition)).
-			Float64("lon", bullseye.Lon()).
-			Float64("lat", bullseye.Lat()).
-			Msg("updating bullseye")
+		if r.enableTerrainDetection {
+			terrain := terrains.Closest(bullseye)
+			log.Info().
+				Int("coalitionID", int(coalition)).
+				Float64("lon", bullseye.Lon()).
+				Float64("lat", bullseye.Lat()).
+				Str("terrain", terrain.Name).
+				Msg("updating bullseye")
+
+			r.projectionLock.Lock()
+			r.projection = terrain.Projection()
+			r.projectionLock.Unlock()
+		} else {
+			log.Info().
+				Int("coalitionID", int(coalition)).
+				Float64("lon", bullseye.Lon()).
+				Float64("lat", bullseye.Lat()).
+				Msg("updating bullseye")
+		}
 	}
 	r.bullseyes.Store(coalition, bullseye)
 }
@@ -101,6 +133,38 @@ func (r *Radar) Bullseye(coalition coalitions.Coalition) orb.Point {
 		return orb.Point{}
 	}
 	return p.(orb.Point)
+}
+
+// Projection returns the current Transverse Mercator projection.
+// This projection should be used for distance and bearing calculations to improve
+// accuracy at extreme latitudes. Returns nil if terrain detection is disabled or
+// no projection has been set. Callers should handle a nil return by falling back
+// to spherical Earth calculations.
+func (r *Radar) Projection() projections.Projection {
+	r.projectionLock.RLock()
+	defer r.projectionLock.RUnlock()
+	return r.projection
+}
+
+// withProjection returns a spatial.Option that uses the current projection.
+// This is a convenience helper for passing to spatial functions.
+// When the projection is nil (terrain detection disabled or no bullseye set),
+// spatial functions fall back to spherical Earth calculations.
+func (r *Radar) withProjection() spatial.Option {
+	return spatial.WithProjection(r.Projection())
+}
+
+// setBullseyeForGroup computes and sets the bullseye for a group using the current projection.
+func (r *Radar) setBullseyeForGroup(grp *group) {
+	bullseyePoint := r.Bullseye(r.coalition)
+	if spatial.IsZero(bullseyePoint) {
+		return
+	}
+	groupPoint := grp.point()
+	declination := r.Declination(groupPoint)
+	bearing := spatial.TrueBearing(bullseyePoint, groupPoint, r.withProjection()).Magnetic(declination)
+	distance := spatial.Distance(bullseyePoint, groupPoint, r.withProjection())
+	grp.bullseye = brevity.NewBullseye(bearing, distance)
 }
 
 // Run consumes updates from the simulation channels until the context is cancelled.

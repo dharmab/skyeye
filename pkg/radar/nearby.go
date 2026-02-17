@@ -35,8 +35,8 @@ func (r *Radar) findNearbyGroups(pointOfInterest orb.Point, minAltitude, maxAlti
 
 	// Sort closest to furthest
 	slices.SortFunc(groups, func(a, b *group) int {
-		distanceToA := spatial.Distance(pointOfInterest, a.point())
-		distanceToB := spatial.Distance(pointOfInterest, b.point())
+		distanceToA := spatial.Distance(pointOfInterest, a.point(), r.withProjection())
+		distanceToB := spatial.Distance(pointOfInterest, b.point(), r.withProjection())
 		return int(distanceToA - distanceToB)
 	})
 
@@ -64,8 +64,8 @@ func (r *Radar) FindNearbyGroupsWithBRAA(origin, interest orb.Point, minAltitude
 	groups := r.findNearbyGroups(interest, minAltitude, maxAltitude, radius, coalition, filter, excludedIDs)
 	result := make([]brevity.Group, 0, len(groups))
 	for _, grp := range groups {
-		bearing := spatial.TrueBearing(origin, grp.point()).Magnetic(r.Declination(origin))
-		_range := spatial.Distance(origin, grp.point())
+		bearing := spatial.TrueBearing(origin, grp.point(), r.withProjection()).Magnetic(r.Declination(origin))
+		_range := spatial.Distance(origin, grp.point(), r.withProjection())
 		aspect := brevity.AspectFromAngle(bearing, grp.course())
 		grp.braa = brevity.NewBRAA(bearing, _range, grp.altitudes(), aspect)
 		grp.bullseye = nil

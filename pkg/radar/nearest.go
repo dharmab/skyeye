@@ -33,7 +33,7 @@ func (r *Radar) FindNearestTrackfile(
 		altitude := trackfile.LastKnown().Altitude
 		isWithinAltitude := minAltitude <= altitude && altitude <= maxAltitude
 		if isMatch && isWithinAltitude {
-			distance := spatial.Distance(origin, trackfile.LastKnown().Point)
+			distance := spatial.Distance(origin, trackfile.LastKnown().Point, r.withProjection())
 			isNearer := distance < nearestDistance
 			if isNearer {
 				nearestTrackfile = trackfile
@@ -76,9 +76,9 @@ func (r *Radar) FindNearestGroupWithBRAA(
 	}
 
 	declination := r.Declination(origin)
-	bearing := spatial.TrueBearing(origin, grp.point()).Magnetic(declination)
-	_range := spatial.Distance(origin, grp.point())
-	aspect := brevity.AspectFromAngle(bearing, trackfile.Course())
+	bearing := spatial.TrueBearing(origin, grp.point(), r.withProjection()).Magnetic(declination)
+	_range := spatial.Distance(origin, grp.point(), r.withProjection())
+	aspect := brevity.AspectFromAngle(bearing, trackfile.Course(r.withProjection()))
 	grp.braa = brevity.NewBRAA(
 		bearing,
 		_range,
@@ -100,11 +100,11 @@ func (r *Radar) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxA
 	nearestTrackfile := r.FindNearestTrackfile(origin, minAltitude, maxAltitude, radius, coalition, filter)
 	grp := r.findGroupForAircraft(nearestTrackfile)
 	declination := r.Declination(origin)
-	bearing := spatial.TrueBearing(origin, grp.point()).Magnetic(declination)
+	bearing := spatial.TrueBearing(origin, grp.point(), r.withProjection()).Magnetic(declination)
 	aspect := brevity.AspectFromAngle(bearing, grp.course())
 
 	grp.aspect = &aspect
-	_range := spatial.Distance(origin, grp.point())
+	_range := spatial.Distance(origin, grp.point(), r.withProjection())
 	grp.isThreat = r.isGroupWithinThreatRadius(grp, _range)
 	log.Debug().Any("origin", origin).Stringer("group", grp).Msg("determined nearest group")
 	return grp
@@ -142,7 +142,7 @@ func (r *Radar) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 		isWithinAltitude := minAltitude <= trackfile.LastKnown().Altitude && trackfile.LastKnown().Altitude <= maxAltitude
 		if isMatch && isWithinAltitude {
 			contactLocation := trackfile.LastKnown().Point
-			distanceToContact := spatial.Distance(origin, contactLocation)
+			distanceToContact := spatial.Distance(origin, contactLocation, r.withProjection())
 			inSector := planar.PolygonContains(sector, contactLocation)
 			logger.Debug().Float64("distanceNM", distanceToContact.NauticalMiles()).Bool("inSector", inSector).Msg("checking distance and location")
 			if distanceToContact < nearestDistance && distanceToContact > conf.DefaultMarginRadius && inSector {
@@ -161,10 +161,10 @@ func (r *Radar) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 	if grp == nil {
 		return nil
 	}
-	preciseBearing := spatial.TrueBearing(origin, nearestContact.LastKnown().Point).Magnetic(declination)
-	aspect := brevity.AspectFromAngle(preciseBearing, nearestContact.Course())
+	preciseBearing := spatial.TrueBearing(origin, nearestContact.LastKnown().Point, r.withProjection()).Magnetic(declination)
+	aspect := brevity.AspectFromAngle(preciseBearing, nearestContact.Course(r.withProjection()))
 	log.Debug().Str("aspect", string(aspect)).Msg("determined aspect")
-	_range := spatial.Distance(origin, nearestContact.LastKnown().Point)
+	_range := spatial.Distance(origin, nearestContact.LastKnown().Point, r.withProjection())
 	grp.aspect = &aspect
 	grp.braa = brevity.NewBRAA(
 		preciseBearing,

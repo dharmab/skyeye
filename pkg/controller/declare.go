@@ -76,7 +76,7 @@ func (c *Controller) HandleDeclare(ctx context.Context, request *brevity.Declare
 		bearing = request.Bullseye.Bearing().True(declination)
 		distance = request.Bullseye.Distance()
 	}
-	pointOfInterest := spatial.PointAtBearingAndDistance(origin, bearing, distance)
+	pointOfInterest := spatial.PointAtBearingAndDistance(origin, bearing, distance, c.withProjection())
 
 	radius := 7 * unit.NauticalMile
 

@@ -75,6 +75,7 @@ var (
 	discordWebhookID             string
 	discordWebhookToken          string
 	exitAfter                    time.Duration
+	enableTerrainDetection       bool
 )
 
 const (
@@ -162,6 +163,9 @@ func init() {
 	skyeye.Flags().StringVar(&discordWebhookID, "discord-webhook-id", "", "Discord webhook ID for tracing")
 	skyeye.Flags().StringVar(&discordWebhookToken, "discord-webhook-token", "", "Discord webhook token for tracing")
 	skyeye.MarkFlagsRequiredTogether("discord-webhook-id", "discord-webhook-token")
+
+	// Experimental
+	skyeye.Flags().BoolVar(&enableTerrainDetection, "x-detect-terrain", false, "Attempt to automatically detect the current terrain to improve coordinate accuracy. This is an experimental feature which may reduce accuracy in some cases")
 
 	// Runtime
 	skyeye.Flags().DurationVar(&exitAfter, "exit-after", time.Hour*24*365*20, "Exit after running for the specified duration")
@@ -418,6 +422,7 @@ func run(_ *cobra.Command, _ []string) {
 		EnableGRPC:                   enableGRPC,
 		GRPCAddress:                  grpcAddress,
 		GRPCAPIKey:                   grpcAPIKey,
+		EnableTerrainDetection:       enableTerrainDetection,
 	}
 
 	log.Info().Msg("starting application")

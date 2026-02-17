@@ -9,6 +9,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
+	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/dharmab/skyeye/pkg/traces"
 	"github.com/lithammer/shortuuid/v3"
 	"github.com/martinlindhe/unit"
@@ -131,4 +132,9 @@ func (c *Controller) Run(ctx context.Context, calls chan<- Call) {
 			c.broadcastAutomaticPicture(traces.WithTraceID(ctx, shortuuid.New()))
 		}
 	}
+}
+
+// withProjection returns a [spatial.Option] that uses the controller's configured map projection.
+func (c *Controller) withProjection() spatial.Option {
+	return spatial.WithProjection(c.scope.Projection())
 }

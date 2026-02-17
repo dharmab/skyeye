@@ -56,6 +56,10 @@ linters:
     - godox # The point of a TODO is something you can't do yet...
     - testpackage # Test packages only allow blackbox testing
   settings:
+    staticcheck:
+      checks:
+        - "all"
+        - "-QF1005" # Allow math.Pow for readability in mathematical formulas
     gosec:
       excludes:
         - G107 # Intentional use of custom webhooks

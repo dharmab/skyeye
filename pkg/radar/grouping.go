@@ -46,9 +46,7 @@ func (r *Radar) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {
 	if trackfile == nil {
 		return nil
 	}
-	bullseye := r.Bullseye(r.coalition)
 	grp := &group{
-		bullseye:    &bullseye,
 		contacts:    make([]*trackfiles.Trackfile, 0),
 		declaration: brevity.Unable,
 	}
@@ -56,6 +54,8 @@ func (r *Radar) findGroupForAircraft(trackfile *trackfiles.Trackfile) *group {
 	if !trackfile.IsLastKnownPointZero() {
 		r.addNearbyAircraftToGroup(trackfile, grp)
 	}
+	// Compute bullseye after all contacts are added so g.point() is accurate
+	r.setBullseyeForGroup(grp)
 	return grp
 }
 
@@ -103,7 +103,7 @@ func (r *Radar) addNearbyAircraftToGroup(this *trackfiles.Trackfile, group *grou
 		}
 
 		// Check spread distance
-		distance := spatial.Distance(other.LastKnown().Point, this.LastKnown().Point)
+		distance := spatial.Distance(other.LastKnown().Point, this.LastKnown().Point, r.withProjection())
 		isWithinSpread := distance < spreadInterval
 		if !isWithinSpread {
 			continue
