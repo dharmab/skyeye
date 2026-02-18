@@ -721,6 +721,16 @@ var aircraftData = []Aircraft{
 		threatRadius:        SAR1IRThreat,
 	},
 	{
+		ACMIShortName: "A6E",
+		tags: map[AircraftTag]bool{
+			FixedWing: true,
+			Attack:    true,
+		},
+		PlatformDesignation: "A-6",
+		TypeDesignation:     "A-6E",
+		OfficialName:        "Intruder",
+	},
+	{
 		ACMIShortName: "A-20G",
 		tags: map[AircraftTag]bool{
 			FixedWing: true,
