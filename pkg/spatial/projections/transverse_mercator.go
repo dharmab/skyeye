@@ -94,15 +94,15 @@ func NewTransverseMercator(opts ...Option) *TransverseMercator {
 // The implementation uses the series expansion from "Map Projections: A Working
 // Manual" (https://pubs.usgs.gov/pp/1395/report.pdf), Chapter 8: Transverse
 // Mercator projection.
-//
-// "For the ellipsoidal form, the most practical form of the equations is a set
-// of series approximations which converge rapidly to the correct centimeter or
-// less at full scale in a zone extending 3° to 4° of longitude from the central
-// meridian. Beyond this, the forward series as given here is accurate to about
-// a centimeter at 7° longitude, but the inverse series does not have sufficient
-// terms for this accuracy. The forward series may be used with meter accuracy
-// to 10° of longitude."
 func (p *TransverseMercator) ToProjected(point orb.Point) orb.Point {
+	// "For the ellipsoidal form, the most practical form of the equations is a set
+	// of series approximations which converge rapidly to the correct centimeter or
+	// less at full scale in a zone extending 3° to 4° of longitude from the central
+	// meridian. Beyond this, the forward series as given here is accurate to about
+	// a centimeter at 7° longitude, but the inverse series does not have sufficient
+	// terms for this accuracy. The forward series may be used with meter accuracy
+	// to 10° of longitude."
+
 	// TODO: Find a more accurate series expansion in US Army manuals.
 	lon := point.Lon() * math.Pi / 180.0
 	lat := point.Lat() * math.Pi / 180.0
