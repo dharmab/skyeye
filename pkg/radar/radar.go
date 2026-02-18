@@ -110,18 +110,17 @@ func (r *Radar) SetBullseye(bullseye orb.Point, coalition coalitions.Coalition) 
 				Float64("lon", bullseye.Lon()).
 				Float64("lat", bullseye.Lat()).
 				Str("terrain", terrain.Name).
-				Msg("updating bullseye")
+				Msg("updating detected terrain")
 
 			r.projectionLock.Lock()
 			r.projection = terrain.Projection()
 			r.projectionLock.Unlock()
-		} else {
-			log.Info().
-				Int("coalitionID", int(coalition)).
-				Float64("lon", bullseye.Lon()).
-				Float64("lat", bullseye.Lat()).
-				Msg("updating bullseye")
 		}
+		log.Info().
+			Int("coalitionID", int(coalition)).
+			Float64("lon", bullseye.Lon()).
+			Float64("lat", bullseye.Lat()).
+			Msg("updating bullseye")
 	}
 	r.bullseyes.Store(coalition, bullseye)
 }
