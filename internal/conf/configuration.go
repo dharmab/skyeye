@@ -88,6 +88,8 @@ type Configuration struct {
 	// EnableTerrainDetection controls whether terrain detection is used to select a Transverse Mercator projection
 	// for spatial calculations. When disabled, spherical Earth calculations are used instead.
 	EnableTerrainDetection bool
+	// ModelsPath is the  directory containing AI models
+	ModelsPath string
 }
 
 var DefaultCallsigns = []string{"Sky Eye", "Thunderhead", "Eagle Eye", "Ghost Eye", "Sky Keeper", "Bandog", "Long Caster", "Galaxy"}

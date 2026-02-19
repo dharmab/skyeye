@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"runtime"
 	"sync"
 	"time"
@@ -20,6 +21,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/recognizer"
+	"github.com/dharmab/skyeye/pkg/recognizer/parakeet"
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
@@ -154,7 +156,8 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 	}
 
 	log.Info().Msg("constructing speech-to-text recognizer")
-	speechRecognizer, err := recognizer.NewParakeetRecognizer()
+	parakeetDir := filepath.Join(config.ModelsPath, parakeet.DirName)
+	speechRecognizer, err := parakeet.NewRecognizer(parakeetDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct speech recognizer: %w", err)
 	}

@@ -8,6 +8,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"runtime/pprof"
@@ -27,6 +28,7 @@ import (
 	"github.com/dharmab/skyeye/internal/cli"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/recognizer/parakeet"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 )
 
@@ -70,6 +72,8 @@ var (
 	discordWebhookToken          string
 	exitAfter                    time.Duration
 	enableTerrainDetection       bool
+	modelsPath                   string
+	downloadModels               bool
 )
 
 const (
@@ -114,6 +118,10 @@ func init() {
 	skyeye.MarkFlagsMutuallyExclusive("callsign", "callsigns")
 	coalitionFlag := cli.NewEnum(&coalitionName, "Coalition", "blue", "red")
 	skyeye.Flags().Var(coalitionFlag, "coalition", "GCI coalition (blue, red)")
+
+	// AI models
+	skyeye.Flags().StringVar(&modelsPath, "models-path", "models", "Base directory containing model files")
+	skyeye.Flags().BoolVar(&downloadModels, "download-models", true, "Automatically download model files if missing")
 
 	// Speech-to-text
 	skyeye.Flags().StringVar(&recognizerLockPath, "recognizer-lock-path", "", "Path to lock file for concurrent speech-to-text when using multiple instances")
@@ -338,6 +346,24 @@ func run(_ *cobra.Command, _ []string) {
 		os.Exit(0)
 	}()
 
+	log.Info().Msg("verifying model files")
+	parakeetDir := filepath.Join(modelsPath, parakeet.DirName)
+	if err := parakeet.Verify(parakeetDir); err != nil {
+		var corruptErr *parakeet.CorruptFileError
+		if errors.As(err, &corruptErr) {
+			log.Fatal().Err(err).Msg("Parakeet model files on disk failed verification")
+		}
+		if !downloadModels {
+			log.Fatal().Err(err).Str("dir", parakeetDir).Msg("Parakeet model files not found and --download-models is disabled")
+		}
+		log.Warn().Err(err).Msg("Parakeet model files not found, downloading")
+		if err := parakeet.Download(ctx, parakeetDir); err != nil {
+			log.Fatal().Err(err).Msg("failed to download model files")
+		}
+	} else {
+		log.Info().Msg("model files verified")
+	}
+
 	log.Info().Msg("loading configuration")
 	coalition := loadCoalition()
 	rando := randomizer()
@@ -385,6 +411,7 @@ func run(_ *cobra.Command, _ []string) {
 		GRPCAddress:                  grpcAddress,
 		GRPCAPIKey:                   grpcAPIKey,
 		EnableTerrainDetection:       enableTerrainDetection,
+		ModelsPath:                   modelsPath,
 	}
 
 	log.Info().Msg("starting application")

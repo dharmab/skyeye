@@ -74,16 +74,16 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/go,windows
 
-# Parakeet model files (downloaded by make download-model)
-pkg/recognizer/model/*.onnx
-pkg/recognizer/model/tokens.txt
-*.nemo
-
 # ELF binary
 /skyeye
 
 # Local dev scripts ignored by default
 dev/
+
+# AI models
+models/
+*.onnx
+*.nemo
 
 # ACMI files
 *.acmi

@@ -1,6 +1,7 @@
-package recognizer
+package parakeet
 
 import (
+	"flag"
 	"fmt"
 	"io/fs"
 	"os"
@@ -13,7 +14,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const dataDir = "testdata"
+var modelPath = flag.String("model-path", filepath.Join("..", "..", "..", "models", DirName), "path to Parakeet model directory")
+
+const dataDir = "../testdata"
 
 type sample struct {
 	filename string
@@ -70,7 +73,7 @@ func loadSamples(b *testing.B) []sample {
 
 func BenchmarkParakeetRecognizer(b *testing.B) {
 	samples := loadSamples(b)
-	rec, err := NewParakeetRecognizer()
+	rec, err := NewRecognizer(*modelPath)
 	require.NoError(b, err)
 	b.ResetTimer()
 	for _, sample := range samples {

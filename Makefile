@@ -23,10 +23,6 @@ SKYEYE_SOURCES += go.mod go.sum
 SKYEYE_BIN = skyeye
 SKYEYE_SCALER_BIN = skyeye-scaler
 
-# Parakeet TDT speech recognition model
-PARAKEET_MODEL_DIR = pkg/recognizer/model
-PARAKEET_MODEL_FILES = $(PARAKEET_MODEL_DIR)/encoder.int8.onnx $(PARAKEET_MODEL_DIR)/decoder.int8.onnx $(PARAKEET_MODEL_DIR)/joiner.int8.onnx $(PARAKEET_MODEL_DIR)/tokens.txt
-
 # Compiler variables and flags
 GOBUILDVARS = GOARCH=$(GOARCH)
 BUILD_VARS = CGO_ENABLED=1
@@ -123,15 +119,11 @@ install-macos-dependencies:
 	  libsoxr \
 	  opus
 
-.PHONY: download-model
-download-model:
-	./scripts/download-model.sh
-
 .PHONY: generate
 generate:
 	$(BUILD_VARS) $(GO) generate $(BUILD_FLAGS) ./...
 
-$(SKYEYE_BIN): download-model generate $(SKYEYE_SOURCES)
+$(SKYEYE_BIN): generate $(SKYEYE_SOURCES)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
 
 $(SKYEYE_SCALER_BIN): generate $(SKYEYE_SOURCES)
@@ -142,21 +134,21 @@ run:
 	$(BUILD_VARS) $(GO) run -race $(BUILD_FLAGS) ./cmd/skyeye/ $(ARGS)
 
 .PHONY: test
-test: download-model generate
+test: generate
 	$(BUILD_VARS) $(GO) tool gotestsum -- $(BUILD_FLAGS) $(TEST_FLAGS) ./...
 
 .PHONY: benchmark-parakeet
 benchmark-parakeet:
-	$(BUILD_VARS) $(GO) test -bench=. -run BenchmarkParakeetRecognizer ./pkg/recognizer
+	$(BUILD_VARS) $(GO) test -bench=. -run BenchmarkParakeetRecognizer ./pkg/recognizer/parakeet
 
 .PHONY: vet
-vet: download-model generate
+vet: generate
 	$(BUILD_VARS) $(GO) vet $(BUILD_FLAGS) ./...
 
 # Note: Running golangci-lint from source like this is not recommended, see https://golangci-lint.run/welcome/install/#install-from-source
 # However, this is the easiest way to set the required CGO variables for this project.
 .PHONY: lint
-lint: download-model generate
+lint: generate
 	$(BUILD_VARS) $(GO) tool golangci-lint run ./...
 
 
@@ -175,4 +167,3 @@ mostlyclean:
 
 .PHONY: clean
 clean: mostlyclean
-	rm -f $(PARAKEET_MODEL_FILES)
