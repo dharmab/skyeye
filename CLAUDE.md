@@ -2,7 +2,7 @@
 
 SkyEye is an AI-powered GCI bot for DCS World that uses Whisper speech recognition, Tacview telemetry, and TTS to replace in-game AWACS with natural language command processing following real-world aviation brevity codes.
 
-**Stack:** Go 1.25.5 + CGO, whisper.cpp (C++), Piper TTS (Windows/Linux), macOS Speech Synthesis, Tacview ACMI, SRS protocol
+**Stack:** Go 1.26 + CGO, whisper.cpp (C++), Piper TTS (Windows/Linux), macOS Speech Synthesis, Tacview ACMI, SRS protocol
 
 ## Platform Support
 
@@ -31,7 +31,7 @@ SkyEye is an AI-powered GCI bot for DCS World that uses Whisper speech recogniti
 
 **Build:** `make skyeye`, `make skyeye-scaler`, `make whisper`, `make generate`  
 **Test:** `make test`, `make benchmark-whisper`  
-**Quality:** `make lint`, `make vet`, `make format` (all required for PR approval)  
+**Quality:** `make lint`, `make vet`, `make fix`, `make format` (all required for PR approval)
 **Clean:** `make mostlyclean`, `make clean`  
 **Dependencies:** `make install-{msys2,macos,arch-linux,debian,fedora}-dependencies`
 
@@ -40,7 +40,7 @@ SkyEye is an AI-powered GCI bot for DCS World that uses Whisper speech recogniti
 ## CI Requirements (Must Pass)
 
 ```bash
-make lint && make vet && make format && go mod tidy
+make lint && make vet && make fix && make format && go mod tidy
 git diff --exit-code  # Must have no changes
 ```
 
@@ -70,7 +70,7 @@ Platform-specific code isolated to `pkg/synthesizer/speakers/{macos,piper}.go` a
 
 1. Using `go` commands directly instead of `make`
 2. Wrong terminal on Windows (must be MSYS2 UCRT64)
-3. Forgetting `make format` or `go mod tidy` before committing
+3. Forgetting `make fix`, `make format`, or `go mod tidy` before committing
 4. Attempting to run the application (focus on unit tests)
 5. Missing runtime libraries on Linux/macOS
 
@@ -84,7 +84,7 @@ make install-{msys2,macos,debian}-dependencies
 make whisper generate skyeye test
 
 # Pre-commit (required)
-make lint vet format && go mod tidy && git diff
+make lint vet fix format && go mod tidy && git diff
 ```
 
 ## Resources

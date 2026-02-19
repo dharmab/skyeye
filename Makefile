@@ -176,6 +176,10 @@ lint: whisper generate
 	$(BUILD_VARS) $(GO) tool golangci-lint run ./...
 
 
+.PHONY: fix
+fix: generate
+	$(BUILD_VARS) $(GO) fix $(BUILD_FLAGS) ./...
+
 .PHONY: format
 format:
 	find . -name '*.go' -exec gofmt -s -w {} ';'
