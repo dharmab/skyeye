@@ -21,6 +21,7 @@ jobs:
         run: |
           make lint
           make vet
+          make fix
           make format
           go mod tidy
           git diff --exit-code
