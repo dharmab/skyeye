@@ -8,13 +8,14 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/dharmab/skyeye/pkg/recognizer/parakeet/model"
 	"github.com/gopxl/beep/v2"
 	"github.com/gopxl/beep/v2/wav"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var modelPath = flag.String("model-path", filepath.Join("..", "..", "..", "models", DirName), "path to Parakeet model directory")
+var modelPath = flag.String("model-path", filepath.Join("..", "..", "..", "models", model.DirName), "path to Parakeet model directory")
 
 const dataDir = "../testdata"
 

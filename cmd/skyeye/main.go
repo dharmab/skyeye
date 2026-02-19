@@ -28,7 +28,7 @@ import (
 	"github.com/dharmab/skyeye/internal/cli"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
-	"github.com/dharmab/skyeye/pkg/recognizer/parakeet"
+	parakeetmodel "github.com/dharmab/skyeye/pkg/recognizer/parakeet/model"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 )
 
@@ -347,9 +347,9 @@ func run(_ *cobra.Command, _ []string) {
 	}()
 
 	log.Info().Msg("verifying model files")
-	parakeetDir := filepath.Join(modelsPath, parakeet.DirName)
-	if err := parakeet.Verify(parakeetDir); err != nil {
-		var corruptErr *parakeet.CorruptFileError
+	parakeetDir := filepath.Join(modelsPath, parakeetmodel.DirName)
+	if err := parakeetmodel.Verify(parakeetDir); err != nil {
+		var corruptErr *parakeetmodel.CorruptFileError
 		if errors.As(err, &corruptErr) {
 			log.Fatal().Err(err).Msg("Parakeet model files on disk failed verification")
 		}
@@ -357,7 +357,7 @@ func run(_ *cobra.Command, _ []string) {
 			log.Fatal().Err(err).Str("dir", parakeetDir).Msg("Parakeet model files not found and --download-models is disabled")
 		}
 		log.Warn().Err(err).Msg("Parakeet model files not found, downloading")
-		if err := parakeet.Download(ctx, parakeetDir); err != nil {
+		if err := parakeetmodel.Download(ctx, parakeetDir); err != nil {
 			log.Fatal().Err(err).Msg("failed to download model files")
 		}
 	} else {

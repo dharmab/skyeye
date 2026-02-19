@@ -179,12 +179,43 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Download models
+        run: CGO_ENABLED=0 go run ./cmd/download-models --dir models/parakeet
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: skyeye-*
           path: dist
           merge-multiple: true
+      - name: Inject models into Linux archive
+        run: |
+          cd dist
+          tar -xzf skyeye-linux-amd64.tar.gz
+          mkdir -p skyeye-linux-amd64/models
+          cp -r ../models/parakeet skyeye-linux-amd64/models/parakeet
+          tar -czf skyeye-linux-amd64.tar.gz skyeye-linux-amd64
+          rm -rf skyeye-linux-amd64
+      - name: Inject models into macOS archive
+        run: |
+          cd dist
+          tar -xzf skyeye-macos-arm64.tar.gz
+          mkdir -p skyeye-macos-arm64/models
+          cp -r ../models/parakeet skyeye-macos-arm64/models/parakeet
+          tar -czf skyeye-macos-arm64.tar.gz skyeye-macos-arm64
+          rm -rf skyeye-macos-arm64
+      - name: Inject models into Windows archive
+        run: |
+          cd dist
+          unzip -o skyeye-windows-amd64.zip
+          mkdir -p skyeye-windows-amd64/models
+          cp -r ../models/parakeet skyeye-windows-amd64/models/parakeet
+          rm skyeye-windows-amd64.zip
+          zip -r skyeye-windows-amd64.zip skyeye-windows-amd64
+          rm -rf skyeye-windows-amd64
       - name: Release
         uses: softprops/action-gh-release@v2
         with:

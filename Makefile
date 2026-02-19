@@ -129,6 +129,10 @@ $(SKYEYE_BIN): generate $(SKYEYE_SOURCES)
 $(SKYEYE_SCALER_BIN): generate $(SKYEYE_SOURCES)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye-scaler/
 
+.PHONY: download-models
+download-models:
+	CGO_ENABLED=0 $(GO) run ./cmd/download-models $(ARGS)
+
 .PHONY: run
 run:
 	$(BUILD_VARS) $(GO) run -race $(BUILD_FLAGS) ./cmd/skyeye/ $(ARGS)
