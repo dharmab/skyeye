@@ -50,12 +50,16 @@ SKYEYE_SCALER_BIN = skyeye-scaler.exe
 # Override Windows Go environment with MSYS2 UCRT64 Go environment
 GO = /ucrt64/bin/go
 GOBUILDVARS += GOROOT="/ucrt64/lib/go" GOPATH="/ucrt64"
-# Static linking on Windows to avoid MSYS2 dependency at runtime
+# Static link opus/soxr; sherpa-onnx ships only DLLs so link those dynamically via import libs.
+# Run `make generate-sherpa-import-libs` once after a sherpa-onnx-go-windows version bump.
 LIBRARIES = opus soxr
 CFLAGS = $(shell pkg-config $(LIBRARIES) --cflags --static)
 BUILD_VARS += CFLAGS='$(CFLAGS)'
-EXTLDFLAGS = $(shell pkg-config $(LIBRARIES) --libs --static)
-LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS) -static"
+EXTLDFLAGS = -Wl,-Bstatic $(shell pkg-config $(LIBRARIES) --libs --static) -Wl,-Bdynamic
+LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS)"
+# Directory containing sherpa-onnx DLLs inside the Go module cache
+SHERPA_DLL_DIR := $(shell $(GOBUILDVARS) $(GO) list -m -json github.com/k2-fsa/sherpa-onnx-go-windows 2>/dev/null | grep '"Dir"' | cut -d'"' -f4)/lib/x86_64-pc-windows-gnu
+SHERPA_DLLS = sherpa-onnx-c-api.dll onnxruntime.dll sherpa-onnx-cxx-api.dll
 endif
 
 BUILD_VARS += LDFLAGS='$(LDFLAGS)'
@@ -74,6 +78,16 @@ install-msys2-dependencies:
 	  $(MINGW_PACKAGE_PREFIX)-go \
 	  $(MINGW_PACKAGE_PREFIX)-opus \
 	  $(MINGW_PACKAGE_PREFIX)-libsoxr
+
+# Generate .dll.a import libraries from the sherpa-onnx-go-windows DLLs.
+# Must be re-run whenever the sherpa-onnx-go-windows module version changes.
+.PHONY: generate-sherpa-import-libs
+generate-sherpa-import-libs:
+	$(eval SHERPA_LIB := $(shell $(GO) list -m -json github.com/k2-fsa/sherpa-onnx-go-windows 2>/dev/null | grep '"Dir"' | cut -d'"' -f4)/lib/x86_64-pc-windows-gnu)
+	cd "$(SHERPA_LIB)" && \
+	  gendef sherpa-onnx-c-api.dll && dlltool -d sherpa-onnx-c-api.def -l libsherpa-onnx-c-api.dll.a && \
+	  gendef onnxruntime.dll && dlltool -d onnxruntime.def -l libonnxruntime.dll.a && \
+	  gendef sherpa-onnx-cxx-api.dll && dlltool -d sherpa-onnx-cxx-api.def -l libsherpa-onnx-cxx-api.dll.a
 
 .PHONY: install-arch-linux-dependencies
 install-arch-linux-dependencies:
@@ -125,6 +139,9 @@ generate:
 
 $(SKYEYE_BIN): generate $(SKYEYE_SOURCES)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
+ifeq ($(OS_DISTRIBUTION),Windows)
+	cp $(addprefix $(SHERPA_DLL_DIR)/,$(SHERPA_DLLS)) .
+endif
 
 $(SKYEYE_SCALER_BIN): generate $(SKYEYE_SOURCES)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye-scaler/
@@ -167,6 +184,9 @@ format:
 .PHONY: mostlyclean
 mostlyclean:
 	rm -f "$(SKYEYE_BIN)" "$(SKYEYE_SCALER_BIN)"
+ifeq ($(OS_DISTRIBUTION),Windows)
+	rm -f $(SHERPA_DLLS)
+endif
 	find . -type f -name 'mock_*.go' -delete
 
 .PHONY: clean
