@@ -82,10 +82,6 @@ SkyEye requires one of:
 
 See the [Hardware section of the admin guide](docs/ADMIN.md#hardware) for more details.
 
-### Can I train the speech recognition on my voice/accent?
-
-Not at this time. The speech recognition model is embedded in the binary.
-
 ### Does this use Line-Of-Sight restrictions?
 
 Not at this time. I am working on a solution for this, but it will take me a while.
@@ -150,7 +146,8 @@ SkyEye would not be possible without these people and projects, for whom I am de
 * [DCS-SRS](https://github.com/ciribob/DCS-SimpleRadioStandalone) by @ciribob. Ciribob also patiently answered many of my questions on SRS internals and provided helpful debugging tips whenever I ran into a block in the SRS integration.
 * [Tacview](https://www.tacview.net/) - specifically, [ACMI real time telemetry](https://www.tacview.net/documentation/realtime/en/) - provides the data feed from DCS World.
 * @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against SkyEye during early development, and Jones himself was also patient with my questions on Discord.
-* NVIDIA's [Parakeet TDT](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/nemo/models/parakeet-tdt-0.6b-v2) provides speech-to-text via [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx).
+* [ONNX Runtime](https://onnxruntime.ai)'s technology is used to run AI models. [sherpa-onnx](https://k2-fsa.github.io/sherpa/onnx/index.html) is used to run models from Go code.
+* Nvidia [Parakeet](https://parakeettdt.com) is used for speech recognition.
 * @rodaine's [numwords](https://github.com/rodaine/numwords) module is invaluable for parsing numeric quantities from voice input.
 * [Piper](https://github.com/rhasspy/piper) by the [Rhasspy](https://rhasspy.readthedocs.io/en/latest/) voice assistant project is used for speech-to-text on Windows and Linux.
 * The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for SkyEye on Windows and Linux.

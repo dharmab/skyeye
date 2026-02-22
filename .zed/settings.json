@@ -1,14 +1,14 @@
 {
   "terminal": {
     "env": {
-      "CGO_ENABLED": "1"
-    }
+      "CGO_ENABLED": "1",
+    },
   },
   "lsp": {
     "gopls": {
       "initialization_options": {
-        "buildFlags": ["-tags=nolibopusfile"]
-      }
-    }
-  }
+        "buildFlags": ["-tags=nolibopusfile"],
+      },
+    },
+  },
 }

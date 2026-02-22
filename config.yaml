@@ -21,11 +21,6 @@
 #
 # Learn more: https://learnxinyminutes.com/docs/yaml/
 
-# SPEECH RECOGNITION
-#
-# SkyEye uses NVIDIA Parakeet TDT for local speech recognition. The model is
-# embedded in the binary, so no additional configuration is required.
-
 # TELEMETRY
 # Telemetry service address. Set this to the host and port of the TacView
 # real-time telemetry service for your DCS World installation.

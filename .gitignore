@@ -85,6 +85,10 @@ models/
 *.onnx
 *.nemo
 
+# Legacy whisper.cpp from v1
+third_party/whisper.cpp
+*.bin
+
 # ACMI files
 *.acmi
 *.txt.acmi

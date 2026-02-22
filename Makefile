@@ -37,6 +37,7 @@ LDFLAGS= -X "main.Version=$(SKYEYE_VERSION)"
 # macOS-specific settings
 ifeq ($(OS_DISTRIBUTION),macOS)
 # Use Homebrew LLVM/Clang for OpenMP support (required by opus)
+# TODO: Pretty sure Opus doesn't actually require OpenMP and that's a hallucination...
 CC=$(shell brew --prefix llvm)/bin/clang
 CXX=$(shell brew --prefix llvm)/bin/clang++
 BUILD_VARS += CC=$(CC) CXX=$(CXX)
@@ -50,14 +51,13 @@ SKYEYE_SCALER_BIN = skyeye-scaler.exe
 # Override Windows Go environment with MSYS2 UCRT64 Go environment
 GO = /ucrt64/bin/go
 GOBUILDVARS += GOROOT="/ucrt64/lib/go" GOPATH="/ucrt64"
-# Static link opus/soxr; sherpa-onnx ships only DLLs so link those dynamically via import libs.
-# Run `make generate-sherpa-import-libs` once after a sherpa-onnx-go-windows version bump.
+# On Windows, we statically link opus and soxr so users don't need to install them.
 LIBRARIES = opus soxr
 CFLAGS = $(shell pkg-config $(LIBRARIES) --cflags --static)
 BUILD_VARS += CFLAGS='$(CFLAGS)'
 EXTLDFLAGS = -Wl,-Bstatic $(shell pkg-config $(LIBRARIES) --libs --static) -Wl,-Bdynamic
 LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS)"
-# Directory containing sherpa-onnx DLLs inside the Go module cache
+# On Windows, we copy the ONNX Runtime DLLs so we can package them with the binary during distribution.
 SHERPA_DLL_DIR := $(shell $(GOBUILDVARS) $(GO) list -m -json github.com/k2-fsa/sherpa-onnx-go-windows 2>/dev/null | grep '"Dir"' | cut -d'"' -f4)/lib/x86_64-pc-windows-gnu
 SHERPA_DLLS = sherpa-onnx-c-api.dll onnxruntime.dll sherpa-onnx-cxx-api.dll
 endif
@@ -79,10 +79,8 @@ install-msys2-dependencies:
 	  $(MINGW_PACKAGE_PREFIX)-opus \
 	  $(MINGW_PACKAGE_PREFIX)-libsoxr
 
-# Generate .dll.a import libraries from the sherpa-onnx-go-windows DLLs.
-# Must be re-run whenever the sherpa-onnx-go-windows module version changes.
-.PHONY: generate-sherpa-import-libs
-generate-sherpa-import-libs:
+.PHONY: generate-parakeet-defs:
+generate-parakeet-defs:
 	$(eval SHERPA_LIB := $(shell $(GO) list -m -json github.com/k2-fsa/sherpa-onnx-go-windows 2>/dev/null | grep '"Dir"' | cut -d'"' -f4)/lib/x86_64-pc-windows-gnu)
 	cd "$(SHERPA_LIB)" && \
 	  gendef sherpa-onnx-c-api.dll && dlltool -d sherpa-onnx-c-api.def -l libsherpa-onnx-c-api.dll.a && \
@@ -134,7 +132,7 @@ install-macos-dependencies:
 	  opus
 
 .PHONY: generate
-generate:
+generate: generate-parakeet-defs  # TODO move generate-parakeet-defs into a _windows.go file
 	$(BUILD_VARS) $(GO) generate $(BUILD_FLAGS) ./...
 
 $(SKYEYE_BIN): generate $(SKYEYE_SOURCES)

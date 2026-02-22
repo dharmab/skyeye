@@ -1,4 +1,4 @@
-// Package parakeet provides speech recognition using the NVIDIA Parakeet TDT model via sherpa-onnx.
+// Package parakeet provides speech recognition using Nvidia's Parakeet model.
 package parakeet
 
 import (
@@ -19,8 +19,9 @@ type parakeetRecognizer struct {
 
 var _ recognizer.Recognizer = &parakeetRecognizer{}
 
-// NewRecognizer creates a new recognizer using NVIDIA Parakeet TDT via sherpa-onnx.
-// modelDir must contain the model files (encoder, decoder, joiner ONNX files and tokens.txt).
+// NewRecognizer creates a new recognizer using NVIDIA Parakeet. modelDir is a
+// directory containing contain the model files (i.e the ONNX runtime files and
+// tokens.txt).
 func NewRecognizer(modelDir string) (recognizer.Recognizer, error) {
 	config := sherpa.OfflineRecognizerConfig{
 		FeatConfig: sherpa.FeatureConfig{
@@ -53,7 +54,7 @@ func (r *parakeetRecognizer) Close() error {
 	return nil
 }
 
-// Recognize implements [recognizer.Recognizer] using NVIDIA Parakeet TDT via sherpa-onnx.
+// Recognize implements [recognizer.Recognizer] using NVIDIA Parakeet.
 func (r *parakeetRecognizer) Recognize(_ context.Context, pcm []float32, enableTranscriptionLogging bool) (string, error) {
 	stream := sherpa.NewOfflineStream(r.recognizer)
 	if stream == nil {
@@ -61,7 +62,7 @@ func (r *parakeetRecognizer) Recognize(_ context.Context, pcm []float32, enableT
 	}
 	defer sherpa.DeleteOfflineStream(stream)
 
-	stream.AcceptWaveform(16000, pcm)
+	stream.AcceptWaveform(16000, pcm) // TODO make 16000 Hz a constant across the app
 	r.recognizer.Decode(stream)
 	result := stream.GetResult()
 

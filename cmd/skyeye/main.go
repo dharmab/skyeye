@@ -346,22 +346,28 @@ func run(_ *cobra.Command, _ []string) {
 		os.Exit(0)
 	}()
 
-	log.Info().Msg("verifying model files")
+	// TODO factor out into helper func
+	log.Info().Msg("verifying Parakeet model files")
 	parakeetDir := filepath.Join(modelsPath, parakeetmodel.DirName)
 	if err := parakeetmodel.Verify(parakeetDir); err != nil {
 		var corruptErr *parakeetmodel.CorruptFileError
 		if errors.As(err, &corruptErr) {
 			log.Fatal().Err(err).Msg("Parakeet model files on disk failed verification")
 		}
-		if !downloadModels {
-			log.Fatal().Err(err).Str("dir", parakeetDir).Msg("Parakeet model files not found and --download-models is disabled")
-		}
-		log.Warn().Err(err).Msg("Parakeet model files not found, downloading")
-		if err := parakeetmodel.Download(ctx, parakeetDir); err != nil {
-			log.Fatal().Err(err).Msg("failed to download model files")
+		var notFoundErr *parakeetmodel.FileNotFoundError
+		if errors.As(err, &notFoundErr) {
+			log.Warn().Err(err).Msg("Parakeet model files not found")
+			if downloadModels {
+				log.Info().Msg("downloading Parakeet model files")
+				if err := parakeetmodel.Download(ctx, parakeetDir); err != nil {
+					log.Fatal().Err(err).Msg("failed to download Parakeet model")
+				}
+			} else {
+				log.Fatal().Err(err).Msg("no Parakeet model files found")
+			}
 		}
 	} else {
-		log.Info().Msg("model files verified")
+		log.Info().Msg("Parakeet model files verified")
 	}
 
 	log.Info().Msg("loading configuration")

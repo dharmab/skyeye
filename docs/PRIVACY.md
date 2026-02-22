@@ -49,7 +49,7 @@ SkyEye connects to the SimpleRadio Standalone server (just like the official SRS
 
 > Note: The "encryption" feature inside SRS is **not** an actual encryption system. It does not actually protect your voice audio from being read by other SRS clients.
 
-In order to function, SkyEye temporarily buffers audio data from SRS broadcast on the configured SkyEye frequencies. SkyEye uses local speech recognition to transcribe the audio into text. The audio data is used as input to an AI model within SkyEye's internal memory. This audio data is discarded immediately after it is transcribed into text, usually within seconds. The audio is never saved to disk or to a database. No audio data is sent to any external service.
+In order to function, SkyEye temporarily buffers audio data from SRS broadcast on the configured SkyEye frequencies. SkyEye uses local speech recognition to transcribe the audio into text. The audio data is used as input to an AI model which runs on the same computer as SkyEye. This audio data is discarded immediately after it is transcribed into text, usually within seconds. The audio data is never saved to disk or to a database, or sent to any external service.
 
 SkyEye outputs logs so server operators and developers can troubleshoot and improve SkyEye. The logs may be stored as long as the operator of the SkyEye server chooses to do so. These logs may include:
 
