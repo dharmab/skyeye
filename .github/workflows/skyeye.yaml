@@ -1,9 +1,9 @@
 name: SkyEye
 on:
   push:
-    branches: [main]
+    branches: [main, v2-dev]
   pull_request:
-    branches: [main]
+    branches: [main, v2-dev]
   release:
     types: [published]
 jobs:
