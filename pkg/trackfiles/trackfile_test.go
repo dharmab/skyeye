@@ -287,34 +287,31 @@ func TestConcurrentAccess(t *testing.T) {
 	const iterations = 100
 
 	var wg sync.WaitGroup
-	wg.Add(goroutines * 2)
 
 	// Writers
 	for i := range goroutines {
-		go func(id int) {
-			defer wg.Done()
+		wg.Go(func() {
 			for j := range iterations {
 				tf.Update(Frame{
-					Time:     now.Add(time.Duration(id*iterations+j) * time.Millisecond),
+					Time:     now.Add(time.Duration(i*iterations+j) * time.Millisecond),
 					Point:    testOrigin,
 					Altitude: unit.Length(20000+j) * unit.Foot,
 					Heading:  unit.Angle(j%360) * unit.Degree,
 				})
 			}
-		}(i)
+		})
 	}
 
 	// Readers
 	for range goroutines {
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			for range iterations {
 				_ = tf.LastKnown()
 				_ = tf.Speed()
 				_ = tf.Direction()
 				_ = tf.IsLastKnownPointZero()
 			}
-		}()
+		})
 	}
 
 	wg.Wait()
