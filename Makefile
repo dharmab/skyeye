@@ -49,7 +49,10 @@ BUILD_VARS += CFLAGS='$(CFLAGS)'
 EXTLDFLAGS = -Wl,-Bstatic $(shell pkg-config $(LIBRARIES) --libs --static) -Wl,-Bdynamic
 LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS)"
 # On Windows, we copy the ONNX Runtime DLLs so we can package them with the binary during distribution.
-SHERPA_DLL_DIR := $(shell $(GOBUILDVARS) $(GO) list -m -json github.com/k2-fsa/sherpa-onnx-go-windows 2>/dev/null | grep '"Dir"' | cut -d'"' -f4)/lib/x86_64-pc-windows-gnu
+# The module version is read directly from go.mod to avoid invoking Go (which would trigger
+# toolchain delegation to a Windows-native binary that misinterprets MSYS2 POSIX paths).
+SHERPA_VERSION := $(shell grep 'k2-fsa/sherpa-onnx-go-windows' go.mod | awk '{print $$2}')
+SHERPA_DLL_DIR := /ucrt64/pkg/mod/github.com/k2-fsa/sherpa-onnx-go-windows@$(SHERPA_VERSION)/lib/x86_64-pc-windows-gnu
 SHERPA_DLLS = sherpa-onnx-c-api.dll onnxruntime.dll sherpa-onnx-cxx-api.dll
 endif
 
@@ -115,7 +118,11 @@ install-macos-dependencies:
 
 .PHONY: generate
 generate:
+ifeq ($(OS_DISTRIBUTION),Windows)
+	SHERPA_LIB="$(SHERPA_DLL_DIR)" $(BUILD_VARS) $(GO) generate $(BUILD_FLAGS) ./...
+else
 	$(BUILD_VARS) $(GO) generate $(BUILD_FLAGS) ./...
+endif
 
 $(SKYEYE_BIN): generate $(SKYEYE_SOURCES)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
