@@ -74,19 +74,21 @@ func (g *group) altitudes() []unit.Length {
 }
 
 // circularMean computes the circular mean of all contacts' courses.
-// Returns the mean magnetic bearing and the mean resultant length R.
-// R ranges from 0 (fully dispersed — no dominant direction) to 1 (perfectly aligned).
+// Returns the mean magnetic bearing and a coherence value in range 0-1.
+// 0 means no coherence, 1 means all courses are prefectly coherent.
 func (g *group) circularMean() (bearings.Bearing, float64) {
-	var sinSum, cosSum float64
+	var sumOfSines, sumOfCosines float64
 	for _, tf := range g.contacts {
-		rad := tf.Course().Value().Radians()
-		sinSum += math.Sin(rad)
-		cosSum += math.Cos(rad)
+		radians := tf.Course().Value().Radians()
+		sumOfSines += math.Sin(radians)
+		sumOfCosines += math.Cos(radians)
 	}
-	n := float64(len(g.contacts))
-	R := math.Sqrt(sinSum*sinSum+cosSum*cosSum) / n
-	meanRad := math.Atan2(sinSum, cosSum)
-	return bearings.NewMagneticBearing(unit.Angle(meanRad) * unit.Radian), R
+	mean := math.Atan2(sumOfSines, sumOfCosines)
+
+	divisor := float64(len(g.contacts))
+	coherence := math.Sqrt(sumOfSines*sumOfSines+sumOfCosines*sumOfCosines) / divisor
+
+	return bearings.NewMagneticBearing(unit.Angle(mean) * unit.Radian), coherence
 }
 
 // Track implements [brevity.Group.Track].
@@ -94,16 +96,23 @@ func (g *group) Track() brevity.Track {
 	if len(g.contacts) == 0 || g.Declaration() == brevity.Furball {
 		return brevity.UnknownDirection
 	}
-	bearing, R := g.circularMean()
-	const maxSpread = 90 * unit.Degree
-	// When R=0, math.Log(0)=-Inf → spread=+Inf → spread > maxSpread is true, handled naturally.
-	spread := unit.Angle(math.Sqrt(-2*math.Log(R))) * unit.Radian
-	if spread > maxSpread {
+
+	// If coherence value indicates contacts are tracking across a spread
+	// of more than 90°, report the track's direction as unknown (since
+	// we have contacts with mutually exclusive tracks).
+	const maxAngle = 90 * unit.Degree
+	bearing, coherence := g.circularMean()
+	angle := unit.Angle(math.Sqrt(-2*math.Log(coherence))) * unit.Radian // Wizard trig
+	if angle > maxAngle {
 		return brevity.UnknownDirection
 	}
+
 	return brevity.TrackFromBearing(bearing)
 }
 
+// course returns the circular mean track direction (ignoring coherence).
+// TODO in places this is used to compute aspect, should return a bool
+// indicating if the aspect is known with certainty.
 func (g *group) course() bearings.Bearing {
 	bearing, _ := g.circularMean()
 	return bearing
