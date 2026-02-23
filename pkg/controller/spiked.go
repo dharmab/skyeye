@@ -14,7 +14,7 @@ func (c *Controller) HandleSpiked(ctx context.Context, request *brevity.SpikedRe
 	if correlation.Callsign == "" {
 		c.calls <- NewCall(ctx, brevity.NegativeRadarContactResponse{Callsign: request.Callsign})
 	} else {
-		response := brevity.SpikedResponseV2{
+		response := brevity.SpikedResponse{
 			Callsign: correlation.Callsign,
 			Status:   correlation.Group != nil,
 			Bearing:  correlation.Bearing,

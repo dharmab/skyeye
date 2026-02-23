@@ -50,8 +50,8 @@ func NewMacOSSpeaker(useSystemVoice bool, playbackSpeed float64) Speaker {
 	return synth
 }
 
-// SayContext implements [Speaker.SayContext].
-func (s *macOSSynth) SayContext(ctx context.Context, text string) ([]float32, error) {
+// Say implements [Speaker.Say].
+func (s *macOSSynth) Say(ctx context.Context, text string) ([]float32, error) {
 	outFile, err := os.CreateTemp("", "skyeye-*.aiff")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary AIFF file: %w", err)
@@ -85,9 +85,4 @@ func (s *macOSSynth) SayContext(ctx context.Context, text string) ([]float32, er
 
 	f32le := pcm.S16LEBytesToF32LE(sample)
 	return f32le, nil
-}
-
-// Say implements [Speaker.Say].
-func (s *macOSSynth) Say(text string) ([]float32, error) {
-	return s.SayContext(context.Background(), text)
 }

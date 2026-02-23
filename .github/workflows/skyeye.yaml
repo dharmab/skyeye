@@ -133,6 +133,9 @@ jobs:
             mingw-w64-ucrt-x86_64-go
             mingw-w64-ucrt-x86_64-curl
             zip
+      - name: Download Go modules
+        shell: msys2 {0}
+        run: GOMODCACHE=$(cygpath -w /ucrt64/pkg/mod) go mod download
       - name: Build Skyeye
         shell: msys2 {0}
         run: make skyeye.exe

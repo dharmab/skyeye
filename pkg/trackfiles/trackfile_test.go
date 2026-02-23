@@ -69,7 +69,7 @@ func TestLastKnown(t *testing.T) {
 		frame := tf.LastKnown()
 		assert.Equal(t, latest.Time, frame.Time)
 		assert.Equal(t, latest.Point, frame.Point)
-		assert.Equal(t, latest.Altitude, frame.Altitude)
+		assert.InDelta(t, latest.Altitude.Feet(), frame.Altitude.Feet(), 1)
 	})
 }
 

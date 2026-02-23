@@ -52,7 +52,7 @@ func (a *Application) composeCall(ctx context.Context, call any, out chan<- Mess
 		response = a.composer.ComposeShoppingResponse(c)
 	case brevity.SnaplockResponse:
 		response = a.composer.ComposeSnaplockResponse(c)
-	case brevity.SpikedResponseV2:
+	case brevity.SpikedResponse:
 		response = a.composer.ComposeSpikedResponse(c)
 	case brevity.StrobeResponse:
 		response = a.composer.ComposeStrobeResponse(c)
