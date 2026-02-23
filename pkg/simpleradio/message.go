@@ -52,11 +52,7 @@ func (c *Client) handleMessage(message types.Message) {
 		logMessageAndIgnore(message)
 	case types.MessageSync:
 		c.syncClients(message.Clients)
-	case types.MessageUpdate:
-		if message.Client != nil {
-			c.syncClient(*message.Client)
-		}
-	case types.MessageRadioUpdate:
+	case types.MessageUpdate, types.MessageRadioUpdate:
 		if message.Client != nil {
 			c.syncClient(*message.Client)
 		}
