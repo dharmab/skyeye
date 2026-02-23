@@ -143,9 +143,7 @@ func (t *Trackfile) Course(opts ...spatial.Option) bearings.Bearing {
 	defer t.lock.RUnlock()
 	if t.track.Len() == 1 {
 		return bearings.NewTrueBearing(
-			unit.Angle(
-				t.track.Front().Heading,
-			) * unit.Degree,
+			t.track.Front().Heading,
 		).Magnetic(t.bestAvailableDeclination())
 	}
 

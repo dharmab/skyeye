@@ -2,6 +2,7 @@ package radar
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"strings"
 
@@ -72,18 +73,44 @@ func (g *group) altitudes() []unit.Length {
 	return altitudes
 }
 
+// circularMean computes the circular mean of all contacts' courses.
+// Returns the mean magnetic bearing and a coherence value in range 0-1.
+// 0 means no coherence, 1 means all courses are prefectly coherent.
+func (g *group) circularMean() (bearings.Bearing, float64) {
+	var sumOfSines, sumOfCosines float64
+	for _, tf := range g.contacts {
+		radians := tf.Course().Value().Radians()
+		sumOfSines += math.Sin(radians)
+		sumOfCosines += math.Cos(radians)
+	}
+	mean := math.Atan2(sumOfSines, sumOfCosines)
+
+	divisor := float64(len(g.contacts))
+	coherence := math.Sqrt(sumOfSines*sumOfSines+sumOfCosines*sumOfCosines) / divisor
+
+	return bearings.NewMagneticBearing(unit.Angle(mean) * unit.Radian), coherence
+}
+
 // Track implements [brevity.Group.Track].
 func (g *group) Track() brevity.Track {
 	if len(g.contacts) == 0 || g.Declaration() == brevity.Furball {
 		return brevity.UnknownDirection
 	}
-	// TODO interpolate from all members
-	return g.contacts[0].Direction()
+	bearing, ok := g.course()
+	if !ok {
+		return brevity.UnknownDirection
+	}
+	return brevity.TrackFromBearing(bearing)
 }
 
-func (g *group) course() bearings.Bearing {
-	// TODO interpolate from all members
-	return g.contacts[0].Course()
+// course returns the circular mean track direction and whether the course
+// is known with certainty. The course is considered unknown when contacts
+// are tracking across a spread of more than 90°.
+func (g *group) course() (bearings.Bearing, bool) {
+	const maxAngle = 90 * unit.Degree
+	bearing, coherence := g.circularMean()
+	angle := unit.Angle(math.Sqrt(-2*math.Log(coherence))) * unit.Radian
+	return bearing, angle <= maxAngle
 }
 
 // Aspect implements [brevity.Group.Aspect].
