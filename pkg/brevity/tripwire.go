@@ -13,5 +13,3 @@ func (r TripwireRequest) String() string {
 type TripwireResponse struct {
 	Callsign string
 }
-
-func (TripwireResponse) isBrevityResponse() {}

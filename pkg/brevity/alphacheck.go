@@ -22,5 +22,3 @@ type AlphaCheckResponse struct {
 	// Location of the friendly aircraft. If Status is false, this may be nil.
 	Location Bullseye
 }
-
-func (AlphaCheckResponse) isBrevityResponse() {}

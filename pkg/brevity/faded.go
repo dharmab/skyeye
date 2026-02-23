@@ -6,5 +6,3 @@ type FadedCall struct {
 	// Group which has faded.
 	Group Group
 }
-
-func (FadedCall) isBrevityResponse() {}

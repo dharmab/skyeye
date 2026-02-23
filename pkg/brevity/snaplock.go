@@ -26,5 +26,3 @@ type SnaplockResponse struct {
 	// Group that was identified. If Declaration is Unable or Furball, this may be nil.
 	Group Group
 }
-
-func (SnaplockResponse) isBrevityResponse() {}

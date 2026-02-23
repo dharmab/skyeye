@@ -20,5 +20,3 @@ type SayAgainResponse struct {
 	// This may be empty if the GCI is unsure of the caller's identity.
 	Callsign string
 }
-
-func (SayAgainResponse) isBrevityResponse() {}

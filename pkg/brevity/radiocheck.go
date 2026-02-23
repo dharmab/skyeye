@@ -18,5 +18,3 @@ type RadioCheckResponse struct {
 	// RadarContact indicates whether the callsign was found on the radar scope.
 	RadarContact bool
 }
-
-func (RadioCheckResponse) isBrevityResponse() {}

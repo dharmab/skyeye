@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
@@ -25,11 +24,11 @@ var (
 // Call is an envelope for a GCI call.
 type Call struct {
 	Context context.Context
-	Call    brevity.Response
+	Call    any
 }
 
 // NewCall creates a new Call message.
-func NewCall(ctx context.Context, call brevity.Response) Call {
+func NewCall(ctx context.Context, call any) Call {
 	return Call{
 		Context: ctx,
 		Call:    call,

@@ -31,5 +31,3 @@ type SpikedResponse struct {
 	// Correleted contact group. If Status is false, this may be nil.
 	Group Group
 }
-
-func (SpikedResponse) isBrevityResponse() {}

@@ -22,5 +22,3 @@ type PictureResponse struct {
 	// Groups included in the PICTURE. This is a maximum of 3 groups.
 	Groups []Group
 }
-
-func (PictureResponse) isBrevityResponse() {}

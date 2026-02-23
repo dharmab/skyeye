@@ -101,5 +101,3 @@ type DeclareResponse struct {
 	// This may be nil if Declaration is Furball, Unable, or Clean.
 	Group Group
 }
-
-func (DeclareResponse) isBrevityResponse() {}

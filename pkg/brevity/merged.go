@@ -10,8 +10,6 @@ type MergedCall struct {
 	Callsigns []string
 }
 
-func (MergedCall) isBrevityResponse() {}
-
 const (
 	// MergeEntryDistance is the distance at which contacts are considered to enter the merge.
 	MergeEntryDistance = 3 * unit.NauticalMile

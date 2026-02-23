@@ -13,5 +13,3 @@ func (r CheckInRequest) String() string {
 type CheckInResponse struct {
 	Callsign string
 }
-
-func (CheckInResponse) isBrevityResponse() {}
