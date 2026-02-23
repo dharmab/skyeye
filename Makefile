@@ -55,6 +55,7 @@ LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS)"
 SHERPA_VERSION := $(shell grep 'k2-fsa/sherpa-onnx-go-windows' go.mod | awk '{print $$2}')
 SHERPA_DLL_DIR := /ucrt64/pkg/mod/github.com/k2-fsa/sherpa-onnx-go-windows@$(SHERPA_VERSION)/lib/x86_64-pc-windows-gnu
 SHERPA_DLLS = sherpa-onnx-c-api.dll onnxruntime.dll sherpa-onnx-cxx-api.dll
+BUILD_VARS += SHERPA_DLL_DIR="$(SHERPA_DLL_DIR)"
 endif
 
 BUILD_VARS += LDFLAGS='$(LDFLAGS)'
@@ -119,11 +120,7 @@ install-macos-dependencies:
 
 .PHONY: generate
 generate:
-ifeq ($(OS_DISTRIBUTION),Windows)
-	SHERPA_LIB="$(SHERPA_DLL_DIR)" $(BUILD_VARS) $(GO) generate $(BUILD_FLAGS) ./...
-else
 	$(BUILD_VARS) $(GO) generate $(BUILD_FLAGS) ./...
-endif
 
 $(SKYEYE_BIN): generate $(SKYEYE_SOURCES)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
