@@ -96,17 +96,10 @@ func (g *group) Track() brevity.Track {
 	if len(g.contacts) == 0 || g.Declaration() == brevity.Furball {
 		return brevity.UnknownDirection
 	}
-
-	// If coherence value indicates contacts are tracking across a spread
-	// of more than 90°, report the track's direction as unknown (since
-	// we have contacts with mutually exclusive tracks).
-	const maxAngle = 90 * unit.Degree
-	bearing, coherence := g.circularMean()
-	angle := unit.Angle(math.Sqrt(-2*math.Log(coherence))) * unit.Radian // Wizard trig
-	if angle > maxAngle {
+	bearing, ok := g.course()
+	if !ok {
 		return brevity.UnknownDirection
 	}
-
 	return brevity.TrackFromBearing(bearing)
 }
 
