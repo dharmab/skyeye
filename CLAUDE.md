@@ -16,7 +16,7 @@ SkyEye is an AI-powered GCI bot for DCS World that uses Parakeet TDT speech reco
 **Key Differences:**
 - **Windows:** MUST build in MSYS2 UCRT64 (not cmd/PowerShell), static linking, portable binary
 - **Linux:** Standard Unix build, requires runtime libraries, good for containers
-- **macOS:** Requires Homebrew LLVM (not Apple Clang), `--use-system-voice` flag available
+- **macOS:** Uses Apple Clang (system compiler), `--use-system-voice` flag available
 - **Cross-compilation:** Not supported - must build on target platform
 
 ## Critical: Use Make, Not Go Commands

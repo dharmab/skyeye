@@ -5,15 +5,13 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/pcm"
-	"github.com/martinlindhe/unit"
+	"github.com/dharmab/skyeye/pkg/pcm/rate"
 	"gopkg.in/hraban/opus.v2"
 )
 
 const (
 	// frameLength is the length of an Opus frame sent by SRS.
 	frameLength = 40 * time.Millisecond
-	// sampleRate is the sample rate of the audio data sent by SRS.
-	sampleRate = 16 * unit.Kilohertz // Wideband
 	// channels is the number of channels in the audio data sent by SRS.
 	channels = 1 // Mono
 	// encodingBufferSize is the size of the buffer used to encode audio data. The buffer size may effect bitrate.
@@ -21,7 +19,7 @@ const (
 )
 
 // frameSize is the Opus frame size used in SRS voice packets.
-var frameSize = channels * frameLength.Milliseconds() * int64(sampleRate.Kilohertz())
+var frameSize = channels * frameLength.Milliseconds() * int64(rate.Wideband.Kilohertz())
 
 // decodeFrame decodes the given Opus frame(s) into F32LE PCM audio data.
 func decodeFrame(decoder *opus.Decoder, b []byte) ([]float32, error) {

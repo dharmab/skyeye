@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/dharmab/skyeye/pkg/pcm/rate"
 	"github.com/martinlindhe/unit"
 	"github.com/zaf/resample"
 )
@@ -19,11 +20,10 @@ type Speaker interface {
 	SayContext(context.Context, string) ([]float32, error)
 }
 
-func downsample(sample []byte, rate unit.Frequency) ([]byte, error) {
-	const newRate = 16000 * unit.Hertz
+func downsample(sample []byte, sourceRate unit.Frequency) ([]byte, error) {
 	const channels = 1
 	var buf bytes.Buffer
-	resampler, err := resample.New(&buf, rate.Hertz(), newRate.Hertz(), channels, resample.I16, resample.LowQ)
+	resampler, err := resample.New(&buf, sourceRate.Hertz(), rate.Wideband.Hertz(), channels, resample.I16, resample.LowQ)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resampler: %w", err)
 	}

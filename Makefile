@@ -34,15 +34,6 @@ SKYEYE_VERSION=$(shell git describe --tags || echo devel)
 endif
 LDFLAGS= -X "main.Version=$(SKYEYE_VERSION)"
 
-# macOS-specific settings
-ifeq ($(OS_DISTRIBUTION),macOS)
-# Use Homebrew LLVM/Clang for OpenMP support (required by opus)
-# TODO: Pretty sure Opus doesn't actually require OpenMP and that's a hallucination...
-CC=$(shell brew --prefix llvm)/bin/clang
-CXX=$(shell brew --prefix llvm)/bin/clang++
-BUILD_VARS += CC=$(CC) CXX=$(CXX)
-endif
-
 # Windows-specific settings
 ifeq ($(OS_DISTRIBUTION),Windows)
 # Compile EXE instead of ELF
@@ -78,14 +69,6 @@ install-msys2-dependencies:
 	  $(MINGW_PACKAGE_PREFIX)-go \
 	  $(MINGW_PACKAGE_PREFIX)-opus \
 	  $(MINGW_PACKAGE_PREFIX)-libsoxr
-
-.PHONY: generate-parakeet-defs:
-generate-parakeet-defs:
-	$(eval SHERPA_LIB := $(shell $(GO) list -m -json github.com/k2-fsa/sherpa-onnx-go-windows 2>/dev/null | grep '"Dir"' | cut -d'"' -f4)/lib/x86_64-pc-windows-gnu)
-	cd "$(SHERPA_LIB)" && \
-	  gendef sherpa-onnx-c-api.dll && dlltool -d sherpa-onnx-c-api.def -l libsherpa-onnx-c-api.dll.a && \
-	  gendef onnxruntime.dll && dlltool -d onnxruntime.def -l libonnxruntime.dll.a && \
-	  gendef sherpa-onnx-cxx-api.dll && dlltool -d sherpa-onnx-cxx-api.def -l libsherpa-onnx-cxx-api.dll.a
 
 .PHONY: install-arch-linux-dependencies
 install-arch-linux-dependencies:
@@ -125,14 +108,13 @@ install-macos-dependencies:
 	xcode-select --install || true
 	brew install \
 	  git \
-	  llvm \
 	  pkg-config \
 	  go \
 	  libsoxr \
 	  opus
 
 .PHONY: generate
-generate: generate-parakeet-defs  # TODO move generate-parakeet-defs into a _windows.go file
+generate:
 	$(BUILD_VARS) $(GO) generate $(BUILD_FLAGS) ./...
 
 $(SKYEYE_BIN): generate $(SKYEYE_SOURCES)

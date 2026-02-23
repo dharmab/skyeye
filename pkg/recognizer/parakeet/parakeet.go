@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/dharmab/skyeye/pkg/pcm/rate"
 	"github.com/dharmab/skyeye/pkg/recognizer"
 	"github.com/dharmab/skyeye/pkg/recognizer/parakeet/model"
 	sherpa "github.com/k2-fsa/sherpa-onnx-go/sherpa_onnx"
@@ -25,7 +26,7 @@ var _ recognizer.Recognizer = &parakeetRecognizer{}
 func NewRecognizer(modelDir string) (recognizer.Recognizer, error) {
 	config := sherpa.OfflineRecognizerConfig{
 		FeatConfig: sherpa.FeatureConfig{
-			SampleRate: 16000,
+			SampleRate: int(rate.Wideband.Hertz()),
 			FeatureDim: 80,
 		},
 		ModelConfig: sherpa.OfflineModelConfig{
@@ -62,7 +63,7 @@ func (r *parakeetRecognizer) Recognize(_ context.Context, pcm []float32, enableT
 	}
 	defer sherpa.DeleteOfflineStream(stream)
 
-	stream.AcceptWaveform(16000, pcm) // TODO make 16000 Hz a constant across the app
+	stream.AcceptWaveform(int(rate.Wideband.Hertz()), pcm)
 	r.recognizer.Decode(stream)
 	result := stream.GetResult()
 
