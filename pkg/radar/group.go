@@ -2,6 +2,7 @@ package radar
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"strings"
 
@@ -72,18 +73,40 @@ func (g *group) altitudes() []unit.Length {
 	return altitudes
 }
 
+// circularMean computes the circular mean of all contacts' courses.
+// Returns the mean magnetic bearing and the mean resultant length R.
+// R ranges from 0 (fully dispersed — no dominant direction) to 1 (perfectly aligned).
+func (g *group) circularMean() (bearings.Bearing, float64) {
+	var sinSum, cosSum float64
+	for _, tf := range g.contacts {
+		rad := tf.Course().Value().Radians()
+		sinSum += math.Sin(rad)
+		cosSum += math.Cos(rad)
+	}
+	n := float64(len(g.contacts))
+	R := math.Sqrt(sinSum*sinSum+cosSum*cosSum) / n
+	meanRad := math.Atan2(sinSum, cosSum)
+	return bearings.NewMagneticBearing(unit.Angle(meanRad) * unit.Radian), R
+}
+
 // Track implements [brevity.Group.Track].
 func (g *group) Track() brevity.Track {
 	if len(g.contacts) == 0 || g.Declaration() == brevity.Furball {
 		return brevity.UnknownDirection
 	}
-	// TODO interpolate from all members
-	return g.contacts[0].Direction()
+	bearing, R := g.circularMean()
+	const maxSpread = 90 * unit.Degree
+	// When R=0, math.Log(0)=-Inf → spread=+Inf → spread > maxSpread is true, handled naturally.
+	spread := unit.Angle(math.Sqrt(-2*math.Log(R))) * unit.Radian
+	if spread > maxSpread {
+		return brevity.UnknownDirection
+	}
+	return brevity.TrackFromBearing(bearing)
 }
 
 func (g *group) course() bearings.Bearing {
-	// TODO interpolate from all members
-	return g.contacts[0].Course()
+	bearing, _ := g.circularMean()
+	return bearing
 }
 
 // Aspect implements [brevity.Group.Aspect].
