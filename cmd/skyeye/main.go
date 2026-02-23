@@ -8,6 +8,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"runtime/pprof"
@@ -15,8 +16,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-
-	"golang.org/x/sys/cpu"
 
 	"github.com/gofrs/flock"
 	"github.com/martinlindhe/unit"
@@ -29,8 +28,8 @@ import (
 	"github.com/dharmab/skyeye/internal/cli"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	parakeetmodel "github.com/dharmab/skyeye/pkg/recognizer/parakeet/model"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
-	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
 
 // Used for CLI configuration values.
@@ -54,10 +53,7 @@ var (
 	controllerCallsigns          []string
 	coalitionName                string
 	telemetryUpdateInterval      time.Duration
-	recognizerName               string
-	whisperModelPath             string
 	recognizerLockPath           string
-	openAIAPIKey                 string
 	voiceName                    string
 	useSystemVoice               bool
 	mute                         bool
@@ -76,6 +72,8 @@ var (
 	discordWebhookToken          string
 	exitAfter                    time.Duration
 	enableTerrainDetection       bool
+	modelsPath                   string
+	downloadModels               bool
 )
 
 const (
@@ -121,12 +119,11 @@ func init() {
 	coalitionFlag := cli.NewEnum(&coalitionName, "Coalition", "blue", "red")
 	skyeye.Flags().Var(coalitionFlag, "coalition", "GCI coalition (blue, red)")
 
+	// AI models
+	skyeye.Flags().StringVar(&modelsPath, "models-path", "models", "Base directory containing model files")
+	skyeye.Flags().BoolVar(&downloadModels, "download-models", true, "Automatically download model files if missing")
+
 	// Speech-to-text
-	recognizerFlag := cli.NewEnum(&recognizerName, "Recognizer", string(conf.WhisperLocal), string(conf.WhisperAPI), string(conf.GPT4o), string(conf.GPT4oMini))
-	skyeye.Flags().Var(recognizerFlag, "recognizer", "Speech-to-text recognizer to use")
-	skyeye.Flags().StringVar(&whisperModelPath, "whisper-model", "", "Path to whisper.cpp model")
-	skyeye.Flags().StringVar(&openAIAPIKey, "openai-api-key", "", "API key for OpenAPI AI")
-	skyeye.MarkFlagsOneRequired("whisper-model", "openai-api-key")
 	skyeye.Flags().StringVar(&recognizerLockPath, "recognizer-lock-path", "", "Path to lock file for concurrent speech-to-text when using multiple instances")
 
 	// Text-to-speech
@@ -183,10 +180,10 @@ var skyeye = &cobra.Command{
 			"skyeye --config-file='/home/user/xyz.yaml'",
 			"",
 			"Remote TacView and SRS server",
-			"skyeye --telemetry-address=your-tacview-server:42674 --telemetry-password=your-tacview-password --srs-server-address=your-srs-server:5002 --srs-eam-password=your-srs-eam-password --whisper-model=ggml-small.en.bin",
+			"skyeye --telemetry-address=your-tacview-server:42674 --telemetry-password=your-tacview-password --srs-server-address=your-srs-server:5002 --srs-eam-password=your-srs-eam-password",
 			"",
 			"Local TacView and SRS server",
-			"skyeye --telemetry-password=your-tacview-password --srs-eam-password=your-srs-eam-password --whisper-model=ggml-small.en.bin",
+			"skyeye --telemetry-password=your-tacview-password --srs-eam-password=your-srs-eam-password",
 		},
 		"\n  ",
 	),
@@ -245,29 +242,6 @@ func loadCoalition() (coalition coalitions.Coalition) {
 	}
 	log.Info().Int("id", int(coalition)).Msg("GCI coalition set")
 	return
-}
-
-func loadWhisperModel() *whisper.Model {
-	if recognizerName != string(conf.WhisperLocal) {
-		return nil
-	}
-	if whisperModelPath == "" {
-		log.Fatal().Msg("whisper-model is required when recognizer is set to " + string(conf.WhisperLocal))
-	}
-	if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX2 {
-		log.Fatal().Msg("The CPU on this machine does not support AVX2 instructions.")
-	}
-
-	log.Info().Str("path", whisperModelPath).Msg("loading whisper model")
-	whisperModel, err := whisper.New(whisperModelPath)
-	if err != nil {
-		log.Fatal().Err(err).Str("path", whisperModelPath).Err(err).Msg("failed to load whisper model")
-	}
-	log.Info().
-		Bool("multilingual", whisperModel.IsMultilingual()).
-		Strs("languages", whisperModel.Languages()).
-		Msg("whisper model loaded")
-	return &whisperModel
 }
 
 func randomizer() (rando *rand.Rand) {
@@ -335,6 +309,30 @@ func loadVoiceVolume() float64 {
 	return clamped
 }
 
+func setupParakeetModel(ctx context.Context, parakeetDir string, downloadModels bool) {
+	log.Info().Msg("verifying Parakeet model files")
+	if err := parakeetmodel.Verify(parakeetDir); err != nil {
+		var corruptErr *parakeetmodel.CorruptFileError
+		if errors.As(err, &corruptErr) {
+			log.Fatal().Err(err).Msg("Parakeet model files on disk failed verification")
+		}
+		var notFoundErr *parakeetmodel.FileNotFoundError
+		if errors.As(err, &notFoundErr) {
+			log.Warn().Err(err).Msg("Parakeet model files not found")
+			if downloadModels {
+				log.Info().Msg("downloading Parakeet model files")
+				if err := parakeetmodel.Download(ctx, parakeetDir); err != nil {
+					log.Fatal().Err(err).Msg("failed to download Parakeet model")
+				}
+			} else {
+				log.Fatal().Err(err).Msg("no Parakeet model files found")
+			}
+		}
+	} else {
+		log.Info().Msg("Parakeet model files verified")
+	}
+}
+
 func preRun(cmd *cobra.Command, _ []string) error {
 	if err := initializeConfig(cmd); err != nil {
 		return fmt.Errorf("failed to initialize config: %w", err)
@@ -372,9 +370,11 @@ func run(_ *cobra.Command, _ []string) {
 		os.Exit(0)
 	}()
 
+	parakeetDir := filepath.Join(modelsPath, parakeetmodel.DirName)
+	setupParakeetModel(ctx, parakeetDir, downloadModels)
+
 	log.Info().Msg("loading configuration")
 	coalition := loadCoalition()
-	whisperModel := loadWhisperModel()
 	rando := randomizer()
 	voice := loadVoice(rando)
 	callsign := loadCallsign(rando)
@@ -398,10 +398,7 @@ func run(_ *cobra.Command, _ []string) {
 		Callsign:                     callsign,
 		Coalition:                    coalition,
 		RadarSweepInterval:           telemetryUpdateInterval,
-		Recognizer:                   conf.Recognizer(recognizerName),
 		RecognizerLock:               recognizerLock,
-		WhisperModel:                 whisperModel,
-		OpenAIAPIKey:                 openAIAPIKey,
 		Voice:                        voice,
 		UseSystemVoice:               useSystemVoice,
 		VoiceLock:                    voiceLock,
@@ -423,6 +420,7 @@ func run(_ *cobra.Command, _ []string) {
 		GRPCAddress:                  grpcAddress,
 		GRPCAPIKey:                   grpcAPIKey,
 		EnableTerrainDetection:       enableTerrainDetection,
+		ModelsPath:                   modelsPath,
 	}
 
 	log.Info().Msg("starting application")

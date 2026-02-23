@@ -39,8 +39,6 @@ A minimal sample config file might look like:
 
 ```yaml
 callsign: Focus
-recognizer: openai-whiser-local
-whisper-model: /opt/homebrew/share/skyeye/models/ggml-small.en.bin
 telemetry-address: tacview.example.com:42674
 telemetry-password: yourtacviewpasswordhere
 srs-server-address: srs.example.com:5002

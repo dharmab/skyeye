@@ -7,12 +7,6 @@ packages:
 package_update: true
 package_upgrade: true
 write_files:
-  - path: /opt/skyeye/models/whisper.bin
-    permissions: "0644"
-    owner: skyeye:users
-    source:
-      uri: https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin
-    defer: true
   - path: /etc/skyeye/config.yaml
     permissions: "0600"
     owner: skyeye:users
@@ -54,10 +48,8 @@ write_files:
         --cgroups=no-conmon \
         -d \
         --volume /etc/skyeye:/etc/skyeye:ro \
-        --volume /opt/skyeye/models:/opt/skyeye/models:ro \
         --name %n \
-        ${CONTAINER_IMAGE} \
-        --whisper-model /opt/skyeye/models/whisper.bin
+        ${CONTAINER_IMAGE}
       ExecStop=/usr/bin/podman stop \
         --ignore \
         --cidfile %t/%n-cid -t 10

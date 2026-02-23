@@ -9,9 +9,7 @@ RUN apt-get update && apt-get install -y \
     libsoxr-dev \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /skyeye
-COPY third_party third_party
 COPY Makefile Makefile
-RUN make whisper
 COPY go.mod go.mod
 COPY go.sum go.sum
 RUN go mod download -x

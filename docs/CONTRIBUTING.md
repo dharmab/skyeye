@@ -7,7 +7,6 @@ Requirements to develop SkyEye:
 - Beginner level skills in the Go programming language. If you already know another programming language, [A Tour of Go](https://go.dev/tour) can get you up to speed in an afternoon.
 - Comfortable with Git
 - Familiar with *nix command line basics (not much, mostly `cd` and `make`)
-- Familiar with building C/C++ projects is a plus, but not required
 
 # Setup
 
@@ -76,23 +75,6 @@ Install [DCS-SRS](http://dcssimpleradio.com/). This can be on a different comput
 
 Launch the DCS server and SRS server. Load a mission on the DCS server.
 
-You will need to download an OpenAI Whisper model, or use the OpenAI API. Downloading and using a local model is free, but performance intensive. Using the OpenAPI API requires payment to OpenAI.
-
-### Using a Local Model
-
-You can download models from [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). The larger models have better accuracy but higher memory consumption and take longer to recognize text.
-
-Recommended models for development use:
-
-- `ggml-small.en.bin` - Good balance between accuracy and performance on high end hardware, even if you don't speak perfectly clearly.
-- `ggml-tiny.en.bin` - Significantly faster, but requires you to speak more clearly.
-
-Whichever model you choose, put the model next to the SkyEye binary.
-
-> Tip: Use `make download-whisper-ggml-small.en` to quickly download `ggml-small.en.bin`, or `make download-whisper-ggml-tiny.en.bin` to download `ggml-tiny.en.bin`.
-
-### Using the OpenAI API
-
 ### Running the Application
 
 Run SkyEye from the command line. You can run `./skyeye --help` for an example and a list of available flags, or check out the sample `config.yaml` file. If all goes well, you should see the SkyEye software start up and start logging to the console.
@@ -100,7 +82,6 @@ Run SkyEye from the command line. You can run `./skyeye --help` for an example a
 If you get an error, double check the following:
 
 - On Windows: You are running SkyEye in an MSYS2 UCRT terminal and not a regular Windows terminal/PowerShell/Git Bash.
-- You are using a Whisper model compatible with your hardware and this software. I use `ggml-small.en.bin` in my testing.
 
 ## Run Using an ACMI File (Experimental)
 
@@ -116,11 +97,7 @@ The project comes already set up for development with Visual Studio Code, or fro
 
 ```sh
 CGO_ENABLED=1
-C_INCLUDE_PATH=$(pwd)/third_party/whisper.cpp/ggml/include:$(pwd)/third_party/whisper.cpp/include
-LIBRARY_PATH=$(pwd)/third_party/whisper.cpp/"
 ```
-
-Where `$(pwd)` is the **absolute path** to the repository directory.
 
 You will also need to set the following [build tags](https://pkg.go.dev/cmd/go#hdr-Build_constraints):
 
@@ -172,11 +149,13 @@ I have made an effort to structure packages so that CGO is never imported direct
 
 ## Benchmark
 
-SkyEye's performance bottleneck on most systems is speech recognition. A small benchmark suite is provided which may be useful to test different speech recognition models or hardware acceleration. Run it with
+SkyEye's performance bottleneck on most systems is speech recognition. A small benchmark suite is provided which may be useful to test different hardware. Run it with
 
 ```
-SKYEYE_WHISPER_MODEL=$(pwd)/path/to/whisper-model.bin make benchmark-whisper
+make benchmark-parakeet
 ```
+
+Note: The benchmark requires the Parakeet model files to be present in `pkg/recognizer/model/`.
 
 ## Lint
 
@@ -203,7 +182,6 @@ Other notable folders and files:
 - `.github/`: Configuration for automated tests and builds in GitHub Actions, and issue templates for GitHub Issues.
 - `docs/`: Documentation.
 - `site/`: Documentation resources.
-- `third_party/`: Used during the build process to build C++ libraries.
 - `dist/`: Used in CI/CD for packaging releases.
 - `init/`: Configuration files related to running SkyEye as a background application.
 - `cmd/skyeye-scaler/main.go`: Autoscaler companion application.

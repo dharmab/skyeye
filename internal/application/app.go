@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"runtime"
 	"sync"
 	"time"
@@ -20,6 +21,8 @@ import (
 	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/recognizer"
+	"github.com/dharmab/skyeye/pkg/recognizer/parakeet"
+	parakeetmodel "github.com/dharmab/skyeye/pkg/recognizer/parakeet/model"
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
@@ -154,18 +157,10 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 	}
 
 	log.Info().Msg("constructing speech-to-text recognizer")
-	var speechRecognizer recognizer.Recognizer
-	switch config.Recognizer {
-	case conf.WhisperLocal:
-		speechRecognizer = recognizer.NewWhisperRecognizer(config.WhisperModel, config.Callsign)
-	case conf.WhisperAPI:
-		speechRecognizer = recognizer.NewWhisperAPIRecognizer(config.OpenAIAPIKey, config.Callsign)
-	case conf.GPT4o:
-		speechRecognizer = recognizer.NewGPT4oRecognizer(config.OpenAIAPIKey, config.Callsign)
-	case conf.GPT4oMini:
-		speechRecognizer = recognizer.NewGPT4oMiniRecognizer(config.OpenAIAPIKey, config.Callsign)
-	default:
-		return nil, fmt.Errorf("failed to construct application: unrecognized recognizer %q", config.Recognizer)
+	parakeetDir := filepath.Join(config.ModelsPath, parakeetmodel.DirName)
+	speechRecognizer, err := parakeet.NewRecognizer(parakeetDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to construct speech recognizer: %w", err)
 	}
 
 	log.Info().Msg("constructing request parser")

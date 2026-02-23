@@ -12,7 +12,7 @@ SkyEye is a substantial improvement over the DCS AWACS:
 4. SkyEye supports a larger number of commands, including [PICTURE](docs/PLAYER.md#picture), [BOGEY DOPE](docs/PLAYER.md#bogey-dope), [DECLARE](docs/PLAYER.md#declare), [SNAPLOCK](docs/PLAYER.md#snaplock), [SPIKED](docs/PLAYER.md#spikedstrobe), [STROBE](docs/PLAYER.md#spikedstrobe) and [ALPHA CHECK](docs/PLAYER.md#alpha-check).
 5. SkyEye intelligently monitors the battlespace, providing automatic [THREAT](docs/PLAYER.md#threat), [MERGED](docs/PLAYER.md#merged) and [FADED](docs/PLAYER.md#faded) callouts to improve situational awareness.
 
-SkyEye uses Speech-To-Text and Text-To-Speech technology which can run locally on the same computer as SkyEye. No cloud APIs are required, although cloud APIs are optionally supported. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can run it for less than a nickel per hour on a cloud server, or run it on a computer in your home running Windows, Linux or macOS.
+SkyEye uses Speech-To-Text and Text-To-Speech technology which runs locally on the same computer as SkyEye. No cloud APIs are required. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can run it for less than a nickel per hour on a cloud server, or run it on a computer in your home running Windows, Linux or macOS.
 
 SkyEye is production ready software. It is used by a few public servers and many private squadrons. Based on download statistics, I estimate over 100 communities are using SkyEye, such as:
 
@@ -68,28 +68,19 @@ See the [admin guide](docs/ADMIN.md) for detailed instructions on installing, co
 
 There are a few different ways to run SkyEye. In order from best to least recommended:
 
-1. On an Apple Sillicon Mac networked to your DCS server, using local speech recognition. This offers the fastest speech recognition and the highest quality AI voice.
-2. On your DCS server, using the OpenAI API for speech recognition. This offers fast speech recognition and good quality AI voices, but requires a credit card accepted by OpenAI to purchase API credits from OpenAI. At current pricing, $1 of OpenAI credit pays to recognize more than 1000 transmissions over SRS.
-3. On a separate Windows or Linux computer networked to your DCS server, using local speech recognition. This offers good-enough speech recognition performance and good quality AI voices without any credit card required. This also works with rented cloud servers, some of whom accept other payment methods compared to OpenAI.
+1. On an Apple Silicon Mac networked to your DCS server. This offers the fastest speech recognition and the highest quality AI voice.
+2. On a separate Windows or Linux computer networked to your DCS server. This offers good speech recognition performance and good quality AI voices. This also works with rented cloud servers.
 
-Running SkyEye on the same computer as DCS, using local speech recognition, is not recommended and no support can be provided for that configuration. Use a separate computer or OpenAI's API instead.
+Running SkyEye on the same computer as DCS is not recommended and no support can be provided for that configuration. Use a separate computer instead.
 
 ### What kind of hardware does it require?
 
-Generally, local speech recognition requires one of:
+SkyEye requires one of:
 
 * Any Apple Silicon Mac, such as a Mac Mini or MacBook Air/Pro.
 * A Windows or Linux computer with a fast quad-core CPU from the last 2-3 CPU generations.
 
-Cloud speech recognition requirements are quite modest.
-
-See the [Hardware section of the admin guide](docs/ADMIN.md#hardware) for more details, including a table of benchmarks.
-
-### Can I train the speech recognition on my voice/accent?
-
-Since the software runs 100% locally, the speech recognition model is a local file. Server operators can provide a trained model as an alternative to the off-the-shelf model. See [this blog post](https://huggingface.co/blog/fine-tune-whisper) for an example.
-
-I don't plan to provide a mechanism for players to submit their voice recordings to the main repository due to data privacy concerns.
+See the [Hardware section of the admin guide](docs/ADMIN.md#hardware) for more details.
 
 ### Does this use Line-Of-Sight restrictions?
 
@@ -155,7 +146,8 @@ SkyEye would not be possible without these people and projects, for whom I am de
 * [DCS-SRS](https://github.com/ciribob/DCS-SimpleRadioStandalone) by @ciribob. Ciribob also patiently answered many of my questions on SRS internals and provided helpful debugging tips whenever I ran into a block in the SRS integration.
 * [Tacview](https://www.tacview.net/) - specifically, [ACMI real time telemetry](https://www.tacview.net/documentation/realtime/en/) - provides the data feed from DCS World.
 * @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against SkyEye during early development, and Jones himself was also patient with my questions on Discord.
-* OpenAI's [Whisper](https://github.com/openai/whisper) provides speech-to-text. @ggerganov's [ggml](https://github.com/ggml-org/ggml) and [whisper.cpp](https://github.com/ggerganov/whisper.cpp) allows Whisper to be used locally without requiring cloud services or complex external software.
+* [ONNX Runtime](https://onnxruntime.ai)'s technology is used to run AI models. [sherpa-onnx](https://k2-fsa.github.io/sherpa/onnx/index.html) is used to run models from Go code.
+* Nvidia [Parakeet](https://parakeettdt.com) is used for speech recognition.
 * @rodaine's [numwords](https://github.com/rodaine/numwords) module is invaluable for parsing numeric quantities from voice input.
 * [Piper](https://github.com/rhasspy/piper) by the [Rhasspy](https://rhasspy.readthedocs.io/en/latest/) voice assistant project is used for speech-to-text on Windows and Linux.
 * The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for SkyEye on Windows and Linux.

@@ -2,15 +2,13 @@
   "terminal": {
     "env": {
       "CGO_ENABLED": "1",
-      "C_INCLUDE_PATH": "${workspaceFolder}/third_party/whisper.cpp/ggml/include:${workspaceFolder}/third_party/whisper.cpp/include",
-      "LIBRARY_PATH": "${workspaceFolder}/third_party/whisper.cpp/"
-    }
+    },
   },
   "lsp": {
     "gopls": {
       "initialization_options": {
-        "buildFlags": ["-tags=nolibopusfile"]
-      }
-    }
-  }
+        "buildFlags": ["-tags=nolibopusfile"],
+      },
+    },
+  },
 }

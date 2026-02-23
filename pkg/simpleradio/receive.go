@@ -87,7 +87,7 @@ const maxRxGap = 300 * time.Millisecond
 
 // minRxDuration is the minimum duration of a transmission to be considered for speech recognition. This reduces
 // thrashing due to transmissions too short to contain any useful content.
-const minRxDuration = 1 * time.Second // 1s is whisper.cpp's minimum duration, it errors for any samples shorter than this.
+const minRxDuration = 300 * time.Millisecond
 
 // receiveVoice listens for incoming UDP voice packets, decodes them into VoicePacket structs, and routes them to the out channel for audio decoding.
 func (c *Client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- []voice.Packet) {

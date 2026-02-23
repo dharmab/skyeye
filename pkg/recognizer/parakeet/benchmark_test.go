@@ -1,22 +1,23 @@
-package recognizer
+package parakeet
 
 import (
+	"flag"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
+	"github.com/dharmab/skyeye/pkg/recognizer/parakeet/model"
 	"github.com/gopxl/beep/v2"
 	"github.com/gopxl/beep/v2/wav"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-const dataDir = "testdata"
+var modelPath = flag.String("model-path", filepath.Join("..", "..", "..", "models", model.DirName), "path to Parakeet model directory")
 
-var modelPath = os.Getenv("SKYEYE_WHISPER_MODEL")
+const dataDir = "../testdata"
 
 type sample struct {
 	filename string
@@ -71,16 +72,15 @@ func loadSamples(b *testing.B) []sample {
 	return samples
 }
 
-func BenchmarkWhisperRecognizer(b *testing.B) {
+func BenchmarkParakeetRecognizer(b *testing.B) {
 	samples := loadSamples(b)
-	model, err := whisper.New(modelPath)
+	rec, err := NewRecognizer(*modelPath)
 	require.NoError(b, err)
-	recognizer := NewWhisperRecognizer(&model, "Thunderhead")
 	b.ResetTimer()
 	for _, sample := range samples {
 		b.Run(sample.filename, func(b *testing.B) {
 			for b.Loop() {
-				_, err := recognizer.Recognize(b.Context(), sample.pcm, true)
+				_, err := rec.Recognize(b.Context(), sample.pcm, true)
 				require.NoError(b, err)
 			}
 		})

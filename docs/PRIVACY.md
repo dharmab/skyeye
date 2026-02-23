@@ -11,7 +11,6 @@ flowchart TD
     dcs[DCS World Server] -->|gameplay data| tacview[TacView Exporter]
     tacview -->|gameplay data| skyeye[SkyEye]
     srs[SRS Server] <-->|audio and radio data| skyeye
-    skyeye <-.->|audio data| openai["OpenAI Platform (optional)"]
     player[You] <-->|gameplay| dcs
     player <-->|voice| src[SRS Client]
     src <-->|audio and radio data| srs
@@ -50,11 +49,7 @@ SkyEye connects to the SimpleRadio Standalone server (just like the official SRS
 
 > Note: The "encryption" feature inside SRS is **not** an actual encryption system. It does not actually protect your voice audio from being read by other SRS clients.
 
-In order to function, SkyEye temporarily buffers audio data from SRS broadcast on the configured SkyEye frequencies. SkyEye then uses either local speech recognition or cloud-based speech recognition to transcibe the audio into text. The server administrator chooses which form of speech recognition to use.
-
-If local speech recognition is used, the audio data is used as input to an AI model within SkyEye's internal memory. This audio data is discarded immediately after it is transcripted into text, usually within seconds. The audio is never saved to disk or to a database.
-
-If cloud-based speech recognition is used, the audio data sent over the Internet to the OpenAI Audio Transcription API. The data is sent over an encrypted connection. OpenAI's servers then perform the audio transcription and send the transcripted text back to SkyEye over the same encrypted connection. Please read [OpenAI's Enterprise Privacy Policy](https://openai.com/enterprise-privacy/) for more information on how OpenAI handles data within their API.
+In order to function, SkyEye temporarily buffers audio data from SRS broadcast on the configured SkyEye frequencies. SkyEye uses local speech recognition to transcribe the audio into text. The audio data is used as input to an AI model which runs on the same computer as SkyEye. This audio data is discarded immediately after it is transcribed into text, usually within seconds. The audio data is never saved to disk or to a database, or sent to any external service.
 
 SkyEye outputs logs so server operators and developers can troubleshoot and improve SkyEye. The logs may be stored as long as the operator of the SkyEye server chooses to do so. These logs may include:
 

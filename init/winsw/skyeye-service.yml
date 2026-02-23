@@ -1,9 +1,6 @@
 id: skyeye
 name: SkyEye GCI Bot
 description: SkyEye GCI Bot for DCS World
-download:
-  - from: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin?download=true"
-    to: '%BASE%/whisper.bin'
 workingdirectory: '%BASE%'
 env:
   - name: NO_COLOR
@@ -11,7 +8,6 @@ env:
 executable: skyeye.exe
 arguments: >
   --config-file config.yaml
-  --whisper-model whisper.bin
 startmode: Manual # If you want the service to start automatically on boot, change this to "Automatic"
 log:
   mode: roll

@@ -74,18 +74,20 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/go,windows
 
-# whisper.cpp project
-third_party/whisper.cpp
-
-# whisper.cpp models
-*.bin
-
 # ELF binary
 /skyeye
 
 # Local dev scripts ignored by default
-scripts/
 dev/
+
+# AI models
+models/
+*.onnx
+*.nemo
+
+# Legacy whisper.cpp from v1
+third_party/whisper.cpp
+*.bin
 
 # ACMI files
 *.acmi

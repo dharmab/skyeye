@@ -28,28 +28,9 @@ I do not respond to direct messages on social media or the Eagle Dynamics forums
 
 ## System Architecture
 
-SkyEye can be deployed in two architectures: Local speech recognition and cloud-hosted speech recognition. Neither is universally better than the other; they each suit different use cases.
+SkyEye uses NVIDIA Parakeet TDT for local speech recognition. The speech recognition model is embedded in the SkyEye binary, so no additional model downloads are required.
 
-Local speech recognition is more performance intensive, usually requiring two computers with quite good CPUs (one to run DCS and one to run SkyEye). However, it has a number of advantages:
-
-- Local speech recognition generally has a predictable fixed cost; it costs the same whether players talk only a little or chatter a lot. This makes hosting costs more predictable and reduces the impact a of a malicious or abusive player.
-- Local speech recognition is fully self-contained. It has better privacy qualities, and you can expect it to continue to work far into the future.
-- Local speech recognition can be self-hosted on your own hardware. This makes it a viable option for some international groups whose payment methods are not accepted by cloud hosting providers.
-- If you have very powerful hardware, self-hosting can be lower-latency and/or cheaper than cloud speech recognition.
-- If you have a Mac with an Apple Sillicon CPU, local speech recognition is the best option, since it uses the GPU/Neural Engine for extremely fast performance.
-
-On the other hand, cloud speech recognition has a separate set of tradeoffs:
-
-- Less technical users will likely prefer cloud speech recognition, since it requires only one computer instead of two networked together.
-- Cloud speech recognition has a variable cost; this can be an advantage or disadvantage. In general, light to moderate usage is less expensive when using cloud speech recognition compared to using local speech recognition on a rented server. However, this can still be more expensive compared to self-hosted local speech recognition, or if you have a particularly chatty group of players. On public servers, there is a potential for abuse if a particular player spams the channel and racks up the cloud services bill. And of course, the company providing the service may choose to change their prices in the future.
-- Cloud speech recognition shares audio recordings with a third party, which may be a privacy concern.
-- Cloud speech recognition depends on an externally hosted API. It could break temporarily or permanently if the external API has an outage, makes a breaking change, or the company decides to stop providing the service to you.
-- Cloud speech recognition has good performance; while local speech recognition can be faster, in practice most players will be satisfied with the performance of cloud speech recognition.
-- When using cloud speech recognition, you have a **legal obligation** to disclose to your players that they are interacting with AI. (ref: [OpenAI Usage Policies](https://openai.com/policies/usage-policies/)). Of course, you should be doing this anyway! I recommend adding a disclosure to your mission briefing, and enabling "Show Transmitter Name" in your SRS server.
-
-### Deployment with Local Speech Recognition
-
-When using local speech recognition, SkyEye works best when run on a dedicated system, separate from the DCS World and SRS servers.
+SkyEye works best when run on a dedicated system, separate from the DCS World and SRS servers.
 
 _Recommended Architecture: DCS, TacView and SRS on one Windows server. SkyEye on another Linux or macOS server._
 
@@ -58,13 +39,13 @@ flowchart LR
     dcs[Windows<br/>DCS World Server<br/>TacView Exporter<br/>SRS Server] <--> skyeye[Linux/macOS<br/>SkyEye]
 ```
 
-#### Caution: Running SkyEye and DCS World on One Computer
+### Caution: Running SkyEye and DCS World on One Computer
 
-**Running SkyEye with local speech recognition on the same computer as DCS World is not intended and probably won't work. I cannott provide support for this configuration.** Even if I wanted to support this configuration, I do not have the appropriate tools to troubleshoot _your specific hardware configuration_. It's difficult enough to troubleshoot these kinds of issues when the hardware is physically in front of me and I have full admin access. Trying to troubleshoot a non-technical user's hardware remotely is impossible. (This is a big reason AI applications, including SkyEye, are so much better on Apple devices; standardized hardware is much easier to support.)
+**Running SkyEye on the same computer as DCS World is not intended and probably won't work. I cannot provide support for this configuration.** Even if I wanted to support this configuration, I do not have the appropriate tools to troubleshoot _your specific hardware configuration_. It's difficult enough to troubleshoot these kinds of issues when the hardware is physically in front of me and I have full admin access. Trying to troubleshoot a non-technical user's hardware remotely is impossible. (This is a big reason AI applications, including SkyEye, are so much better on Apple devices; standardized hardware is much easier to support.)
 
-**If you open a GitHub Issue regarding performance issues with this configuration, I will tell you to use a second computer or switch to cloud speech recognition.** Almost every report I've received about performance issues with SkyEye have been from users attempting to run SkyEye's local speech recognition on the same computer as DCS World, which is **not an intended way to run SkyEye**. 😾
+**If you open a GitHub Issue regarding performance issues with this configuration, I will tell you to use a second computer.** Almost every report I've received about performance issues with SkyEye have been from users attempting to run SkyEye on the same computer as DCS World, which is **not an intended way to run SkyEye**. 😾
 
-If you have read all of the above, and are still serious about, attempting this, here is the best advice I have:
+If you have read all of the above, and are still serious about attempting this, here is the best advice I have:
 
 1. [Watch this talk by Xe Iaso about running AI workloads using local infrastructure](https://xeiaso.net/talks/2025/ai-chatbot-friends/). It's a good primer on the complexity of the problem you're trying to ignore.
 2. If, after watching that talk, you still want to try this, click the button for some hints:
@@ -76,72 +57,19 @@ If you have read all of the above, and are still serious about, attempting this,
 
 </details>
 
-Running SkyEye with cloud speech recognition on the same computer as DCS World _is_ supported. 🤗
-
-### Deployment with Cloud Speech Recognition
-
-When using cloud speech recognition, you may deploy SkyEye on the same computer as DCS World and the SRS server.
-
-```mermaid
-flowchart TD
-    openai[OpenAI Audio Transcription API] <--> dcs[Windows<br/>DCS World Server<br/>TacView Exporter<br/>SRS Server<br/>SkyEye]
-```
-
 ## Software
 
 SkyEye is officially supported on Windows AMD64, Linux AMD64 and Apple Silicon. The Windows version bundles all required libraries within skyeye.exe. The Linux and macOS versions require [Opus](https://opus-codec.org/) and [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/) to be installed through the package manager or Homebrew, respectively.
 
 ## Hardware
 
-### Cloud Speech Recognition
+SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space.
 
-When using cloud speech recognition, SkyEye has relatively modest requirements: Any decent multithreaded CPU, around 1.5GB of RAM, and about 2GB of disk space.
-
-### Local Speech Recognition
-
-#### Windows and Linux
-
-When running on Windows and Linux, local speech recognition runs on the CPU. In this configuration, SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space. The CPU must have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
-
-CPU Series|AVX2 Added In
--|-
-Intel Core|Haswell (2013)
-AMD|Excavator (2015)
-Intel Pentium/Celeron|Tiger Lake (2020)
-
-SkyEye currently only officially supports the AMD64 (x86-64) CPU architecure on Windows and Linux. ARM CPUs are not yet officially supported on these operating systems.
+SkyEye currently only officially supports the AMD64 (x86-64) CPU architecture on Windows and Linux. ARM CPUs are supported on macOS (Apple Silicon).
 
 I've found that at least 4 dedicated CPU cores are needed for a good experience, but this may differ by the exact CPU being used, so experiment and see what works well for you. It is important that the CPU cores be **dedicated** cores. Shared core virtual machines are **not supported** and will result in **high latency and stuttering audio.**
 
-#### macOS
-
-When running on macOS, local speech recognition uses the GPU/Neural Engine. Therefore, SkyEye does not use much CPU and should run very well on any Apple Silicon Mac. SkyEye requires around 3GB of RAM and about 2GB of disk space.
-
 Intel Macs are not supported due to lack of available hardware for testing.
-
-#### Benchmarks
-
-Non-scientific local speech recognition performance:
-
-System|CPU|Speech Recognition Model|Speech Recognition Time (Synthetic benchmark)|Speech Recognition Time (In practice)
--|-|-|-|-
-Macbook Pro|Apple M4 Max|ggml-small.en.bin|0.09-0.13s|?
-Mac Mini|Apple M4|ggml-small.en.bin|0.25-0.5s|?
-Macbook Pro|Apple M4 Max|ggml-medium.en.bin|0.3-0.5s|?
-Macbook Air|Apple M4|ggml-small.en.bin|0.35-0.5s|0.5s
-Mac Mini|Apple M4|ggml-medium.en.bin|0.9-1.0s|?
-Macbook Air|Apple M4|ggml-medium.en.bin|1.1-1.5s|1.2-1.5s
-My current PC|AMD 5900X|ggml-small.en.bin|1.0-1.5s|1.5-2.0s
-My older PC|AMD 3900XT|ggml-small.en.bin|2-3s|?
-Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (4 dedicated cores)|ggml-small.en.bin|3.0-3.5s|3.0-3.5s
-My current PC|AMD 5900X|ggml-medium.en.bin|3.5-4.5s|4-5s
-Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (2 dedicated cores)|ggml-small.en.bin|5-6s|5.5-6.0s
-Hetzner CCX23|AMD EPYC (4 dedicated cores)|ggml-small.en.bin|5-6s|6-7s
-My older PC|AMD 3900XT|ggml-medium.en.bin|6.5-7.5s|?
-Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (4 dedicated cores)|ggml-medium.en.bin|9-10s|9-11s
-Hetzner CCX13|AMD EPYC (2 dedicated cores)|ggml-small.en.bin|7-8s|12-15s
-Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (2 dedicated cores)|ggml-medium.en.bin|?|17.5-18.0s
-Hetzner CCX23|AMD EPYC (4 dedicated cores)|ggml-medium.en.bin|16-17s|?
 
 SkyEye does not use the disk very much, so a particularly fast disk is not required.
 
@@ -192,27 +120,7 @@ A sample configuration file is provided in the download which should be customiz
 
 ## Speech Recognition
 
-### Cloud Speech Recognition
-
-You'll need to set up an account and organization for [OpenAI's API platform](https://openai.com/api/) and obtain an API key. Then configure both `recognizer` and `openai-api-key` in `config.yaml`:
-
-```yaml
-recognizer: openai-whisper-api
-openai-api-key: APIKEYGOESHERE
-```
-
-Valid values for `recognizer` are `openai-whisper-api`, `openai-gpt4o` and `openai-gpt4o-mini`. I do not recommend using the GPT4o options at this time, because the GPT4o models lack support for a feature called [prompting](https://platform.openai.com/docs/guides/speech-to-text#prompting) which SkyEye uses to drastically improve recognition of air combat brevity. In playtesting, the Whisper models currently provide significantly better results than the GPT4o models.
-
-### Local Speech Recognition
-
-You'll need to choose a whisper.cpp speech recognition model from [Hugging Face](https://huggingface.co/ggerganov/whisper.cpp/tree/main). See the example config file for recommendations on which model to use.
-
-Example configuration
-
-```yaml
-recognizer: openai-whisper-local
-whisper-model: whisper.bin
-```
+SkyEye uses NVIDIA Parakeet TDT for speech recognition. The model is embedded in the binary, so no additional configuration is required for speech recognition.
 
 ## Speech Synthesis
 
@@ -284,7 +192,7 @@ Outbound ports typically required by SkyEye:
 - `5002/TCP`: SRS Data
 - `5002/UDP`: SRS Audio
 - `42674/TCP`: TacView Real-Time Telemetry
-- `443/TCP`: OpenAI Platform API, Discord webhook
+- `443/TCP`: Discord webhook
 
 SkyEye does not require any inbound ports during runtime.
 
@@ -355,9 +263,7 @@ You may want to run multiple instances of SkyEye on the same CPU:
 
 There is a potential performance issue that could occur if two or more instances attempt to run an AI model at the same moment. Depending on how talkative your players are, this might be a rare occurrence, or it might be near constantly happening. You can mitigate this by configuring the `recognizer-lock-path` and `voice-lock-path` flags. Each of these is a file path where SkyEye will create and acquire a lock file before running the STT or TTS model, respectively. If the lock cannot be acquired in a reasonable time, SkyEye will abort handling that particular transmission. By configuring all instances to use the same lock path, you can ensure that only one instance is running the AI model at a time.
 
-Note that `recognizer-lock-path` should only be used if you are using local speech recognition. It is harmful when using cloud speech recognition.
-
-Also note that TTS is pretty fast in practice and you might not need to set `voice-lock-path`. Test your hardware with and without this lock and see if it's necessary. Using the lock may delay the controller's responses, so if you don't need it, don't use it.
+Note that TTS is pretty fast in practice and you might not need to set `voice-lock-path`. Test your hardware with and without this lock and see if it's necessary. Using the lock may delay the controller's responses, so if you don't need it, don't use it.
 
 If you are not running multiple instances, these locks are harmful to performance and should not be used. This can especially be a problem if your machine has a slow or busy disk.
 
@@ -435,10 +341,6 @@ tar -xzf /tmp/skyeye-linux-amd64.tar.gz -C /tmp/
 sudo mkdir -p /opt/skyeye/bin
 sudo mv /tmp/skyeye-linux-amd64/skyeye /opt/skyeye/bin/skyeye
 sudo chmod +x /opt/skyeye/bin/skyeye
-
-# Download a Whisper speech recognition model and install it to /opt/skyeye/models
-sudo mkdir -p /opt/skyeye/models
-curl -sL https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin -o /opt/skyeye/models/ggml-small.en.bin
 
 # Grant the "skyeye" user ownership of the SkyEye installation directory
 sudo chown -R skyeye:users /opt/skyeye
@@ -558,7 +460,7 @@ journalctl -u skyeye > skyeye.log
 
 Install [Homebrew](https://brew.sh).
 
-Install SkyEye. The installation includes the `ggml-small.en.bin` model.
+Install SkyEye.
 
 ```sh
 brew tap dharmab/skyeye
@@ -571,14 +473,7 @@ Configure SkyEye by editing the config file at `$(brew --prefix)/etc/skyeye/conf
 $EDITOR "$(brew --prefix)/etc/skyeye/config.yaml"
 ```
 
-You'll likely want to configure local speech recognition, since on macOS it is as fast or faster than cloud speech recognition:
-
-```yaml
-recognizer: openai-whisper-local
-whisper-model: /opt/homebrew/share/skyeye/models/ggml-small.en.bin
-```
-
-It also also strongly recommended to configure the system voice as documented in [Speech Synthesis section](#speech-synthesis), and configure SkyEye to use the system voice:
+It is strongly recommended to configure the system voice as documented in [Speech Synthesis section](#speech-synthesis), and configure SkyEye to use the system voice:
 
 ```yaml
 use-system-voice: true
@@ -636,7 +531,7 @@ less "$(brew --prefix)/var/log/skyeye.log"
 
 Download the SkyEye release ZIP from the [releases page](https://github.com/dharmab/skyeye/releases) and extract it.
 
-Edit `config.yaml` to configure SkyEye as desired. Note that any provided value of `whisper-model` here is ignored because it is overridden in `skyeye-service.yml`. If you wish to change the whisper.cpp model, edit `skyeye-service.yml`.
+Edit `config.yaml` to configure SkyEye as desired.
 
 If you want SkyEye to automatically start on boot, edit `skyeye-service.yml` and change `startmode` to "Automatic".
 
