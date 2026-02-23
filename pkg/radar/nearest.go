@@ -101,7 +101,11 @@ func (r *Radar) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxA
 	grp := r.findGroupForAircraft(nearestTrackfile)
 	declination := r.Declination(origin)
 	bearing := spatial.TrueBearing(origin, grp.point(), r.withProjection()).Magnetic(declination)
-	aspect := brevity.AspectFromAngle(bearing, grp.course())
+	course, ok := grp.course()
+	aspect := brevity.UnknownAspect
+	if ok {
+		aspect = brevity.AspectFromAngle(bearing, course)
+	}
 
 	grp.aspect = &aspect
 	_range := spatial.Distance(origin, grp.point(), r.withProjection())

@@ -110,12 +110,14 @@ func (g *group) Track() brevity.Track {
 	return brevity.TrackFromBearing(bearing)
 }
 
-// course returns the circular mean track direction (ignoring coherence).
-// TODO in places this is used to compute aspect, should return a bool
-// indicating if the aspect is known with certainty.
-func (g *group) course() bearings.Bearing {
-	bearing, _ := g.circularMean()
-	return bearing
+// course returns the circular mean track direction and whether the course
+// is known with certainty. The course is considered unknown when contacts
+// are tracking across a spread of more than 90°.
+func (g *group) course() (bearings.Bearing, bool) {
+	const maxAngle = 90 * unit.Degree
+	bearing, coherence := g.circularMean()
+	angle := unit.Angle(math.Sqrt(-2*math.Log(coherence))) * unit.Radian
+	return bearing, angle <= maxAngle
 }
 
 // Aspect implements [brevity.Group.Aspect].
