@@ -41,7 +41,8 @@ SKYEYE_BIN = skyeye.exe
 SKYEYE_SCALER_BIN = skyeye-scaler.exe
 # Override Windows Go environment with MSYS2 UCRT64 Go environment
 GO = /ucrt64/bin/go
-GOBUILDVARS += GOROOT="/ucrt64/lib/go" GOPATH="/ucrt64"
+GOMODCACHE_NATIVE := $(shell cygpath -w /ucrt64/pkg/mod)
+GOBUILDVARS += GOROOT="/ucrt64/lib/go" GOPATH="/ucrt64" GOMODCACHE="$(GOMODCACHE_NATIVE)"
 # On Windows, we statically link opus and soxr so users don't need to install them.
 LIBRARIES = opus soxr
 CFLAGS = $(shell pkg-config $(LIBRARIES) --cflags --static)
