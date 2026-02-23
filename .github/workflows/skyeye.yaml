@@ -135,6 +135,8 @@ jobs:
             zip
       - name: Download Go modules
         shell: msys2 {0}
+        env:
+          GOPATH: /ucrt64
         run: go mod download
       - name: Build Skyeye
         shell: msys2 {0}
