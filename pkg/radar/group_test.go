@@ -41,80 +41,85 @@ func makeTrackfile(id uint64, trueBearingDegrees float64) *trackfiles.Trackfile 
 	return tf
 }
 
-func TestGroupTrackSingleContact(t *testing.T) {
+func TestGroupTrack(t *testing.T) {
 	t.Parallel()
-	g := &group{
-		contacts: []*trackfiles.Trackfile{
-			makeTrackfile(1, 0), // heading true north
+	testCases := []struct {
+		name     string
+		group    group
+		expected brevity.Track
+	}{
+		{
+			name: "single contact heading north",
+			group: group{
+				contacts: []*trackfiles.Trackfile{
+					makeTrackfile(1, 0),
+				},
+			},
+			expected: brevity.North,
+		},
+		{
+			name: "coherent crossing north (010 and 350)",
+			group: group{
+				contacts: []*trackfiles.Trackfile{
+					makeTrackfile(1, 10),
+					makeTrackfile(2, 350),
+				},
+			},
+			expected: brevity.North,
+		},
+		{
+			name: "incoherent opposites (090 and 270)",
+			group: group{
+				contacts: []*trackfiles.Trackfile{
+					makeTrackfile(1, 90),
+					makeTrackfile(2, 270),
+				},
+			},
+			expected: brevity.UnknownDirection,
+		},
+		{
+			name: "four evenly spread (N E S W)",
+			group: group{
+				contacts: []*trackfiles.Trackfile{
+					makeTrackfile(1, 0),
+					makeTrackfile(2, 90),
+					makeTrackfile(3, 180),
+					makeTrackfile(4, 270),
+				},
+			},
+			expected: brevity.UnknownDirection,
+		},
+		{
+			name: "two north two south",
+			group: group{
+				contacts: []*trackfiles.Trackfile{
+					makeTrackfile(1, 0),
+					makeTrackfile(2, 0),
+					makeTrackfile(3, 180),
+					makeTrackfile(4, 180),
+				},
+			},
+			expected: brevity.UnknownDirection,
+		},
+		{
+			name:     "empty group",
+			group:    group{},
+			expected: brevity.UnknownDirection,
+		},
+		{
+			name: "furball",
+			group: group{
+				contacts:    []*trackfiles.Trackfile{makeTrackfile(1, 0)},
+				declaration: brevity.Furball,
+			},
+			expected: brevity.UnknownDirection,
 		},
 	}
-	assert.Equal(t, brevity.North, g.Track())
-}
 
-func TestGroupTrackCoherentCrossingNorth(t *testing.T) {
-	t.Parallel()
-	// 010° and 350° are both nearly north; circular mean should be near 000° → North.
-	// This verifies no arithmetic-mean-180° bug at the 0°/360° wraparound.
-	g := &group{
-		contacts: []*trackfiles.Trackfile{
-			makeTrackfile(1, 10),
-			makeTrackfile(2, 350),
-		},
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tc.expected, tc.group.Track())
+		})
 	}
-	assert.Equal(t, brevity.North, g.Track())
-}
-
-func TestGroupTrackIncoherentOpposites(t *testing.T) {
-	t.Parallel()
-	// 090° and 270° are exactly opposite — R=0, fully incoherent.
-	g := &group{
-		contacts: []*trackfiles.Trackfile{
-			makeTrackfile(1, 90),
-			makeTrackfile(2, 270),
-		},
-	}
-	assert.Equal(t, brevity.UnknownDirection, g.Track())
-}
-
-func TestGroupTrackFourEvenlySpread(t *testing.T) {
-	t.Parallel()
-	// N+E+S+W cancel out — R=0, incoherent.
-	g := &group{
-		contacts: []*trackfiles.Trackfile{
-			makeTrackfile(1, 0),
-			makeTrackfile(2, 90),
-			makeTrackfile(3, 180),
-			makeTrackfile(4, 270),
-		},
-	}
-	assert.Equal(t, brevity.UnknownDirection, g.Track())
-}
-
-func TestGroupTrackTwoNorthTwoSouth(t *testing.T) {
-	t.Parallel()
-	// Two heading north + two heading south: sin/cos sums cancel — R=0, incoherent.
-	g := &group{
-		contacts: []*trackfiles.Trackfile{
-			makeTrackfile(1, 0),
-			makeTrackfile(2, 0),
-			makeTrackfile(3, 180),
-			makeTrackfile(4, 180),
-		},
-	}
-	assert.Equal(t, brevity.UnknownDirection, g.Track())
-}
-
-func TestGroupTrackEmpty(t *testing.T) {
-	t.Parallel()
-	g := &group{}
-	assert.Equal(t, brevity.UnknownDirection, g.Track())
-}
-
-func TestGroupTrackFurball(t *testing.T) {
-	t.Parallel()
-	g := &group{
-		contacts:    []*trackfiles.Trackfile{makeTrackfile(1, 0)},
-		declaration: brevity.Furball,
-	}
-	assert.Equal(t, brevity.UnknownDirection, g.Track())
 }

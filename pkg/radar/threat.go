@@ -54,9 +54,8 @@ func (r *Radar) Threats(coalition coalitions.Coalition) map[brevity.Group][]uint
 			declination := r.Declination(trackfile.LastKnown().Point)
 			bearing := spatial.TrueBearing(trackfile.LastKnown().Point, grp.point(), r.withProjection()).Magnetic(declination)
 			_range := spatial.Distance(trackfile.LastKnown().Point, grp.point(), r.withProjection())
-			course, ok := grp.course()
 			aspect := brevity.UnknownAspect
-			if ok {
+			if course, ok := grp.course(); ok {
 				aspect = brevity.AspectFromAngle(bearing, course)
 			}
 			grp.braa = brevity.NewBRAA(bearing, _range, grp.altitudes(), aspect)
