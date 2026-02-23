@@ -5,3 +5,5 @@ type NegativeRadarContactResponse struct {
 	// Callsign of the friendly aircraft that made the request.
 	Callsign string
 }
+
+func (NegativeRadarContactResponse) isBrevityResponse() {}

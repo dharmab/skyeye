@@ -5,6 +5,6 @@ import (
 )
 
 // ComposeSpikedResponse constructs natural language brevity for responding to a SPIKED call.
-func (c *Composer) ComposeSpikedResponse(response brevity.SpikedResponseV2) NaturalLanguageResponse {
+func (c *Composer) ComposeSpikedResponse(response brevity.SpikedResponse) NaturalLanguageResponse {
 	return c.composeCorrelation("spike", response.Callsign, response.Status, response.Bearing, response.Group)
 }

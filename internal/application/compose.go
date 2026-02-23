@@ -26,7 +26,7 @@ func (a *Application) compose(ctx context.Context, in <-chan controller.Call, ou
 }
 
 // composeCall handles a single call, publishing the composition to the output channel.
-func (a *Application) composeCall(ctx context.Context, call any, out chan<- Message[composer.NaturalLanguageResponse]) {
+func (a *Application) composeCall(ctx context.Context, call brevity.Response, out chan<- Message[composer.NaturalLanguageResponse]) {
 	ctx = traces.WithHandledAt(ctx, time.Now())
 	logger := log.With().Type("type", call).Any("params", call).Logger()
 	logger.Info().Msg("composing brevity call")
@@ -52,7 +52,7 @@ func (a *Application) composeCall(ctx context.Context, call any, out chan<- Mess
 		response = a.composer.ComposeShoppingResponse(c)
 	case brevity.SnaplockResponse:
 		response = a.composer.ComposeSnaplockResponse(c)
-	case brevity.SpikedResponseV2:
+	case brevity.SpikedResponse:
 		response = a.composer.ComposeSpikedResponse(c)
 	case brevity.StrobeResponse:
 		response = a.composer.ComposeStrobeResponse(c)

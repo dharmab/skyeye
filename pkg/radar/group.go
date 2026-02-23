@@ -75,7 +75,7 @@ func (g *group) altitudes() []unit.Length {
 
 // circularMean computes the circular mean of all contacts' courses.
 // Returns the mean magnetic bearing and a coherence value in range 0-1.
-// 0 means no coherence, 1 means all courses are prefectly coherent.
+// 0 means no coherence, 1 means all courses are perfectly coherent.
 func (g *group) circularMean() (bearings.Bearing, float64) {
 	var sumOfSines, sumOfCosines float64
 	for _, tf := range g.contacts {

@@ -9,3 +9,5 @@ type ThreatCall struct {
 	// Group that is threatening the friendly aircraft.
 	Group Group
 }
+
+func (ThreatCall) isBrevityResponse() {}

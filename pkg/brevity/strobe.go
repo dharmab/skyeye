@@ -31,3 +31,5 @@ type StrobeResponse struct {
 	// Correleted contact group. If Status is false, this may be nil.
 	Group Group
 }
+
+func (StrobeResponse) isBrevityResponse() {}

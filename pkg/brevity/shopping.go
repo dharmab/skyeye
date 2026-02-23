@@ -13,3 +13,5 @@ func (r ShoppingRequest) String() string {
 type ShoppingResponse struct {
 	Callsign string
 }
+
+func (ShoppingResponse) isBrevityResponse() {}

@@ -49,3 +49,5 @@ type BogeyDopeResponse struct {
 	// Group which is closest to the fighter. If there are no eligible groups, this may be nil.
 	Group Group
 }
+
+func (BogeyDopeResponse) isBrevityResponse() {}

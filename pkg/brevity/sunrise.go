@@ -9,3 +9,5 @@ type SunriseCall struct {
 	// Frequency which the GCI is listening on.
 	Frequencies []unit.Frequency
 }
+
+func (SunriseCall) isBrevityResponse() {}
