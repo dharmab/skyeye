@@ -33,7 +33,7 @@ var Filenames = []string{
 }
 
 // fileHashes maps each model filename to its expected SHA256 hash.
-var fileHashes = map[string]string{
+var fileHashes = map[string]string{ //nolint:gosec // these are file integrity hashes, not credentials
 	"encoder.int8.onnx": "a32b12d17bbbc309d0686fbbcc2987b5e9b8333a7da83fa6b089f0a2acd651ab",
 	"decoder.int8.onnx": "b6bb64963457237b900e496ee9994b59294526439fbcc1fecf705b31a15c6b4e",
 	"joiner.int8.onnx":  "7946164367946e7f9f29a122407c3252b680dbae9a51343eb2488d057c3c43d2",

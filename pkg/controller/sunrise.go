@@ -10,8 +10,9 @@ import (
 )
 
 func (c *Controller) broadcastSunrise(ctx context.Context) {
-	frequencies := make([]unit.Frequency, 0)
-	for _, rf := range c.srsClient.Frequencies() {
+	radioFrequencies := c.srsClient.Frequencies()
+	frequencies := make([]unit.Frequency, 0, len(radioFrequencies))
+	for _, rf := range radioFrequencies {
 		frequencies = append(frequencies, rf.Frequency)
 	}
 	c.calls <- NewCall(traces.WithTraceID(ctx, shortuuid.New()), brevity.SunriseCall{Frequencies: frequencies})
