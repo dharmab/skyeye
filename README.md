@@ -148,7 +148,7 @@ SkyEye would not be possible without these people and projects, for whom I am de
 * @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against SkyEye during early development, and Jones himself was also patient with my questions on Discord.
 * [ONNX Runtime](https://onnxruntime.ai)'s technology is used to run AI models. [sherpa-onnx](https://k2-fsa.github.io/sherpa/onnx/index.html) is used to run models from Go code.
 * Nvidia [Parakeet](https://parakeettdt.com) is used for speech recognition.
-* @rodaine's [numwords](https://github.com/rodaine/numwords) module is invaluable for parsing numeric quantities from voice input.
+* @rodaine's [numwords](https://github.com/rodaine/numwords) module is invaluable for parsing numeric quantities from voice input. (I did need to [fork this module](https://github.com/dharmab/numwords) to make it more appropriate for aviation use.)
 * [Piper](https://github.com/rhasspy/piper) by the [Rhasspy](https://rhasspy.readthedocs.io/en/latest/) voice assistant project is used for speech-to-text on Windows and Linux.
 * The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for SkyEye on Windows and Linux.
 * @popey's dataset provides the masculine voice for SkyEye on Windows and Linux.

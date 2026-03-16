@@ -182,6 +182,8 @@ github.com/denis-tingaikin/go-header v0.5.0 h1:SRdnP5ZKvcO9KKRP1KJrhFR3RrlGuD+42
 github.com/denis-tingaikin/go-header v0.5.0/go.mod h1:mMenU5bWrok6Wl2UsZjy+1okegmwQ3UgWl4V1D8gjlY=
 github.com/dharmab/goacmi v1.0.3 h1:NSxBKlLgJlI/V7Q68lh2uLZC6BJgZkphelKKEmSaEMc=
 github.com/dharmab/goacmi v1.0.3/go.mod h1:wZArjjRgFNYtQJkA9vBTbpM3FqkP3fg+bhQJzkEwpq0=
+github.com/dharmab/numwords v1.0.1 h1:6zFMoWEiavZmQAiyd1/0h8x/5gzpj8ijbZWgcIHoQAA=
+github.com/dharmab/numwords v1.0.1/go.mod h1:JtKH/TWNyBBkmVJVdZGyX+fBXTcknxOI+75dISW+PXc=
 github.com/dlclark/regexp2 v1.11.5 h1:Q/sSnsKerHeCkc/jSTNq1oCm7KiVgUMZRDUoRu0JQZQ=
 github.com/dlclark/regexp2 v1.11.5/go.mod h1:DHkYz0B9wPfa6wondMfaivmHpzrQ3v9q8cnmRbL6yW8=
 github.com/dnephin/pflag v1.0.7 h1:oxONGlWxhmUct0YzKTgrpQv9AUA1wtPBn7zuSjJqptk=
@@ -595,8 +597,6 @@ github.com/raeperd/recvcheck v0.2.0/go.mod h1:n04eYkwIR0JbgD73wT8wL4JjPC3wm0nFtz
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
 github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
-github.com/rodaine/numwords v0.0.0-20200910203654-405f4a455f79 h1:0fk+jnjduMBhQ2WNA3BubRESs5HgiqujdpxUUWCqsts=
-github.com/rodaine/numwords v0.0.0-20200910203654-405f4a455f79/go.mod h1:6O99ZbuNiiFpvPTMhvF4natmeT+oFrfSbtbC7LIJwss=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.11.0/go.mod h1:ddIwULY96R17DhadqLgMfk9H9tvdUzkipdSkR5nkCZA=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
