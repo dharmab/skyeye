@@ -4,11 +4,17 @@ package parser
 import (
 	"strings"
 
+	"github.com/dharmab/numwords"
 	"github.com/dharmab/skyeye/internal/parser/token"
 	"github.com/dharmab/skyeye/pkg/brevity"
-	"github.com/rodaine/numwords"
 	"github.com/rs/zerolog/log"
 )
+
+func init() {
+	numwords.IncludeFractions(false)
+	numwords.IncludeIndefiniteArticle(false)
+	numwords.IncludeSecond(false)
+}
 
 const (
 	// maxInputLength is the maximum length of input text to process.
