@@ -22,7 +22,7 @@ func S16ToF32(s int16) float32 {
 
 // F32toS16LE converts a slice of float32 to a slice of int16. This is useful for converting from F32LE to S16LE.
 func F32toS16LE(in []float32) []int16 {
-	out := make([]int16, 0)
+	out := make([]int16, 0, len(in))
 	for _, f := range in {
 		s := F32ToS16(f)
 		out = append(out, s)
@@ -53,7 +53,7 @@ func F32LEBytesToS16LEBytes(in []byte) []byte {
 
 // S16LEToF32LE converts a slice of int16 to a slice of float32. This is useful for converting from S16LE to F32LE.
 func S16LEToF32LE(in []int16) []float32 {
-	out := make([]float32, 0)
+	out := make([]float32, 0, len(in))
 	for _, s := range in {
 		f := S16ToF32(s)
 		out = append(out, f)

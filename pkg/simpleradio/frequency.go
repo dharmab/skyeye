@@ -80,7 +80,7 @@ func (f RadioFrequency) String() string {
 
 // Frequencies returns the frequencies the client is listening on.
 func (c *Client) Frequencies() []RadioFrequency {
-	frequencies := make([]RadioFrequency, 0)
+	frequencies := make([]RadioFrequency, 0, len(c.clientInfo.RadioInfo.Radios))
 	for _, radio := range c.clientInfo.RadioInfo.Radios {
 		frequency := RadioFrequency{
 			Frequency:  unit.Frequency(radio.Frequency) * unit.Hertz,
