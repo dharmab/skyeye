@@ -10,7 +10,7 @@ import (
 
 func TestParserBogeyDope(t *testing.T) {
 	t.Parallel()
-	testCases := []parserTestCase{
+	testCases := []parserTestCase{ //nolint:prealloc // appended dynamically below
 		{
 			text: "ANYFACE, EAGLE 1 BOGEY DOPE",
 			expected: &brevity.BogeyDopeRequest{

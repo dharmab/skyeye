@@ -74,7 +74,7 @@ func DecodeWAV(data []byte) (samples []float32, sampleRate int, err error) {
 			numSamples := len(pcmData) / 2
 			samples = make([]float32, numSamples)
 			for i := range numSamples {
-				s := int16(binary.LittleEndian.Uint16(pcmData[i*2 : i*2+2]))
+				s := int16(binary.LittleEndian.Uint16(pcmData[i*2 : i*2+2])) //nolint:gosec // reinterpreting 16-bit PCM samples
 				samples[i] = float32(s) / math.MaxInt16
 			}
 			return samples, sampleRate, nil

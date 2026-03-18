@@ -50,7 +50,7 @@ var Filenames = []string{
 }
 
 // fileHashes maps each model filename to its expected SHA256 hash.
-var fileHashes = map[string]string{
+var fileHashes = map[string]string{ //nolint:gosec // SHA256 hashes for model verification, not credentials
 	FilenameLmMain:          "bfc0c7e7e3d72864fa3bb2ee499f62f21ddc1474b885f5f3ca570f8be73e787e",
 	FilenameLmFlow:          "8d627d235c44a597da908e1085ebe241cbbe358964c502c5a5063d18851a5529",
 	FilenameDecoder:         "12b0857402d31aead94df19d6783b4350d1f740e811f3a3202c70ad89ae11eea",

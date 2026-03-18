@@ -49,7 +49,7 @@ func (g *group) Bullseye() *brevity.Bullseye {
 }
 
 func (g *group) Stacks() []brevity.Stack {
-	altitudes := []unit.Length{}
+	altitudes := make([]unit.Length, 0, len(g.contacts))
 	for _, trackfile := range g.contacts {
 		altitudes = append(altitudes, trackfile.LastKnown().Altitude)
 	}
