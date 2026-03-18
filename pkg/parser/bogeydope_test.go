@@ -332,10 +332,18 @@ func TestParserBogeyDope(t *testing.T) {
 		"Bo G Doti",
 		"Mogi Dogie Dose",
 		"Ogie Doi Doge",
-		"Bobie Dogie Dogie",
+		"Bobie Dogie Dogie", //nolint:dupword // intentional STT garble
 		"Boj Doy Dok",
-		"Vogee Dogie Dogie Dog",
+		"Vogee Dogie Dogie Dog", //nolint:dupword // intentional STT garble
 		"OG Day Dough",
+		"Budgie Doey Dog",
+		"Boyido De",
+		"Bodhi Doe",
+		"Bojy Dud",
+		"Moji Doti",
+		"Boy Do",
+		"Vojidoji",
+		"Vaughi Do",
 	}
 	for _, text := range simpleCases {
 		tc := parserTestCase{

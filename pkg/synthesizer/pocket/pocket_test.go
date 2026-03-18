@@ -5,6 +5,7 @@ package pocket_test
 import (
 	"context"
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -168,26 +169,72 @@ func TestRoundTripCallsignNumbers(t *testing.T) {
 		allCandidates = append(allCandidates, callsignCandidates(strings.ToLower(word))...)
 	}
 
+	type callsign struct {
+		word          string
+		first, second int
+	}
+
+	// Build pools of callsigns: common ones (flights 1-4) and all possible.
+	var commonCallsigns, allCallsigns []callsign
+	for _, word := range callsignWords {
+		for first := 1; first <= 9; first++ {
+			for second := 1; second <= 9; second++ {
+				cs := callsign{word, first, second}
+				allCallsigns = append(allCallsigns, cs)
+				if first >= 1 && first <= 4 && second >= 1 && second <= 4 {
+					commonCallsigns = append(commonCallsigns, cs)
+				}
+			}
+		}
+	}
+
+	// Select 40 callsigns: 20 from common (1 1 through 1 4), 20 from entire set.
+	const numCommon, numRandom = 20, 20
+	rand.Shuffle(len(commonCallsigns), func(i, j int) {
+		commonCallsigns[i], commonCallsigns[j] = commonCallsigns[j], commonCallsigns[i]
+	})
+	rand.Shuffle(len(allCallsigns), func(i, j int) {
+		allCallsigns[i], allCallsigns[j] = allCallsigns[j], allCallsigns[i]
+	})
+
+	selected := make(map[callsign]struct{})
+	for _, cs := range commonCallsigns {
+		if len(selected) >= numCommon {
+			break
+		}
+		selected[cs] = struct{}{}
+	}
+	for _, cs := range allCallsigns {
+		if len(selected) >= numCommon+numRandom {
+			break
+		}
+		selected[cs] = struct{}{}
+	}
+
 	type testInput struct {
 		input            string
 		expectedCallsign string
 	}
 
-	// Build the full list of inputs.
-	var inputs []testInput
-	for _, word := range callsignWords {
-		wordLower := strings.ToLower(word)
-		for first := 1; first <= 9; first++ {
-			for second := 1; second <= 9; second++ {
-				expectedCallsign := fmt.Sprintf("%s %d %d", wordLower, first, second)
-				for _, phrase := range requestPhrases {
-					inputs = append(inputs, testInput{
-						input:            fmt.Sprintf("Magic, %s %d %d, %s", word, first, second, phrase),
-						expectedCallsign: expectedCallsign,
-					})
-				}
-			}
+	// Build unique test inputs from selected callsigns × request phrases.
+	var unique []testInput
+	for cs := range selected {
+		expectedCallsign := fmt.Sprintf("%s %d %d", strings.ToLower(cs.word), cs.first, cs.second)
+		for _, phrase := range requestPhrases {
+			unique = append(unique, testInput{
+				input:            fmt.Sprintf("Magic, %s %d %d, %s", cs.word, cs.first, cs.second, phrase),
+				expectedCallsign: expectedCallsign,
+			})
 		}
+	}
+
+	// Repeat test inputs to reach a minimum count for statistical sensitivity.
+	// TTS is nondeterministic, so repeating the same input tests different
+	// audio renderings of the same phrase.
+	const minTests = 500
+	var inputs []testInput
+	for len(inputs) < minTests {
+		inputs = append(inputs, unique...)
 	}
 
 	type result struct {
