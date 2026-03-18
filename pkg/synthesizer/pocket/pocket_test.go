@@ -4,6 +4,7 @@ package pocket_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -123,6 +124,30 @@ func TestRoundTripSpiked(t *testing.T) {
 	actual := request.(*brevity.SpikedRequest)
 	assert.Equal(t, "cobra 3 1", actual.Callsign)
 	assert.Equal(t, bearings.NewMagneticBearing(180*unit.Degree), actual.Bearing)
+}
+
+// TestRoundTripCallsignNumbers tests TTS→STT→parser round trips for all
+// two-digit callsign number combinations from "1 1" to "9 9".
+func TestRoundTripCallsignNumbers(t *testing.T) {
+	t.Parallel()
+	speaker, p, recognize := newPipeline(t)
+	defer speaker.Close()
+
+	for first := 1; first <= 9; first++ {
+		for second := 1; second <= 9; second++ {
+			name := fmt.Sprintf("Eagle_%d_%d", first, second)
+			expectedCallsign := fmt.Sprintf("eagle %d %d", first, second)
+			input := fmt.Sprintf("Magic, Eagle %d %d, bogey dope", first, second)
+			t.Run(name, func(t *testing.T) {
+				recognized := recognize(input)
+				request := p.Parse(recognized)
+				require.NotNil(t, request, "input=%q recognized=%q", input, recognized)
+				require.IsType(t, &brevity.BogeyDopeRequest{}, request, "input=%q recognized=%q parsed=%#v", input, recognized, request)
+				actual := request.(*brevity.BogeyDopeRequest)
+				assert.Equal(t, expectedCallsign, actual.Callsign, "input=%q recognized=%q", input, recognized)
+			})
+		}
+	}
 }
 
 // FuzzRoundTrip verifies the TTS→STT→parser pipeline does not panic on arbitrary input.

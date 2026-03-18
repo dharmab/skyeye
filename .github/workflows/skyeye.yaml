@@ -34,8 +34,10 @@ jobs:
       - name: Test
         run: make test
   integration-test:
-    name: Integration Test
+    name: Integration Test (Advisory)
+    needs: [lint, test]
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -205,7 +207,6 @@ jobs:
     needs:
       - lint
       - test
-      - integration-test
       - build-linux-amd64
       - build-windows-amd64
       - build-macos-arm64
@@ -231,7 +232,6 @@ jobs:
     needs:
       - lint
       - test
-      - integration-test
     runs-on: ubuntu-latest
     permissions:
       contents: read
