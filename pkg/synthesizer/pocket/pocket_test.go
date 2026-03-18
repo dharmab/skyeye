@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
@@ -155,8 +157,6 @@ func TestRoundTripSpiked(t *testing.T) {
 // probabilistic approach and requires an overall success rate above 99%.
 func TestRoundTripCallsignNumbers(t *testing.T) {
 	t.Parallel()
-	speaker, p, recognize := newPipeline(t)
-	defer speaker.Close()
 
 	callsignWords := []string{"Eagle", "Mobius", "Wardog"}
 	requestPhrases := []string{"bogey dope", "request bogey dope"}
@@ -168,6 +168,28 @@ func TestRoundTripCallsignNumbers(t *testing.T) {
 		allCandidates = append(allCandidates, callsignCandidates(strings.ToLower(word))...)
 	}
 
+	type testInput struct {
+		input            string
+		expectedCallsign string
+	}
+
+	// Build the full list of inputs.
+	var inputs []testInput
+	for _, word := range callsignWords {
+		wordLower := strings.ToLower(word)
+		for first := 1; first <= 9; first++ {
+			for second := 1; second <= 9; second++ {
+				expectedCallsign := fmt.Sprintf("%s %d %d", wordLower, first, second)
+				for _, phrase := range requestPhrases {
+					inputs = append(inputs, testInput{
+						input:            fmt.Sprintf("Magic, %s %d %d, %s", word, first, second, phrase),
+						expectedCallsign: expectedCallsign,
+					})
+				}
+			}
+		}
+	}
+
 	type result struct {
 		input      string
 		recognized string
@@ -175,56 +197,105 @@ func TestRoundTripCallsignNumbers(t *testing.T) {
 		detail     string
 	}
 
-	var results []result
+	// Create a worker pool of TTS→STT pipelines.
+	numWorkers := max(runtime.NumCPU()/2, 1)
+	t.Logf("Using %d workers for %d test inputs", numWorkers, len(inputs))
 
-	for _, word := range callsignWords {
-		wordLower := strings.ToLower(word)
-
-		for first := 1; first <= 9; first++ {
-			for second := 1; second <= 9; second++ {
-				expectedCallsign := fmt.Sprintf("%s %d %d", wordLower, first, second)
-				for _, phrase := range requestPhrases {
-					input := fmt.Sprintf("Magic, %s %d %d, %s", word, first, second, phrase)
-					recognized := recognize(input)
-					request := p.Parse(recognized)
-
-					r := result{input: input, recognized: recognized}
-
-					if request == nil {
-						r.detail = "parse returned nil"
-						results = append(results, r)
-						continue
-					}
-
-					bogeyDope, ok := request.(*brevity.BogeyDopeRequest)
-					if !ok {
-						r.detail = fmt.Sprintf("wrong type: %T", request)
-						results = append(results, r)
-						continue
-					}
-
-					snapped, err := fuzz.FuzzySearchThreshold(
-						bogeyDope.Callsign, allCandidates,
-						radar.CallsignSimilarityThreshold, fuzz.Levenshtein,
-					)
-					if err != nil || snapped == "" {
-						r.detail = fmt.Sprintf("callsign %q did not snap to any candidate", bogeyDope.Callsign)
-						results = append(results, r)
-						continue
-					}
-
-					if snapped != expectedCallsign {
-						r.detail = fmt.Sprintf("callsign %q snapped to %q, expected %q", bogeyDope.Callsign, snapped, expectedCallsign)
-						results = append(results, r)
-						continue
-					}
-
-					r.success = true
-					results = append(results, r)
-				}
-			}
-		}
+	results := make([]result, len(inputs))
+	work := make(chan int, len(inputs))
+	for i := range inputs {
+		work <- i
 	}
+	close(work)
+
+	var wg sync.WaitGroup
+	for w := range numWorkers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			// Each worker gets its own pipeline (TTS + STT are not thread-safe).
+			modelsPath := os.Getenv("SKYEYE_MODELS_PATH")
+			if modelsPath == "" {
+				modelsPath = "models"
+			}
+
+			pocketDir := filepath.Join(modelsPath, pocketmodel.DirName)
+			if err := pocketmodel.Verify(pocketDir); err != nil {
+				t.Errorf("worker %d: pocket model not available: %v", w, err)
+				return
+			}
+
+			speaker, err := pocket.New(pocketDir)
+			if err != nil {
+				t.Errorf("worker %d: failed to create speaker: %v", w, err)
+				return
+			}
+			defer speaker.Close()
+
+			parakeetDir := filepath.Join(modelsPath, parakeetmodel.DirName)
+			rec, err := parakeet.NewRecognizer(parakeetDir)
+			if err != nil {
+				t.Errorf("worker %d: failed to create recognizer: %v", w, err)
+				return
+			}
+
+			p := parser.New(gciCallsign, true)
+
+			for idx := range work {
+				ti := inputs[idx]
+				audio, err := speaker.Say(context.Background(), ti.input)
+				if err != nil {
+					results[idx] = result{input: ti.input, detail: fmt.Sprintf("TTS failed: %v", err)}
+					continue
+				}
+
+				recognized, err := rec.Recognize(context.Background(), audio, false)
+				if err != nil {
+					results[idx] = result{input: ti.input, detail: fmt.Sprintf("STT failed: %v", err)}
+					continue
+				}
+				t.Logf("Input:      %q", ti.input)
+				t.Logf("Recognized: %q", recognized)
+
+				request := p.Parse(recognized)
+				r := result{input: ti.input, recognized: recognized}
+
+				if request == nil {
+					r.detail = "parse returned nil"
+					results[idx] = r
+					continue
+				}
+
+				bogeyDope, ok := request.(*brevity.BogeyDopeRequest)
+				if !ok {
+					r.detail = fmt.Sprintf("wrong type: %T", request)
+					results[idx] = r
+					continue
+				}
+
+				snapped, err := fuzz.FuzzySearchThreshold(
+					bogeyDope.Callsign, allCandidates,
+					radar.CallsignSimilarityThreshold, fuzz.Levenshtein,
+				)
+				if err != nil || snapped == "" {
+					r.detail = fmt.Sprintf("callsign %q did not snap to any candidate", bogeyDope.Callsign)
+					results[idx] = r
+					continue
+				}
+
+				if snapped != ti.expectedCallsign {
+					r.detail = fmt.Sprintf("callsign %q snapped to %q, expected %q", bogeyDope.Callsign, snapped, ti.expectedCallsign)
+					results[idx] = r
+					continue
+				}
+
+				r.success = true
+				results[idx] = r
+			}
+		}()
+	}
+	wg.Wait()
 
 	total := len(results)
 	failures := 0

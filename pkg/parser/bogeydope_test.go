@@ -328,6 +328,9 @@ func TestParserBogeyDope(t *testing.T) {
 		"OG Dote",
 		"OG Doi",
 		"Bohi Day Doi D",
+		"Boti Doty",
+		"Bo G Doti",
+		"Mogi Dogie Dose",
 	}
 	for _, text := range simpleCases {
 		tc := parserTestCase{
