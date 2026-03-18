@@ -4,13 +4,9 @@ go 1.26
 
 require (
 	github.com/DCS-gRPC/go-bindings v0.7.1
-	github.com/amitybell/piper-asset v0.0.0-20231030194325-d36a29e3b1fd
-	github.com/amitybell/piper-voice-alan v0.0.0-20231118093148-059963c24dbd
-	github.com/amitybell/piper-voice-jenny v0.0.0-20231118093224-dcf0d49e46b7
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/dharmab/goacmi v1.0.3
 	github.com/gammazero/deque v0.2.1
-	github.com/go-audio/aiff v1.1.0
 	github.com/gofrs/flock v0.13.0
 	github.com/gopxl/beep/v2 v2.1.1
 	github.com/hbollon/go-edlib v1.6.0
@@ -18,7 +14,6 @@ require (
 	github.com/k2-fsa/sherpa-onnx-go v1.12.24
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/martinlindhe/unit v0.0.0-20230420213220-4adfd7d0a0d6
-	github.com/nabbl/piper v0.0.0-20240819160100-e51f2288a5c0
 	github.com/pasztorpisti/go-crc v1.0.0
 	github.com/paulmach/orb v0.11.1
 	github.com/proway2/go-igrf v0.5.1
@@ -52,7 +47,6 @@ require (
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/MirrexOne/unqueryvet v1.3.0 // indirect
 	github.com/OpenPeeDeeP/depguard/v2 v2.2.1 // indirect
-	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/alecthomas/chroma/v2 v2.20.0 // indirect
 	github.com/alecthomas/go-check-sumtype v0.3.1 // indirect
 	github.com/alexkohler/nakedret/v2 v2.0.6 // indirect
@@ -60,8 +54,6 @@ require (
 	github.com/alfatraining/structtag v1.0.0 // indirect
 	github.com/alingse/asasalint v0.0.11 // indirect
 	github.com/alingse/nilnesserr v0.2.0 // indirect
-	github.com/amitybell/piper-bin-linux v0.0.0-20231118093037-92b3de178ad8 // indirect
-	github.com/amitybell/piper-bin-windows v0.0.0-20231118093113-cc2cef2f6b74 // indirect
 	github.com/ashanbrown/forbidigo/v2 v2.3.0 // indirect
 	github.com/ashanbrown/makezero/v2 v2.1.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
@@ -99,7 +91,6 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/ghostiam/protogetter v0.3.17 // indirect
-	github.com/go-audio/audio v1.0.0 // indirect
 	github.com/go-critic/go-critic v0.14.2 // indirect
 	github.com/go-toolsmith/astcast v1.1.0 // indirect
 	github.com/go-toolsmith/astcopy v1.1.0 // indirect
@@ -149,7 +140,6 @@ require (
 	github.com/karamaru-alpha/copyloopvar v1.2.2 // indirect
 	github.com/kisielk/errcheck v1.9.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.6 // indirect
-	github.com/klauspost/compress v1.17.3 // indirect
 	github.com/kulti/thelper v0.7.1 // indirect
 	github.com/kunwardeep/paralleltest v1.0.15 // indirect
 	github.com/lasiar/canonicalheader v1.1.2 // indirect
@@ -176,7 +166,6 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/moricho/tparallel v0.3.2 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
-	github.com/nabbl/piper-bin-macos v0.0.0-20240805085459-7f1b1df8c68d // indirect
 	github.com/nakabonne/nestif v0.3.1 // indirect
 	github.com/nishanths/exhaustive v0.12.0 // indirect
 	github.com/nishanths/predeclared v0.2.2 // indirect

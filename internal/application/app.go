@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"runtime"
 	"sync"
 	"time"
 
@@ -26,7 +25,8 @@ import (
 	"github.com/dharmab/skyeye/pkg/sim"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	srs "github.com/dharmab/skyeye/pkg/simpleradio/types"
-	"github.com/dharmab/skyeye/pkg/synthesizer/speakers"
+	"github.com/dharmab/skyeye/pkg/synthesizer/pocket"
+	pocketmodel "github.com/dharmab/skyeye/pkg/synthesizer/pocket/model"
 	"github.com/dharmab/skyeye/pkg/telemetry"
 	"github.com/dharmab/skyeye/pkg/traces"
 	"github.com/gofrs/flock"
@@ -59,7 +59,7 @@ type Application struct {
 	// composer converts responses and calls from internal representations to English brevity text
 	composer composer.Composer
 	// speaker provides text-to-speech synthesis
-	speaker speakers.Speaker
+	speaker *pocket.Speaker
 	// speakerLock prevents multiple instances from running the speaker at the same time
 	speakerLock *flock.Flock
 	// volume is the audio output volume level
@@ -185,14 +185,14 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 	responseComposer := composer.Composer{Callsign: config.Callsign}
 
 	log.Info().Msg("constructing text-to-speech synthesizer")
-	var synthesizer speakers.Speaker
-	if runtime.GOOS == "darwin" {
-		synthesizer = speakers.NewMacOSSpeaker(config.UseSystemVoice, config.VoiceSpeed)
-	} else {
-		synthesizer, err = speakers.NewPiperSpeaker(config.Voice, config.VoiceSpeed, config.VoicePauseLength)
-		if err != nil {
-			return nil, fmt.Errorf("failed to construct application: %w", err)
-		}
+	pocketDir := filepath.Join(config.ModelsPath, pocketmodel.DirName)
+	var pocketOpts []pocket.Option
+	if config.VoiceFile != "" {
+		pocketOpts = append(pocketOpts, pocket.WithVoiceFile(config.VoiceFile))
+	}
+	synthesizer, err := pocket.New(pocketDir, pocketOpts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to construct application: %w", err)
 	}
 
 	tracers := make([]traces.Tracer, 0)
@@ -232,6 +232,11 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		exitAfter:                  config.ExitAfter,
 	}
 	return app, nil
+}
+
+// Close releases resources held by the application.
+func (a *Application) Close() {
+	a.speaker.Close()
 }
 
 // Run implements Application.Run.
