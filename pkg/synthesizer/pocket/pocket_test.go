@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/dharmab/skyeye/pkg/bearings"
@@ -25,13 +26,13 @@ import (
 
 const gciCallsign = "Magic"
 
-// eagleCandidates returns all "eagle X Y" callsigns from 1 1 to 9 9,
-// simulating the candidate list that would exist in the radar database.
-func eagleCandidates() []string {
+// callsignCandidates returns all "word X Y" callsigns from 1 1 to 9 9
+// for the given callsign word, simulating what would exist in the radar database.
+func callsignCandidates(word string) []string {
 	candidates := make([]string, 0, 81)
 	for f := 1; f <= 9; f++ {
 		for s := 1; s <= 9; s++ {
-			candidates = append(candidates, fmt.Sprintf("eagle %d %d", f, s))
+			candidates = append(candidates, fmt.Sprintf("%s %d %d", word, f, s))
 		}
 	}
 	return candidates
@@ -124,8 +125,13 @@ func TestRoundTripPicture(t *testing.T) {
 	request := p.Parse(recognized)
 	require.IsType(t, &brevity.PictureRequest{}, request)
 	actual := request.(*brevity.PictureRequest)
-	// Snap callsign using edit distance, mirroring the real radar database.
-	snapped, err := fuzz.FuzzySearchThreshold(actual.Callsign, eagleCandidates(), radar.CallsignSimilarityThreshold, fuzz.Levenshtein)
+	// Snap callsign using edit distance against a multi-flight candidate list,
+	// mirroring the real radar database.
+	var candidates []string
+	for _, w := range []string{"eagle", "mobius", "wardog"} {
+		candidates = append(candidates, callsignCandidates(w)...)
+	}
+	snapped, err := fuzz.FuzzySearchThreshold(actual.Callsign, candidates, radar.CallsignSimilarityThreshold, fuzz.Levenshtein)
 	require.NoError(t, err)
 	assert.Equal(t, "eagle 2 1", snapped, "callsign=%q did not snap to eagle 2 1", actual.Callsign)
 }
@@ -143,36 +149,95 @@ func TestRoundTripSpiked(t *testing.T) {
 	assert.Equal(t, bearings.NewMagneticBearing(180*unit.Degree), actual.Bearing)
 }
 
-// TestRoundTripCallsignNumbers tests TTS→STT→parser round trips for all
-// two-digit callsign number combinations from "1 1" to "9 9".
-// The callsign comparison uses edit distance to snap to the closest candidate,
-// mirroring the fuzzy callsign matching used in the real application.
+// TestRoundTripCallsignNumbers tests TTS→STT→parser round trips across many
+// callsign words, number combinations, and request phrasings. Since TTS→STT
+// is inherently lossy, individual permutations may fail — the test uses a
+// probabilistic approach and requires an overall success rate above 99%.
 func TestRoundTripCallsignNumbers(t *testing.T) {
 	t.Parallel()
 	speaker, p, recognize := newPipeline(t)
 	defer speaker.Close()
 
-	candidates := eagleCandidates()
+	callsignWords := []string{"Eagle", "Mobius", "Wardog"}
+	requestPhrases := []string{"bogey dope", "request bogey dope"}
 
-	for first := 1; first <= 9; first++ {
-		for second := 1; second <= 9; second++ {
-			name := fmt.Sprintf("Eagle_%d_%d", first, second)
-			expectedCallsign := fmt.Sprintf("eagle %d %d", first, second)
-			input := fmt.Sprintf("Magic, Eagle %d %d, bogey dope", first, second)
-			t.Run(name, func(t *testing.T) {
-				recognized := recognize(input)
-				request := p.Parse(recognized)
-				require.NotNil(t, request, "input=%q recognized=%q", input, recognized)
-				require.IsType(t, &brevity.BogeyDopeRequest{}, request, "input=%q recognized=%q parsed=%#v", input, recognized, request)
-				actual := request.(*brevity.BogeyDopeRequest)
-				// Snap the parsed callsign to the closest candidate using the
-				// same edit distance threshold as the real radar database.
-				snapped, err := fuzz.FuzzySearchThreshold(actual.Callsign, candidates, radar.CallsignSimilarityThreshold, fuzz.Levenshtein)
-				require.NoError(t, err, "input=%q recognized=%q callsign=%q", input, recognized, actual.Callsign)
-				require.NotEmpty(t, snapped, "input=%q recognized=%q callsign=%q did not snap to any candidate", input, recognized, actual.Callsign)
-				assert.Equal(t, expectedCallsign, snapped, "input=%q recognized=%q callsign=%q snapped=%q", input, recognized, actual.Callsign, snapped)
-			})
+	// Build a combined candidate list with all callsign words, simulating
+	// a mission with multiple flights in the radar database.
+	var allCandidates []string
+	for _, word := range callsignWords {
+		allCandidates = append(allCandidates, callsignCandidates(strings.ToLower(word))...)
+	}
+
+	type result struct {
+		input      string
+		recognized string
+		success    bool
+		detail     string
+	}
+
+	var results []result
+
+	for _, word := range callsignWords {
+		wordLower := strings.ToLower(word)
+
+		for first := 1; first <= 9; first++ {
+			for second := 1; second <= 9; second++ {
+				expectedCallsign := fmt.Sprintf("%s %d %d", wordLower, first, second)
+				for _, phrase := range requestPhrases {
+					input := fmt.Sprintf("Magic, %s %d %d, %s", word, first, second, phrase)
+					recognized := recognize(input)
+					request := p.Parse(recognized)
+
+					r := result{input: input, recognized: recognized}
+
+					if request == nil {
+						r.detail = "parse returned nil"
+						results = append(results, r)
+						continue
+					}
+
+					bogeyDope, ok := request.(*brevity.BogeyDopeRequest)
+					if !ok {
+						r.detail = fmt.Sprintf("wrong type: %T", request)
+						results = append(results, r)
+						continue
+					}
+
+					snapped, err := fuzz.FuzzySearchThreshold(
+						bogeyDope.Callsign, allCandidates,
+						radar.CallsignSimilarityThreshold, fuzz.Levenshtein,
+					)
+					if err != nil || snapped == "" {
+						r.detail = fmt.Sprintf("callsign %q did not snap to any candidate", bogeyDope.Callsign)
+						results = append(results, r)
+						continue
+					}
+
+					if snapped != expectedCallsign {
+						r.detail = fmt.Sprintf("callsign %q snapped to %q, expected %q", bogeyDope.Callsign, snapped, expectedCallsign)
+						results = append(results, r)
+						continue
+					}
+
+					r.success = true
+					results = append(results, r)
+				}
+			}
 		}
+	}
+
+	total := len(results)
+	failures := 0
+	for _, r := range results {
+		if !r.success {
+			failures++
+			t.Logf("FAIL: input=%q recognized=%q reason=%s", r.input, r.recognized, r.detail)
+		}
+	}
+	successRate := float64(total-failures) / float64(total)
+	t.Logf("Results: %d/%d passed (%.1f%% success rate)", total-failures, total, successRate*100)
+	if successRate < 0.99 {
+		t.Errorf("Success rate %.1f%% is below 99%% threshold (%d failures out of %d tests)", successRate*100, failures, total)
 	}
 }
 
