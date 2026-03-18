@@ -13,6 +13,10 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// CallsignSimilarityThreshold is the minimum Levenshtein similarity score
+// required for fuzzy callsign matching (0.0-1.0).
+const CallsignSimilarityThreshold = 0.63
+
 // contactDatabase is a thread-safe trackfile contactDatabase.
 type contactDatabase struct {
 	lock        sync.RWMutex
@@ -45,7 +49,7 @@ func (db *contactDatabase) getByCallsignAndCoalititon(callsign string, coalition
 		}
 		logger.Info().Msg("callsign not found in index, attempting fuzzy search")
 		var err error
-		foundCallsign, err = fuzz.FuzzySearchThreshold(callsign, keys, 0.63, fuzz.Levenshtein)
+		foundCallsign, err = fuzz.FuzzySearchThreshold(callsign, keys, CallsignSimilarityThreshold, fuzz.Levenshtein)
 		if foundCallsign == "" || err != nil {
 			logger.Warn().Err(err).Msg("callsign not found in index")
 			return "", nil, false

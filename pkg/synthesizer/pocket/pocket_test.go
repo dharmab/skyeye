@@ -12,16 +12,30 @@ import (
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/parser"
+	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/recognizer/parakeet"
 	parakeetmodel "github.com/dharmab/skyeye/pkg/recognizer/parakeet/model"
 	"github.com/dharmab/skyeye/pkg/synthesizer/pocket"
 	pocketmodel "github.com/dharmab/skyeye/pkg/synthesizer/pocket/model"
+	fuzz "github.com/hbollon/go-edlib"
 	"github.com/martinlindhe/unit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 const gciCallsign = "Magic"
+
+// eagleCandidates returns all "eagle X Y" callsigns from 1 1 to 9 9,
+// simulating the candidate list that would exist in the radar database.
+func eagleCandidates() []string {
+	candidates := make([]string, 0, 81)
+	for f := 1; f <= 9; f++ {
+		for s := 1; s <= 9; s++ {
+			candidates = append(candidates, fmt.Sprintf("eagle %d %d", f, s))
+		}
+	}
+	return candidates
+}
 
 // newPipeline sets up the TTS speaker, STT recognizer, and parser for integration tests.
 // It skips the test if model files are not available.
@@ -110,7 +124,10 @@ func TestRoundTripPicture(t *testing.T) {
 	request := p.Parse(recognized)
 	require.IsType(t, &brevity.PictureRequest{}, request)
 	actual := request.(*brevity.PictureRequest)
-	assert.Equal(t, "eagle 2 1", actual.Callsign)
+	// Snap callsign using edit distance, mirroring the real radar database.
+	snapped, err := fuzz.FuzzySearchThreshold(actual.Callsign, eagleCandidates(), radar.CallsignSimilarityThreshold, fuzz.Levenshtein)
+	require.NoError(t, err)
+	assert.Equal(t, "eagle 2 1", snapped, "callsign=%q did not snap to eagle 2 1", actual.Callsign)
 }
 
 func TestRoundTripSpiked(t *testing.T) {
@@ -128,10 +145,14 @@ func TestRoundTripSpiked(t *testing.T) {
 
 // TestRoundTripCallsignNumbers tests TTS→STT→parser round trips for all
 // two-digit callsign number combinations from "1 1" to "9 9".
+// The callsign comparison uses edit distance to snap to the closest candidate,
+// mirroring the fuzzy callsign matching used in the real application.
 func TestRoundTripCallsignNumbers(t *testing.T) {
 	t.Parallel()
 	speaker, p, recognize := newPipeline(t)
 	defer speaker.Close()
+
+	candidates := eagleCandidates()
 
 	for first := 1; first <= 9; first++ {
 		for second := 1; second <= 9; second++ {
@@ -144,7 +165,12 @@ func TestRoundTripCallsignNumbers(t *testing.T) {
 				require.NotNil(t, request, "input=%q recognized=%q", input, recognized)
 				require.IsType(t, &brevity.BogeyDopeRequest{}, request, "input=%q recognized=%q parsed=%#v", input, recognized, request)
 				actual := request.(*brevity.BogeyDopeRequest)
-				assert.Equal(t, expectedCallsign, actual.Callsign, "input=%q recognized=%q", input, recognized)
+				// Snap the parsed callsign to the closest candidate using the
+				// same edit distance threshold as the real radar database.
+				snapped, err := fuzz.FuzzySearchThreshold(actual.Callsign, candidates, radar.CallsignSimilarityThreshold, fuzz.Levenshtein)
+				require.NoError(t, err, "input=%q recognized=%q callsign=%q", input, recognized, actual.Callsign)
+				require.NotEmpty(t, snapped, "input=%q recognized=%q callsign=%q did not snap to any candidate", input, recognized, actual.Callsign)
+				assert.Equal(t, expectedCallsign, snapped, "input=%q recognized=%q callsign=%q snapped=%q", input, recognized, actual.Callsign, snapped)
 			})
 		}
 	}
