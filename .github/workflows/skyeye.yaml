@@ -1,7 +1,7 @@
 name: SkyEye
 on:
   push:
-    branches: [main, v2-dev, pocket-tts]
+    branches: [main, v2-dev]
   pull_request:
     branches: [main, v2-dev, pocket-tts]
   release:
