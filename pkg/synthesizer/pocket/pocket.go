@@ -3,6 +3,7 @@ package pocket
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -88,6 +89,7 @@ func New(modelDir string, opts ...Option) (*Speaker, error) {
 		ReferenceSampleRate: refRate,
 		NumSteps:            o.numSteps,
 		Speed:               1.0,
+		Extra:               json.RawMessage(`{"temperature": 0.4}`),
 	}
 
 	return &Speaker{
