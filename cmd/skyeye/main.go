@@ -53,6 +53,7 @@ var (
 	telemetryUpdateInterval      time.Duration
 	recognizerLockPath           string
 	voiceFile                    string
+	voiceMultithreading          int
 	mute                         bool
 	voiceVolume                  float64
 	voiceLockPath                string
@@ -123,6 +124,7 @@ func init() {
 
 	// Text-to-speech
 	skyeye.Flags().StringVar(&voiceFile, "voice-file", "", "Path to WAV file for custom voice cloning. Uses built-in default if not set.")
+	skyeye.Flags().IntVar(&voiceMultithreading, "voice-multithreading", 2, "Number of threads for TTS inference")
 	skyeye.Flags().Float64Var(&voiceVolume, "voice-volume", voiceVolumeDefault, fmt.Sprintf("Volume level for audio output (%v = silent, %v = normal)", voiceVolumeMin, voiceVolumeDefault))
 	skyeye.Flags().BoolVar(&mute, "mute", false, "Mute all SRS transmissions. Useful for testing without disrupting play")
 	skyeye.Flags().StringVar(&voiceLockPath, "voice-lock-path", "", "Path to lock file for concurrent text-to-speech when using multiple instances")
@@ -412,6 +414,7 @@ func run(_ *cobra.Command, _ []string) {
 		RadarSweepInterval:           telemetryUpdateInterval,
 		RecognizerLock:               recognizerLock,
 		VoiceFile:                    voiceFile,
+		VoiceMultithreading:          voiceMultithreading,
 		VoiceLock:                    voiceLock,
 		Mute:                         mute,
 		Volume:                       volume,

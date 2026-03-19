@@ -51,6 +51,8 @@ type Configuration struct {
 	// VoiceFile is the path to a custom WAV file for voice cloning.
 	// If empty, the embedded default voice is used.
 	VoiceFile string
+	// VoiceMultithreading is the number of threads for TTS inference.
+	VoiceMultithreading int
 	// VoiceLock is a file-based lock to control multiple instances running TTS at the same time.
 	VoiceLock *flock.Flock
 	// Mute disables SRS transmissions

@@ -18,8 +18,9 @@ import (
 )
 
 type options struct {
-	voiceFile string
-	numSteps  int
+	voiceFile  string
+	numSteps   int
+	numThreads int
 }
 
 // Option configures Speaker behavior.
@@ -41,6 +42,16 @@ func WithNumSteps(n int) Option {
 	}
 }
 
+// WithThreads sets the number of threads for ONNX Runtime inference (default 2).
+// 1 thread performs worse in benchmarks but may be useful when running SkyEye
+// alongside other applications such as DCS World.
+// More than 2 threads regressed in performance due to threading overhead.
+func WithThreads(n int) Option {
+	return func(o *options) {
+		o.numThreads = n
+	}
+}
+
 // Speaker implements speakers.Speaker using Pocket TTS.
 type Speaker struct {
 	tts       *sherpa.OfflineTts
@@ -52,7 +63,8 @@ var _ speakers.Speaker = (*Speaker)(nil)
 // New creates a Speaker. modelDir must contain the Pocket TTS model files.
 func New(modelDir string, opts ...Option) (*Speaker, error) {
 	o := &options{
-		numSteps: 10,
+		numSteps:   10,
+		numThreads: 2,
 	}
 	for _, opt := range opts {
 		opt(o)
@@ -69,7 +81,7 @@ func New(modelDir string, opts ...Option) (*Speaker, error) {
 				VocabJson:       filepath.Join(modelDir, model.FilenameVocabJSON),
 				TokenScoresJson: filepath.Join(modelDir, model.FilenameTokenScoresJSON),
 			},
-			NumThreads: 1,
+			NumThreads: o.numThreads,
 			Debug:      0,
 		},
 	}

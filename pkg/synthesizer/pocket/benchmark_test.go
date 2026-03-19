@@ -2,6 +2,7 @@ package pocket
 
 import (
 	"flag"
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -37,5 +38,28 @@ func BenchmarkPocketSpeaker(b *testing.B) {
 				require.NoError(b, err)
 			}
 		})
+	}
+}
+
+func BenchmarkPocketSpeakerThreads(b *testing.B) {
+	b.Skip("enable manually to compare thread counts")
+	threadCounts := []int{1, 2, 4, 8}
+
+	for _, threads := range threadCounts {
+		speaker, err := New(*modelPath, WithThreads(threads))
+		require.NoError(b, err)
+
+		b.Run(fmt.Sprintf("Threads%d", threads), func(b *testing.B) {
+			for _, phrase := range phrases {
+				b.Run(phrase.name, func(b *testing.B) {
+					for b.Loop() {
+						_, err := speaker.Say(b.Context(), phrase.text)
+						require.NoError(b, err)
+					}
+				})
+			}
+		})
+
+		speaker.Close()
 	}
 }

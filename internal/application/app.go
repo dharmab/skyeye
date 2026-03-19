@@ -190,6 +190,9 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 	if config.VoiceFile != "" {
 		pocketOpts = append(pocketOpts, pocket.WithVoiceFile(config.VoiceFile))
 	}
+	if config.VoiceMultithreading > 0 {
+		pocketOpts = append(pocketOpts, pocket.WithThreads(config.VoiceMultithreading))
+	}
 	synthesizer, err := pocket.New(pocketDir, pocketOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct application: %w", err)
