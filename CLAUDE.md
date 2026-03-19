@@ -29,7 +29,7 @@ SkyEye is an AI-powered GCI bot for DCS World that uses Parakeet TDT speech reco
 ## Make Targets
 
 **Build:** `make skyeye`, `make skyeye-scaler`, `make generate`
-**Test:** `make test`, `make benchmark-parakeet`
+**Test:** `make test`, `make benchmark-parakeet`, `make benchmark-pocket`
 **Quality:** `make lint`, `make vet`, `make fix`, `make format` (all required for PR approval)
 **Clean:** `make mostlyclean`, `make clean`
 **Dependencies:** `make install-{msys2,macos,arch-linux,debian,fedora}-dependencies`

@@ -151,6 +151,10 @@ integration-test: generate download-models
 benchmark-parakeet:
 	$(BUILD_VARS) $(GO) test -bench=. -run BenchmarkParakeetRecognizer ./pkg/recognizer/parakeet
 
+.PHONY: benchmark-pocket
+benchmark-pocket:
+	$(BUILD_VARS) $(GO) test $(BUILD_FLAGS) -bench=. -run BenchmarkPocketSpeaker ./pkg/synthesizer/pocket
+
 .PHONY: vet
 vet: generate
 	$(BUILD_VARS) $(GO) vet $(BUILD_FLAGS) ./...
