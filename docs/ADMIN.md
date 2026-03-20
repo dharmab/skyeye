@@ -124,66 +124,9 @@ SkyEye uses NVIDIA Parakeet TDT for speech recognition. The model is embedded in
 
 ## Speech Synthesis
 
-### Windows and Linux
+SkyEye uses Pocket TTS, a voice-cloning text-to-speech model, via sherpa-onnx. The TTS model files are automatically downloaded on first run (same as the Parakeet speech recognition model).
 
-SkyEye bundles two AI generated voices on Windows and Linux:
-
-* An Irish English feminine voice, based on ["Jenny" by Dioco](https://github.com/dioco-group/jenny-tts-dataset)
-* A British English masculine voice, based on [Alan Pope](https://popey.com/blog/)
-
-You can select between these voices using the `voice` configuration option. If you do not select a voice, the two voices are rotated based on the wall clock time when SkyEye is started.
-
-### macOS
-
-SkyEye uses AI generated voices built into macOS.
-
-By default, the "Samantha" voice is used. This is the version of Siri's voice from the iPhone 4s, iPhone 5 and iPhone 6, based on [Susan Bennett](https://susancbennett.com/).
-
-It is also possible to use one of the newer Siri voices. **I strongly recommend enabling one of the newer voices.**, because they provide excellent quality, nearly indistinguishable from a human voice.
-
-Not all Siri voices work equally well; many struggle to pronounce aviation terminology. I've manually validated a voice for each version of macOS:
-
-#### macOS 26 Tahoe
-
-On macOS 26 Tahoe, the best voice is **Siri Voice 2**.
-
-1. Open System Settings
-2. Click on "Accessibility"
-3. Click on "Siri"
-4. If the system language is not English, set the system speech language to English
-5. Next to "System Voice", click the "i" button
-6. In the list of languages, make sure "English" is selected
-7. Click on "Voice"
-8. Scroll down to "Siri".
-9. Download Siri Voice 2.
-10. Click "Done"
-11. Set the system voice to Siri Voice 2.
-
-#### macOS 15 Tahoe
-
-On macOS 15 Sequoia, the best voice is **Siri Voice 5**.
-
-1. Open System Settings
-2. Click on "Accessibility"
-3. Click on "Spoken Content"
-4. If the system language is not English, set the system speech language to English
-5. Next to "System Voice", click the "i" button
-6. In the list of languages, make sure "English" is selected
-7. Click on "Voice"
-8. Scroll down to "Siri".
-9. Download the English (United States) Siri Voice 5.
-10. Click "Done"
-11. Set the system voice to Siri Voice 5.
-
-#### Testing the System Voice
-
-To test your change, open Terminal and run this command:
-
-```sh
-say "Hello! This should be read in the voice you chose."
-```
-
-Finally, to use the selected voice instead of Samantha, set SkyEye's `use-system-voice` configuration option to `true`.
+By default, SkyEye uses an embedded reference voice. You can provide your own reference voice for voice cloning using the `voice-file` configuration option. The file must be a 16-bit PCM mono WAV file containing a few seconds of clear speech.
 
 ## Networking
 
@@ -471,12 +414,6 @@ Configure SkyEye by editing the config file at `$(brew --prefix)/etc/skyeye/conf
 
 ```sh
 $EDITOR "$(brew --prefix)/etc/skyeye/config.yaml"
-```
-
-It is strongly recommended to configure the system voice as documented in [Speech Synthesis section](#speech-synthesis), and configure SkyEye to use the system voice:
-
-```yaml
-use-system-voice: true
 ```
 
 To start SkyEye, and automatically start it on login:

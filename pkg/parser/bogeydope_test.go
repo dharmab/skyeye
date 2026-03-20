@@ -190,6 +190,20 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
+		{
+			text: TestCallsign + ", Ford 1-1, bogey dope.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "ford 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", Ford 1-1, bogey dope, fighters.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "ford 1 1",
+				Filter:   brevity.FixedWing,
+			},
+		},
 	}
 	simpleCases := []string{
 		"request 'BOGIDOPE",
@@ -314,6 +328,36 @@ func TestParserBogeyDope(t *testing.T) {
 		"BUCKDOP",
 		"BOGGADOP",
 		"Buck it up",
+		"BODIDODA",
+		"Bougie Dough",
+		"Bougie",
+		"Vogie Doe",
+		"Vogie",
+		"WAJIDOKE",
+		"Dody Dot",
+		"Ody Do",
+		"Bohy Dog",
+		"OG Doway",
+		"OG Dode Do",
+		"OG Dote",
+		"OG Doi",
+		"Bohi Day Doi D",
+		"Boti Doty",
+		"Bo G Doti",
+		"Mogi Dogie Dose",
+		"Ogie Doi Doge",
+		"Bobie Dogie Dogie", //nolint:dupword // intentional STT garble
+		"Boj Doy Dok",
+		"Vogee Dogie Dogie Dog", //nolint:dupword // intentional STT garble
+		"OG Day Dough",
+		"Budgie Doey Dog",
+		"Boyido De",
+		"Bodhi Doe",
+		"Bojy Dud",
+		"Moji Doti",
+		"Boy Do",
+		"Vojidoji",
+		"Vaughi Do",
 	}
 	for _, text := range simpleCases {
 		tc := parserTestCase{

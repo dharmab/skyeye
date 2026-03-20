@@ -143,9 +143,17 @@ run:
 test: generate
 	$(BUILD_VARS) $(GO) tool gotestsum -- $(BUILD_FLAGS) $(TEST_FLAGS) ./...
 
+.PHONY: integration-test
+integration-test: generate download-models
+	SKYEYE_MODELS_PATH=$(CURDIR)/models $(BUILD_VARS) $(GO) tool gotestsum -- -tags 'nolibopusfile integration' -ldflags '$(LDFLAGS)' -timeout 45m $(TEST_FLAGS) ./...
+
 .PHONY: benchmark-parakeet
 benchmark-parakeet:
 	$(BUILD_VARS) $(GO) test -bench=. -run BenchmarkParakeetRecognizer ./pkg/recognizer/parakeet
+
+.PHONY: benchmark-pocket
+benchmark-pocket:
+	$(BUILD_VARS) $(GO) test $(BUILD_FLAGS) -bench=. -run BenchmarkPocketSpeaker ./pkg/synthesizer/pocket
 
 .PHONY: vet
 vet: generate

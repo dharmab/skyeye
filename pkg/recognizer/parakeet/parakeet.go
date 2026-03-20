@@ -66,6 +66,9 @@ func (r *parakeetRecognizer) Recognize(_ context.Context, pcm []float32, enableT
 	stream.AcceptWaveform(int(rate.Wideband.Hertz()), pcm)
 	r.recognizer.Decode(stream)
 	result := stream.GetResult()
+	if result == nil {
+		return "", errors.New("recognition returned no result")
+	}
 
 	text := strings.TrimSpace(result.Text)
 

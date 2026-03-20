@@ -9,8 +9,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"reflect"
-	"runtime"
 	"runtime/pprof"
 	"strings"
 	"sync"
@@ -28,8 +26,9 @@ import (
 	"github.com/dharmab/skyeye/internal/cli"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
-	parakeetmodel "github.com/dharmab/skyeye/pkg/recognizer/parakeet/model"
-	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
+	"github.com/dharmab/skyeye/pkg/models"
+	parakeet "github.com/dharmab/skyeye/pkg/recognizer/parakeet/model"
+	pocket "github.com/dharmab/skyeye/pkg/synthesizer/pocket/model"
 )
 
 // Used for CLI configuration values.
@@ -54,12 +53,10 @@ var (
 	coalitionName                string
 	telemetryUpdateInterval      time.Duration
 	recognizerLockPath           string
-	voiceName                    string
-	useSystemVoice               bool
+	voiceFile                    string
+	voiceMultithreading          int
 	mute                         bool
-	voiceSpeed                   float64
 	voiceVolume                  float64
-	voicePauseLength             time.Duration
 	voiceLockPath                string
 	enableAutomaticPicture       bool
 	automaticPictureInterval     time.Duration
@@ -85,6 +82,9 @@ const (
 
 func init() {
 	skyeye.Flags().StringVar(&configFile, "config-file", "/etc/skyeye/config.yaml", "Path to config file")
+	if err := skyeye.MarkFlagFilename("config-file"); err != nil {
+		log.Fatal().Err(err).Msg("failed to mark flag as filename")
+	}
 
 	// Logging
 	logLevelFlag := cli.NewEnum(&logLevel, "Level", "info", "error", "warn", "info", "debug", "trace")
@@ -120,27 +120,24 @@ func init() {
 	skyeye.Flags().Var(coalitionFlag, "coalition", "GCI coalition (blue, red)")
 
 	// AI models
-	skyeye.Flags().StringVar(&modelsPath, "models-path", "models", "Base directory containing model files")
+	skyeye.Flags().StringVar(&modelsPath, "models-path", "models", "Directory where AI models are downloaded and stored")
+	if err := skyeye.MarkFlagDirname("models-path"); err != nil {
+		log.Fatal().Err(err).Msg("failed to mark flag as dirname")
+	}
 	skyeye.Flags().BoolVar(&downloadModels, "download-models", true, "Automatically download model files if missing")
 
 	// Speech-to-text
 	skyeye.Flags().StringVar(&recognizerLockPath, "recognizer-lock-path", "", "Path to lock file for concurrent speech-to-text when using multiple instances")
 
 	// Text-to-speech
-	voiceFlag := cli.NewEnum(&voiceName, "Voice", "", "feminine", "masculine")
-	skyeye.Flags().Var(voiceFlag, "voice", "Voice to use for SRS transmissions (feminine, masculine). Automatically chosen if not provided.")
-	skyeye.Flags().Float64Var(&voiceSpeed, "voice-playback-speed", 1.0, "How quickly the GCI speaks (values below 1.0 are faster and above are slower).")
+	skyeye.Flags().StringVar(&voiceFile, "voice-file", "", "WAV file containing 5-10 seconds of dialog to mimic. A built-in voice is used if this is not provided.")
+	if err := skyeye.MarkFlagFilename("voice-file"); err != nil {
+		log.Fatal().Err(err).Msg("failed to mark flag as filename")
+	}
+	skyeye.Flags().IntVar(&voiceMultithreading, "voice-multithreading", 2, "Number of threads used for voice synthesis. Values higher than 2 seem to reduce performance due to threading overhead")
 	skyeye.Flags().Float64Var(&voiceVolume, "voice-volume", voiceVolumeDefault, fmt.Sprintf("Volume level for audio output (%v = silent, %v = normal)", voiceVolumeMin, voiceVolumeDefault))
 	skyeye.Flags().BoolVar(&mute, "mute", false, "Mute all SRS transmissions. Useful for testing without disrupting play")
 	skyeye.Flags().StringVar(&voiceLockPath, "voice-lock-path", "", "Path to lock file for concurrent text-to-speech when using multiple instances")
-	if runtime.GOOS == "darwin" {
-		skyeye.Flags().BoolVar(&useSystemVoice, "use-system-voice", false, "Use the System Voice chosen in the Spoken Content page in System Settings instead of Samantha.")
-		if err := skyeye.Flags().MarkDeprecated("voice", "Select a voice in System Settings and use --use-system-voice instead."); err != nil {
-			log.Fatal().Err(err).Msg("failed to mark flag as deprecated")
-		}
-	} else {
-		skyeye.Flags().DurationVar(&voicePauseLength, "voice-playback-pause", 200*time.Millisecond, "How long the GCI pauses between sentences.")
-	}
 
 	// Controller behavior
 	skyeye.Flags().BoolVar(&enableAutomaticPicture, "auto-picture", true, "Enable automatic PICTURE broadcasts")
@@ -258,22 +255,6 @@ func randomizer() (rando *rand.Rand) {
 	return
 }
 
-func loadVoice(rando *rand.Rand) (voice voices.Voice) {
-	options := map[string]voices.Voice{
-		"feminine":  voices.FeminineVoice,
-		"masculine": voices.MasculineVoice,
-	}
-	if voiceName == "" {
-		keys := reflect.ValueOf(options).MapKeys()
-		voice = options[keys[rando.IntN(len(keys))].String()]
-		log.Info().Type("voice", voice).Msg("randomly selected voice")
-	} else {
-		voice = options[voiceName]
-		log.Info().Type("voice", voice).Msg("selected voice")
-	}
-	return
-}
-
 func loadCallsign(rando *rand.Rand) (callsign string) {
 	var options []string
 	if controllerCallsign != "" {
@@ -301,36 +282,27 @@ func loadLock(path string) *flock.Flock {
 	return flock.New(path)
 }
 
+func setupModels(ctx context.Context) {
+	log.Info().Msg("setting up AI models")
+	var parakeetDownload, pocketDownload func(context.Context, string) error
+	if downloadModels {
+		parakeetDownload = parakeet.Download
+		pocketDownload = pocket.Download
+	}
+	if err := models.Setup(ctx, "parakeet", filepath.Join(modelsPath, parakeet.DirName), parakeet.Verify, parakeetDownload); err != nil {
+		log.Fatal().Err(err).Msg("failed to set up parakeet model")
+	}
+	if err := models.Setup(ctx, "pocket-tts", filepath.Join(modelsPath, pocket.DirName), pocket.Verify, pocketDownload); err != nil {
+		log.Fatal().Err(err).Msg("failed to set up pocket-tts model")
+	}
+}
+
 func loadVoiceVolume() float64 {
 	clamped := max(voiceVolumeMin, min(voiceVolume, voiceVolumeDefault))
 	if clamped != voiceVolume {
 		log.Warn().Float64("configured", voiceVolume).Float64("clamped", clamped).Msg("clamping voice volume to valid range")
 	}
 	return clamped
-}
-
-func setupParakeetModel(ctx context.Context, parakeetDir string, downloadModels bool) {
-	log.Info().Msg("verifying Parakeet model files")
-	if err := parakeetmodel.Verify(parakeetDir); err != nil {
-		var corruptErr *parakeetmodel.CorruptFileError
-		if errors.As(err, &corruptErr) {
-			log.Fatal().Err(err).Msg("Parakeet model files on disk failed verification")
-		}
-		var notFoundErr *parakeetmodel.FileNotFoundError
-		if errors.As(err, &notFoundErr) {
-			log.Warn().Err(err).Msg("Parakeet model files not found")
-			if downloadModels {
-				log.Info().Msg("downloading Parakeet model files")
-				if err := parakeetmodel.Download(ctx, parakeetDir); err != nil {
-					log.Fatal().Err(err).Msg("failed to download Parakeet model")
-				}
-			} else {
-				log.Fatal().Err(err).Msg("no Parakeet model files found")
-			}
-		}
-	} else {
-		log.Info().Msg("Parakeet model files verified")
-	}
 }
 
 func preRun(cmd *cobra.Command, _ []string) error {
@@ -370,13 +342,11 @@ func run(_ *cobra.Command, _ []string) {
 		os.Exit(0)
 	}()
 
-	parakeetDir := filepath.Join(modelsPath, parakeetmodel.DirName)
-	setupParakeetModel(ctx, parakeetDir, downloadModels)
+	setupModels(ctx)
 
 	log.Info().Msg("loading configuration")
 	coalition := loadCoalition()
 	rando := randomizer()
-	voice := loadVoice(rando)
 	callsign := loadCallsign(rando)
 	parsedSRSFrequencies := cli.LoadFrequencies(srsFrequencies)
 	voiceLock := loadLock(voiceLockPath)
@@ -399,13 +369,11 @@ func run(_ *cobra.Command, _ []string) {
 		Coalition:                    coalition,
 		RadarSweepInterval:           telemetryUpdateInterval,
 		RecognizerLock:               recognizerLock,
-		Voice:                        voice,
-		UseSystemVoice:               useSystemVoice,
+		VoiceFile:                    voiceFile,
+		VoiceMultithreading:          voiceMultithreading,
 		VoiceLock:                    voiceLock,
 		Mute:                         mute,
-		VoiceSpeed:                   voiceSpeed,
 		Volume:                       volume,
-		VoicePauseLength:             voicePauseLength,
 		EnableAutomaticPicture:       enableAutomaticPicture,
 		PictureBroadcastInterval:     automaticPictureInterval,
 		EnableThreatMonitoring:       enableThreatMonitoring,
@@ -428,6 +396,7 @@ func run(_ *cobra.Command, _ []string) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to start application")
 	}
+	defer app.Close()
 	err = app.Run(ctx, cancel, &wg)
 	if err != nil {
 		log.Fatal().Err(err).Msg("application exited with error")

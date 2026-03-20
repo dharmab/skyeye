@@ -1,4 +1,4 @@
-// Package model provides download and verification of Parakeet TDT model files.
+// Package model provides download and verification of Pocket TTS model files.
 // This package has no CGO dependencies and can be built with CGO_ENABLED=0.
 package model
 
@@ -13,8 +13,8 @@ func Verify(dir string) error {
 	return models.Verify(dir, Filenames, fileHashes)
 }
 
-// Download downloads the Parakeet TDT model archive, verifies its SHA256 hash,
+// Download downloads the Pocket TTS model archive, verifies its SHA256 hash,
 // extracts the required files into dir, and verifies their individual hashes.
 func Download(ctx context.Context, dir string) error {
-	return models.Download(ctx, "parakeet", modelURL, archiveHash, dir, Filenames, fileHashes)
+	return models.Download(ctx, "pocket", modelURL, archiveHash, dir, Filenames, fileHashes)
 }

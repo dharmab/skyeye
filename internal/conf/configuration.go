@@ -5,7 +5,6 @@ import (
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
-	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/gofrs/flock"
 	"github.com/martinlindhe/unit"
 )
@@ -49,21 +48,17 @@ type Configuration struct {
 	RadarSweepInterval time.Duration
 	// RecognizerLock is a file-based lock to control multiple instances running the recognizer at the same time.
 	RecognizerLock *flock.Flock
-	// Voice is the voice used for SRS transmissions
-	Voice voices.Voice
-	// UseSystemVoice controls whether to use the System Voice on macOS. This allows use of current Siri voices,
-	// but requires additional configuration in System Settings.
-	UseSystemVoice bool
-	// VoiceLock is a file-based lock to control multiple instances running Piper at the same time.
+	// VoiceFile is the path to a custom WAV file for voice cloning.
+	// If empty, the embedded default voice is used.
+	VoiceFile string
+	// VoiceMultithreading is the number of threads for TTS inference.
+	VoiceMultithreading int
+	// VoiceLock is a file-based lock to control multiple instances running TTS at the same time.
 	VoiceLock *flock.Flock
 	// Mute disables SRS transmissions
 	Mute bool
-	// Piper playback speed (default is 1.0) - The higher the value the slower it is.
-	VoiceSpeed float64
 	// Volume level for audio output (default is 1.0)
 	Volume float64
-	// Piper playback pause after every sentence in seconds (default is 0.2)
-	VoicePauseLength time.Duration
 	// EnableAutomaticPicture controls whether the controller will automatically broadcast a PICTURE at regular intervals.
 	EnableAutomaticPicture bool
 	// PictureBroadcastInterval is the interval at which the controller will automatically broadcast a PICTURE.
@@ -97,5 +92,3 @@ var DefaultCallsigns = []string{"Sky Eye", "Thunderhead", "Eagle Eye", "Ghost Ey
 var DefaultPictureRadius = 300 * unit.NauticalMile
 
 const DefaultMarginRadius = 3 * unit.NauticalMile
-
-var DefaultPlaybackSpeed = 1.0

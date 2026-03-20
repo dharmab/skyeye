@@ -2,21 +2,21 @@
 
 SkyEye is an AI-powered GCI bot for DCS World that uses Parakeet TDT speech recognition (via sherpa-onnx), Tacview telemetry, and TTS to replace in-game AWACS with natural language command processing following real-world aviation brevity codes.
 
-**Stack:** Go 1.26 + CGO, sherpa-onnx (Parakeet TDT), Piper TTS (Windows/Linux), macOS Speech Synthesis, Tacview ACMI, SRS protocol
+**Stack:** Go 1.26 + CGO, sherpa-onnx (Parakeet TDT + Pocket TTS), Tacview ACMI, SRS protocol
 
 ## Platform Support
 
 | Platform | Arch | Status | TTS | Linking | Runtime Deps |
 |----------|------|--------|-----|---------|--------------|
-| **Windows** | AMD64 | ✅ | Piper (embedded) | Static | None - fully portable exe |
-| **Linux** | AMD64 | ✅ | Piper (embedded) | Dynamic opus/soxr | libopus0, libsoxr0 |
-| **macOS** | ARM64 | ✅ | System (Neural Engine) | Dynamic opus/soxr | Homebrew opus, libsoxr |
+| **Windows** | AMD64 | ✅ | Pocket TTS (sherpa-onnx) | Static | None - fully portable exe |
+| **Linux** | AMD64 | ✅ | Pocket TTS (sherpa-onnx) | Dynamic opus/soxr | libopus0, libsoxr0 |
+| **macOS** | ARM64 | ✅ | Pocket TTS (sherpa-onnx) | Dynamic opus/soxr | Homebrew opus, libsoxr |
 | macOS Intel | AMD64 | ❌ | - | - | No test hardware |
 
 **Key Differences:**
 - **Windows:** MUST build in MSYS2 UCRT64 (not cmd/PowerShell), static linking, portable binary
 - **Linux:** Standard Unix build, requires runtime libraries, good for containers
-- **macOS:** Uses Apple Clang (system compiler), `--use-system-voice` flag available
+- **macOS:** Uses Apple Clang (system compiler)
 - **Cross-compilation:** Not supported - must build on target platform
 
 ## Critical: Use Make, Not Go Commands
@@ -29,7 +29,7 @@ SkyEye is an AI-powered GCI bot for DCS World that uses Parakeet TDT speech reco
 ## Make Targets
 
 **Build:** `make skyeye`, `make skyeye-scaler`, `make generate`
-**Test:** `make test`, `make benchmark-parakeet`
+**Test:** `make test`, `make benchmark-parakeet`, `make benchmark-pocket`
 **Quality:** `make lint`, `make vet`, `make fix`, `make format` (all required for PR approval)
 **Clean:** `make mostlyclean`, `make clean`
 **Dependencies:** `make install-{msys2,macos,arch-linux,debian,fedora}-dependencies`
@@ -52,18 +52,19 @@ pkg/                           - Public APIs
   recognizer/                  - Speech recognition (Parakeet TDT via sherpa-onnx)
   recognizer/model/            - Embedded model files (encoder/decoder/joiner ONNX + tokens.txt)
   simpleradio/                 - SRS protocol client
-  synthesizer/speakers/        - Platform-specific TTS (macos.go, piper.go)
+  synthesizer/pocket/          - Pocket TTS speaker (sherpa-onnx)
+  synthesizer/pocket/model/    - TTS model download/verify (no CGO)
+  synthesizer/pocket/voice/    - Embedded default reference voice (no CGO)
+  synthesizer/speakers/        - Speaker interface + resampling helpers
   tacview/                     - Telemetry parsing
   brevity/, parser/, composer/ - GCI command handling
 internal/                      - Private packages
-  application/                 - Platform detection & glue
+  application/                 - Application glue
   controller/, radar/, conf/   - Core logic
 ```
 
 **Architecture:** Players → SRS → simpleradio.Client → recognizer → parser → controller ← radar ← tacview ← DCS
-controller → composer → synthesizer (platform-specific) → simpleradio.Client → SRS
-
-Platform-specific code isolated to `pkg/synthesizer/speakers/{macos,piper}.go` and Makefile. Runtime detection: `runtime.GOOS` ("darwin"/"windows"/"linux").
+controller → composer → synthesizer → simpleradio.Client → SRS
 
 ## Common Pitfalls
 

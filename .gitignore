@@ -81,7 +81,7 @@ $RECYCLE.BIN/
 dev/
 
 # AI models
-models/
+/models/
 *.onnx
 *.nemo
 

@@ -34,6 +34,13 @@ func TestParserSpiked(t *testing.T) {
 				Bearing:  bearings.NewMagneticBearing(unit.Angle(120) * unit.Degree),
 			},
 		},
+		{
+			text: "anyface, Ford 1-1, spiked 1-8-0",
+			expected: &brevity.SpikedRequest{
+				Callsign: "ford 1 1",
+				Bearing:  bearings.NewMagneticBearing(unit.Angle(180) * unit.Degree),
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
