@@ -153,7 +153,7 @@ func run() error {
 		case <-ctx.Done():
 			log.Info().Msg("stopping application due to context cancelation")
 			wg.Wait()
-			return fmt.Errorf("failed to run: context canceled: %w", ctx.Err())
+			return fmt.Errorf("stopping application due to context cancelation: %w", ctx.Err())
 		case <-ticker.C:
 			callWebhook(ctx, client, srsClient)
 		}

@@ -190,6 +190,20 @@ func TestParserBogeyDope(t *testing.T) {
 				Filter:   brevity.Aircraft,
 			},
 		},
+		{
+			text: TestCallsign + ", Ford 1-1, bogey dope.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "ford 1 1",
+				Filter:   brevity.Aircraft,
+			},
+		},
+		{
+			text: TestCallsign + ", Ford 1-1, bogey dope, fighters.",
+			expected: &brevity.BogeyDopeRequest{
+				Callsign: "ford 1 1",
+				Filter:   brevity.FixedWing,
+			},
+		},
 	}
 	simpleCases := []string{
 		"request 'BOGIDOPE",

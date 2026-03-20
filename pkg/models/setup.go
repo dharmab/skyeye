@@ -15,30 +15,30 @@ func Setup(ctx context.Context, name, dir string, verify func(string) error, dow
 	logger := log.With().Str("model", name).Str("directory", dir).Logger()
 
 	logger.Info().Msg("verifying model files")
-	err := verify(dir)
-	if err == nil {
-		logger.Info().Msg("model files verified")
+	verifyErr := verify(dir)
+	if verifyErr == nil {
+		logger.Info().Msg("model files successfully verified")
 		return nil
 	}
 
 	// Corrupt files should not be silently re-downloaded.
-	if _, ok := errors.AsType[*CorruptFileError](err); ok {
-		return fmt.Errorf("model %s files on disk failed verification: %w", name, err)
+	if _, ok := errors.AsType[*CorruptFileError](verifyErr); ok {
+		return fmt.Errorf("model files on disk failed verification: %w", verifyErr)
 	}
 
 	// Missing files can be downloaded.
-	if _, ok := errors.AsType[*FileNotFoundError](err); ok {
+	if _, ok := errors.AsType[*FileNotFoundError](verifyErr); ok {
 		if download == nil {
-			return fmt.Errorf("model %s files not found: %w", name, err)
+			return fmt.Errorf("model files not found: %w", verifyErr)
 		}
-		logger.Warn().Err(err).Msg("model files not found")
+		logger.Warn().Err(verifyErr).Msg("model files not found")
 		logger.Info().Msg("downloading model files")
-		if dlErr := download(ctx, dir); dlErr != nil {
-			return fmt.Errorf("failed to download model %s: %w", name, dlErr)
+		if downloadErr := download(ctx, dir); downloadErr != nil {
+			return fmt.Errorf("failed to download model %s: %w", name, downloadErr)
 		}
 		return nil
 	}
 
 	// Unexpected error (e.g. permission denied).
-	return fmt.Errorf("failed to verify model %s files: %w", name, err)
+	return fmt.Errorf("failed to verify model files: %w", verifyErr)
 }

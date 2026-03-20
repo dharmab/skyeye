@@ -67,13 +67,14 @@ func stripOrdinalSuffix(s string) string {
 	return s
 }
 
-// deduplicateConsecutiveWords removes consecutive duplicate words,
-// e.g. "eagle eagle 2 7" → "eagle 2 7". This handles STT stutter
-// where words are repeated.
+// isDigitLike reports whether s contains digits or is a digit homophone.
 func isDigitLike(s string) bool {
 	return hasDigits(s) || digitHomophones[s] != ""
 }
 
+// deduplicateConsecutiveWords removes consecutive duplicate words,
+// e.g. "eagle eagle 2 7" → "eagle 2 7". This handles STT stutter
+// where words are repeated.
 func deduplicateConsecutiveWords(tx string) string {
 	fields := strings.Fields(tx)
 	if len(fields) <= 1 {
@@ -107,7 +108,8 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	// Discard "this is" prefix.
 	tx = strings.ReplaceAll(tx, "this is", "")
 
-	// Truncate at "request" — anything after it is part of the request, not the callsign.
+	// Truncate at "request" — not proper brevity, but some players say it.
+	// Anything after it is part of the request, not the callsign.
 	if idx := strings.Index(tx, "request"); idx >= 0 {
 		tx = tx[:idx]
 	}

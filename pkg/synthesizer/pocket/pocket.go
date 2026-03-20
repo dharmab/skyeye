@@ -130,7 +130,7 @@ func (s *Speaker) Say(ctx context.Context, text string) ([]float32, error) {
 	}
 
 	sourceRate := unit.Frequency(audio.SampleRate) * unit.Hertz
-	resampled, err := speakers.DownsampleF32(audio.Samples, sourceRate)
+	resampled, err := downsample(audio.Samples, sourceRate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resample pocket TTS output: %w", err)
 	}
