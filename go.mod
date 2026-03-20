@@ -9,6 +9,7 @@ require (
 	github.com/amitybell/piper-voice-jenny v0.0.0-20231118093224-dcf0d49e46b7
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/dharmab/goacmi v1.0.3
+	github.com/dharmab/numwords v1.0.1
 	github.com/gammazero/deque v0.2.1
 	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20241121150429-8c6a9b8bb6a0
 	github.com/go-audio/aiff v1.1.0
@@ -23,7 +24,6 @@ require (
 	github.com/pasztorpisti/go-crc v1.0.0
 	github.com/paulmach/orb v0.11.1
 	github.com/proway2/go-igrf v0.5.1
-	github.com/rodaine/numwords v0.0.0-20200910203654-405f4a455f79
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10

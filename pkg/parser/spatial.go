@@ -5,7 +5,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/martinlindhe/unit"
-	"github.com/rodaine/numwords"
+	"github.com/dharmab/numwords"
 	"github.com/rs/zerolog/log"
 )
 
