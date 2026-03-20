@@ -27,6 +27,13 @@ func TestParserStrobe(t *testing.T) {
 				Bearing:  bearings.NewMagneticBearing(unit.Angle(20) * unit.Degree),
 			},
 		},
+		{
+			text: "anyface, Ford 1-1, strobe 2-7-0",
+			expected: &brevity.StrobeRequest{
+				Callsign: "ford 1 1",
+				Bearing:  bearings.NewMagneticBearing(unit.Angle(270) * unit.Degree),
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()
