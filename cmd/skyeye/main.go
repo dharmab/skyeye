@@ -26,8 +26,9 @@ import (
 	"github.com/dharmab/skyeye/internal/cli"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
-	parakeetmodel "github.com/dharmab/skyeye/pkg/recognizer/parakeet/model"
-	pocketmodel "github.com/dharmab/skyeye/pkg/synthesizer/pocket/model"
+	"github.com/dharmab/skyeye/pkg/models"
+	parakeet "github.com/dharmab/skyeye/pkg/recognizer/parakeet/model"
+	pocket "github.com/dharmab/skyeye/pkg/synthesizer/pocket/model"
 )
 
 // Used for CLI configuration values.
@@ -81,6 +82,9 @@ const (
 
 func init() {
 	skyeye.Flags().StringVar(&configFile, "config-file", "/etc/skyeye/config.yaml", "Path to config file")
+	if err := skyeye.MarkFlagFilename("config-file"); err != nil {
+		log.Fatal().Err(err).Msg("failed to mark flag as filename")
+	}
 
 	// Logging
 	logLevelFlag := cli.NewEnum(&logLevel, "Level", "info", "error", "warn", "info", "debug", "trace")
@@ -116,15 +120,21 @@ func init() {
 	skyeye.Flags().Var(coalitionFlag, "coalition", "GCI coalition (blue, red)")
 
 	// AI models
-	skyeye.Flags().StringVar(&modelsPath, "models-path", "models", "Base directory containing model files")
+	skyeye.Flags().StringVar(&modelsPath, "models-path", "models", "Directory where AI models are downloaded and stored")
+	if err := skyeye.MarkFlagDirname("models-path"); err != nil {
+		log.Fatal().Err(err).Msg("failed to mark flag as dirname")
+	}
 	skyeye.Flags().BoolVar(&downloadModels, "download-models", true, "Automatically download model files if missing")
 
 	// Speech-to-text
 	skyeye.Flags().StringVar(&recognizerLockPath, "recognizer-lock-path", "", "Path to lock file for concurrent speech-to-text when using multiple instances")
 
 	// Text-to-speech
-	skyeye.Flags().StringVar(&voiceFile, "voice-file", "", "Path to WAV file for custom voice cloning. Uses built-in default if not set.")
-	skyeye.Flags().IntVar(&voiceMultithreading, "voice-multithreading", 2, "Number of threads for TTS inference")
+	skyeye.Flags().StringVar(&voiceFile, "voice-file", "", "WAV file containing 5-10 seconds of dialog to mimic. A built-in voice is used if this is not provided.")
+	if err := skyeye.MarkFlagFilename("voice-file"); err != nil {
+		log.Fatal().Err(err).Msg("failed to mark flag as filename")
+	}
+	skyeye.Flags().IntVar(&voiceMultithreading, "voice-multithreading", 2, "Number of threads used for voice synthesis. Values higher than 2 seem to reduce performance due to threading overhead")
 	skyeye.Flags().Float64Var(&voiceVolume, "voice-volume", voiceVolumeDefault, fmt.Sprintf("Volume level for audio output (%v = silent, %v = normal)", voiceVolumeMin, voiceVolumeDefault))
 	skyeye.Flags().BoolVar(&mute, "mute", false, "Mute all SRS transmissions. Useful for testing without disrupting play")
 	skyeye.Flags().StringVar(&voiceLockPath, "voice-lock-path", "", "Path to lock file for concurrent text-to-speech when using multiple instances")
@@ -272,67 +282,27 @@ func loadLock(path string) *flock.Flock {
 	return flock.New(path)
 }
 
+func setupModels(ctx context.Context) {
+	log.Info().Msg("setting up AI models")
+	var parakeetDownload, pocketDownload func(context.Context, string) error
+	if downloadModels {
+		parakeetDownload = parakeet.Download
+		pocketDownload = pocket.Download
+	}
+	if err := models.Setup(ctx, "parakeet", filepath.Join(modelsPath, parakeet.DirName), parakeet.Verify, parakeetDownload); err != nil {
+		log.Fatal().Err(err).Msg("failed to set up parakeet model")
+	}
+	if err := models.Setup(ctx, "pocket-tts", filepath.Join(modelsPath, pocket.DirName), pocket.Verify, pocketDownload); err != nil {
+		log.Fatal().Err(err).Msg("failed to set up pocket-tts model")
+	}
+}
+
 func loadVoiceVolume() float64 {
 	clamped := max(voiceVolumeMin, min(voiceVolume, voiceVolumeDefault))
 	if clamped != voiceVolume {
 		log.Warn().Float64("configured", voiceVolume).Float64("clamped", clamped).Msg("clamping voice volume to valid range")
 	}
 	return clamped
-}
-
-// modelSetup holds the verify and download functions for a model, allowing
-// setupModel to work with both Parakeet and Pocket TTS models.
-type modelSetup struct {
-	name     string
-	dir      string
-	verify   func(string) error
-	download func(context.Context, string) error
-}
-
-func setupModel(ctx context.Context, m modelSetup, autoDownload bool) {
-	log.Info().Msgf("verifying %s model files", m.name)
-	err := m.verify(m.dir)
-	if err == nil {
-		log.Info().Msgf("%s model files verified", m.name)
-		return
-	}
-
-	// Check for corrupt files first — these should not be silently re-downloaded.
-	if hasCorruptFile(err) {
-		log.Fatal().Err(err).Msgf("%s model files on disk failed verification", m.name)
-	}
-
-	// Check for missing files.
-	if hasMissingFile(err) {
-		log.Warn().Err(err).Msgf("%s model files not found", m.name)
-		if autoDownload {
-			log.Info().Msgf("downloading %s model files", m.name)
-			if dlErr := m.download(ctx, m.dir); dlErr != nil {
-				log.Fatal().Err(dlErr).Msgf("failed to download %s model", m.name)
-			}
-			return
-		}
-		log.Fatal().Err(err).Msgf("no %s model files found", m.name)
-	}
-
-	// Unexpected error (e.g. permission denied).
-	log.Fatal().Err(err).Msgf("failed to verify %s model files", m.name)
-}
-
-// hasCorruptFile checks whether err (possibly a joined error) contains a CorruptFileError
-// from either the parakeet or pocket model packages.
-func hasCorruptFile(err error) bool {
-	var parakeetCorrupt *parakeetmodel.CorruptFileError
-	var pocketCorrupt *pocketmodel.CorruptFileError
-	return errors.As(err, &parakeetCorrupt) || errors.As(err, &pocketCorrupt)
-}
-
-// hasMissingFile checks whether err (possibly a joined error) contains a FileNotFoundError
-// from either the parakeet or pocket model packages.
-func hasMissingFile(err error) bool {
-	var parakeetNotFound *parakeetmodel.FileNotFoundError
-	var pocketNotFound *pocketmodel.FileNotFoundError
-	return errors.As(err, &parakeetNotFound) || errors.As(err, &pocketNotFound)
 }
 
 func preRun(cmd *cobra.Command, _ []string) error {
@@ -372,21 +342,7 @@ func run(_ *cobra.Command, _ []string) {
 		os.Exit(0)
 	}()
 
-	parakeetDir := filepath.Join(modelsPath, parakeetmodel.DirName)
-	setupModel(ctx, modelSetup{
-		name:     "Parakeet",
-		dir:      parakeetDir,
-		verify:   parakeetmodel.Verify,
-		download: parakeetmodel.Download,
-	}, downloadModels)
-
-	pocketDir := filepath.Join(modelsPath, pocketmodel.DirName)
-	setupModel(ctx, modelSetup{
-		name:     "Pocket TTS",
-		dir:      pocketDir,
-		verify:   pocketmodel.Verify,
-		download: pocketmodel.Download,
-	}, downloadModels)
+	setupModels(ctx)
 
 	log.Info().Msg("loading configuration")
 	coalition := loadCoalition()

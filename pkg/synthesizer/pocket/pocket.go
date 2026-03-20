@@ -93,7 +93,7 @@ func New(modelDir string, opts ...Option) (*Speaker, error) {
 
 	refAudio, refRate, err := loadReferenceAudio(o.voiceFile)
 	if err != nil {
-		return nil, fmt.Errorf("loading reference audio: %w", err)
+		return nil, fmt.Errorf("failed to load reference audio: %w", err)
 	}
 
 	genConfig := sherpa.GenerationConfig{
@@ -132,7 +132,7 @@ func (s *Speaker) Say(ctx context.Context, text string) ([]float32, error) {
 	sourceRate := unit.Frequency(audio.SampleRate) * unit.Hertz
 	resampled, err := speakers.DownsampleF32(audio.Samples, sourceRate)
 	if err != nil {
-		return nil, fmt.Errorf("resampling pocket TTS output: %w", err)
+		return nil, fmt.Errorf("failed to resample pocket TTS output: %w", err)
 	}
 
 	return resampled, nil
@@ -154,7 +154,7 @@ func loadReferenceAudio(voiceFile string) ([]float32, int, error) {
 
 	samples, sampleRate, err := voice.DecodeWAV(voice.DefaultVoice)
 	if err != nil {
-		return nil, 0, fmt.Errorf("decoding embedded default voice: %w", err)
+		return nil, 0, fmt.Errorf("failed to decode embedded default voice: %w", err)
 	}
 	log.Info().Msg("using default reference voice")
 	return samples, sampleRate, nil
@@ -163,11 +163,11 @@ func loadReferenceAudio(voiceFile string) ([]float32, int, error) {
 func loadVoiceFile(path string) ([]float32, int, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, 0, fmt.Errorf("reading voice file: %w", err)
+		return nil, 0, fmt.Errorf("failed to read voice file: %w", err)
 	}
 	samples, sampleRate, err := voice.DecodeWAV(data)
 	if err != nil {
-		return nil, 0, fmt.Errorf("decoding voice file: %w", err)
+		return nil, 0, fmt.Errorf("failed to decode voice file: %w", err)
 	}
 	log.Info().Str("path", path).Msg("using custom reference voice")
 	return samples, sampleRate, nil
