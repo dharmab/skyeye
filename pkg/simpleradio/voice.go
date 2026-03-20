@@ -3,6 +3,7 @@ package simpleradio
 import (
 	"context"
 
+	"github.com/dharmab/skyeye/pkg/pcm/rate"
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
 	"github.com/dharmab/skyeye/pkg/simpleradio/voice"
 	"github.com/lithammer/shortuuid/v3"
@@ -18,7 +19,7 @@ func (c *Client) decodeVoice(ctx context.Context, voicePacketsChan <-chan []voic
 	for {
 		select {
 		case voicePackets := <-voicePacketsChan:
-			decoder, err := opus.NewDecoder(int(sampleRate.Hertz()), channels)
+			decoder, err := opus.NewDecoder(int(rate.Wideband.Hertz()), channels)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to create Opus decoder")
 				continue
@@ -65,7 +66,7 @@ func (c *Client) encodeVoice(ctx context.Context, packetChan chan<- []voice.Pack
 	for {
 		select {
 		case transmission := <-c.txChan:
-			encoder, err := opus.NewEncoder(int(sampleRate.Hertz()), channels, opusApplicationVoIP)
+			encoder, err := opus.NewEncoder(int(rate.Wideband.Hertz()), channels, opusApplicationVoIP)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to create Opus encoder")
 				continue
