@@ -128,7 +128,7 @@ func (c *Client) initialize() error {
 
 	log.Info().Msg("reconnecting to external AWACS mode")
 	if err := c.connectExternalAWACSMode(); err != nil {
-		return fmt.Errorf("connecting external AWACS mode failed: %w", err)
+		return fmt.Errorf("failed to connect external AWACS mode: %w", err)
 	}
 
 	for _, receiver := range c.receivers {
