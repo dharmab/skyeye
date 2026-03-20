@@ -34,7 +34,8 @@ func (c *Client) newMessage(t types.MessageType) types.Message {
 		Version: "2.1.0.2", // stubbing fake SRS version, TODO add flag
 		Type:    t,
 	}
-	message.Client = c.clientInfo
+	client := c.clientInfo
+	message.Client = &client
 	return message
 }
 
@@ -51,14 +52,16 @@ func (c *Client) handleMessage(message types.Message) {
 		logMessageAndIgnore(message)
 	case types.MessageSync:
 		c.syncClients(message.Clients)
-	case types.MessageUpdate:
-		c.syncClient(message.Client)
-	case types.MessageRadioUpdate:
-		c.syncClient(message.Client)
+	case types.MessageUpdate, types.MessageRadioUpdate:
+		if message.Client != nil {
+			c.syncClient(*message.Client)
+		}
 	case types.MessageClientDisconnect:
-		c.removeClient(message.Client)
+		if message.Client != nil {
+			c.removeClient(*message.Client)
+		}
 	case types.MessageExternalAWACSModePassword:
-		if message.Client.Coalition == c.clientInfo.Coalition {
+		if message.Client != nil && message.Client.Coalition == c.clientInfo.Coalition {
 			log.Debug().Any("remoteClient", message.Client).Msg("received external AWACS mode password message")
 			// TODO is the update necessary?
 			if err := c.updateRadios(); err != nil {

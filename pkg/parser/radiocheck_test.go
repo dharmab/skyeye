@@ -82,6 +82,18 @@ func TestParserRadioCheck(t *testing.T) {
 				Callsign: "eagle 1",
 			},
 		},
+		{
+			text: "anyface half wit radio check",
+			expected: &brevity.RadioCheckRequest{
+				Callsign: "half wit",
+			},
+		},
+		{
+			text: "anyface Ford 1-1 radio check",
+			expected: &brevity.RadioCheckRequest{
+				Callsign: "ford 1 1",
+			},
+		},
 	}
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {
 		t.Helper()

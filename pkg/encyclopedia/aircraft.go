@@ -76,7 +76,7 @@ func (a Aircraft) Category() brevity.ContactCategory {
 
 // Tags of the aircraft.
 func (a Aircraft) Tags() []AircraftTag {
-	tags := []AircraftTag{}
+	tags := make([]AircraftTag, 0, len(a.tags))
 	for t := range a.tags {
 		tags = append(tags, t)
 	}
@@ -111,7 +111,7 @@ func (a Aircraft) ThreatRadius() unit.Length {
 }
 
 func variants(data Aircraft, naming map[string]string) []Aircraft {
-	variants := []Aircraft{}
+	variants := make([]Aircraft, 0, len(naming))
 	for nameSuffix, designationSuffx := range naming {
 		aircraft := Aircraft{
 			tags:                data.tags,
@@ -459,8 +459,9 @@ var sa342Data = Aircraft{
 }
 
 func sa342Variants() []Aircraft {
-	vars := []Aircraft{}
-	for _, variant := range []string{"L", "M", "Minigun", "Mistral"} {
+	variantNames := []string{"L", "M", "Minigun", "Mistral"}
+	vars := make([]Aircraft, 0, len(variantNames))
+	for _, variant := range variantNames {
 		vars = append(vars, Aircraft{
 			ACMIShortName:       "SA342" + variant,
 			tags:                sa342Data.tags,

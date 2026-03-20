@@ -1,11 +1,11 @@
 package parser
 
 import (
+	"github.com/dharmab/numwords"
 	"github.com/dharmab/skyeye/internal/parser/token"
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/martinlindhe/unit"
-	"github.com/rodaine/numwords"
 	"github.com/rs/zerolog/log"
 )
 

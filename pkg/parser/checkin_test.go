@@ -28,6 +28,12 @@ func TestParserCheckIn(t *testing.T) {
 				Callsign: "fang 2 1",
 			},
 		},
+		{
+			text: "anyface, Ford 1-1, checking in.",
+			expected: &brevity.CheckInRequest{
+				Callsign: "ford 1 1",
+			},
+		},
 	}
 
 	runParserTestCases(t, New(TestCallsign, true), testCases, func(t *testing.T, test parserTestCase, request any) {

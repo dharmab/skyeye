@@ -11,6 +11,62 @@ const (
 	maxCallsignDigits = 3
 )
 
+// digitHomophones maps common speech recognition misheard words to digits.
+var digitHomophones = map[string]string{
+	"won":   "1",
+	"to":    "2",
+	"too":   "2",
+	"tu":    "2",
+	"tutu":  "22",
+	"free":  "3",
+	"tree":  "3",
+	"for":   "4",
+	"fore":  "4",
+	"ate":   "8",
+	"niner": "9",
+}
+
+// replaceDigitHomophones replaces words that are homophones of digits,
+// but only when they appear in digit positions of a callsign (i.e., after
+// the callsign name or mixed with actual digits).
+func replaceDigitHomophones(tx string) string {
+	fields := strings.Fields(tx)
+	// Find the first field that is or looks like a digit.
+	// Everything before that is the callsign name.
+	firstDigitIdx := -1
+	for i, f := range fields {
+		if hasDigits(f) || digitHomophones[f] != "" {
+			firstDigitIdx = i
+			break
+		}
+	}
+	if firstDigitIdx < 0 {
+		return tx
+	}
+	for i := firstDigitIdx; i < len(fields); i++ {
+		if d, ok := digitHomophones[fields[i]]; ok {
+			fields[i] = d
+		}
+		// Strip ordinal suffixes: "1st" → "1", "2nd" → "2", etc.
+		fields[i] = stripOrdinalSuffix(fields[i])
+	}
+	return strings.Join(fields, " ")
+}
+
+// stripOrdinalSuffix removes ordinal suffixes (st, nd, rd, th) from a
+// string that starts with digits, e.g. "5th" → "5".
+func stripOrdinalSuffix(s string) string {
+	for _, suffix := range []string{"st", "nd", "rd", "th"} {
+		if strings.HasSuffix(s, suffix) {
+			prefix := s[:len(s)-len(suffix)]
+			if prefix != "" && hasDigits(prefix) {
+				return prefix
+			}
+		}
+	}
+	return s
+}
+
 // ParsePilotCallsign attempts to parse a callsign in one of the following formats:
 //   - A single word, followed by a number consisting of any digits
 //   - A number consisting of up to 3 digits
@@ -22,16 +78,17 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	tx = removeClanTags(tx)
 	tx = normalize(tx)
 	tx = spaceDigits(tx)
-	for token, replacement := range map[string]string{
-		"request": "",
-		"this is": "",
-		"want to": "12",
-		"tutu":    "22",
-		"to 8":    "28",
-		"free 1":  "31",
-	} {
-		tx = strings.ReplaceAll(tx, token, replacement)
+
+	// Discard "this is" prefix.
+	tx = strings.ReplaceAll(tx, "this is", "")
+
+	// Truncate at "request" — not proper brevity, but some players say it.
+	// Anything after it is part of the request, not the callsign.
+	if idx := strings.Index(tx, "request"); idx >= 0 {
+		tx = tx[:idx]
 	}
+
+	tx = replaceDigitHomophones(tx)
 
 	var builder strings.Builder
 	n := 0
