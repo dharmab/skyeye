@@ -2,7 +2,6 @@
 package encyclopedia
 
 import (
-	"slices"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -76,7 +75,7 @@ func (a Aircraft) Category() brevity.ContactCategory {
 
 // Tags of the aircraft.
 func (a Aircraft) Tags() []AircraftTag {
-	tags := []AircraftTag{}
+	tags := make([]AircraftTag, 0, len(a.tags))
 	for t := range a.tags {
 		tags = append(tags, t)
 	}
@@ -87,13 +86,6 @@ func (a Aircraft) Tags() []AircraftTag {
 func (a Aircraft) HasTag(tag AircraftTag) bool {
 	v, ok := a.tags[tag]
 	return ok && v
-}
-
-// HasAnyTag returns true if the aircraft has any of the specified tags.
-//
-// Deprecated: Use slices.Contains instead.
-func (a Aircraft) HasAnyTag(tags ...AircraftTag) bool {
-	return slices.ContainsFunc(tags, a.HasTag)
 }
 
 // ThreatRadius returns the aircraft's threat radius.
@@ -111,7 +103,7 @@ func (a Aircraft) ThreatRadius() unit.Length {
 }
 
 func variants(data Aircraft, naming map[string]string) []Aircraft {
-	variants := []Aircraft{}
+	variants := make([]Aircraft, 0, len(naming))
 	for nameSuffix, designationSuffx := range naming {
 		aircraft := Aircraft{
 			tags:                data.tags,
@@ -459,7 +451,7 @@ var sa342Data = Aircraft{
 }
 
 func sa342Variants() []Aircraft {
-	vars := []Aircraft{}
+	vars := make([]Aircraft, 0, 4)
 	for _, variant := range []string{"L", "M", "Minigun", "Mistral"} {
 		vars = append(vars, Aircraft{
 			ACMIShortName:       "SA342" + variant,
