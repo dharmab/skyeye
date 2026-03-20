@@ -66,7 +66,10 @@ func (r *Radar) FindNearbyGroupsWithBRAA(origin, interest orb.Point, minAltitude
 	for _, grp := range groups {
 		bearing := spatial.TrueBearing(origin, grp.point(), r.withProjection()).Magnetic(r.Declination(origin))
 		_range := spatial.Distance(origin, grp.point(), r.withProjection())
-		aspect := brevity.AspectFromAngle(bearing, grp.course())
+		aspect := brevity.UnknownAspect
+		if course, ok := grp.course(); ok {
+			aspect = brevity.AspectFromAngle(bearing, course)
+		}
 		grp.braa = brevity.NewBRAA(bearing, _range, grp.altitudes(), aspect)
 		grp.bullseye = nil
 
