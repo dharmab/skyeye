@@ -2,6 +2,7 @@
 package encyclopedia
 
 import (
+	"slices"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -86,6 +87,13 @@ func (a Aircraft) Tags() []AircraftTag {
 func (a Aircraft) HasTag(tag AircraftTag) bool {
 	v, ok := a.tags[tag]
 	return ok && v
+}
+
+// HasAnyTag returns true if the aircraft has any of the specified tags.
+//
+// Deprecated: Use slices.Contains instead.
+func (a Aircraft) HasAnyTag(tags ...AircraftTag) bool {
+	return slices.ContainsFunc(tags, a.HasTag)
 }
 
 // ThreatRadius returns the aircraft's threat radius.
@@ -451,8 +459,9 @@ var sa342Data = Aircraft{
 }
 
 func sa342Variants() []Aircraft {
-	vars := make([]Aircraft, 0, 4)
-	for _, variant := range []string{"L", "M", "Minigun", "Mistral"} {
+	variantNames := []string{"L", "M", "Minigun", "Mistral"}
+	vars := make([]Aircraft, 0, len(variantNames))
+	for _, variant := range variantNames {
 		vars = append(vars, Aircraft{
 			ACMIShortName:       "SA342" + variant,
 			tags:                sa342Data.tags,

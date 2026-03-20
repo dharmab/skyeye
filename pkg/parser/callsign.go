@@ -67,32 +67,6 @@ func stripOrdinalSuffix(s string) string {
 	return s
 }
 
-// isDigitLike reports whether s contains digits or is a digit homophone.
-func isDigitLike(s string) bool {
-	return hasDigits(s) || digitHomophones[s] != ""
-}
-
-// deduplicateConsecutiveWords removes consecutive duplicate words,
-// e.g. "eagle eagle 2 7" → "eagle 2 7". This handles STT stutter
-// where words are repeated.
-func deduplicateConsecutiveWords(tx string) string {
-	fields := strings.Fields(tx)
-	if len(fields) <= 1 {
-		return tx
-	}
-	result := []string{fields[0]}
-	for i := 1; i < len(fields); i++ {
-		// Only deduplicate words that are not digits or digit homophones.
-		// This collapses "eagle eagle" but preserves "won won" (→ "1 1")
-		// and "1 1".
-		if fields[i] == fields[i-1] && !isDigitLike(fields[i]) {
-			continue
-		}
-		result = append(result, fields[i])
-	}
-	return strings.Join(result, " ")
-}
-
 // ParsePilotCallsign attempts to parse a callsign in one of the following formats:
 //   - A single word, followed by a number consisting of any digits
 //   - A number consisting of up to 3 digits
@@ -114,7 +88,6 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 		tx = tx[:idx]
 	}
 
-	tx = deduplicateConsecutiveWords(tx)
 	tx = replaceDigitHomophones(tx)
 
 	var builder strings.Builder

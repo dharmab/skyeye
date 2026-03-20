@@ -87,13 +87,6 @@ func TestParsePilotCallsign(t *testing.T) {
 		{"Eagle ate to", "eagle 8 2"},
 		{"Eagle ate for", "eagle 8 4"},
 		{"Eagle ate ate", "eagle 8 8"}, //nolint:dupword
-
-		// Deduplicate repeated callsign name from STT stuttering
-		{"Eagle Eagle 2 7", "eagle 2 7"},    //nolint:dupword
-		{"Eagle eagle 2 7", "eagle 2 7"},    //nolint:dupword
-		{"Viper Viper 3 1", "viper 3 1"},    //nolint:dupword
-		{"Falcon falcon 1 2", "falcon 1 2"}, //nolint:dupword
-		{"Hornet Hornet 4 1", "hornet 4 1"}, //nolint:dupword
 	}
 
 	for _, test := range testCases {
