@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (_ *Composer) ComposeVectorResponse(response brevity.VectorResponse) NaturalLanguageResponse {
+func (*Composer) ComposeVectorResponse(response brevity.VectorResponse) NaturalLanguageResponse {
 	if !response.Contact {
 		reply := response.Callsign + ", negative contact"
 		return NaturalLanguageResponse{

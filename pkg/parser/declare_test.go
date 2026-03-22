@@ -307,7 +307,7 @@ func TestParserDeclare(t *testing.T) {
 			text: "anyface, Ford 1-1, declare bullseye 090 30 5000",
 			expected: &brevity.DeclareRequest{
 				Callsign: "ford 1 1",
-				Bullseye: *brevity.NewBullseye(
+				Bullseye: brevity.NewBullseye(
 					bearings.NewMagneticBearing(90*unit.Degree),
 					30*unit.NauticalMile,
 				),

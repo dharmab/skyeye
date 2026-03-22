@@ -11,7 +11,7 @@ import (
 
 var bullseyeWords = []string{"bullseye", "bulls"}
 
-func parseBullseye(stream *token.Stream) *brevity.Bullseye {
+func parseBullseye(stream *token.Stream) brevity.Bullseye {
 	for _, word := range bullseyeWords {
 		if isSimilar(stream.Text(), word) {
 			stream.Advance()
