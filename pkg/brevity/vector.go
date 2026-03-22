@@ -31,6 +31,11 @@ func (v *Vector) Range() unit.Length {
 	return unit.Length(math.Round(v.distance.NauticalMiles())) * unit.NauticalMile
 }
 
+const (
+	// LocationTanker is the special location name for the nearest compatible tanker.
+	LocationTanker = "tanker"
+)
+
 // VectorRequest is a request for a VECTOR to a named location.
 type VectorRequest struct {
 	// Callsign of the friendly aircraft requesting the vector.
@@ -56,4 +61,8 @@ type VectorResponse struct {
 	// Vector is the computed vector to the target location, if available.
 	// If Status is false, this may be nil.
 	Vector *Vector
+	// BRA is the bearing, range, and altitude to a tanker. Only set for tanker vector responses.
+	BRA *BRA
+	// Track is the tanker's track direction. Only set for tanker vector responses.
+	Track Track
 }

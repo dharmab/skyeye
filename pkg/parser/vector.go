@@ -7,13 +7,9 @@ import (
 	"github.com/dharmab/skyeye/pkg/brevity"
 )
 
-const (
-	LocationTanker = "tanker"
-)
-
 func parseVector(callsign string, locations []string, stream *token.Stream) (*brevity.VectorRequest, bool) {
 	request := &brevity.VectorRequest{Callsign: callsign}
-	locations = append(locations, LocationTanker)
+	locations = append(locations, brevity.LocationTanker)
 
 	var words []string
 	for !stream.AtEnd() {

@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/locations"
 	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
@@ -23,6 +24,11 @@ func (c *Controller) HandleVector(ctx context.Context, request *brevity.VectorRe
 
 	var trackfile *trackfiles.Trackfile
 	response.Callsign, trackfile, response.Contact = c.findCallsign(request.Callsign)
+
+	if request.Location == brevity.LocationTanker {
+		c.handleTankerVector(ctx, trackfile, &response)
+		return
+	}
 
 	var targetLocation *locations.Location
 	for _, location := range c.locations {
@@ -46,4 +52,41 @@ func (c *Controller) HandleVector(ctx context.Context, request *brevity.VectorRe
 	}
 
 	c.calls <- NewCall(ctx, response)
+}
+
+// handleTankerVector handles the tanker special case of the VECTOR command.
+func (c *Controller) handleTankerVector(ctx context.Context, trackfile *trackfiles.Trackfile, response *brevity.VectorResponse) {
+	if !response.Contact {
+		c.calls <- NewCall(ctx, *response)
+		return
+	}
+
+	origin := trackfile.LastKnown().Point
+
+	// Determine the refueling method the player's aircraft requires.
+	refuelingMethod := encyclopedia.ProbeAndDrogue
+	data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName)
+	if ok && data.FuelReceiver() != encyclopedia.NoAirRefueling {
+		refuelingMethod = data.FuelReceiver()
+	}
+
+	tanker := c.scope.FindNearestTanker(origin, c.coalition, refuelingMethod)
+	if tanker == nil {
+		response.Status = false
+		c.calls <- NewCall(ctx, *response)
+		return
+	}
+
+	response.Status = true
+	response.Location = tanker.Contact.Name
+
+	tankerPoint := tanker.LastKnown().Point
+	declination := c.scope.Declination(origin)
+	bearing := spatial.TrueBearing(origin, tankerPoint).Magnetic(declination)
+	distance := spatial.Distance(origin, tankerPoint)
+	altitude := tanker.LastKnown().Altitude
+	response.BRA = brevity.NewBRA(bearing, distance, altitude)
+	response.Track = tanker.Direction()
+
+	c.calls <- NewCall(ctx, *response)
 }

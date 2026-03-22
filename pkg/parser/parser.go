@@ -54,7 +54,6 @@ const (
 	strobe     string = "strobe"
 	tripwire   string = "tripwire"
 	vector     string = "vector"
-	tanker     string = "tanker"
 )
 
 var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, strobe, snaplock, tripwire, shopping, vector}

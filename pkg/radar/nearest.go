@@ -7,6 +7,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
@@ -178,4 +179,47 @@ func (r *Radar) FindNearestGroupInSector(origin orb.Point, minAltitude, maxAltit
 	logger.Debug().Stringer("group", grp).Msg("determined nearest group")
 	grp.bullseye = nil
 	return grp
+}
+
+// FindNearestTanker returns the nearest friendly tanker that provides the given refueling method.
+// The search radius is 2400 miles (approximate ferry range of an F-15E). Returns nil if no compatible tanker was found.
+func (r *Radar) FindNearestTanker(
+	origin orb.Point,
+	coalition coalitions.Coalition,
+	refuelingMethod encyclopedia.AirRefuelingMethod,
+) *trackfiles.Trackfile {
+	const searchRadius = 2400 * unit.Mile
+	var nearestTrackfile *trackfiles.Trackfile
+	nearestDistance := searchRadius
+	for trackfile := range r.contacts.values() {
+		if trackfile.Contact.Coalition != coalition {
+			continue
+		}
+		if !isValidTrack(trackfile) {
+			continue
+		}
+		data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName)
+		if !ok {
+			continue
+		}
+		if data.FuelProvider() != refuelingMethod {
+			continue
+		}
+		distance := spatial.Distance(origin, trackfile.LastKnown().Point, r.withProjection())
+		if distance < nearestDistance {
+			nearestTrackfile = trackfile
+			nearestDistance = distance
+		}
+	}
+	if nearestTrackfile != nil {
+		log.Debug().
+			Any("origin", origin).
+			Str("aircraft", nearestTrackfile.Contact.ACMIName).
+			Str("name", nearestTrackfile.Contact.Name).
+			Uint64("id", nearestTrackfile.Contact.ID).
+			Msg("found nearest tanker")
+	} else {
+		log.Debug().Msg("no compatible tankers found")
+	}
+	return nearestTrackfile
 }
