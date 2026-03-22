@@ -9,7 +9,7 @@ import (
 )
 
 // composeBullseye constructs natural language brevity for communicating Bullseye information.
-func (*Composer) composeBullseye(bullseye brevity.Bullseye) NaturalLanguageResponse {
+func (*Composer) composeBullseye(bullseye *brevity.Bullseye) NaturalLanguageResponse {
 	if !bullseye.Bearing().IsMagnetic() {
 		log.Error().Stringer("bearing", bullseye.Bearing()).Msg("bearing provided to ComposeBullseye should be magnetic")
 	}

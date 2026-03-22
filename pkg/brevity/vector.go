@@ -7,39 +7,35 @@ import (
 	"github.com/martinlindhe/unit"
 )
 
-type Vector interface {
-	// Bearing is the heading from the fighter to the target location, rounded to the nearest degree.
-	Bearing() bearings.Bearing
-	// Range is the distance from the fighter to the target location, rounded to the nearest nautical mile.
-	Range() unit.Length
-}
-
-type vector struct {
+// Vector is a magnetic bearing and distance. It is the base type for BULLSEYE, BRA, and BRAA.
+type Vector struct {
 	bearing  bearings.Bearing
 	distance unit.Length
 }
 
-func NewVector(bearing bearings.Bearing, distance unit.Length) Vector {
-	return &vector{
+// NewVector creates a new [Vector] from a magnetic bearing and distance.
+func NewVector(bearing bearings.Bearing, distance unit.Length) *Vector {
+	return &Vector{
 		bearing:  bearing,
 		distance: distance,
 	}
 }
 
-// Bearing implements [Vector.Bearing].
-func (v *vector) Bearing() bearings.Bearing {
+// Bearing returns the magnetic bearing, rounded to the nearest degree.
+func (v *Vector) Bearing() bearings.Bearing {
 	return v.bearing
 }
 
-// Range implements [Vector.Range].
-func (v *vector) Range() unit.Length {
+// Range returns the distance, rounded to the nearest nautical mile.
+func (v *Vector) Range() unit.Length {
 	return unit.Length(math.Round(v.distance.NauticalMiles())) * unit.NauticalMile
 }
 
+// VectorRequest is a request for a VECTOR to a named location.
 type VectorRequest struct {
 	// Callsign of the friendly aircraft requesting the vector.
 	Callsign string
-	//  Location to which the friendly aircraft is requesting a vector.
+	// Location to which the friendly aircraft is requesting a vector.
 	Location string
 }
 
@@ -47,6 +43,7 @@ func (r VectorRequest) String() string {
 	return "VECTOR to " + r.Location + " for " + r.Callsign
 }
 
+// VectorResponse is a response to a VECTOR request.
 type VectorResponse struct {
 	// Callsign of the friendly aircraft requesting the vector.
 	Callsign string
@@ -57,6 +54,6 @@ type VectorResponse struct {
 	// Status is true if the vector was successfully computed, otherwise false.
 	Status bool
 	// Vector is the computed vector to the target location, if available.
-	// // If Status is false, this may be nil.
-	Vector Vector
+	// If Status is false, this may be nil.
+	Vector *Vector
 }

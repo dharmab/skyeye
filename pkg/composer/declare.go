@@ -17,7 +17,7 @@ func (c *Composer) ComposeDeclareResponse(response brevity.DeclareResponse) (rep
 
 	if slices.Contains([]brevity.Declaration{brevity.Furball, brevity.Unable, brevity.Clean}, response.Declaration) {
 		if response.Readback != nil {
-			bullseye := c.composeBullseye(*response.Readback)
+			bullseye := c.composeBullseye(response.Readback)
 			reply.WriteResponse(bullseye)
 			reply.WriteBoth(",")
 		}

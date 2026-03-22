@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/locations"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
@@ -94,7 +95,7 @@ type Configuration struct {
 	// for debugging.
 	ThreatMonitoringRequiresSRS bool
 	// Locations is a slice of named locations that can be referenced in ALPHA CHECK and VECTOR calls.
-	Locations []*Location
+	Locations []locations.Location
 	// EnableTracing controls whether to publish traces
 	EnableTracing bool
 	// DiscordWebhookID is the ID of the Discord webhook
@@ -106,13 +107,6 @@ type Configuration struct {
 	// EnableTerrainDetection controls whether terrain detection is used to select a Transverse Mercator projection
 	// for spatial calculations. When disabled, spherical Earth calculations are used instead.
 	EnableTerrainDetection bool
-}
-
-type Location struct {
-	// Names of the location
-	Names []string `json:"names"`
-	// Coordinates of the location as a GeoJSON coordinates array with a single member
-	Coordinates [][]float64 `json:"coordinates"`
 }
 
 var DefaultCallsigns = []string{"Sky Eye", "Thunderhead", "Eagle Eye", "Ghost Eye", "Sky Keeper", "Bandog", "Long Caster", "Galaxy"}

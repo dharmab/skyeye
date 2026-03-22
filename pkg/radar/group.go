@@ -19,8 +19,8 @@ import (
 type group struct {
 	isThreat    bool
 	contacts    []*trackfiles.Trackfile
-	bullseye    brevity.Bullseye
-	braa        brevity.BRAA
+	bullseye    *brevity.Bullseye
+	braa        *brevity.BRAA
 	aspect      *brevity.Aspect
 	declaration brevity.Declaration
 	mergedWith  int
@@ -44,7 +44,7 @@ func (g *group) Contacts() int {
 }
 
 // Bullseye implements [brevity.Group.Bullseye].
-func (g *group) Bullseye() brevity.Bullseye {
+func (g *group) Bullseye() *brevity.Bullseye {
 	return g.bullseye
 }
 
@@ -127,7 +127,7 @@ func (g *group) SetAspect(aspect *brevity.Aspect) {
 }
 
 // BRAA implements [brevity.Group.BRAA].
-func (g *group) BRAA() brevity.BRAA {
+func (g *group) BRAA() *brevity.BRAA {
 	return g.braa
 }
 

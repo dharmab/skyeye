@@ -9,7 +9,7 @@ import (
 )
 
 // composeBRAA constructs natural language brevity for communicating BRAA information.
-func (c *Composer) composeBRAA(braa brevity.BRAA, declaration brevity.Declaration) NaturalLanguageResponse {
+func (c *Composer) composeBRAA(braa *brevity.BRAA, declaration brevity.Declaration) NaturalLanguageResponse {
 	if !braa.Bearing().IsMagnetic() {
 		log.Error().Stringer("bearing", braa.Bearing()).Msg("bearing provided to ComposeBRAA should be magnetic")
 	}

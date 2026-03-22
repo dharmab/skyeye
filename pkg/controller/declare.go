@@ -65,8 +65,8 @@ func (c *Controller) HandleDeclare(ctx context.Context, request *brevity.Declare
 		logger.Debug().Msg("locating point of interest using bullseye")
 		if request == nil {
 			logger.Error().Msg("request is nil")
-		} else if request.Bullseye.Bearing() == nil {
-			logger.Error().Msg("request.Bullseye.Bearing() is nil")
+		} else if request.Bullseye == nil {
+			logger.Error().Msg("request.Bullseye is nil")
 		}
 		if !request.Bullseye.Bearing().IsMagnetic() {
 			logger.Warn().Stringer("bearing", request.Bullseye.Bearing()).Msg("bearing provided to HandleDeclare should be magnetic")
@@ -120,7 +120,7 @@ func (c *Controller) HandleDeclare(ctx context.Context, request *brevity.Declare
 	}
 
 	if request.IsAmbiguous {
-		response.Readback = &request.Bullseye
+		response.Readback = request.Bullseye
 	}
 
 	logger.Debug().Any("declaration", response.Declaration).Msg("responding to DECLARE request")

@@ -17,7 +17,6 @@ import (
 	"github.com/dharmab/skyeye/pkg/commands"
 	"github.com/dharmab/skyeye/pkg/composer"
 	"github.com/dharmab/skyeye/pkg/controller"
-	loc "github.com/dharmab/skyeye/pkg/locations"
 	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/recognizer"
@@ -169,8 +168,13 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		return nil, fmt.Errorf("failed to construct application: unrecognized recognizer %q", config.Recognizer)
 	}
 
+	locationNames := make([]string, 0)
+	for _, loc := range config.Locations {
+		locationNames = append(locationNames, loc.Names...)
+	}
+
 	log.Info().Msg("constructing request parser")
-	requestParser := parser.New(config.Callsign, []string{}, config.EnableTranscriptionLogging)
+	requestParser := parser.New(config.Callsign, locationNames, config.EnableTranscriptionLogging)
 
 	log.Info().Msg("constructing radar scope")
 
@@ -185,7 +189,7 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		config.EnableThreatMonitoring,
 		config.ThreatMonitoringInterval,
 		config.ThreatMonitoringRequiresSRS,
-		[]loc.Location{},
+		config.Locations,
 	)
 
 	log.Info().Msg("constructing response composer")

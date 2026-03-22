@@ -19,7 +19,7 @@ type Group interface {
 	// Contacts is the number of contacts in the group.
 	Contacts() int
 	// Bullseye is the location of the group. This may be nil for BOGEY DOPE, SNAPLOCK, and THREAT calls.
-	Bullseye() Bullseye
+	Bullseye() *Bullseye
 	// Altitude is the group's highest altitude. This may be zero for BOGEY DOPE, SNAPLOCK, and THREAT calls.
 	Altitude() unit.Length
 	// Stacks are the group's altitude STACKS, ordered from highest to lowest in intervals of at least 10,000 feet.
@@ -30,7 +30,7 @@ type Group interface {
 	// Aspect is the group's aspect angle relative to another aircraft. This may be nil for BOGEY DOPE, SNAPLOCK, SPIKED, STROBE and some THREAT calls.
 	Aspect() Aspect
 	// BRAA is an alternate format for the group's location. This is nil except for BOGEY DOPE, SNAPLOCK, SPIKED, STROBE and some THREAT calls.
-	BRAA() BRAA
+	BRAA() *BRAA
 	// Declaration of the group's friend or foe status.
 	Declaration() Declaration
 	// SetDeclaration sets the group's friend or foe status.

@@ -11,33 +11,25 @@ import (
 
 // BRAA provides target bearing, range, altitude and aspect relative to a specified friendly aircraft.
 // Reference: ATP 3-52.4 Chapter IV section 4 subsection b.
-type BRAA interface {
+type BRAA struct {
 	BRA
-	// Aspect of the contact.
-	Aspect() Aspect
+	// aspect of the contact.
+	aspect Aspect
 }
 
 // BRA is an abbreviated form of BRAA without aspect.
-type BRA interface {
+type BRA struct {
 	Vector
-	// Altitude of the contact above sea level, rounded to the nearest thousands of feet.
-	Altitude() unit.Length
-	// Altitude STACKS of the contact above sea level, rounded to the nearest thousands of feet.
-	Stacks() []Stack
-}
-
-type bra struct {
-	vector
 	stacks []Stack
 }
 
 // NewBRA creates a new [BRA].
-func NewBRA(b bearings.Bearing, r unit.Length, a ...unit.Length) BRA {
+func NewBRA(b bearings.Bearing, r unit.Length, a ...unit.Length) *BRA {
 	if !b.IsMagnetic() {
 		log.Warn().Stringer("bearing", b).Msg("bearing provided to NewBRA should be magnetic")
 	}
-	return &bra{
-		vector: vector{
+	return &BRA{
+		Vector: Vector{
 			bearing:  b,
 			distance: r,
 		},
@@ -45,20 +37,20 @@ func NewBRA(b bearings.Bearing, r unit.Length, a ...unit.Length) BRA {
 	}
 }
 
-// Altitude implements [BRA.Altitude].
-func (b *bra) Altitude() unit.Length {
+// Altitude returns the highest altitude of the contact above sea level, rounded to the nearest thousands of feet.
+func (b *BRA) Altitude() unit.Length {
 	if len(b.stacks) == 0 {
 		return 0
 	}
 	return spatial.NormalizeAltitude(b.stacks[0].Altitude)
 }
 
-// Stacks implements [BRA.Stacks].
-func (b *bra) Stacks() []Stack {
+// Stacks returns the altitude STACKS of the contact.
+func (b *BRA) Stacks() []Stack {
 	return b.stacks
 }
 
-func (b *bra) String() string {
+func (b *BRA) String() string {
 	s := fmt.Sprintf("BRA %s/%.0f %.0f", b.Bearing(), b.Range().NauticalMiles(), b.Altitude().Feet())
 	if len(b.Stacks()) > 1 {
 		s += fmt.Sprintf(" (%v)", b.Stacks())
@@ -66,47 +58,28 @@ func (b *bra) String() string {
 	return s
 }
 
-type braa struct {
-	bra    BRA
-	aspect Aspect
-}
-
 // NewBRAA creates a new [BRAA].
-func NewBRAA(b bearings.Bearing, r unit.Length, altitudes []unit.Length, aspect Aspect) BRAA {
+func NewBRAA(b bearings.Bearing, r unit.Length, altitudes []unit.Length, aspect Aspect) *BRAA {
 	if !b.IsMagnetic() {
 		log.Warn().Stringer("bearing", b).Msg("bearing provided to NewBRAA should be magnetic")
 	}
-	return &braa{
-		bra:    NewBRA(b, r, altitudes...),
+	return &BRAA{
+		BRA: BRA{
+			Vector: Vector{
+				bearing:  b,
+				distance: r,
+			},
+			stacks: Stacks(altitudes...),
+		},
 		aspect: aspect,
 	}
 }
 
-// Bearing implements [BRA.Bearing].
-func (b *braa) Bearing() bearings.Bearing {
-	return b.bra.Bearing()
-}
-
-// Range implements [BRA.Range].
-func (b *braa) Range() unit.Length {
-	return b.bra.Range()
-}
-
-// Altitude implements [BRA.Altitude].
-func (b *braa) Altitude() unit.Length {
-	return b.bra.Altitude()
-}
-
-// Stacks implements [BRA.Stacks].
-func (b *braa) Stacks() []Stack {
-	return b.bra.Stacks()
-}
-
-// Aspect implements [BRAA.Aspect].
-func (b *braa) Aspect() Aspect {
+// Aspect returns the aspect of the contact.
+func (b *BRAA) Aspect() Aspect {
 	return b.aspect
 }
 
-func (b *braa) String() string {
-	return fmt.Sprintf("%s %s", b.bra, b.Aspect())
+func (b *BRAA) String() string {
+	return fmt.Sprintf("%s %s", &b.BRA, b.Aspect())
 }

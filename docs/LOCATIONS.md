@@ -1,6 +1,6 @@
 # Custom Locations
 
-Server administrators can define custom locations which players can reference in ALPHA CHECK and VECTOR requests. You can define useful locations like friendly bases or fix points.
+You can define custom locations which players can reference in ALPHA CHECK and VECTOR requests. You can define useful locations like friendly bases or fix points.
 
 To use this feature, create a `locations.json` file. The content of the file should be a JSON array of objects. Each object should have the following properties:
 

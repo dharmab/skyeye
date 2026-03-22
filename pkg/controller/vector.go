@@ -5,12 +5,13 @@ import (
 	"slices"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
-	loc "github.com/dharmab/skyeye/pkg/locations"
+	"github.com/dharmab/skyeye/pkg/locations"
 	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/rs/zerolog/log"
 )
 
+// HandleVector handles a VECTOR request by computing the bearing and distance from the requesting aircraft to a named location.
 func (c *Controller) HandleVector(ctx context.Context, request *brevity.VectorRequest) {
 	logger := log.With().Str("callsign", request.Callsign).Type("type", request).Logger()
 	logger.Debug().Msg("handling request")
@@ -23,7 +24,7 @@ func (c *Controller) HandleVector(ctx context.Context, request *brevity.VectorRe
 	var trackfile *trackfiles.Trackfile
 	response.Callsign, trackfile, response.Contact = c.findCallsign(request.Callsign)
 
-	var targetLocation *loc.Location
+	var targetLocation *locations.Location
 	for _, location := range c.locations {
 		if location.Names == nil {
 			continue
