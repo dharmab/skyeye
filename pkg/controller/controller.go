@@ -14,6 +14,8 @@ import (
 	"github.com/lithammer/shortuuid/v3"
 	"github.com/martinlindhe/unit"
 	"github.com/rs/zerolog/log"
+
+	"github.com/dharmab/skyeye/pkg/locations"
 )
 
 var (
@@ -42,6 +44,9 @@ type Controller struct {
 
 	// scope provides information about the airspace.
 	scope *radar.Radar
+
+	// locations are named locations that can be referenced in ALPHA CHECK and VECTOR requests.
+	locations []locations.Location
 
 	// srsClient is used to check if relevant friendly aircraft are on frequency before broadcasting calls.
 	srsClient *simpleradio.Client
@@ -86,10 +91,12 @@ func New(
 	enableThreatMonitoring bool,
 	threatMonitoringCooldown time.Duration,
 	threatMonitoringRequiresSRS bool,
+	locs []locations.Location,
 ) *Controller {
 	return &Controller{
 		coalition:                   coalition,
 		scope:                       rdr,
+		locations:                   locs,
 		srsClient:                   srsClient,
 		enableAutomaticPicture:      enableAutomaticPicture,
 		pictureBroadcastInterval:    pictureBroadcastInterval,

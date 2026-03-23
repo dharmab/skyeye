@@ -168,8 +168,13 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		return nil, fmt.Errorf("failed to construct application: unrecognized recognizer %q", config.Recognizer)
 	}
 
+	locationNames := make([]string, 0)
+	for _, loc := range config.Locations {
+		locationNames = append(locationNames, loc.Names...)
+	}
+
 	log.Info().Msg("constructing request parser")
-	requestParser := parser.New(config.Callsign, config.EnableTranscriptionLogging)
+	requestParser := parser.New(config.Callsign, locationNames, config.EnableTranscriptionLogging)
 
 	log.Info().Msg("constructing radar scope")
 
@@ -184,6 +189,7 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		config.EnableThreatMonitoring,
 		config.ThreatMonitoringInterval,
 		config.ThreatMonitoringRequiresSRS,
+		config.Locations,
 	)
 
 	log.Info().Msg("constructing response composer")

@@ -308,6 +308,10 @@ SkyEye includes an optional feature to publish request traces to a Discord chann
 
 To enable this feature, first create a webhook in your Discord server (Server Settings > Integrations > Webhooks). Then, set the `enable-tracing`, `discord-webhook-id` and `discord-webhook-token` configuration options in SkyEye.
 
+## Custom Locations
+
+SkyEye includes an optional feature to define custom locations that players can reference in ALPHA CHECK and VECTOR TO requests. This can be useful for providing navigation assistance to airbases and other points of interest. See [LOCATIONS.md](LOCATIONS.md) for a guide.
+
 ## Autoscaling (Experimental)
 
 The included `skyeye-scaler` program is an optional autoscaler tool. It monitors a set of frequencies in SRS, and continually sends POST requests to a custom webhook. The webhook URL is defined by setting the `--webhook-url` flag or `SKYEYE_SCALER_WEBHOOK_URL` environment variable.

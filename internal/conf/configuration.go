@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/locations"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
@@ -93,6 +94,8 @@ type Configuration struct {
 	// ThreatMonitoringRequiresSRS controls whether threat calls are issued to aircraft that are not on an SRS frequency. This is mostly
 	// for debugging.
 	ThreatMonitoringRequiresSRS bool
+	// Locations is a slice of named locations that can be referenced in ALPHA CHECK and VECTOR calls.
+	Locations []locations.Location
 	// EnableTracing controls whether to publish traces
 	EnableTracing bool
 	// DiscordWebhookID is the ID of the Discord webhook

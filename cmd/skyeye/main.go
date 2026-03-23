@@ -29,6 +29,7 @@ import (
 	"github.com/dharmab/skyeye/internal/cli"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/locations"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
@@ -76,6 +77,7 @@ var (
 	discordWebhookToken          string
 	exitAfter                    time.Duration
 	enableTerrainDetection       bool
+	locationsFile                string
 )
 
 const (
@@ -152,6 +154,10 @@ func init() {
 	skyeye.Flags().DurationVar(&threatMonitoringInterval, "threat-monitoring-interval", 3*time.Minute, "How often to broadcast THREAT")
 	skyeye.Flags().Float64Var(&mandatoryThreatRadiusNM, "mandatory-threat-radius", 25, "Briefed radius for mandatory THREAT calls, in nautical miles")
 	skyeye.Flags().BoolVar(&threatMonitoringRequiresSRS, "threat-monitoring-requires-srs", true, "Require aircraft to be on SRS to receive THREAT calls. Only useful to disable when debugging")
+	skyeye.Flags().StringVar(&locationsFile, "locations-file", "", "Path to file containing additional locations that may be referenced in ALPHA CHECK and VECTOR calls.")
+	if err := skyeye.MarkFlagFilename("locations-file", "json", "yaml", "yml"); err != nil {
+		log.Fatal().Err(err).Msg("failed to mark flag as filename")
+	}
 
 	// Tracing
 	skyeye.Flags().BoolVar(&enableTracing, "enable-tracing", false, "Enable tracing")
@@ -335,6 +341,22 @@ func loadVoiceVolume() float64 {
 	return clamped
 }
 
+func loadLocations() []locations.Location {
+	if locationsFile == "" {
+		return nil
+	}
+	data, err := os.ReadFile(locationsFile)
+	if err != nil {
+		log.Fatal().Err(err).Str("path", locationsFile).Msg("failed to read locations file")
+	}
+	locs, err := locations.LoadLocations(data)
+	if err != nil {
+		log.Fatal().Err(err).Str("path", locationsFile).Msg("failed to load locations file")
+	}
+	log.Info().Int("count", len(locs)).Msg("loaded custom locations")
+	return locs
+}
+
 func preRun(cmd *cobra.Command, _ []string) error {
 	if err := initializeConfig(cmd); err != nil {
 		return fmt.Errorf("failed to initialize config: %w", err)
@@ -382,6 +404,7 @@ func run(_ *cobra.Command, _ []string) {
 	voiceLock := loadLock(voiceLockPath)
 	recognizerLock := loadLock(recognizerLockPath)
 	volume := loadVoiceVolume()
+	locs := loadLocations()
 
 	config := conf.Configuration{
 		ACMIFile:                     acmiFile,
@@ -423,6 +446,7 @@ func run(_ *cobra.Command, _ []string) {
 		GRPCAddress:                  grpcAddress,
 		GRPCAPIKey:                   grpcAPIKey,
 		EnableTerrainDetection:       enableTerrainDetection,
+		Locations:                    locs,
 	}
 
 	log.Info().Msg("starting application")

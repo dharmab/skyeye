@@ -30,7 +30,7 @@ type Group interface {
 	// Aspect is the group's aspect angle relative to another aircraft. This may be nil for BOGEY DOPE, SNAPLOCK, SPIKED, STROBE and some THREAT calls.
 	Aspect() Aspect
 	// BRAA is an alternate format for the group's location. This is nil except for BOGEY DOPE, SNAPLOCK, SPIKED, STROBE and some THREAT calls.
-	BRAA() BRAA
+	BRAA() *BRAA
 	// Declaration of the group's friend or foe status.
 	Declaration() Declaration
 	// SetDeclaration sets the group's friend or foe status.

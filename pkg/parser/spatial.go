@@ -36,7 +36,7 @@ func parseBullseye(stream *token.Stream) *brevity.Bullseye {
 
 var braaWords = []string{"bra", "brah", "braa"}
 
-func parseBRA(stream *token.Stream) (brevity.BRA, bool) {
+func parseBRA(stream *token.Stream) (*brevity.BRA, bool) {
 	for _, word := range braaWords {
 		if isSimilar(stream.Text(), word) {
 			stream.Advance()
