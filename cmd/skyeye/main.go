@@ -25,8 +25,6 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	"encoding/json"
-
 	"github.com/dharmab/skyeye/internal/application"
 	"github.com/dharmab/skyeye/internal/cli"
 	"github.com/dharmab/skyeye/internal/conf"
@@ -157,7 +155,7 @@ func init() {
 	skyeye.Flags().Float64Var(&mandatoryThreatRadiusNM, "mandatory-threat-radius", 25, "Briefed radius for mandatory THREAT calls, in nautical miles")
 	skyeye.Flags().BoolVar(&threatMonitoringRequiresSRS, "threat-monitoring-requires-srs", true, "Require aircraft to be on SRS to receive THREAT calls. Only useful to disable when debugging")
 	skyeye.Flags().StringVar(&locationsFile, "locations-file", "", "Path to file containing additional locations that may be referenced in ALPHA CHECK and VECTOR calls.")
-	if err := skyeye.MarkFlagFilename("locations-file", "json"); err != nil {
+	if err := skyeye.MarkFlagFilename("locations-file", "json", "yaml", "yml"); err != nil {
 		log.Fatal().Err(err).Msg("failed to mark flag as filename")
 	}
 
@@ -351,14 +349,9 @@ func loadLocations() []locations.Location {
 	if err != nil {
 		log.Fatal().Err(err).Str("path", locationsFile).Msg("failed to read locations file")
 	}
-	var locs []locations.Location
-	if err := json.Unmarshal(data, &locs); err != nil {
-		log.Fatal().Err(err).Str("path", locationsFile).Msg("failed to parse locations file")
-	}
-	for _, loc := range locs {
-		if err := loc.Validate(); err != nil {
-			log.Fatal().Err(err).Msg("invalid location in locations file")
-		}
+	locs, err := locations.LoadLocations(data)
+	if err != nil {
+		log.Fatal().Err(err).Str("path", locationsFile).Msg("failed to load locations file")
 	}
 	log.Info().Int("count", len(locs)).Msg("loaded custom locations")
 	return locs

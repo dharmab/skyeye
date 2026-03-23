@@ -191,6 +191,11 @@
 # miles) is a reasonable choice for a modern setting, but you may wish to tune
 # this based on mission requirements and player skill level.
 #mandatory-threat-radius: 25
+#
+# Path to a file containing custom locations to use in ALPHA CHECK and VECTOR TO requests..
+# See the LOCATIONS.md documentation for more information.
+#locations-file: /etc/skyeye/locations.yaml  # Linux
+#locations-file: "C:\Users\me\locations.yaml"  # Windows
 
 # LOGGING
 #
