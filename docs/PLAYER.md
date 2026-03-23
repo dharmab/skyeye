@@ -195,7 +195,7 @@ Keyword: `VECTOR`
 
 Function: The GCI will check if you are on scope and tell you the approximate bearing and range from you to a given point. You can ask for a vector to bullseye, "tanker", or to a [named location](LOCATIONS.md). The bullseye is used if no point is specified.
 
-Asking for a vector to "tanker" requests a vector to the nearest tanker aircraft which is compatible with your aircraft.
+Asking for a vector to "tanker" requests a vector to the nearest tanker aircraft which is compatible with your aircraft, or the nearest basket tanker if SkyEye is unsure.
 
 Use: This is the reciprocal of an ALPHA CHECK, and is useful for navigation assistance.
 
@@ -203,12 +203,12 @@ Examples:
 
 ```
 MOBIUS 1: "Thunderhead Mobius One vector to home plate."
-THUNDERHEAD: "Mobius One, Thunderhead, vector to HOME PLATE 010/122"
+THUNDERHEAD: "Mobius One, vector to HOME PLATE, 010/122"
 ```
 
 ```
 WARDOG 14: "Magic, Wardog One Four, vector to tanker"
-MAGIC: "Wardog One Four, vector to Shell One One 099/75"
+MAGIC: "Wardog One Four, nearest tanker, Shell One One, BRA 099/75, 22000, track east"
 ```
 
 
@@ -267,7 +267,7 @@ Examples:
 
 ```
 HITMAN 1: Galaxy, Hitman One, declare one two four, five.
-GALAXY: Hitman One, bullseye 122/51, 7000, track west, hostile, 2 contacts, Fitter.
+GALAXY: Hitman One, group bullseye 122/51, 7000, track west, hostile, 2 contacts, Fitter.
 ```
 
 ```
@@ -305,7 +305,7 @@ THUNDERHEAD: "Thunderhead, 5 groups. Group bullseye 192/41, 21000, track south, 
 
 ```
 HITMAN 11: "Galaxy Hitman One One how's the picture looking?"
-GALAXY: "Hitman One One, 6 groups. Group bullseye 211/27, 18000, track northwest, hostile, Frogfoot. Group bullseye 226/12, 7000, track northwest, hostile, Fulcrum. Group bullseye 193/47, 36000, track northeast, hostile, Foxhound."
+GALAXY: "Galaxy, 6 groups. Group bullseye 211/27, 18000, track northwest, hostile, Frogfoot. Group bullseye 226/12, 7000, track northwest, hostile, Fulcrum. Group bullseye 193/47, 36000, track northeast, hostile, Foxhound."
 ```
 
 Tips:
@@ -332,7 +332,7 @@ Examples:
 
 ```
 MOBIUS 1: "Thunderhead Mobius One, snaplock one two five, ten, eight thousand"
-THUNDERHEAD: "Mobius 1, threat group BRAA 125/10, 8000, hot, hostile, two contacts, Flanker."
+THUNDERHEAD: "Mobius 1, threat group BRAA 125/10, 8000, hot, hostile, 2 contacts, Flanker."
 ```
 
 ### SPIKED/STROBE
@@ -351,22 +351,22 @@ Examples:
 
 ```
 MOBIUS 1: "Thunderhead Mobius One, spiked zero eight zero"
-THUNDERHEAD: "Mobius One, spike range 35, 16000, flank northeast, hostile, single contact."
+THUNDERHEAD: "Mobius One, spike range 35, 16000, flank northeast, hostile."
 ```
 
 ```
 PYTHON 12: "Wizard Python One Two, strobe two eight zero"
-WIZARD: "Python One Two, spike range 40, 25000, flank north, hostile, single contact."
+WIZARD: "Python One Two, strobe range 40, 25000, flank north, hostile."
 ```
 
 ```
 HITMAN 11: "Galaxy Hitman One One sees a spike at zero six zero"
-GALAXY: "Hitman One One, spike range 45, 8000, hot, hostile, single contact."
+GALAXY: "Hitman One One, spike range 45, 8000, hot, hostile."
 ```
 
 ```
 YELLOW 13: "Goliath Yellow One Three spiked three six zero"
-GOLIATH: "Yellow One Three, Goliath clean three six zero"
+GOLIATH: "Yellow One Three, Goliath clean 360."
 ```
 
 Tips:
