@@ -75,7 +75,7 @@ LIBRARIES = opus soxr
 CFLAGS = $(shell pkg-config $(LIBRARIES) --cflags --static)
 BUILD_VARS += CFLAGS='$(CFLAGS)'
 EXTLDFLAGS = $(shell pkg-config $(LIBRARIES) --libs --static)
-LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS) -static"
+LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS) -lgomp -static"
 endif
 
 BUILD_VARS += LDFLAGS='$(LDFLAGS)'
