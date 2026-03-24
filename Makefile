@@ -24,18 +24,21 @@ SKYEYE_BIN = skyeye
 SKYEYE_SCALER_BIN = skyeye-scaler
 
 WHISPER_CPP_PATH = third_party/whisper.cpp
-LIBWHISPER_PATH = $(WHISPER_CPP_PATH)/libwhisper.a
+WHISPER_CPP_BUILD_DIR = $(WHISPER_CPP_PATH)/build_go
+LIBWHISPER_PATH = $(WHISPER_CPP_BUILD_DIR)/src/libwhisper.a
 WHISPER_H_PATH = $(WHISPER_CPP_PATH)/include/whisper.h
-WHISPER_CPP_REPO = https://github.com/dharmab/whisper.cpp.git
-WHISPER_CPP_VERSION = v1.7.2-windows-fix
-WHISPER_CPP_BUILD_ENV =
+WHISPER_CPP_REPO = https://github.com/ggml-org/whisper.cpp.git
+WHISPER_CPP_VERSION = v1.8.4
+WHISPER_CPP_CMAKE_ARGS =
 
 # Compiler variables and flags
 GOBUILDVARS = GOARCH=$(GOARCH)
 ABS_WHISPER_CPP_PATH = $(abspath $(WHISPER_CPP_PATH))
+ABS_WHISPER_CPP_BUILD_DIR = $(abspath $(WHISPER_CPP_BUILD_DIR))
+LIBRARY_PATHS = $(ABS_WHISPER_CPP_BUILD_DIR)/src:$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src
 BUILD_VARS = CGO_ENABLED=1 \
   C_INCLUDE_PATH="$(ABS_WHISPER_CPP_PATH)/ggml/include:$(ABS_WHISPER_CPP_PATH)/include" \
-  LIBRARY_PATH="$(ABS_WHISPER_CPP_PATH)"
+  LIBRARY_PATH="$(LIBRARY_PATHS)"
 BUILD_FLAGS = -tags nolibopusfile
 
 # Populate --version from Git tag
@@ -50,8 +53,10 @@ ifeq ($(OS_DISTRIBUTION),macOS)
 CC=$(shell brew --prefix llvm)/bin/clang
 CXX=$(shell brew --prefix llvm)/bin/clang++
 BUILD_VARS += CC=$(CC) CXX=$(CXX)
-# Enable GPU acceleration
-WHISPER_CPP_BUILD_ENV = GGML_METAL=1
+LIBRARY_PATHS := $(LIBRARY_PATHS):$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src/ggml-metal:$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src/ggml-blas
+# Link OpenMP runtime for ggml-cpu on macOS (Go bindings only specify -fopenmp on Linux)
+BUILD_VARS += CGO_LDFLAGS=-fopenmp
+WHISPER_CPP_CMAKE_ARGS = -DCMAKE_C_COMPILER=$(CC) -DCMAKE_CXX_COMPILER=$(CXX)
 endif
 
 # Windows-specific settings
@@ -82,6 +87,7 @@ install-msys2-dependencies:
 	pacman -Syu --needed \
 	  git \
 	  base-devel \
+	  $(MINGW_PACKAGE_PREFIX)-cmake \
 	  $(MINGW_PACKAGE_PREFIX)-toolchain \
 	  $(MINGW_PACKAGE_PREFIX)-go \
 	  $(MINGW_PACKAGE_PREFIX)-opus \
@@ -92,6 +98,7 @@ install-arch-linux-dependencies:
 	sudo pacman -Syu \
 	  git \
 	  base-devel \
+	  cmake \
 	  go \
 	  opus \
 	  libsoxr
@@ -102,6 +109,7 @@ install-debian-dependencies:
 	sudo apt-get install -y \
 	  git \
 	  build-essential \
+	  cmake \
 	  golang-go \
 	  libopus-dev \
 	  libopus0 \
@@ -114,6 +122,7 @@ install-fedora-dependencies:
 	  git \
 	  development-tools \
 	  c-development \
+	  cmake \
 	  golang \
 	  opus-devel \
 	  opus \
@@ -125,6 +134,7 @@ install-macos-dependencies:
 	xcode-select --install || true
 	brew install \
 	  git \
+	  cmake \
 	  llvm \
 	  pkg-config \
 	  go \
@@ -136,8 +146,15 @@ download-whisper-%:
 	curl -L -o $*.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/$*.bin
 
 $(LIBWHISPER_PATH) $(WHISPER_H_PATH):
-	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false "$(WHISPER_CPP_REPO)" "$(WHISPER_CPP_PATH)" && $(WHISPER_CPP_BUILD_ENV) make -C $(WHISPER_CPP_PATH)/bindings/go whisper; fi
-	if [ -f third_party/whisper.cpp/whisper.a ] && [ ! -f $(LIBWHISPER_PATH) ]; then cp third_party/whisper.cpp/whisper.a $(LIBWHISPER_PATH); fi
+	if [ ! -f $(LIBWHISPER_PATH) -o ! -f $(WHISPER_H_PATH) ]; then \
+		git -C "$(WHISPER_CPP_PATH)" checkout --quiet $(WHISPER_CPP_VERSION) || \
+		git clone --depth 1 --branch $(WHISPER_CPP_VERSION) -c advice.detachedHead=false "$(WHISPER_CPP_REPO)" "$(WHISPER_CPP_PATH)" && \
+		cmake -S "$(WHISPER_CPP_PATH)" -B "$(WHISPER_CPP_BUILD_DIR)" \
+			-DCMAKE_BUILD_TYPE=Release \
+			-DBUILD_SHARED_LIBS=OFF \
+			$(WHISPER_CPP_CMAKE_ARGS) && \
+		cmake --build "$(WHISPER_CPP_BUILD_DIR)" --target whisper; \
+	fi
 
 .PHONY: whisper
 whisper: $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
