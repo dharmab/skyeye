@@ -68,8 +68,8 @@ SKYEYE_SCALER_BIN = skyeye-scaler.exe
 # Override Windows Go environment with MSYS2 UCRT64 Go environment
 GO = /ucrt64/bin/go
 GOBUILDVARS += GOROOT="/ucrt64/lib/go" GOPATH="/ucrt64"
-# CMake on MSYS2 omits the "lib" prefix; force it so -lggml works
-WHISPER_CPP_CMAKE_ARGS = -G "MSYS Makefiles" -DCMAKE_STATIC_LIBRARY_PREFIX=lib
+# Use MSYS Makefiles generator for cmake on MSYS2
+WHISPER_CPP_CMAKE_ARGS = -G "MSYS Makefiles"
 # Static linking on Windows to avoid MSYS2 dependency at runtime
 LIBRARIES = opus soxr
 CFLAGS = $(shell pkg-config $(LIBRARIES) --cflags --static)
@@ -156,7 +156,10 @@ $(LIBWHISPER_PATH) $(WHISPER_H_PATH):
 			-DCMAKE_BUILD_TYPE=Release \
 			-DBUILD_SHARED_LIBS=OFF \
 			$(WHISPER_CPP_CMAKE_ARGS) && \
-		cmake --build "$(WHISPER_CPP_BUILD_DIR)" --target whisper; \
+		cmake --build "$(WHISPER_CPP_BUILD_DIR)" --target whisper && \
+		for f in $$(find "$(WHISPER_CPP_BUILD_DIR)" -name '*.a' ! -name 'lib*'); do \
+			mv "$$f" "$$(dirname $$f)/lib$$(basename $$f)"; \
+		done; \
 	fi
 
 .PHONY: whisper
