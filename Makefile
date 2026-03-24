@@ -56,7 +56,8 @@ BUILD_VARS += CC=$(CC) CXX=$(CXX)
 LIBRARY_PATHS := $(LIBRARY_PATHS):$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src/ggml-metal:$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src/ggml-blas
 # Link OpenMP runtime for ggml-cpu on macOS (Go bindings only specify -fopenmp on Linux)
 BUILD_VARS += CGO_LDFLAGS=-fopenmp
-WHISPER_CPP_CMAKE_ARGS = -DCMAKE_C_COMPILER=$(CC) -DCMAKE_CXX_COMPILER=$(CXX)
+WHISPER_CPP_CMAKE_ARGS = -DCMAKE_C_COMPILER=$(CC) -DCMAKE_CXX_COMPILER=$(CXX) \
+  -DCMAKE_C_FLAGS=-Wno-elaborated-enum-base -DCMAKE_CXX_FLAGS=-Wno-elaborated-enum-base
 endif
 
 # Windows-specific settings
@@ -67,6 +68,8 @@ SKYEYE_SCALER_BIN = skyeye-scaler.exe
 # Override Windows Go environment with MSYS2 UCRT64 Go environment
 GO = /ucrt64/bin/go
 GOBUILDVARS += GOROOT="/ucrt64/lib/go" GOPATH="/ucrt64"
+# CMake on MSYS2 omits the "lib" prefix; force it so -lggml works
+WHISPER_CPP_CMAKE_ARGS = -G "MSYS Makefiles" -DCMAKE_STATIC_LIBRARY_PREFIX=lib
 # Static linking on Windows to avoid MSYS2 dependency at runtime
 LIBRARIES = opus soxr
 CFLAGS = $(shell pkg-config $(LIBRARIES) --cflags --static)
