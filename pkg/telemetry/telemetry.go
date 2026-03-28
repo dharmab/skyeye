@@ -10,6 +10,7 @@ import (
 	"net"
 	"time"
 
+	skynet "github.com/dharmab/skyeye/pkg/net"
 	"github.com/rs/zerolog/log"
 )
 
@@ -55,7 +56,7 @@ func (c *RealTimeClient) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		default:
-			nextAttempt := time.Now().Add(10 * time.Second)
+			nextAttempt := time.Now().Add(skynet.ReconnectDelay)
 			if err := c.read(ctx); err != nil {
 				if errors.Is(err, context.Canceled) {
 					return nil
@@ -80,6 +81,42 @@ func (c *RealTimeClient) read(ctx context.Context) error {
 
 	if err := c.handshake(reader, connection); err != nil {
 		return fmt.Errorf("error during client handhake: %w", err)
+	}
+
+	readTimeout := skynet.CalculateReadTimeout(c.connectionTimeout)
+
+	// Set up periodic deadline refresh to keep connection alive during long reads
+	deadlineCtx, deadlineCancel := context.WithCancel(ctx)
+	defer deadlineCancel()
+
+	go func() {
+		ticker := time.NewTicker(skynet.CalculateDeadlineRefreshInterval(readTimeout))
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-deadlineCtx.Done():
+				return
+			case <-ticker.C:
+				if err := connection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+					log.Warn().
+						Err(err).
+						Stringer("readTimeout", readTimeout).
+						Time("attemptedDeadline", time.Now().Add(readTimeout)).
+						Msg("failed to refresh telemetry read deadline")
+					// Connection may be in bad state, but read will fail
+					// and trigger reconnect naturally
+				}
+			}
+		}
+	}()
+
+	// Set initial deadline
+	if err := connection.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+		log.Warn().
+			Err(err).
+			Stringer("readTimeout", readTimeout).
+			Msg("failed to set initial telemetry read deadline")
 	}
 
 	if err := c.handleLines(ctx, reader); err != nil {

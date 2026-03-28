@@ -80,8 +80,11 @@ third_party/whisper.cpp
 # whisper.cpp models
 *.bin
 
-# ELF binary
+# ELF binaries
 /skyeye
+/skyeye.exe
+/skyeye-scaler
+/skyeye-scaler.exe
 
 # Local dev scripts ignored by default
 scripts/
