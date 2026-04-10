@@ -58,6 +58,9 @@ var (
 	whisperModelPath             string
 	recognizerLockPath           string
 	openAIAPIKey                 string
+	whisperLANEndpoint           string
+	whisperLANAPIKey             string
+	whisperLANModel              string
 	voiceName                    string
 	useSystemVoice               bool
 	mute                         bool
@@ -122,11 +125,14 @@ func init() {
 	skyeye.Flags().Var(coalitionFlag, "coalition", "GCI coalition (blue, red)")
 
 	// Speech-to-text
-	recognizerFlag := cli.NewEnum(&recognizerName, "Recognizer", string(conf.WhisperLocal), string(conf.WhisperAPI), string(conf.GPT4o), string(conf.GPT4oMini))
+	recognizerFlag := cli.NewEnum(&recognizerName, "Recognizer", string(conf.WhisperLocal), string(conf.WhisperAPI), string(conf.GPT4o), string(conf.GPT4oMini), string(conf.WhisperLAN))
 	skyeye.Flags().Var(recognizerFlag, "recognizer", "Speech-to-text recognizer to use")
 	skyeye.Flags().StringVar(&whisperModelPath, "whisper-model", "", "Path to whisper.cpp model")
 	skyeye.Flags().StringVar(&openAIAPIKey, "openai-api-key", "", "API key for OpenAPI AI")
-	skyeye.MarkFlagsOneRequired("whisper-model", "openai-api-key")
+	skyeye.Flags().StringVar(&whisperLANEndpoint, "whisper-lan-endpoint", "", "Base URL of an OpenAI-compatible whisper server on the local network (e.g. http://192.168.1.100:8080/v1)")
+	skyeye.Flags().StringVar(&whisperLANAPIKey, "whisper-lan-api-key", "", "Optional API key for the LAN whisper server")
+	skyeye.Flags().StringVar(&whisperLANModel, "whisper-lan-model", "whisper-1", "Model name to request from the LAN whisper server")
+	skyeye.MarkFlagsOneRequired("whisper-model", "openai-api-key", "whisper-lan-endpoint")
 	skyeye.Flags().StringVar(&recognizerLockPath, "recognizer-lock-path", "", "Path to lock file for concurrent speech-to-text when using multiple instances")
 
 	// Text-to-speech
@@ -402,6 +408,9 @@ func run(_ *cobra.Command, _ []string) {
 		RecognizerLock:               recognizerLock,
 		WhisperModel:                 whisperModel,
 		OpenAIAPIKey:                 openAIAPIKey,
+		WhisperLANEndpoint:           whisperLANEndpoint,
+		WhisperLANAPIKey:             whisperLANAPIKey,
+		WhisperLANModel:              whisperLANModel,
 		Voice:                        voice,
 		UseSystemVoice:               useSystemVoice,
 		VoiceLock:                    voiceLock,

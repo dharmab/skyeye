@@ -36,6 +36,27 @@ func NewWhisperAPIRecognizer(apiKey, callsign string) Recognizer {
 	return newOpenAIRecognizer(apiKey, "whisper-1", callsign)
 }
 
+// NewWhisperLANRecognizer creates a new recognizer using an OpenAI-compatible whisper server on the local network.
+// The endpoint should be the base URL of the server (e.g. "http://192.168.1.100:8080/v1").
+// The apiKey may be empty if the server does not require authentication.
+// The model is the model name to request (e.g. "whisper-1", "large-v3"). If empty, defaults to "whisper-1".
+func NewWhisperLANRecognizer(endpoint, apiKey, model, callsign string) Recognizer {
+	if model == "" {
+		model = "whisper-1"
+	}
+	opts := []option.RequestOption{
+		option.WithBaseURL(endpoint),
+	}
+	if apiKey != "" {
+		opts = append(opts, option.WithAPIKey(apiKey))
+	}
+	return &openAIRecognizer{
+		callsign: callsign,
+		client:   openai.NewClient(opts...),
+		model:    model,
+	}
+}
+
 // NewGPT4oRecognizer creates a new recognizer using OpenAI Platform's GPT-4o model.
 func NewGPT4oRecognizer(apiKey, callsign string) Recognizer {
 	return newOpenAIRecognizer(apiKey, "gpt-4o-transcribe", callsign)

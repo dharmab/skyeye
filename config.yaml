@@ -27,6 +27,8 @@
 # more intense system requirements.
 # Choose "openai-whisper-api" to use the OpenAI API for speech recognition,
 # which requires paying OpenAI for credits.
+# Choose "whisper-lan" to offload speech recognition to a whisper server on
+# another machine on your local network. See docs/QUICKSTART-WHISPER-LAN.md.
 # See docs/ADMIN.md for more details and advantages and disadvantages of each.
 # "openai-gpt4o" and "openai-gpt4o-mini" are also valid, but are not recommended
 # at this time due to higher error rates than Whisper.
@@ -54,6 +56,17 @@
 # If you chose the OpenAI API for cloud-based speech recognition, you need to
 # provide an API key. You can get an API key at https://openai.com/api.
 #openai-api-key: apikeygoeshere
+#
+# If you chose "whisper-lan", set the base URL of the whisper server on your
+# LAN. See docs/QUICKSTART-WHISPER-LAN.md for setup instructions.
+#whisper-lan-endpoint: http://192.168.1.100:8080/v1
+#
+# Optional API key for the LAN whisper server (most LAN setups don't need this).
+#whisper-lan-api-key:
+#
+# Model name to request from the LAN whisper server. The default "whisper-1"
+# works for most servers. Some servers may use names like "large-v3" or "base.en".
+#whisper-lan-model: whisper-1
 
 # TELEMETRY
 # Telemetry service address. Set this to the host and port of the TacView

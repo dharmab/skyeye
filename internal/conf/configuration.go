@@ -18,6 +18,7 @@ const (
 	WhisperAPI   Recognizer = "openai-whisper-api"
 	GPT4o        Recognizer = "openai-gpt4o"
 	GPT4oMini    Recognizer = "openai-gpt4o-mini"
+	WhisperLAN   Recognizer = "whisper-lan"
 )
 
 // Configuration for the SkyEye application.
@@ -65,6 +66,12 @@ type Configuration struct {
 	WhisperModel *whisper.Model
 	// OpenAIAPIKey is the API key for the OpenAI API. It may be empty if local transcription is configured.
 	OpenAIAPIKey string
+	// WhisperLANEndpoint is the base URL of an OpenAI-compatible whisper server on the local network (e.g. http://192.168.1.100:8080/v1)
+	WhisperLANEndpoint string
+	// WhisperLANAPIKey is an optional API key for authenticating with the LAN whisper server.
+	WhisperLANAPIKey string
+	// WhisperLANModel is the model name to request from the LAN whisper server (e.g. "whisper-1", "large-v3").
+	WhisperLANModel string
 	// Voice is the voice used for SRS transmissions
 	Voice voices.Voice
 	// UseSystemVoice controls whether to use the System Voice on macOS. This allows use of current Siri voices,
