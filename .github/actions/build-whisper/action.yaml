@@ -4,11 +4,11 @@ inputs:
   whisper-cpp-repo:
     description: 'The whisper.cpp repository to use'
     required: true
-    default: 'dharmab/whisper.cpp'
+    default: 'ggml-org/whisper.cpp'
   whisper-cpp-version:
     description: 'The version of whisper.cpp to use'
     required: true
-    default: 'v1.7.2-windows-fix'
+    default: 'v1.8.4'
   os:
     description: 'The operating system to build for'
     required: true

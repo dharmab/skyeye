@@ -48,6 +48,7 @@ func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32, ena
 
 	err = wCtx.Process(
 		sample,
+		nil,
 		func(segment whisper.Segment) {
 			event := log.Debug()
 			if enableTranscriptionLogging {
