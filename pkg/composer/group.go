@@ -44,7 +44,7 @@ func (c *Composer) composeGroup(group brevity.Group) (response NaturalLanguageRe
 	}
 	label := "Group"
 	if group.Threat() {
-		label = "Threat group"
+		label = "Threat"
 	}
 
 	// Group location, altitude, and track direction or specific aspect
