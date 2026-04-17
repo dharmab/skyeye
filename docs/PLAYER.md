@@ -80,11 +80,11 @@ Strict callsigns are callsigns that meet the following criteria:
 
 SkyEye makes a best effort to combine broadcast calls for strict callsigns into flights and elements, as appropriate for the current situation. For example, instead of saying:
 
-`Marauder One One, Marauder One Two, Marauder One Three, Marauder One Four, Marauder One Five, threat group bullseye 070/20, 12000, track north, hostile, 2 contacts, Fishbed.`
+`Marauder One One, Marauder One Two, Marauder One Three, Marauder One Four, Marauder One Five, threat bullseye 070/20, 12000, track north, hostile, 2 contacts, Fishbed.`
 
 Your flight may receive a shorter call such as:
 
-`Marauder One flight, threat group bullseye 070/20, 120-0, track north, hostile, 2 contacts, Fishbed.`
+`Marauder One flight, threat bullseye 070/20, 120-0, track north, hostile, 2 contacts, Fishbed.`
 
 If a call is only relevant to certain aircraft in a flight, SkyEye will abbreviate the callsigns. A call like:
 
@@ -205,7 +205,7 @@ Examples:
 
 ```
 MOBIUS 1: "Thunderhead Mobius One bogey dope"
-THUNDERHEAD: "Mobius One, threat group BRAA 071/13, 17000, flank south, hostile, Flanker"
+THUNDERHEAD: "Mobius One, threat BRAA 071/13, 17000, flank south, hostile, Flanker"
 ```
 
 ```
@@ -309,7 +309,7 @@ Examples:
 
 ```
 MOBIUS 1: "Thunderhead Mobius One, snaplock one two five, ten, eight thousand"
-THUNDERHEAD: "Mobius 1, threat group BRAA 125/10, 8000, hot, hostile, two contacts, Flanker."
+THUNDERHEAD: "Mobius 1, threat BRAA 125/10, 8000, hot, hostile, two contacts, Flanker."
 ```
 
 ### SPIKED/STROBE
@@ -375,11 +375,11 @@ Your own aircraft must be on a SkyEye SRS frequency, and using the same name in 
 Examples:
 
 ```
-WIZARD: RAVEN Three One, threat group BRAA 070/20, 1000, hot, hostile, 2 contacts, Fishbed.
+WIZARD: RAVEN Three One, threat BRAA 070/20, 1000, hot, hostile, 2 contacts, Fishbed.
 ```
 
 ```
-GALAXY: HITMAN One One, threat group bullseye 040/96, 10000, track south, hostile, 2 contacts, Flanker.
+GALAXY: HITMAN One One, threat bullseye 040/96, 10000, track south, hostile, 2 contacts, Flanker.
 ```
 
 ### MERGED
