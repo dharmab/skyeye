@@ -41,6 +41,7 @@ GOBUILDVARS = GOARCH=$(GOARCH)
 ABS_WHISPER_CPP_PATH = $(abspath $(WHISPER_CPP_PATH))
 ABS_WHISPER_CPP_BUILD_DIR = $(abspath $(WHISPER_CPP_BUILD_DIR))
 LIBRARY_PATHS = $(ABS_WHISPER_CPP_BUILD_DIR)/src:$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src
+CGO_LDFLAGS =
 BUILD_VARS = CGO_ENABLED=1 \
   C_INCLUDE_PATH="$(ABS_WHISPER_CPP_PATH)/ggml/include:$(ABS_WHISPER_CPP_PATH)/include" \
   LIBRARY_PATH="$(LIBRARY_PATHS)"
@@ -60,7 +61,7 @@ CXX=$(shell brew --prefix llvm)/bin/clang++
 BUILD_VARS += CC=$(CC) CXX=$(CXX)
 LIBRARY_PATHS := $(LIBRARY_PATHS):$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src/ggml-metal:$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src/ggml-blas
 # Link OpenMP runtime for ggml-cpu on macOS (Go bindings only specify -fopenmp on Linux)
-BUILD_VARS += CGO_LDFLAGS=-fopenmp
+CGO_LDFLAGS += -fopenmp
 WHISPER_CPP_CMAKE_ARGS = -DCMAKE_C_COMPILER=$(CC) -DCMAKE_CXX_COMPILER=$(CXX) \
   -DCMAKE_C_FLAGS=-Wno-elaborated-enum-base -DCMAKE_CXX_FLAGS=-Wno-elaborated-enum-base
 endif
@@ -89,13 +90,15 @@ ifeq ($(WHISPER_CPP_BACKEND),vulkan)
   LIBRARY_PATHS := $(LIBRARY_PATHS):$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src/ggml-vulkan
   BUILD_VARS := $(filter-out LIBRARY_PATH=%,$(BUILD_VARS)) LIBRARY_PATH="$(LIBRARY_PATHS)"
   ifeq ($(OS_DISTRIBUTION),Windows)
-    WHISPER_CPP_VULKAN_CGO_LDFLAGS = -lggml-vulkan -lvulkan-1
+    CGO_LDFLAGS += -lggml-vulkan -lvulkan-1
   else
-    WHISPER_CPP_VULKAN_CGO_LDFLAGS = -lggml-vulkan -lvulkan
+    CGO_LDFLAGS += -lggml-vulkan -lvulkan
   endif
-  BUILD_VARS += CGO_LDFLAGS='$(WHISPER_CPP_VULKAN_CGO_LDFLAGS)'
 endif
 
+ifneq ($(strip $(CGO_LDFLAGS)),)
+BUILD_VARS += CGO_LDFLAGS='$(CGO_LDFLAGS)'
+endif
 BUILD_VARS += LDFLAGS='$(LDFLAGS)'
 BUILD_FLAGS += -ldflags '$(LDFLAGS)'
 GO := $(GOBUILDVARS) $(GO)
