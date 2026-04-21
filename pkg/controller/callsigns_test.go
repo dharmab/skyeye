@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -151,5 +152,28 @@ func TestCollateCallsigns(t *testing.T) {
 			actual := collateCallsigns(testCase.receivers, testCase.everyone)
 			assert.ElementsMatchf(t, testCase.expected, actual, "got: %v, expected: %v, receivers: %v, everyone: %v", actual, testCase.expected, testCase.receivers, testCase.everyone)
 		})
+	}
+}
+
+func BenchmarkCollateCallsigns(b *testing.B) {
+	// Build a realistic scenario: 10 flights of 4, all are receivers.
+	var receivers, everyone []string
+	for flight := 1; flight <= 10; flight++ {
+		for pos := 1; pos <= 4; pos++ {
+			cs := fmt.Sprintf("eagle %d %d", flight, pos)
+			everyone = append(everyone, cs)
+			receivers = append(receivers, cs)
+		}
+	}
+	// Add some non-strict callsigns.
+	for i := range 5 {
+		cs := fmt.Sprintf("bandit%d", i)
+		everyone = append(everyone, cs)
+		receivers = append(receivers, cs)
+	}
+
+	b.ResetTimer()
+	for range b.N {
+		collateCallsigns(receivers, everyone)
 	}
 }

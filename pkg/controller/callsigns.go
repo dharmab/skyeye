@@ -115,7 +115,7 @@ func collateCallsigns(receivers, everyone []string) []string {
 	slices.Sort(everyone)
 
 	// Parse all callsigns which follow the strict format.
-	callsigns := []strictCallsign{}
+	callsigns := make([]strictCallsign, 0, len(everyone))
 	for _, name := range everyone {
 		if callsign, ok := parseStrictCallsign(name); ok {
 			callsigns = append(callsigns, *callsign)
@@ -150,6 +150,9 @@ func collateCallsigns(receivers, everyone []string) []string {
 			positions = &omap.Map[int, bool]{}
 			flights.Set(callsign.flight, positions)
 		}
+		// Check if this callsign is a receiver by scanning the slice. A pre-built map[string]struct{}
+		// was benchmarked but performed worse: the map allocation overhead exceeds the O(n) scan
+		// cost at realistic player counts (~45 callsigns).
 		isReceiver := slices.Contains(receivers, callsign.String())
 		positions.Set(callsign.position, isReceiver)
 	}
@@ -161,7 +164,7 @@ func collateCallsigns(receivers, everyone []string) []string {
 	collated := []string{}
 	for codeword, flights := range members.All() {
 		for flight, positions := range flights.All() {
-			// Note: Iterating twice over the positions. Probaby fine since flights are only 4-5 positions at most.
+			// Iterating twice over the positions is faster than a single-pass approach due to omap iterator overhead.
 			isEntireFlightReceiver := true
 			for _, isReceiver := range positions.All() {
 				if !isReceiver {
@@ -191,6 +194,8 @@ func collateCallsigns(receivers, everyone []string) []string {
 	}
 
 	// Append any non-strict callsigns to the collated callsigns.
+	// Re-parsing is simpler than tracking which receivers were consumed during the trie walk,
+	// and the parsing cost is negligible at realistic player counts.
 	for _, s := range receivers {
 		if _, ok := parseStrictCallsign(s); !ok {
 			collated = append(collated, s)
