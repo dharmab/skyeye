@@ -2,10 +2,12 @@ package controller
 
 import (
 	"context"
+	"slices"
 	"sync"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/rs/zerolog/log"
 )
 
@@ -95,8 +97,17 @@ func (c *Controller) broadcastThreat(ctx context.Context, hostileGroup brevity.G
 			logger.Debug().Msg("omitting friendly from threat call because the threat is already merged")
 			continue
 		}
-		if friendly := c.scope.FindUnit(friendID); friendly != nil {
-			threatCall.Callsigns = c.addFriendlyToBroadcast(threatCall.Callsigns, friendly)
+		friendly := c.scope.FindUnit(friendID)
+		if friendly == nil {
+			continue
+		}
+		callsign, ok := parser.ParsePilotCallsign(friendly.Contact.Name)
+		if !ok {
+			log.Debug().Str("contact_name", friendly.Contact.Name).Msg("could not parse callsign")
+			continue
+		}
+		if !slices.Contains(threatCall.Callsigns, callsign) {
+			threatCall.Callsigns = append(threatCall.Callsigns, callsign)
 		}
 	}
 
