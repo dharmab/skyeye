@@ -99,6 +99,9 @@ func (r *Radar) FindNearestGroupWithBRAA(
 func (r *Radar) FindNearestGroupWithBullseye(origin orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory) brevity.Group {
 	nearestTrackfile := r.FindNearestTrackfile(origin, minAltitude, maxAltitude, radius, coalition, filter)
 	grp := r.findGroupForAircraft(nearestTrackfile)
+	if grp == nil {
+		return nil
+	}
 	declination := r.Declination(origin)
 	bearing := spatial.TrueBearing(origin, grp.point(), r.withProjection()).Magnetic(declination)
 	aspect := brevity.UnknownAspect
