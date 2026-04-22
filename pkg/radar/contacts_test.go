@@ -150,6 +150,59 @@ func TestDelete(t *testing.T) {
 	require.False(t, ok)
 }
 
+func TestSetDoesNotCollideOnNormalizedCallsign(t *testing.T) {
+	t.Parallel()
+	db := newContactDatabase()
+	trackfileA := trackfiles.New(trackfiles.Labels{
+		ID:        1,
+		Name:      "[ABC]Viper11 | PilotA",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-15C",
+	})
+	trackfileB := trackfiles.New(trackfiles.Labels{
+		ID:        2,
+		Name:      "[XYZ]Viper11 | PilotB",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-16C",
+	})
+	db.set(trackfileA)
+	db.set(trackfileB)
+
+	assert.Len(t, db.callsignIdx[coalitions.Blue], 2)
+	assert.Contains(t, db.callsignIdx[coalitions.Blue], trackfileA.Contact.Name)
+	assert.Contains(t, db.callsignIdx[coalitions.Blue], trackfileB.Contact.Name)
+
+	_, foundA, ok := db.getByCallsignAndCoalititon(trackfileA.Contact.Name, coalitions.Blue)
+	require.True(t, ok)
+	assert.Equal(t, trackfileA.Contact.ID, foundA.Contact.ID)
+
+	_, foundB, ok := db.getByCallsignAndCoalititon(trackfileB.Contact.Name, coalitions.Blue)
+	require.True(t, ok)
+	assert.Equal(t, trackfileB.Contact.ID, foundB.Contact.ID)
+}
+
+func TestDeleteRemovesRawIndexedCallsign(t *testing.T) {
+	t.Parallel()
+	db := newContactDatabase()
+	trackfile := trackfiles.New(trackfiles.Labels{
+		ID:        1,
+		Name:      "[ABC]Viper11 | PilotA",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-15C",
+	})
+	db.set(trackfile)
+
+	_, _, ok := db.getByCallsignAndCoalititon("viper 1 1", coalitions.Blue)
+	require.True(t, ok)
+
+	ok = db.delete(trackfile.Contact.ID)
+	require.True(t, ok)
+	assert.Empty(t, db.callsignIdx[coalitions.Blue])
+
+	_, _, ok = db.getByCallsignAndCoalititon("viper 1 1", coalitions.Blue)
+	assert.False(t, ok)
+}
+
 func TestClear(t *testing.T) {
 	t.Parallel()
 	database := newContactDatabase()

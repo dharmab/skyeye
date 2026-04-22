@@ -43,19 +43,37 @@ func (db *contactDatabase) getByCallsignAndCoalititon(callsign string, coalition
 	if ok {
 		foundCallsign = callsign
 	} else {
+		normalizedCallsign := normalizeCallsign(callsign)
+		normalizedCallsignIdx := make(map[string][]string, len(db.callsignIdx[coalition]))
 		keys := make([]string, 0, len(db.callsignIdx[coalition]))
-		for k := range db.callsignIdx[coalition] {
-			keys = append(keys, k)
+		for rawCallsign := range db.callsignIdx[coalition] {
+			normalizedIndexedCallsign := normalizeCallsign(rawCallsign)
+			if _, ok := normalizedCallsignIdx[normalizedIndexedCallsign]; !ok {
+				keys = append(keys, normalizedIndexedCallsign)
+			}
+			normalizedCallsignIdx[normalizedIndexedCallsign] = append(normalizedCallsignIdx[normalizedIndexedCallsign], rawCallsign)
 		}
-		logger.Info().Msg("callsign not found in index, attempting fuzzy search")
-		var err error
-		foundCallsign, err = fuzz.FuzzySearchThreshold(callsign, keys, CallsignSimilarityThreshold, fuzz.Levenshtein)
-		if foundCallsign == "" || err != nil {
-			logger.Warn().Err(err).Msg("callsign not found in index")
-			return "", nil, false
+
+		if rawCallsigns, ok := normalizedCallsignIdx[normalizedCallsign]; ok && len(rawCallsigns) > 0 {
+			foundCallsign = normalizedCallsign
+			slices.Sort(rawCallsigns)
+			id = db.callsignIdx[coalition][rawCallsigns[0]]
+		} else {
+			logger.Info().Msg("callsign not found in index, attempting fuzzy search")
+			var err error
+			foundCallsign, err = fuzz.FuzzySearchThreshold(normalizedCallsign, keys, CallsignSimilarityThreshold, fuzz.Levenshtein)
+			if foundCallsign == "" || err != nil {
+				logger.Warn().Err(err).Msg("callsign not found in index")
+				return "", nil, false
+			}
+			logger.Info().Str("foundCallsign", foundCallsign).Msg("similar callsign found in index")
+			rawCallsigns := normalizedCallsignIdx[foundCallsign]
+			if len(rawCallsigns) == 0 {
+				return "", nil, false
+			}
+			slices.Sort(rawCallsigns)
+			id = db.callsignIdx[coalition][rawCallsigns[0]]
 		}
-		logger.Info().Str("foundCallsign", foundCallsign).Msg("similar callsign found in index")
-		id = db.callsignIdx[coalition][foundCallsign]
 	}
 	contact, ok := db.contacts[id]
 	if !ok {
@@ -79,14 +97,17 @@ func (db *contactDatabase) set(trackfile *trackfiles.Trackfile) {
 	db.lock.Lock()
 	defer db.lock.Unlock()
 
-	// TODO get this string munging out of here
-	callsign, _, _ := strings.Cut(trackfile.Contact.Name, "|")
-	callsign, ok := parser.ParsePilotCallsign(callsign)
-	if !ok {
-		callsign = trackfile.Contact.Name
-	}
-	db.callsignIdx[trackfile.Contact.Coalition][callsign] = trackfile.Contact.ID
+	db.callsignIdx[trackfile.Contact.Coalition][trackfile.Contact.Name] = trackfile.Contact.ID
 	db.contacts[trackfile.Contact.ID] = trackfile
+}
+
+func normalizeCallsign(callsign string) string {
+	callsignBeforePipe, _, _ := strings.Cut(callsign, "|")
+	parsedCallsign, ok := parser.ParsePilotCallsign(callsignBeforePipe)
+	if ok {
+		return parsedCallsign
+	}
+	return callsign
 }
 
 // delete removes the trackfile for the given unit ID.
