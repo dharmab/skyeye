@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
@@ -49,7 +50,7 @@ type Client struct {
 	clientsLock sync.RWMutex
 
 	// secureCoalitionRadios indicates if the client should only receive transmissions from the same coalition.
-	secureCoalitionRadios bool
+	secureCoalitionRadios atomic.Bool
 
 	// rxChan is a channel where received transmission are published. A read-only version is available publicly.
 	rxChan chan Transmission
