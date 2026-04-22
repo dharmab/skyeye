@@ -406,10 +406,6 @@ func isAircraft(taglist []string) bool {
 	return slices.Contains(taglist, tags.FixedWing) || slices.Contains(taglist, tags.Rotorcraft)
 }
 
-func isBullseye(taglist []string) bool {
-	return slices.Contains(taglist, tags.Bullseye)
-}
-
 func isRelevantObject(taglist []string) bool {
-	return isAircraft(taglist) || isBullseye(taglist)
+	return isAircraft(taglist) || slices.Contains(taglist, tags.Bullseye)
 }
