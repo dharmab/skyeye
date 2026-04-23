@@ -334,60 +334,74 @@ func (c *streamingClient) updateGlobalObject(update *objects.Update) error {
 }
 
 func (c *streamingClient) updateObject(update *objects.Update) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	var isNewObject bool
-	logger := log.With().Uint64("id", update.ID).Logger()
+	var faded *sim.Faded
+	if err := func() error {
+		c.lock.Lock()
+		defer c.lock.Unlock()
+		var isNewObject bool
+		logger := log.With().Uint64("id", update.ID).Logger()
 
-	object, ok := c.state[update.ID]
-	if !ok {
-		isNewObject = true
-		object = objects.New(update.ID)
-		c.state[update.ID] = object
-	}
-
-	if err := object.Update(update, c.referencePoint.Lon(), c.referencePoint.Lat()); err != nil {
-		return fmt.Errorf("error updating object: %w", err)
-	}
-
-	taglist, err := object.GetTypes()
-	if err != nil {
-		return fmt.Errorf("attempted to update object of unknown type: %w", err)
-	}
-
-	logger = logger.With().Strs("tags", taglist).Logger()
-	if callsign, ok := object.GetProperty(properties.Pilot); ok {
-		logger = logger.With().Str("callsign", callsign).Logger()
-	}
-	if name, ok := object.GetProperty(properties.Name); ok {
-		logger = logger.With().Str("aircraft", name).Logger()
-	}
-	if coalition, ok := object.GetProperty(properties.Coalition); ok {
-		logger = logger.With().Stringer("coalition", propertyToCoalition(coalition)).Logger()
-	}
-
-	if isNewObject && isRelevantObject(taglist) {
-		logger.Info().Msg("recording new object")
-	}
-
-	isBullseye := slices.Contains(taglist, tags.Bullseye)
-	if isBullseye {
-		property, ok := object.GetProperty(properties.Coalition)
+		object, ok := c.state[update.ID]
 		if !ok {
-			return errors.New("bullseye object missing coalition property")
+			isNewObject = true
+			object = objects.New(update.ID)
+			c.state[update.ID] = object
 		}
-		coalition := propertyToCoalition(property)
-		c.bullseyesIdx[coalition] = object.ID
+
+		if err := object.Update(update, c.referencePoint.Lon(), c.referencePoint.Lat()); err != nil {
+			return fmt.Errorf("error updating object: %w", err)
+		}
+
+		taglist, err := object.GetTypes()
+		if err != nil {
+			return fmt.Errorf("attempted to update object of unknown type: %w", err)
+		}
+
+		logger = logger.With().Strs("tags", taglist).Logger()
+		if callsign, ok := object.GetProperty(properties.Pilot); ok {
+			logger = logger.With().Str("callsign", callsign).Logger()
+		}
+		if name, ok := object.GetProperty(properties.Name); ok {
+			logger = logger.With().Str("aircraft", name).Logger()
+		}
+		if coalition, ok := object.GetProperty(properties.Coalition); ok {
+			logger = logger.With().Stringer("coalition", propertyToCoalition(coalition)).Logger()
+		}
+
+		if isNewObject && isRelevantObject(taglist) {
+			logger.Info().Msg("recording new object")
+		}
+
+		isBullseye := slices.Contains(taglist, tags.Bullseye)
+		if isBullseye {
+			property, ok := object.GetProperty(properties.Coalition)
+			if !ok {
+				return errors.New("bullseye object missing coalition property")
+			}
+			coalition := propertyToCoalition(property)
+			c.bullseyesIdx[coalition] = object.ID
+		}
+
+		if update.IsRemoval {
+			delete(c.state, object.ID)
+			// Collect the fade for emission after we release the lock;
+			// c.fades is unbuffered so a send while holding the write
+			// lock blocks every concurrent reader and deadlocks if the
+			// relay goroutine is itself waiting on another resource.
+			f := sim.Faded{ID: object.ID}
+			faded = &f
+			if isRelevantObject(taglist) {
+				logger.Info().Msg("recording object removal")
+			}
+		}
+		return nil
+	}(); err != nil {
+		return err
 	}
 
-	if update.IsRemoval {
-		delete(c.state, object.ID)
-		c.fades <- sim.Faded{ID: object.ID}
-		if isRelevantObject(taglist) {
-			logger.Info().Msg("recording object removal")
-		}
+	if faded != nil {
+		c.fades <- *faded
 	}
-
 	return nil
 }
 
