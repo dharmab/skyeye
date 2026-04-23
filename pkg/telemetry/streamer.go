@@ -119,9 +119,23 @@ func (c *streamingClient) Time() time.Time {
 }
 
 func (c *streamingClient) sendUpdates(updates chan<- sim.Updated) {
+	// Build the update list under the read lock, then release it before
+	// sending on the unbuffered updates channel. Previously we held the
+	// RLock while each send blocked on the radar consumer, which
+	// starved concurrent updateObject callers (they need the write
+	// lock) whenever the consumer lagged — eventually stalling ACMI
+	// parsing entirely (dharmab/skyeye#660).
+	snapshot := c.buildUpdatesSnapshot()
+	for _, u := range snapshot {
+		updates <- u
+	}
+}
+
+func (c *streamingClient) buildUpdatesSnapshot() []sim.Updated {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 
+	snapshot := make([]sim.Updated, 0, len(c.state))
 	for _, object := range c.state {
 		logger := log.With().Uint64("id", object.ID).Logger()
 		// Only send updates for aircraft.
@@ -179,7 +193,7 @@ func (c *streamingClient) sendUpdates(updates chan<- sim.Updated) {
 			frame.AGL = &agl
 		}
 
-		updates <- sim.Updated{
+		snapshot = append(snapshot, sim.Updated{
 			Labels: trackfiles.Labels{
 				ID:        object.ID,
 				Name:      callsign,
@@ -187,8 +201,9 @@ func (c *streamingClient) sendUpdates(updates chan<- sim.Updated) {
 				ACMIName:  name,
 			},
 			Frame: frame,
-		}
+		})
 	}
+	return snapshot
 }
 
 func (c *streamingClient) handleLines(ctx context.Context, reader *bufio.Reader) error {
