@@ -3,7 +3,6 @@ package parser
 import (
 	"strings"
 
-	"github.com/dharmab/skyeye/internal/normalize"
 	fuzz "github.com/hbollon/go-edlib"
 	"github.com/rs/zerolog/log"
 )
@@ -29,13 +28,4 @@ func isSimilar(a, b string) bool {
 		return false
 	}
 	return v > similarityThreshold
-}
-
-// normalizeText applies base text normalization then parser-specific word replacements.
-func normalizeText(tx string) string {
-	tx = normalize.Normalize(tx)
-	for _, repl := range replacements {
-		tx = strings.ReplaceAll(tx, repl.Original, repl.Normal)
-	}
-	return tx
 }

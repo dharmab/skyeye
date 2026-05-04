@@ -10,9 +10,11 @@ import (
 )
 
 const (
+	// maxCallsignDigits is the maximum number of digits allowed in a pilot callsign.
 	maxCallsignDigits = 3
 )
 
+// digitHomophones maps common speech recognition misheard words to digits.
 var digitHomophones = map[string]string{
 	"won":   "1",
 	"to":    "2",
@@ -27,6 +29,9 @@ var digitHomophones = map[string]string{
 	"niner": "9",
 }
 
+// replaceDigitHomophones replaces words that are homophones of digits,
+// but only when they appear in digit positions of a callsign (i.e., after
+// the callsign name or mixed with actual digits).
 func replaceDigitHomophones(tx string) string {
 	fields := strings.Fields(tx)
 	firstDigitIdx := -1
@@ -48,6 +53,8 @@ func replaceDigitHomophones(tx string) string {
 	return strings.Join(fields, " ")
 }
 
+// stripOrdinalSuffix removes ordinal suffixes (st, nd, rd, th) from a
+// string that starts with digits, e.g. "5th" → "5".
 func stripOrdinalSuffix(s string) string {
 	for _, suffix := range []string{"st", "nd", "rd", "th"} {
 		if strings.HasSuffix(s, suffix) {

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/dharmab/numwords"
+	"github.com/dharmab/skyeye/internal/normalize"
 	"github.com/dharmab/skyeye/internal/parser/token"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/callsigns"
@@ -164,7 +165,10 @@ func (p *Parser) Parse(tx string) any {
 		logger = logger.With().Str("text", tx).Logger()
 	}
 	logger.Debug().Msg("parsing text")
-	tx = normalizeText(tx)
+	tx = normalize.Normalize(tx)
+	for _, replacement := range replacements {
+		tx = strings.ReplaceAll(tx, replacement.Original, replacement.Normal)
+	}
 	if tx == "" {
 		return nil
 	}
