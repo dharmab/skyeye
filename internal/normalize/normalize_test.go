@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestString(t *testing.T) {
+func TestNormalize(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		input    string
@@ -23,7 +23,7 @@ func TestString(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.input, func(t *testing.T) {
 			t.Parallel()
-			actual := String(test.input)
+			actual := Normalize(test.input)
 			assert.Equal(t, test.expected, actual)
 		})
 	}

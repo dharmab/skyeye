@@ -33,7 +33,7 @@ func isSimilar(a, b string) bool {
 
 // normalizeText applies base text normalization then parser-specific word replacements.
 func normalizeText(tx string) string {
-	tx = normalize.String(tx)
+	tx = normalize.Normalize(tx)
 	for _, repl := range replacements {
 		tx = strings.ReplaceAll(tx, repl.Original, repl.Normal)
 	}

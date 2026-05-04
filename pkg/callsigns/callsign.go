@@ -69,7 +69,7 @@ func stripOrdinalSuffix(s string) string {
 // and space-delimited.
 func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	tx = removeClanTags(tx)
-	tx = normalize.String(tx)
+	tx = normalize.Normalize(tx)
 	tx = normalize.SpaceDigits(tx)
 
 	tx = strings.ReplaceAll(tx, "this is", "")
@@ -94,7 +94,7 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 		}
 	}
 
-	callsign = normalize.SpaceDigits(normalize.String(builder.String()))
+	callsign = normalize.SpaceDigits(normalize.Normalize(builder.String()))
 	if callsign == "" {
 		return "", false
 	}
