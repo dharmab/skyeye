@@ -20,5 +20,5 @@ type AlphaCheckResponse struct {
 	// Status is true if the ALPHA CHECK was correlated to an aircraft on frequency, otherwise false.
 	Status bool
 	// Location of the friendly aircraft. If Status is false, this may be nil.
-	Location Bullseye
+	Location *Bullseye
 }

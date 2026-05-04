@@ -20,7 +20,7 @@ type group struct {
 	isThreat    bool
 	contacts    []*trackfiles.Trackfile
 	bullseye    *brevity.Bullseye
-	braa        brevity.BRAA
+	braa        *brevity.BRAA
 	aspect      *brevity.Aspect
 	declaration brevity.Declaration
 	mergedWith  int
@@ -127,7 +127,7 @@ func (g *group) SetAspect(aspect *brevity.Aspect) {
 }
 
 // BRAA implements [brevity.Group.BRAA].
-func (g *group) BRAA() brevity.BRAA {
+func (g *group) BRAA() *brevity.BRAA {
 	return g.braa
 }
 

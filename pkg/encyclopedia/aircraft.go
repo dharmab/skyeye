@@ -31,6 +31,18 @@ const (
 	Attack
 )
 
+// AirRefuelingMethod describes a type of aerial refueling.
+type AirRefuelingMethod int
+
+const (
+	// NoAirRefueling indicates no aerial refueling capability.
+	NoAirRefueling AirRefuelingMethod = iota
+	// FlyingBoom indicates flying boom refueling.
+	FlyingBoom
+	// ProbeAndDrogue indicates probe-and-drogue (basket) refueling.
+	ProbeAndDrogue
+)
+
 // Aircraft describes a specific aircraft type.
 type Aircraft struct {
 	// ACMIShortName is the Name proeprty used in ACMI telemetry.
@@ -53,6 +65,10 @@ type Aircraft struct {
 	Nickname string
 	// threatRadius is the distance at which the aircraft is considered a threat.
 	threatRadius unit.Length
+	// fuelProvider is the refueling method a tanker aircraft provides to receivers.
+	fuelProvider AirRefuelingMethod
+	// fuelReceiver is the refueling method a receiver aircraft requires from tankers.
+	fuelReceiver AirRefuelingMethod
 }
 
 var (
@@ -110,6 +126,18 @@ func (a Aircraft) ThreatRadius() unit.Length {
 	return SAR2AR1Threat
 }
 
+// FuelProvider returns the refueling method a tanker aircraft provides.
+// Returns NoAirRefueling if the aircraft is not a tanker.
+func (a Aircraft) FuelProvider() AirRefuelingMethod {
+	return a.fuelProvider
+}
+
+// FuelReceiver returns the refueling method a receiver aircraft requires.
+// Returns NoAirRefueling if the aircraft cannot receive aerial refueling.
+func (a Aircraft) FuelReceiver() AirRefuelingMethod {
+	return a.fuelReceiver
+}
+
 func variants(data Aircraft, naming map[string]string) []Aircraft {
 	variants := make([]Aircraft, 0, len(naming))
 	for nameSuffix, designationSuffx := range naming {
@@ -120,6 +148,8 @@ func variants(data Aircraft, naming map[string]string) []Aircraft {
 			NATOReportingName:   data.NATOReportingName,
 			OfficialName:        data.OfficialName,
 			Nickname:            data.Nickname,
+			fuelProvider:        data.fuelProvider,
+			fuelReceiver:        data.fuelReceiver,
 		}
 		if data.ACMIShortName != "" {
 			aircraft.ACMIShortName = data.ACMIShortName + nameSuffix
@@ -139,6 +169,7 @@ var a10Data = Aircraft{
 	PlatformDesignation: "A-10",
 	OfficialName:        "Thunderbolt",
 	Nickname:            "Warthog",
+	fuelReceiver:        FlyingBoom,
 }
 
 func a10Variants() []Aircraft {
@@ -239,6 +270,7 @@ var f4Data = Aircraft{
 	},
 	PlatformDesignation: "F-4",
 	OfficialName:        "Phantom",
+	fuelReceiver:        FlyingBoom,
 }
 
 func f4Variants() []Aircraft {
@@ -279,6 +311,7 @@ var f14Data = Aircraft{
 	PlatformDesignation: "F-14",
 	OfficialName:        "Tomcat",
 	threatRadius:        ExtendedThreat,
+	fuelReceiver:        ProbeAndDrogue,
 }
 
 func f14Variants() []Aircraft {
@@ -302,6 +335,7 @@ var f15Data = Aircraft{
 	// Use "Eagle" for Strike Eagle because radar cannot distinguish between the two
 	OfficialName: "Eagle",
 	threatRadius: ExtendedThreat,
+	fuelReceiver: FlyingBoom,
 }
 
 func f15Variants() []Aircraft {
@@ -323,6 +357,7 @@ var f16Data = Aircraft{
 	OfficialName:        "Falcon",
 	Nickname:            "Viper",
 	threatRadius:        ExtendedThreat,
+	fuelReceiver:        FlyingBoom,
 }
 
 func f16Variants() []Aircraft {
@@ -346,6 +381,7 @@ var fa18Data = Aircraft{
 	PlatformDesignation: "FA-18",
 	OfficialName:        "Hornet",
 	threatRadius:        ExtendedThreat,
+	fuelReceiver:        ProbeAndDrogue,
 }
 
 func fa18Variants() []Aircraft {
@@ -407,6 +443,7 @@ var mirageF1Data = Aircraft{
 	},
 	PlatformDesignation: "Mirage F1",
 	OfficialName:        "Mirage F1",
+	fuelReceiver:        ProbeAndDrogue,
 }
 
 func mirageF1Variants() []Aircraft {
@@ -601,12 +638,14 @@ func kc135Variants() []Aircraft {
 			tags:                kc135Data.tags,
 			PlatformDesignation: kc135Data.PlatformDesignation,
 			OfficialName:        kc135Data.OfficialName,
+			fuelProvider:        FlyingBoom,
 		},
 		{
 			ACMIShortName:       "KC135MPRS",
 			tags:                kc135Data.tags,
 			PlatformDesignation: kc135Data.PlatformDesignation,
 			OfficialName:        kc135Data.OfficialName,
+			fuelProvider:        ProbeAndDrogue,
 		},
 	}
 }
@@ -660,13 +699,17 @@ var s3Data = Aircraft{
 }
 
 func s3Variants() []Aircraft {
-	return variants(
+	v := variants(
 		s3Data,
 		map[string]string{
-			"B":        "B",
-			"B Tanker": "B",
+			"B": "B",
 		},
 	)
+	tanker := s3Data
+	tanker.ACMIShortName = s3Data.PlatformDesignation + "B Tanker"
+	tanker.TypeDesignation = s3Data.TypeDesignation + "B"
+	tanker.fuelProvider = ProbeAndDrogue
+	return append(v, tanker)
 }
 
 var tornadoData = Aircraft{
@@ -677,6 +720,7 @@ var tornadoData = Aircraft{
 	PlatformDesignation: "Tornado",
 	OfficialName:        "Tornado",
 	threatRadius:        SAR1IRThreat,
+	fuelReceiver:        ProbeAndDrogue,
 }
 
 func tornadoVariants() []Aircraft {
@@ -720,6 +764,7 @@ var aircraftData = []Aircraft{
 		OfficialName:        "Skyhawk",
 		Nickname:            "Scooter",
 		threatRadius:        SAR1IRThreat,
+		fuelReceiver:        ProbeAndDrogue,
 	},
 	{
 		ACMIShortName: "A6E",
@@ -730,6 +775,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "A-6",
 		TypeDesignation:     "A-6E",
 		OfficialName:        "Intruder",
+		fuelReceiver:        ProbeAndDrogue,
 	},
 	{
 		ACMIShortName: "A-20G",
@@ -781,6 +827,7 @@ var aircraftData = []Aircraft{
 		TypeDesignation:     "AV-8B",
 		OfficialName:        "Harrier",
 		threatRadius:        SAR1IRThreat,
+		fuelReceiver:        ProbeAndDrogue,
 	},
 	{
 		ACMIShortName: "An-26B",
@@ -934,6 +981,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "Il-78",
 		TypeDesignation:     "Il-78M",
 		NATOReportingName:   "Midas",
+		fuelProvider:        ProbeAndDrogue,
 	},
 	{
 		ACMIShortName:       "J-11A",
@@ -953,6 +1001,7 @@ var aircraftData = []Aircraft{
 		TypeDesignation:     "JF-17",
 		OfficialName:        "Thunder",
 		threatRadius:        ExtendedThreat,
+		fuelReceiver:        ProbeAndDrogue,
 	},
 	{
 		ACMIShortName: "KA-27",
@@ -974,6 +1023,7 @@ var aircraftData = []Aircraft{
 		TypeDesignation:     "KC-130",
 		OfficialName:        "Hercules",
 		Nickname:            "Herc",
+		fuelProvider:        ProbeAndDrogue,
 	},
 	{
 		ACMIShortName: "KJ-2000",
@@ -995,6 +1045,7 @@ var aircraftData = []Aircraft{
 		TypeDesignation:     "Mirage 2000C",
 		OfficialName:        "Mirage 2000",
 		threatRadius:        SAR2AR1Threat,
+		fuelReceiver:        ProbeAndDrogue,
 	},
 	{
 		ACMIShortName: "Mi-8MT",
@@ -1091,6 +1142,7 @@ var aircraftData = []Aircraft{
 		TypeDesignation:     "Mirage 2000-5",
 		OfficialName:        "Mirage 2000",
 		threatRadius:        SAR2AR1Threat,
+		fuelReceiver:        ProbeAndDrogue,
 	},
 	{
 		ACMIShortName: "MQ-1",
@@ -1180,6 +1232,7 @@ var aircraftData = []Aircraft{
 		TypeDesignation:     "Su-33",
 		NATOReportingName:   flankerData.NATOReportingName,
 		threatRadius:        flankerData.threatRadius,
+		fuelReceiver:        ProbeAndDrogue,
 	},
 	{
 		ACMIShortName: "Su-34",
@@ -1252,6 +1305,7 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "UH-60",
 		TypeDesignation:     "UH-60A",
 		OfficialName:        "Black Hawk",
+		fuelReceiver:        ProbeAndDrogue,
 	},
 }
 

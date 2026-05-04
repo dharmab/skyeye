@@ -52,7 +52,7 @@ type DeclareRequest struct {
 	// were providing Bullseye or BRAA coordinates.
 	IsAmbiguous bool
 	// Bullseye of the contact, if provided using Bullseye.
-	Bullseye Bullseye
+	Bullseye *Bullseye
 	// Bearing of the contact, if provided using BRAA.
 	Bearing bearings.Bearing
 	/// Range to the contact, if provided using BRAA.
@@ -75,7 +75,7 @@ func (r DeclareRequest) String() string {
 			s += fmt.Sprintf(", altitude %.0f", r.Altitude.Feet())
 		}
 	} else {
-		s += fmt.Sprintf("bullseye %s", &r.Bullseye)
+		s += fmt.Sprintf("bullseye %s", r.Bullseye)
 	}
 	if r.Track != UnknownDirection {
 		s += fmt.Sprintf(", track %s", r.Track)
@@ -92,8 +92,7 @@ type DeclareResponse struct {
 	// because the friendly aircraft did not provide coordinates for the
 	// contact.
 	Sour bool
-	// If readback is not nil, the controller should read back the coordinate
-	// in the response.
+	// Readback is the bullseye coordinate to read back in the response. May be nil.
 	Readback *Bullseye
 	// Declaration of the contact.
 	Declaration Declaration
