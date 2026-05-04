@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dharmab/skyeye/pkg/callsigns"
 	"github.com/dharmab/skyeye/pkg/coalitions"
-	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -66,7 +66,7 @@ func TestRealCallsigns(t *testing.T) {
 	}
 
 	for i, test := range testCases {
-		parsedCallsign, ok := parser.ParsePilotCallsign(test.Name)
+		parsedCallsign, ok := callsigns.ParsePilotCallsign(test.Name)
 		require.True(t, ok)
 		foundCallsign, tf, ok := db.getByCallsignAndCoalititon(test.heardAs, coalitions.Blue)
 		require.True(t, ok, "queried %s, expected %s, but result was %v", test.heardAs, test.Name, ok)
