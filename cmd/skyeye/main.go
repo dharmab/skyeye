@@ -71,6 +71,8 @@ var (
 	threatMonitoringInterval     time.Duration
 	threatMonitoringRequiresSRS  bool
 	mandatoryThreatRadiusNM      float64
+	threatBRAABearingSpreadDeg   float64
+	threatBRAARangeSpreadNM      float64
 	enableTracing                bool
 	discordWebhookID             string
 	discordWebhookToken          string
@@ -151,6 +153,8 @@ func init() {
 	skyeye.Flags().BoolVar(&enableThreatMonitoring, "threat-monitoring", true, "Enable THREAT monitoring")
 	skyeye.Flags().DurationVar(&threatMonitoringInterval, "threat-monitoring-interval", 3*time.Minute, "How often to broadcast THREAT")
 	skyeye.Flags().Float64Var(&mandatoryThreatRadiusNM, "mandatory-threat-radius", 25, "Briefed radius for mandatory THREAT calls, in nautical miles")
+	skyeye.Flags().Float64Var(&threatBRAABearingSpreadDeg, "threat-braa-bearing-spread", 5, "Bearing spread threshold for THREAT call BRAA-vs-bullseye decision, in degrees")
+	skyeye.Flags().Float64Var(&threatBRAARangeSpreadNM, "threat-braa-range-spread", 1, "Range spread threshold for THREAT call BRAA-vs-bullseye decision, in nautical miles")
 	skyeye.Flags().BoolVar(&threatMonitoringRequiresSRS, "threat-monitoring-requires-srs", true, "Require aircraft to be on SRS to receive THREAT calls. Only useful to disable when debugging")
 
 	// Tracing
@@ -415,6 +419,8 @@ func run(_ *cobra.Command, _ []string) {
 		ThreatMonitoringInterval:     threatMonitoringInterval,
 		ThreatMonitoringRequiresSRS:  threatMonitoringRequiresSRS,
 		MandatoryThreatRadius:        unit.Length(mandatoryThreatRadiusNM) * unit.NauticalMile,
+		ThreatBRAABearingSpread:      unit.Angle(threatBRAABearingSpreadDeg) * unit.Degree,
+		ThreatBRAARangeSpread:        unit.Length(threatBRAARangeSpreadNM) * unit.NauticalMile,
 		EnableTracing:                enableTracing,
 		DiscordWebhookID:             discordWebhookID,
 		DiscorbWebhookToken:          discordWebhookToken,

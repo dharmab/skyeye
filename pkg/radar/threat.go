@@ -13,18 +13,6 @@ import (
 	"github.com/paulmach/orb/geo"
 )
 
-// maxSharedBRAABearingSpread is the bearing divergence threshold between
-// receivers' BRAAs to a hostile. If the spread is within this threshold,
-// the individual BRAA calls can be merged into a single call using the
-// receivers' geographic midpoint.
-const maxSharedBRAABearingSpread = 5 * unit.Degree
-
-// maxSharedBRAARangeSpread is the range divergence threshold between
-// receivers' BRAAs to a hostile. If the spread is within this threshold,
-// the individual BRAA calls can be merged into a single call using the
-// receivers' geographic midpoint.
-const maxSharedBRAARangeSpread = 1 * unit.NauticalMile
-
 // Threats returns a map of hostile groups of the given coalition to the friendly object IDs that
 // will hear the threat call. The receiver list is filtered to friendlies that are on the
 // controller's SRS frequency, if an SRS client is available.
@@ -124,10 +112,10 @@ func (r *Radar) getGroupBRAAOrigin(hostile *group, receivers []*trackfiles.Track
 		return orb.Point{}, false
 	}
 	hostilePoint := hostile.point()
-	if r.bearingSpread(hostilePoint, receivers) > maxSharedBRAABearingSpread {
+	if r.bearingSpread(hostilePoint, receivers) > r.maxSharedBRAABearingSpread {
 		return orb.Point{}, false
 	}
-	if rangeSpread(hostilePoint, receivers, r.withProjection()) > maxSharedBRAARangeSpread {
+	if rangeSpread(hostilePoint, receivers, r.withProjection()) > r.maxSharedBRAARangeSpread {
 		return orb.Point{}, false
 	}
 	return midpoint(receivers), true

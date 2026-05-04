@@ -90,6 +90,12 @@ type Configuration struct {
 	ThreatMonitoringInterval time.Duration
 	// MandatoryThreatRadius is the brief range at which a THREAT call is mandatory.
 	MandatoryThreatRadius unit.Length
+	// ThreatBRAABearingSpread is the maximum bearing divergence between receivers' BRAAs to a hostile
+	// before falling back to a bullseye call.
+	ThreatBRAABearingSpread unit.Angle
+	// ThreatBRAARangeSpread is the maximum range divergence between receivers' BRAAs to a hostile
+	// before falling back to a bullseye call.
+	ThreatBRAARangeSpread unit.Length
 	// ThreatMonitoringRequiresSRS controls whether threat calls are issued to aircraft that are not on an SRS frequency. This is mostly
 	// for debugging.
 	ThreatMonitoringRequiresSRS bool

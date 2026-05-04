@@ -93,7 +93,10 @@ func TestSharedBRAAOrigin(t *testing.T) {
 		},
 	}
 
-	r := &Radar{}
+	r := &Radar{
+		maxSharedBRAABearingSpread: 5 * unit.Degree,
+		maxSharedBRAARangeSpread:   1 * unit.NauticalMile,
+	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

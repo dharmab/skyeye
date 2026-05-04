@@ -181,7 +181,7 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 	if config.ThreatMonitoringRequiresSRS {
 		radarSRSClient = srsClient
 	}
-	rdr := radar.New(config.Coalition, starts, updates, fades, config.MandatoryThreatRadius, config.EnableTerrainDetection, radarSRSClient)
+	rdr := radar.New(config.Coalition, starts, updates, fades, config.MandatoryThreatRadius, config.ThreatBRAABearingSpread, config.ThreatBRAARangeSpread, config.EnableTerrainDetection, radarSRSClient)
 	log.Info().Msg("constructing GCI controller")
 	gciController := controller.New(
 		rdr,
