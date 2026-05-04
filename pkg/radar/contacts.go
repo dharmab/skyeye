@@ -3,11 +3,10 @@ package radar
 import (
 	"iter"
 	"slices"
-	"strings"
 	"sync"
 
+	"github.com/dharmab/skyeye/pkg/callsigns"
 	"github.com/dharmab/skyeye/pkg/coalitions"
-	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	fuzz "github.com/hbollon/go-edlib"
 	"github.com/rs/zerolog/log"
@@ -79,9 +78,7 @@ func (db *contactDatabase) set(trackfile *trackfiles.Trackfile) {
 	db.lock.Lock()
 	defer db.lock.Unlock()
 
-	// TODO get this string munging out of here
-	callsign, _, _ := strings.Cut(trackfile.Contact.Name, "|")
-	callsign, ok := parser.ParsePilotCallsign(callsign)
+	callsign, ok := callsigns.ParsePilotCallsign(trackfile.Contact.Name)
 	if !ok {
 		callsign = trackfile.Contact.Name
 	}

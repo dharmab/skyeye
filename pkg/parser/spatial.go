@@ -2,6 +2,7 @@ package parser
 
 import (
 	"github.com/dharmab/numwords"
+	"github.com/dharmab/skyeye/internal/normalize"
 	"github.com/dharmab/skyeye/internal/parser/token"
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -77,7 +78,7 @@ func parseBearing(stream *token.Stream) (bearings.Bearing, bool) {
 			continue
 		}
 
-		if !hasDigits(tokenText) {
+		if !normalize.HasDigits(tokenText) {
 			stream.Advance()
 			continue
 		}

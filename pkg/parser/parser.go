@@ -7,6 +7,7 @@ import (
 	"github.com/dharmab/numwords"
 	"github.com/dharmab/skyeye/internal/parser/token"
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/dharmab/skyeye/pkg/callsigns"
 	"github.com/rs/zerolog/log"
 )
 
@@ -163,7 +164,7 @@ func (p *Parser) Parse(tx string) any {
 		logger = logger.With().Str("text", tx).Logger()
 	}
 	logger.Debug().Msg("parsing text")
-	tx = normalize(tx)
+	tx = normalizeText(tx)
 	if tx == "" {
 		return nil
 	}
@@ -204,7 +205,7 @@ func (p *Parser) Parse(tx string) any {
 	event.Msg("searching for pilot callsign in rest of text")
 
 	rest = numwords.ParseString(rest)
-	pilotCallsign, ok := ParsePilotCallsign(rest)
+	pilotCallsign, ok := callsigns.ParsePilotCallsign(rest)
 	if ok {
 		logger = logger.With().Str("pilot", pilotCallsign).Logger()
 		logger.Debug().Msg("found pilot callsign")

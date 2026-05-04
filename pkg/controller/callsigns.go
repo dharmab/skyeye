@@ -7,7 +7,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/dharmab/skyeye/pkg/parser"
+	"github.com/dharmab/skyeye/pkg/callsigns"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/jba/omap"
 	"github.com/rs/zerolog/log"
@@ -88,13 +88,13 @@ func parseStrictCallsign(s string) (*strictCallsign, bool) {
 // getFriendlyCallsigns returns all parseable callsigns for all friendly trackfiles.
 func (c *Controller) getFriendlyCallsigns() []string {
 	friendlies := c.scope.FindByCoalition(c.coalition)
-	callsigns := []string{}
+	friendlyCallsigns := []string{}
 	for _, friendly := range friendlies {
-		if callsign, ok := parser.ParsePilotCallsign(friendly.Contact.Name); ok {
-			callsigns = append(callsigns, callsign)
+		if callsign, ok := callsigns.ParsePilotCallsign(friendly.Contact.Name); ok {
+			friendlyCallsigns = append(friendlyCallsigns, callsign)
 		}
 	}
-	return callsigns
+	return friendlyCallsigns
 }
 
 // collateCallsigns combines callsigns into flights and elements, as documented in SkyEye's player guide.
@@ -115,16 +115,16 @@ func collateCallsigns(receivers, everyone []string) []string {
 	slices.Sort(everyone)
 
 	// Parse all callsigns which follow the strict format.
-	callsigns := make([]strictCallsign, 0, len(everyone))
+	strictCallsigns := make([]strictCallsign, 0, len(everyone))
 	for _, name := range everyone {
 		if callsign, ok := parseStrictCallsign(name); ok {
-			callsigns = append(callsigns, *callsign)
+			strictCallsigns = append(strictCallsigns, *callsign)
 		}
 	}
 
 	// Sort the strict callsigns by codeword, flight, and position. This
 	// organizes the callsigns in the final broadcast call.
-	slices.SortFunc(callsigns, func(a, b strictCallsign) int {
+	slices.SortFunc(strictCallsigns, func(a, b strictCallsign) int {
 		if a.codeword != b.codeword {
 			return strings.Compare(a.codeword, b.codeword)
 		}
@@ -139,7 +139,7 @@ func collateCallsigns(receivers, everyone []string) []string {
 	// position. The value is a boolean indicating whether the callsign is a
 	// receiver.
 	members := omap.Map[string, *omap.Map[int, *omap.Map[int, bool]]]{}
-	for _, callsign := range callsigns {
+	for _, callsign := range strictCallsigns {
 		flights, ok := members.Get(callsign.codeword)
 		if !ok {
 			flights = &omap.Map[int, *omap.Map[int, bool]]{}

@@ -1,17 +1,18 @@
-package parser
+// Package callsigns provides parsing and normalization of pilot callsigns.
+package callsigns
 
 import (
 	"regexp"
 	"strings"
 	"unicode"
+
+	"github.com/dharmab/skyeye/internal/normalize"
 )
 
 const (
-	// maxCallsignDigits is the maximum number of digits allowed in a pilot callsign.
 	maxCallsignDigits = 3
 )
 
-// digitHomophones maps common speech recognition misheard words to digits.
 var digitHomophones = map[string]string{
 	"won":   "1",
 	"to":    "2",
@@ -26,16 +27,11 @@ var digitHomophones = map[string]string{
 	"niner": "9",
 }
 
-// replaceDigitHomophones replaces words that are homophones of digits,
-// but only when they appear in digit positions of a callsign (i.e., after
-// the callsign name or mixed with actual digits).
 func replaceDigitHomophones(tx string) string {
 	fields := strings.Fields(tx)
-	// Find the first field that is or looks like a digit.
-	// Everything before that is the callsign name.
 	firstDigitIdx := -1
 	for i, f := range fields {
-		if hasDigits(f) || digitHomophones[f] != "" {
+		if normalize.HasDigits(f) || digitHomophones[f] != "" {
 			firstDigitIdx = i
 			break
 		}
@@ -47,19 +43,16 @@ func replaceDigitHomophones(tx string) string {
 		if d, ok := digitHomophones[fields[i]]; ok {
 			fields[i] = d
 		}
-		// Strip ordinal suffixes: "1st" → "1", "2nd" → "2", etc.
 		fields[i] = stripOrdinalSuffix(fields[i])
 	}
 	return strings.Join(fields, " ")
 }
 
-// stripOrdinalSuffix removes ordinal suffixes (st, nd, rd, th) from a
-// string that starts with digits, e.g. "5th" → "5".
 func stripOrdinalSuffix(s string) string {
 	for _, suffix := range []string{"st", "nd", "rd", "th"} {
 		if strings.HasSuffix(s, suffix) {
 			prefix := s[:len(s)-len(suffix)]
-			if prefix != "" && hasDigits(prefix) {
+			if prefix != "" && normalize.HasDigits(prefix) {
 				return prefix
 			}
 		}
@@ -76,14 +69,11 @@ func stripOrdinalSuffix(s string) string {
 // and space-delimited.
 func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	tx = removeClanTags(tx)
-	tx = normalize(tx)
-	tx = spaceDigits(tx)
+	tx = normalize.String(tx)
+	tx = normalize.SpaceDigits(tx)
 
-	// Discard "this is" prefix.
 	tx = strings.ReplaceAll(tx, "this is", "")
 
-	// Truncate at "request" — not proper brevity, but some players say it.
-	// Anything after it is part of the request, not the callsign.
 	if idx := strings.Index(tx, "request"); idx >= 0 {
 		tx = tx[:idx]
 	}
@@ -104,7 +94,7 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 		}
 	}
 
-	callsign = spaceDigits(normalize(builder.String()))
+	callsign = normalize.SpaceDigits(normalize.String(builder.String()))
 	if callsign == "" {
 		return "", false
 	}

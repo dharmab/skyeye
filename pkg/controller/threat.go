@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/brevity"
-	"github.com/dharmab/skyeye/pkg/parser"
+	"github.com/dharmab/skyeye/pkg/callsigns"
 	"github.com/rs/zerolog/log"
 )
 
@@ -101,7 +101,7 @@ func (c *Controller) broadcastThreat(ctx context.Context, hostileGroup brevity.G
 		if friendly == nil {
 			continue
 		}
-		callsign, ok := parser.ParsePilotCallsign(friendly.Contact.Name)
+		callsign, ok := callsigns.ParsePilotCallsign(friendly.Contact.Name)
 		if !ok {
 			log.Debug().Str("contact_name", friendly.Contact.Name).Msg("could not parse callsign")
 			continue
