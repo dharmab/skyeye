@@ -34,6 +34,7 @@ require (
 	golang.org/x/sys v0.41.0
 	google.golang.org/grpc v1.79.3
 	gopkg.in/hraban/opus.v2 v2.0.0-20230925203106-0188a62cb302
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -254,7 +255,6 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/gotestsum v1.12.0 // indirect
 	honnef.co/go/tools v0.7.0 // indirect
 	mvdan.cc/gofumpt v0.9.2 // indirect
