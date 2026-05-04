@@ -173,7 +173,15 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 
 	log.Info().Msg("constructing radar scope")
 
-	rdr := radar.New(config.Coalition, starts, updates, fades, config.MandatoryThreatRadius, config.EnableTerrainDetection)
+	// When threat monitoring requires SRS, the radar uses the SRS client to restrict the
+	// receiver set of each threat call to friendlies on frequency, so the BRAA/bullseye format
+	// reflects the pilots who will hear the call. When SRS is not required (debugging), leaving
+	// the client nil tells the radar to treat every friendly as a potential receiver.
+	var radarSRSClient *simpleradio.Client // separate variable so we can pass nil to the radar without affecting other references to srsClient
+	if config.ThreatMonitoringRequiresSRS {
+		radarSRSClient = srsClient
+	}
+	rdr := radar.New(config.Coalition, starts, updates, fades, config.MandatoryThreatRadius, config.ThreatBRAABearingSpread, config.ThreatBRAARangeSpread, config.EnableTerrainDetection, radarSRSClient)
 	log.Info().Msg("constructing GCI controller")
 	gciController := controller.New(
 		rdr,

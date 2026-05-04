@@ -12,6 +12,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/encyclopedia/terrains"
 	"github.com/dharmab/skyeye/pkg/sim"
+	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/spatial"
 	"github.com/dharmab/skyeye/pkg/spatial/projections"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
@@ -52,6 +53,14 @@ type Radar struct {
 	centerLock sync.RWMutex
 	// mandatoryThreatRadius is the radius within which a hostile aircraft is always considered a threat.
 	mandatoryThreatRadius unit.Length
+	// maxSharedBRAABearingSpread is the bearing divergence threshold for merging receivers' BRAAs.
+	maxSharedBRAABearingSpread unit.Angle
+	// maxSharedBRAARangeSpread is the range divergence threshold for merging receivers' BRAAs.
+	maxSharedBRAARangeSpread unit.Length
+	// srsClient is used to check whether a friendly callsign is on any of the
+	// controller's SRS frequencies. If nil, every friendly is treated as a
+	// potential receiver.
+	srsClient *simpleradio.Client
 	// completedFades records the IDs of contacts that have been faded.
 	completedFades map[uint64]time.Time
 	// completedFadesLock protects completedFades.
@@ -73,19 +82,27 @@ type Radar struct {
 }
 
 // New creates a radar scope that consumes updates from the provided channels.
+// maxBRAABearingSpread and maxBRAARangeSpread control the thresholds for merging
+// multiple receivers' BRAAs into a single call from their midpoint.
 // When enableTerrainDetection is true, SetBullseye will detect the closest DCS terrain and use its
 // Transverse Mercator projection for spatial calculations. When false, spherical Earth calculations are used.
-func New(coalition coalitions.Coalition, starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length, enableTerrainDetection bool) *Radar {
+// srsClient is used by threat detection to filter receiver to friendlies that
+// are on the controller's SRS frequencies; pass nil to disable this filtering and
+// treat every friendly as a receiver.
+func New(coalition coalitions.Coalition, starts <-chan sim.Started, updates <-chan sim.Updated, fades <-chan sim.Faded, mandatoryThreatRadius unit.Length, maxBRAABearingSpread unit.Angle, maxBRAARangeSpread unit.Length, enableTerrainDetection bool, srsClient *simpleradio.Client) *Radar {
 	return &Radar{
-		coalition:              coalition,
-		starts:                 starts,
-		updates:                updates,
-		fades:                  fades,
-		contacts:               newContactDatabase(),
-		mandatoryThreatRadius:  mandatoryThreatRadius,
-		enableTerrainDetection: enableTerrainDetection,
-		completedFades:         map[uint64]time.Time{},
-		pendingFades:           []sim.Faded{},
+		coalition:                  coalition,
+		starts:                     starts,
+		updates:                    updates,
+		fades:                      fades,
+		contacts:                   newContactDatabase(),
+		mandatoryThreatRadius:      mandatoryThreatRadius,
+		maxSharedBRAABearingSpread: maxBRAABearingSpread,
+		maxSharedBRAARangeSpread:   maxBRAARangeSpread,
+		enableTerrainDetection:     enableTerrainDetection,
+		srsClient:                  srsClient,
+		completedFades:             map[uint64]time.Time{},
+		pendingFades:               []sim.Faded{},
 	}
 }
 
