@@ -360,6 +360,17 @@ func (c *streamingClient) updateGlobalObject(update *objects.Update) error {
 }
 
 func (c *streamingClient) updateObject(update *objects.Update) error {
+	fade, err := c.applyObjectUpdate(update)
+	if err != nil {
+		return err
+	}
+	if fade != nil {
+		c.fades <- *fade
+	}
+	return nil
+}
+
+func (c *streamingClient) applyObjectUpdate(update *objects.Update) (*sim.Faded, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	var isNewObject bool
@@ -373,12 +384,12 @@ func (c *streamingClient) updateObject(update *objects.Update) error {
 	}
 
 	if err := object.Update(update, c.referencePoint.Lon(), c.referencePoint.Lat()); err != nil {
-		return fmt.Errorf("error updating object: %w", err)
+		return nil, fmt.Errorf("error updating object: %w", err)
 	}
 
 	taglist, err := object.GetTypes()
 	if err != nil {
-		return fmt.Errorf("attempted to update object of unknown type: %w", err)
+		return nil, fmt.Errorf("attempted to update object of unknown type: %w", err)
 	}
 
 	logger = logger.With().Strs("tags", taglist).Logger()
@@ -400,7 +411,7 @@ func (c *streamingClient) updateObject(update *objects.Update) error {
 	if isBullseye {
 		property, ok := object.GetProperty(properties.Coalition)
 		if !ok {
-			return errors.New("bullseye object missing coalition property")
+			return nil, errors.New("bullseye object missing coalition property")
 		}
 		coalition := propertyToCoalition(property)
 		c.bullseyesIdx[coalition] = object.ID
@@ -408,13 +419,13 @@ func (c *streamingClient) updateObject(update *objects.Update) error {
 
 	if update.IsRemoval {
 		delete(c.state, object.ID)
-		c.fades <- sim.Faded{ID: object.ID}
 		if isRelevantObject(taglist) {
 			logger.Info().Msg("recording object removal")
 		}
+		return &sim.Faded{ID: object.ID}, nil
 	}
 
-	return nil
+	return nil, nil
 }
 
 func (c *streamingClient) reset() {
