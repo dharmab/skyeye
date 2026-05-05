@@ -1,9 +1,12 @@
-package parser
+// Package callsigns provides parsing and normalization of pilot callsigns.
+package callsigns
 
 import (
 	"regexp"
 	"strings"
 	"unicode"
+
+	"github.com/dharmab/skyeye/internal/normalize"
 )
 
 const (
@@ -31,11 +34,9 @@ var digitHomophones = map[string]string{
 // the callsign name or mixed with actual digits).
 func replaceDigitHomophones(tx string) string {
 	fields := strings.Fields(tx)
-	// Find the first field that is or looks like a digit.
-	// Everything before that is the callsign name.
 	firstDigitIdx := -1
 	for i, f := range fields {
-		if hasDigits(f) || digitHomophones[f] != "" {
+		if normalize.HasDigits(f) || digitHomophones[f] != "" {
 			firstDigitIdx = i
 			break
 		}
@@ -47,7 +48,6 @@ func replaceDigitHomophones(tx string) string {
 		if d, ok := digitHomophones[fields[i]]; ok {
 			fields[i] = d
 		}
-		// Strip ordinal suffixes: "1st" → "1", "2nd" → "2", etc.
 		fields[i] = stripOrdinalSuffix(fields[i])
 	}
 	return strings.Join(fields, " ")
@@ -59,7 +59,7 @@ func stripOrdinalSuffix(s string) string {
 	for _, suffix := range []string{"st", "nd", "rd", "th"} {
 		if strings.HasSuffix(s, suffix) {
 			prefix := s[:len(s)-len(suffix)]
-			if prefix != "" && hasDigits(prefix) {
+			if prefix != "" && normalize.HasDigits(prefix) {
 				return prefix
 			}
 		}
@@ -76,14 +76,11 @@ func stripOrdinalSuffix(s string) string {
 // and space-delimited.
 func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 	tx = removeClanTags(tx)
-	tx = normalize(tx)
-	tx = spaceDigits(tx)
+	tx = normalize.Normalize(tx)
+	tx = normalize.SpaceDigits(tx)
 
-	// Discard "this is" prefix.
 	tx = strings.ReplaceAll(tx, "this is", "")
 
-	// Truncate at "request" — not proper brevity, but some players say it.
-	// Anything after it is part of the request, not the callsign.
 	if idx := strings.Index(tx, "request"); idx >= 0 {
 		tx = tx[:idx]
 	}
@@ -104,7 +101,7 @@ func ParsePilotCallsign(tx string) (callsign string, isValid bool) {
 		}
 	}
 
-	callsign = spaceDigits(normalize(builder.String()))
+	callsign = normalize.SpaceDigits(normalize.Normalize(builder.String()))
 	if callsign == "" {
 		return "", false
 	}

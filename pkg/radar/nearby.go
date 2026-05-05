@@ -1,6 +1,8 @@
 package radar
 
 import (
+	"cmp"
+
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/spatial"
@@ -37,7 +39,7 @@ func (r *Radar) findNearbyGroups(pointOfInterest orb.Point, minAltitude, maxAlti
 	slices.SortFunc(groups, func(a, b *group) int {
 		distanceToA := spatial.Distance(pointOfInterest, a.point(), r.withProjection())
 		distanceToB := spatial.Distance(pointOfInterest, b.point(), r.withProjection())
-		return int(distanceToA - distanceToB)
+		return cmp.Compare(distanceToA, distanceToB)
 	})
 
 	return groups

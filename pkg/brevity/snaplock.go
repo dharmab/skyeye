@@ -9,7 +9,7 @@ type SnaplockRequest struct {
 	// Callsign of the friendly aircraft requesting the SNAPLOCK.
 	Callsign string
 	// BRA is the location of the contact.
-	BRA BRA
+	BRA *BRA
 }
 
 func (r SnaplockRequest) String() string {

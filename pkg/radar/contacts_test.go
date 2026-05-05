@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dharmab/skyeye/pkg/callsigns"
 	"github.com/dharmab/skyeye/pkg/coalitions"
-	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/trackfiles"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
@@ -66,13 +66,60 @@ func TestRealCallsigns(t *testing.T) {
 	}
 
 	for i, test := range testCases {
-		parsedCallsign, ok := parser.ParsePilotCallsign(test.Name)
+		parsedCallsign, ok := callsigns.ParsePilotCallsign(test.Name)
 		require.True(t, ok)
 		foundCallsign, tf, ok := db.getByCallsignAndCoalititon(test.heardAs, coalitions.Blue)
 		require.True(t, ok, "queried %s, expected %s, but result was %v", test.heardAs, test.Name, ok)
 		assert.Equal(t, parsedCallsign, foundCallsign)
 		assert.Equal(t, uint64(i), tf.Contact.ID) //nolint:gosec // i is never negative
 	}
+}
+
+func TestClanTagCollision(t *testing.T) {
+	t.Parallel()
+	db := newContactDatabase()
+
+	tf1 := trackfiles.New(trackfiles.Labels{
+		ID:        1,
+		Name:      "[ABC]Viper 1-1",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-16C",
+	})
+	tf2 := trackfiles.New(trackfiles.Labels{
+		ID:        2,
+		Name:      "[XYZ]Viper 1-1",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-16C",
+	})
+	db.set(tf1)
+	db.set(tf2)
+
+	_, ok := db.getByID(1)
+	assert.True(t, ok, "first contact should still be reachable by ID after second contact with same normalized callsign is added")
+
+	_, ok = db.getByID(2)
+	assert.True(t, ok, "second contact should be reachable by ID")
+}
+
+func TestDeleteCleansIndex(t *testing.T) {
+	t.Parallel()
+	db := newContactDatabase()
+
+	tf := trackfiles.New(trackfiles.Labels{
+		ID:        1,
+		Name:      "[CLAN]Mobius 1-1",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-15C",
+	})
+	db.set(tf)
+
+	_, _, ok := db.getByCallsignAndCoalititon("mobius 1 1", coalitions.Blue)
+	require.True(t, ok)
+
+	db.delete(1)
+
+	_, _, ok = db.getByCallsignAndCoalititon("mobius 1 1", coalitions.Blue)
+	assert.False(t, ok, "deleted contact should not be findable by callsign")
 }
 
 func TestGetByID(t *testing.T) {

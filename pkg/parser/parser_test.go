@@ -53,7 +53,7 @@ func TestParserSadPaths(t *testing.T) {
 	}
 	runParserTestCases(
 		t,
-		New(TestCallsign, true),
+		New(TestCallsign, []string{}, true),
 		testCases,
 		func(t *testing.T, test parserTestCase, request any) {
 			t.Helper()

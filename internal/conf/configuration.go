@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/locations"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
@@ -90,9 +91,17 @@ type Configuration struct {
 	ThreatMonitoringInterval time.Duration
 	// MandatoryThreatRadius is the brief range at which a THREAT call is mandatory.
 	MandatoryThreatRadius unit.Length
+	// ThreatBRAABearingSpread is the maximum bearing divergence between receivers' BRAAs to a hostile
+	// before falling back to a bullseye call.
+	ThreatBRAABearingSpread unit.Angle
+	// ThreatBRAARangeSpread is the maximum range divergence between receivers' BRAAs to a hostile
+	// before falling back to a bullseye call.
+	ThreatBRAARangeSpread unit.Length
 	// ThreatMonitoringRequiresSRS controls whether threat calls are issued to aircraft that are not on an SRS frequency. This is mostly
 	// for debugging.
 	ThreatMonitoringRequiresSRS bool
+	// Locations is a slice of named locations that can be referenced in VECTOR calls.
+	Locations []locations.Location
 	// EnableTracing controls whether to publish traces
 	EnableTracing bool
 	// DiscordWebhookID is the ID of the Discord webhook

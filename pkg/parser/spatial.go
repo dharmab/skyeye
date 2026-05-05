@@ -2,6 +2,7 @@ package parser
 
 import (
 	"github.com/dharmab/numwords"
+	"github.com/dharmab/skyeye/internal/normalize"
 	"github.com/dharmab/skyeye/internal/parser/token"
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -36,7 +37,7 @@ func parseBullseye(stream *token.Stream) *brevity.Bullseye {
 
 var braaWords = []string{"bra", "brah", "braa"}
 
-func parseBRA(stream *token.Stream) (brevity.BRA, bool) {
+func parseBRA(stream *token.Stream) (*brevity.BRA, bool) {
 	for _, word := range braaWords {
 		if isSimilar(stream.Text(), word) {
 			stream.Advance()
@@ -77,7 +78,7 @@ func parseBearing(stream *token.Stream) (bearings.Bearing, bool) {
 			continue
 		}
 
-		if !hasDigits(tokenText) {
+		if !normalize.HasDigits(tokenText) {
 			stream.Advance()
 			continue
 		}

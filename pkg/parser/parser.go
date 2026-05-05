@@ -5,8 +5,10 @@ import (
 	"strings"
 
 	"github.com/dharmab/numwords"
+	"github.com/dharmab/skyeye/internal/normalize"
 	"github.com/dharmab/skyeye/internal/parser/token"
 	"github.com/dharmab/skyeye/pkg/brevity"
+	"github.com/dharmab/skyeye/pkg/callsigns"
 	"github.com/rs/zerolog/log"
 )
 
@@ -26,13 +28,20 @@ const (
 type Parser struct {
 	controllerCallsign string
 	enableTextLogging  bool
+	// vectorLocations is the configured locations plus the tanker alias,
+	// precomputed so parseVector does not mutate a shared slice.
+	vectorLocations []string
 }
 
 // New creates a new parser.
-func New(callsign string, enableTextLogging bool) *Parser {
+func New(callsign string, locations []string, enableTextLogging bool) *Parser {
+	vectorLocations := make([]string, 0, len(locations)+1)
+	vectorLocations = append(vectorLocations, locations...)
+	vectorLocations = append(vectorLocations, brevity.LocationTanker)
 	return &Parser{
 		controllerCallsign: strings.ReplaceAll(callsign, " ", ""),
 		enableTextLogging:  enableTextLogging,
+		vectorLocations:    vectorLocations,
 	}
 }
 
@@ -51,9 +60,10 @@ const (
 	spiked     string = "spiked"
 	strobe     string = "strobe"
 	tripwire   string = "tripwire"
+	vector     string = "vector"
 )
 
-var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, strobe, snaplock, tripwire, shopping}
+var requestWords = []string{radioCheck, alphaCheck, bogeyDope, declare, picture, spiked, strobe, snaplock, tripwire, shopping, vector}
 
 // findControllerCallsign searches for the GCI callsign in the given fields.
 // Returns the heard callsign, remaining text after it, and whether it was found.
@@ -83,7 +93,7 @@ func handleNoRequestWord(tx, pilotCallsign string) any {
 
 // parseRequestWithArgs attempts to parse a request that requires additional arguments
 // beyond the request word itself (e.g., BOGEY DOPE, DECLARE, SPIKED).
-func parseRequestWithArgs(requestWord, pilotCallsign string, requestArgs []string) any {
+func (p *Parser) parseRequestWithArgs(requestWord, pilotCallsign string, requestArgs []string) any {
 	stream := token.New(strings.Join(requestArgs, " "))
 
 	switch requestWord {
@@ -105,6 +115,10 @@ func parseRequestWithArgs(requestWord, pilotCallsign string, requestArgs []strin
 		}
 	case snaplock:
 		if request, ok := parseSnaplock(pilotCallsign, stream); ok {
+			return request
+		}
+	case vector:
+		if request, ok := parseVector(pilotCallsign, p.vectorLocations, stream); ok {
 			return request
 		}
 	}
@@ -163,7 +177,10 @@ func (p *Parser) Parse(tx string) any {
 		logger = logger.With().Str("text", tx).Logger()
 	}
 	logger.Debug().Msg("parsing text")
-	tx = normalize(tx)
+	tx = normalize.Normalize(tx)
+	for _, replacement := range replacements {
+		tx = strings.ReplaceAll(tx, replacement.Original, replacement.Normal)
+	}
 	if tx == "" {
 		return nil
 	}
@@ -204,7 +221,7 @@ func (p *Parser) Parse(tx string) any {
 	event.Msg("searching for pilot callsign in rest of text")
 
 	rest = numwords.ParseString(rest)
-	pilotCallsign, ok := ParsePilotCallsign(rest)
+	pilotCallsign, ok := callsigns.ParsePilotCallsign(rest)
 	if ok {
 		logger = logger.With().Str("pilot", pilotCallsign).Logger()
 		logger.Debug().Msg("found pilot callsign")
@@ -242,5 +259,5 @@ func (p *Parser) Parse(tx string) any {
 	}
 	event.Msg("parsing request arguments")
 
-	return parseRequestWithArgs(requestWord, pilotCallsign, requestArgs)
+	return p.parseRequestWithArgs(requestWord, pilotCallsign, requestArgs)
 }

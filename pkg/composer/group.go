@@ -51,7 +51,7 @@ func (c *Composer) composeGroup(group brevity.Group) (response NaturalLanguageRe
 	stacks := group.Stacks()
 	isTrackKnown := group.Track() != brevity.UnknownDirection
 	if group.Bullseye() != nil {
-		bullseye := c.composeBullseye(*group.Bullseye())
+		bullseye := c.composeBullseye(group.Bullseye())
 		altitude := c.composeAltitudeStacks(stacks, group.Declaration())
 		response.Write(
 			fmt.Sprintf("%s %s, %s", label, bullseye.Speech, altitude),
