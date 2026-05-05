@@ -210,15 +210,20 @@ Other notable folders and files:
 
 ## Application Workflow
 
+Older versions of SkyEye more strictly followed a pipeline-style architecture, with a clean split between controller logic and a radar scope. As new features were developed, I compromised on architectural purity to ship useful and fun features. If designed from scratch today, it probably would not look like a pipeline.
+
 ```mermaid
 flowchart TD
     Players --- DCS[DCS World]
     Players <-->|natural language| SRS
-    SRS[SimpleRadio Standalone] <-->|audio| simpleradio.Client -->|incoming audio| recognizer.Recognizer -->|transcriptions| parser.Parser-->|requests| controller.Controller
+    SRS[SimpleRadio Standalone] <-->|audio| simpleradio.Client -->|incoming audio| recognizer.Recognizer -->|transcriptions| parser.Parser
     DCS --> Tacview[Tacview Exporter] -->|ACMI data| telemetry.Client -->|simulation updates| radar.Radar
+    parser.Parser -->|requests| controller.Controller
     DCS --> DCS-gRPC --> commands.ChatListener -->|in-game chat| parser.Parser
     controller.Controller .->|queries| radar.Radar
     radar.Radar .->|callbacks| controller.Controller
+    radar.Radar .->|on-frequency checks| simpleradio.Client
+    controller.Controller .->|on-frequency checks| simpleradio.Client
     controller.Controller -->|responses| composer.Composer
     controller.Controller -->|broadcasts| composer.Composer
     composer.Composer -->|natural language| speakers.Speaker -->|outgoing audio| simpleradio.Client
