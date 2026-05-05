@@ -218,8 +218,8 @@ flowchart TD
     Players <-->|natural language| SRS
     SRS[SimpleRadio Standalone] <-->|audio| simpleradio.Client -->|incoming audio| recognizer.Recognizer -->|transcriptions| parser.Parser
     DCS --> Tacview[Tacview Exporter] -->|ACMI data| telemetry.Client -->|simulation updates| radar.Radar
-    DCS --> DCS-gRPC --> commands.ChatListener -->|in-game chat| parser.Parser
     parser.Parser -->|requests| controller.Controller
+    DCS --> DCS-gRPC --> commands.ChatListener -->|in-game chat| parser.Parser
     controller.Controller .->|queries| radar.Radar
     radar.Radar .->|callbacks| controller.Controller
     radar.Radar .->|on-frequency checks| simpleradio.Client
