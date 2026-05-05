@@ -37,13 +37,23 @@ func (db *contactDatabase) getByCallsignAndCoalititon(callsign string, coalition
 	db.lock.RLock()
 	defer db.lock.RUnlock()
 
+	// Normalize at lookup time to keep raw names as index keys (benchmarked ~37-47µs with 40 contacts on Apple M4).
+	normalized := make(map[string]uint64, len(db.callsignIdx[coalition]))
+	for rawName, id := range db.callsignIdx[coalition] {
+		parsed, ok := callsigns.ParsePilotCallsign(rawName)
+		if !ok {
+			parsed = rawName
+		}
+		normalized[parsed] = id
+	}
+
 	foundCallsign := ""
-	id, ok := db.callsignIdx[coalition][callsign]
+	id, ok := normalized[callsign]
 	if ok {
 		foundCallsign = callsign
 	} else {
-		keys := make([]string, 0, len(db.callsignIdx[coalition]))
-		for k := range db.callsignIdx[coalition] {
+		keys := make([]string, 0, len(normalized))
+		for k := range normalized {
 			keys = append(keys, k)
 		}
 		logger.Info().Msg("callsign not found in index, attempting fuzzy search")
@@ -54,7 +64,7 @@ func (db *contactDatabase) getByCallsignAndCoalititon(callsign string, coalition
 			return "", nil, false
 		}
 		logger.Info().Str("foundCallsign", foundCallsign).Msg("similar callsign found in index")
-		id = db.callsignIdx[coalition][foundCallsign]
+		id = normalized[foundCallsign]
 	}
 	contact, ok := db.contacts[id]
 	if !ok {
@@ -78,11 +88,7 @@ func (db *contactDatabase) set(trackfile *trackfiles.Trackfile) {
 	db.lock.Lock()
 	defer db.lock.Unlock()
 
-	callsign, ok := callsigns.ParsePilotCallsign(trackfile.Contact.Name)
-	if !ok {
-		callsign = trackfile.Contact.Name
-	}
-	db.callsignIdx[trackfile.Contact.Coalition][callsign] = trackfile.Contact.ID
+	db.callsignIdx[trackfile.Contact.Coalition][trackfile.Contact.Name] = trackfile.Contact.ID
 	db.contacts[trackfile.Contact.ID] = trackfile
 }
 
