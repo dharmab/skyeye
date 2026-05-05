@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/sim"
@@ -98,4 +99,18 @@ func TestFindNearestTanker_BeyondSearchRadiusFiltered(t *testing.T) {
 	insertTanker(t, r, 1, "Texaco 1", "KC-135", coalitions.Blue, orb.Point{179.0, 0.0})
 	got := r.FindNearestTanker(origin, coalitions.Blue, encyclopedia.FlyingBoom)
 	assert.Nil(t, got)
+}
+
+func TestFindNearestGroupWithBullseyeReturnsNilWhenNoTrackfile(t *testing.T) {
+	t.Parallel()
+	r := newTestRadarWithContacts()
+	grp := r.FindNearestGroupWithBullseye(
+		orb.Point{-115.0, 36.0},
+		0*unit.Foot,
+		50000*unit.Foot,
+		100*unit.NauticalMile,
+		coalitions.Red,
+		brevity.Aircraft,
+	)
+	assert.Nil(t, grp)
 }
