@@ -73,6 +73,7 @@ func (r *Radar) FindNearbyGroupsWithBRAA(origin, interest orb.Point, minAltitude
 			aspect = brevity.AspectFromAngle(bearing, course)
 		}
 		grp.braa = brevity.NewBRAA(bearing, _range, grp.altitudes(), aspect)
+		grp.aspect = &aspect
 		grp.bullseye = nil
 
 		result = append(result, grp)
