@@ -221,8 +221,8 @@ flowchart TD
     DCS --> DCS-gRPC --> commands.ChatListener -->|in-game chat| parser.Parser
     controller.Controller .->|queries| radar.Radar
     radar.Radar .->|callbacks| controller.Controller
-    controller.Controller .->|on-frequency checks| simpleradio.Client
     radar.Radar .->|on-frequency checks| simpleradio.Client
+    controller.Controller .->|on-frequency checks| simpleradio.Client
     controller.Controller -->|responses| composer.Composer
     controller.Controller -->|broadcasts| composer.Composer
     composer.Composer -->|natural language| speakers.Speaker -->|outgoing audio| simpleradio.Client
