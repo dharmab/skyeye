@@ -75,6 +75,53 @@ func TestRealCallsigns(t *testing.T) {
 	}
 }
 
+func TestClanTagCollision(t *testing.T) {
+	t.Parallel()
+	db := newContactDatabase()
+
+	tf1 := trackfiles.New(trackfiles.Labels{
+		ID:        1,
+		Name:      "[ABC]Viper 1-1",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-16C",
+	})
+	tf2 := trackfiles.New(trackfiles.Labels{
+		ID:        2,
+		Name:      "[XYZ]Viper 1-1",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-16C",
+	})
+	db.set(tf1)
+	db.set(tf2)
+
+	_, ok := db.getByID(1)
+	assert.True(t, ok, "first contact should still be reachable by ID after second contact with same normalized callsign is added")
+
+	_, ok = db.getByID(2)
+	assert.True(t, ok, "second contact should be reachable by ID")
+}
+
+func TestDeleteCleansIndex(t *testing.T) {
+	t.Parallel()
+	db := newContactDatabase()
+
+	tf := trackfiles.New(trackfiles.Labels{
+		ID:        1,
+		Name:      "[CLAN]Mobius 1-1",
+		Coalition: coalitions.Blue,
+		ACMIName:  "F-15C",
+	})
+	db.set(tf)
+
+	_, _, ok := db.getByCallsignAndCoalititon("mobius 1 1", coalitions.Blue)
+	require.True(t, ok)
+
+	db.delete(1)
+
+	_, _, ok = db.getByCallsignAndCoalititon("mobius 1 1", coalitions.Blue)
+	assert.False(t, ok, "deleted contact should not be findable by callsign")
+}
+
 func TestGetByID(t *testing.T) {
 	t.Parallel()
 	db := newContactDatabase()
