@@ -197,34 +197,60 @@ func (c *streamingClient) handleLines(ctx context.Context, reader *bufio.Reader)
 	log.Info().Msg("sending mission start message")
 	c.starts <- sim.Started{}
 
+	// result holds a line read from the ACMI stream or an error from the reader goroutine.
+	type result struct {
+		// line is the raw line text including the trailing newline.
+		line string
+		// err is non-nil if the read failed.
+		err error
+	}
+
+	lines := make(chan result)
+	go func() {
+		defer close(lines)
+		for {
+			line, err := reader.ReadString('\n')
+			select {
+			case lines <- result{line, err}:
+			case <-ctx.Done():
+				return
+			}
+			if err != nil {
+				return
+			}
+		}
+	}()
+
+	const gracePeriod = 10 * time.Minute
 	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			gracePeriod := 10 * time.Minute
 			if time.Since(c.lastUpdateTime) > gracePeriod {
 				log.Warn().Time("lastUpdate", c.lastUpdateTime).Msg("stopped receiving updates")
 				return errors.New("no updates received within grace period")
 			}
-		default:
-			if err := c.handleUpdate(reader); err != nil {
+		case r, ok := <-lines:
+			if !ok {
+				return errors.New("line reader closed unexpectedly")
+			}
+			if r.err != nil {
+				if errors.Is(r.err, io.EOF) {
+					return fmt.Errorf("reached end of file: %w", r.err)
+				}
+				return fmt.Errorf("error reading line: %w", r.err)
+			}
+			if err := c.handleLine(r.line, reader); err != nil {
 				return fmt.Errorf("error reading ACMI stream: %w", err)
 			}
 		}
 	}
 }
 
-func (c *streamingClient) handleUpdate(reader *bufio.Reader) error {
-	line, err := reader.ReadString('\n')
-	if err != nil {
-		if errors.Is(err, io.EOF) {
-			return fmt.Errorf("reached end of file: %w", err)
-		}
-		return fmt.Errorf("error reading line: %w", err)
-	}
-
+func (c *streamingClient) handleLine(line string, reader *bufio.Reader) error {
 	if strings.HasSuffix(line, "\\\n") {
 		var sb strings.Builder
 		sb.WriteString(line[:len(line)-2])
