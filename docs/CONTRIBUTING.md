@@ -216,9 +216,10 @@ Older versions of SkyEye more strictly followed a pipeline-style architecture, w
 flowchart TD
     Players --- DCS[DCS World]
     Players <-->|natural language| SRS
-    SRS[SimpleRadio Standalone] <-->|audio| simpleradio.Client -->|incoming audio| recognizer.Recognizer -->|transcriptions| parser.Parser-->|requests| controller.Controller
+    SRS[SimpleRadio Standalone] <-->|audio| simpleradio.Client -->|incoming audio| recognizer.Recognizer -->|transcriptions| parser.Parser
     DCS --> Tacview[Tacview Exporter] -->|ACMI data| telemetry.Client -->|simulation updates| radar.Radar
     DCS --> DCS-gRPC --> commands.ChatListener -->|in-game chat| parser.Parser
+    parser.Parser -->|requests| controller.Controller
     controller.Controller .->|queries| radar.Radar
     radar.Radar .->|callbacks| controller.Controller
     radar.Radar .->|on-frequency checks| simpleradio.Client
