@@ -18,7 +18,7 @@ func TestHandleRadioCheck_CallsignOnRadar(t *testing.T) {
 	h.ctrl.HandleRadioCheck(h.ctx, &brevity.RadioCheckRequest{Callsign: "eagle 1"})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.RadioCheckResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.True(t, resp.RadarContact)
 }
 
@@ -29,7 +29,7 @@ func TestHandleRadioCheck_CallsignNotOnRadar(t *testing.T) {
 	h.ctrl.HandleRadioCheck(h.ctx, &brevity.RadioCheckRequest{Callsign: "eagle 1"})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.RadioCheckResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.False(t, resp.RadarContact)
 	assert.Equal(t, "eagle 1", resp.Callsign)
 }

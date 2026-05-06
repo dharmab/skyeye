@@ -25,7 +25,7 @@ func TestHandleDeclare_CallsignNotOnRadar(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	_, ok := got.(brevity.NegativeRadarContactResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 }
 
 func TestHandleDeclare_Sour(t *testing.T) {
@@ -39,7 +39,7 @@ func TestHandleDeclare_Sour(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.True(t, resp.Sour)
 	assert.Equal(t, brevity.Unable, resp.Declaration)
 }
@@ -59,7 +59,7 @@ func TestHandleDeclare_BRAA_Clean(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Clean, resp.Declaration)
 }
 
@@ -79,7 +79,7 @@ func TestHandleDeclare_BRAA_Friendly(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Friendly, resp.Declaration)
 }
 
@@ -98,7 +98,7 @@ func TestHandleDeclare_BRAA_Hostile(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Hostile, resp.Declaration)
 	require.NotNil(t, resp.Group)
 }
@@ -120,7 +120,7 @@ func TestHandleDeclare_BRAA_Furball(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Furball, resp.Declaration)
 }
 
@@ -140,7 +140,7 @@ func TestHandleDeclare_Bullseye_Hostile(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Hostile, resp.Declaration)
 	require.NotNil(t, resp.Group)
 }
@@ -158,7 +158,7 @@ func TestHandleDeclare_Bullseye_NilBullseye(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Unable, resp.Declaration)
 }
 
@@ -176,7 +176,7 @@ func TestHandleDeclare_Bullseye_Clean(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Clean, resp.Declaration)
 }
 
@@ -194,7 +194,7 @@ func TestHandleDeclare_Bullseye_Friendly(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Friendly, resp.Declaration)
 }
 
@@ -213,7 +213,7 @@ func TestHandleDeclare_Bullseye_Furball(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Furball, resp.Declaration)
 }
 
@@ -233,6 +233,6 @@ func TestHandleDeclare_BRAA_ZeroAltitude(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Hostile, resp.Declaration)
 }

@@ -39,6 +39,21 @@ func randomAltitude(rng *rand.Rand) unit.Length {
 	return unit.Length(rng.IntN(50000)) * unit.Foot
 }
 
+func randomTrack(rng *rand.Rand) brevity.Track {
+	tracks := []brevity.Track{
+		brevity.UnknownDirection,
+		brevity.North, brevity.Northeast, brevity.East, brevity.Southeast,
+		brevity.South, brevity.Southwest, brevity.West, brevity.Northwest,
+	}
+	return tracks[rng.IntN(len(tracks))]
+}
+
+var fuzzCallsigns = []string{"eagle 1", "viper 1", "hornet 1", "tomcat 1", "warthog 1", "ghost 1"}
+
+func randomCallsign(rng *rand.Rand) string {
+	return fuzzCallsigns[rng.IntN(len(fuzzCallsigns))]
+}
+
 var blueACMI = []string{acmiF15C, acmiF16C, acmiFA18C, acmiF14B, acmiA10C}
 var redACMI = []string{acmiSu27, acmiMiG29A, acmiSu25T, acmiMiG21, acmiJ11A}
 
@@ -63,93 +78,82 @@ func setupFuzzWorld(t *testing.T, h *controllerTestHarness, rng *rand.Rand) fuzz
 	return w
 }
 
-func TestFuzz_HandleRadioCheck(t *testing.T) {
+func runFuzz(t *testing.T, seed uint64, locs []locations.Location, fn func(*testing.T, *controllerTestHarness, *rand.Rand)) {
+	t.Helper()
 	t.Parallel()
-	rng := rand.New(rand.NewPCG(42, 0))
+	rng := rand.New(rand.NewPCG(seed, 0))
 	for range 50 {
-		h := newControllerTestHarness(t, nil)
+		h := newControllerTestHarness(t, locs)
 		setupFuzzWorld(t, h, rng)
-		h.ctrl.HandleRadioCheck(h.ctx, &brevity.RadioCheckRequest{Callsign: "eagle 1"})
+		fn(t, h, rng)
+	}
+}
+
+func TestFuzz_HandleRadioCheck(t *testing.T) {
+	runFuzz(t, 42, nil, func(t *testing.T, h *controllerTestHarness, rng *rand.Rand) {
+		h.ctrl.HandleRadioCheck(h.ctx, &brevity.RadioCheckRequest{Callsign: randomCallsign(rng)})
 		got := h.expectResponse(t)
 		switch got.(type) {
 		case brevity.RadioCheckResponse:
 		default:
 			t.Fatalf("unexpected response type %T", got)
 		}
-	}
+	})
 }
 
 func TestFuzz_HandleCheckIn(t *testing.T) {
-	t.Parallel()
-	rng := rand.New(rand.NewPCG(43, 0))
-	for range 50 {
-		h := newControllerTestHarness(t, nil)
-		setupFuzzWorld(t, h, rng)
-		h.ctrl.HandleCheckIn(h.ctx, &brevity.CheckInRequest{Callsign: "eagle 1"})
+	runFuzz(t, 43, nil, func(t *testing.T, h *controllerTestHarness, rng *rand.Rand) {
+		h.ctrl.HandleCheckIn(h.ctx, &brevity.CheckInRequest{Callsign: randomCallsign(rng)})
 		got := h.expectResponse(t)
 		switch got.(type) {
 		case brevity.CheckInResponse, brevity.NegativeRadarContactResponse:
 		default:
 			t.Fatalf("unexpected response type %T", got)
 		}
-	}
+	})
 }
 
 func TestFuzz_HandleShopping(t *testing.T) {
-	t.Parallel()
-	rng := rand.New(rand.NewPCG(44, 0))
-	for range 50 {
-		h := newControllerTestHarness(t, nil)
-		setupFuzzWorld(t, h, rng)
-		h.ctrl.HandleShopping(h.ctx, &brevity.ShoppingRequest{Callsign: "eagle 1"})
+	runFuzz(t, 44, nil, func(t *testing.T, h *controllerTestHarness, rng *rand.Rand) {
+		h.ctrl.HandleShopping(h.ctx, &brevity.ShoppingRequest{Callsign: randomCallsign(rng)})
 		got := h.expectResponse(t)
 		switch got.(type) {
 		case brevity.ShoppingResponse, brevity.NegativeRadarContactResponse:
 		default:
 			t.Fatalf("unexpected response type %T", got)
 		}
-	}
+	})
 }
 
 func TestFuzz_HandleTripwire(t *testing.T) {
-	t.Parallel()
-	rng := rand.New(rand.NewPCG(45, 0))
-	for range 50 {
-		h := newControllerTestHarness(t, nil)
-		setupFuzzWorld(t, h, rng)
-		h.ctrl.HandleTripwire(h.ctx, &brevity.TripwireRequest{Callsign: "eagle 1"})
+	runFuzz(t, 45, nil, func(t *testing.T, h *controllerTestHarness, rng *rand.Rand) {
+		h.ctrl.HandleTripwire(h.ctx, &brevity.TripwireRequest{Callsign: randomCallsign(rng)})
 		got := h.expectResponse(t)
 		switch got.(type) {
 		case brevity.TripwireResponse, brevity.NegativeRadarContactResponse:
 		default:
 			t.Fatalf("unexpected response type %T", got)
 		}
-	}
+	})
 }
 
 func TestFuzz_HandleUnableToUnderstand(t *testing.T) {
-	t.Parallel()
-	rng := rand.New(rand.NewPCG(46, 0))
-	for range 50 {
-		h := newControllerTestHarness(t, nil)
-		setupFuzzWorld(t, h, rng)
-		h.ctrl.HandleUnableToUnderstand(h.ctx, &brevity.UnableToUnderstandRequest{Callsign: "eagle 1"})
+	callsigns := append(fuzzCallsigns, "")
+	runFuzz(t, 46, nil, func(t *testing.T, h *controllerTestHarness, rng *rand.Rand) {
+		cs := callsigns[rng.IntN(len(callsigns))]
+		h.ctrl.HandleUnableToUnderstand(h.ctx, &brevity.UnableToUnderstandRequest{Callsign: cs})
 		got := h.expectResponse(t)
 		resp, ok := got.(brevity.SayAgainResponse)
 		if !ok {
 			t.Fatalf("unexpected response type %T", got)
 		}
 		assert.NotEmpty(t, resp.Callsign)
-	}
+	})
 }
 
 func TestFuzz_HandleAlphaCheck(t *testing.T) {
-	t.Parallel()
-	rng := rand.New(rand.NewPCG(47, 0))
-	for range 50 {
-		h := newControllerTestHarness(t, nil)
-		setupFuzzWorld(t, h, rng)
-		h.ctrl.HandleAlphaCheck(h.ctx, &brevity.AlphaCheckRequest{Callsign: "eagle 1"})
+	runFuzz(t, 47, nil, func(t *testing.T, h *controllerTestHarness, rng *rand.Rand) {
+		h.ctrl.HandleAlphaCheck(h.ctx, &brevity.AlphaCheckRequest{Callsign: randomCallsign(rng)})
 		got := h.expectResponse(t)
 		resp, ok := got.(brevity.AlphaCheckResponse)
 		if !ok {
@@ -158,19 +162,15 @@ func TestFuzz_HandleAlphaCheck(t *testing.T) {
 		if resp.Status {
 			assert.NotNil(t, resp.Location, "Status=true requires Location")
 		}
-	}
+	})
 }
 
 func TestFuzz_HandleBogeyDope(t *testing.T) {
-	t.Parallel()
-	rng := rand.New(rand.NewPCG(48, 0))
 	filters := []brevity.ContactCategory{brevity.Aircraft, brevity.FixedWing, brevity.RotaryWing}
-	for range 50 {
-		h := newControllerTestHarness(t, nil)
-		setupFuzzWorld(t, h, rng)
+	runFuzz(t, 48, nil, func(t *testing.T, h *controllerTestHarness, rng *rand.Rand) {
 		filter := filters[rng.IntN(len(filters))]
 		h.ctrl.HandleBogeyDope(h.ctx, &brevity.BogeyDopeRequest{
-			Callsign: "eagle 1",
+			Callsign: randomCallsign(rng),
 			Filter:   filter,
 		})
 		got := h.expectResponse(t)
@@ -184,19 +184,21 @@ func TestFuzz_HandleBogeyDope(t *testing.T) {
 		default:
 			t.Fatalf("unexpected response type %T", got)
 		}
-	}
+	})
 }
 
 func TestFuzz_HandlePicture(t *testing.T) {
 	t.Parallel()
+	callsigns := append(fuzzCallsigns, "")
 	rng := rand.New(rand.NewPCG(49, 0))
 	for range 50 {
+		cs := callsigns[rng.IntN(len(callsigns))]
 		synctest.Test(t, func(t *testing.T) {
 			h := newControllerTestHarness(t, nil)
 			w := setupFuzzWorld(t, h, rng)
 			time.Sleep(6 * time.Second)
 			synctest.Wait()
-			h.ctrl.HandlePicture(h.ctx, &brevity.PictureRequest{Callsign: "eagle 1"})
+			h.ctrl.HandlePicture(h.ctx, &brevity.PictureRequest{Callsign: cs})
 			got := h.expectResponse(t)
 			resp, ok := got.(brevity.PictureResponse)
 			if !ok {
@@ -213,13 +215,9 @@ func TestFuzz_HandlePicture(t *testing.T) {
 }
 
 func TestFuzz_HandleSpiked(t *testing.T) {
-	t.Parallel()
-	rng := rand.New(rand.NewPCG(50, 0))
-	for range 50 {
-		h := newControllerTestHarness(t, nil)
-		setupFuzzWorld(t, h, rng)
+	runFuzz(t, 50, nil, func(t *testing.T, h *controllerTestHarness, rng *rand.Rand) {
 		h.ctrl.HandleSpiked(h.ctx, &brevity.SpikedRequest{
-			Callsign: "eagle 1",
+			Callsign: randomCallsign(rng),
 			Bearing:  randomBearing(rng),
 		})
 		got := h.expectResponse(t)
@@ -232,17 +230,13 @@ func TestFuzz_HandleSpiked(t *testing.T) {
 		default:
 			t.Fatalf("unexpected response type %T", got)
 		}
-	}
+	})
 }
 
 func TestFuzz_HandleStrobe(t *testing.T) {
-	t.Parallel()
-	rng := rand.New(rand.NewPCG(51, 0))
-	for range 50 {
-		h := newControllerTestHarness(t, nil)
-		setupFuzzWorld(t, h, rng)
+	runFuzz(t, 51, nil, func(t *testing.T, h *controllerTestHarness, rng *rand.Rand) {
 		h.ctrl.HandleStrobe(h.ctx, &brevity.StrobeRequest{
-			Callsign: "eagle 1",
+			Callsign: randomCallsign(rng),
 			Bearing:  randomBearing(rng),
 		})
 		got := h.expectResponse(t)
@@ -255,17 +249,13 @@ func TestFuzz_HandleStrobe(t *testing.T) {
 		default:
 			t.Fatalf("unexpected response type %T", got)
 		}
-	}
+	})
 }
 
 func TestFuzz_HandleSnaplock(t *testing.T) {
-	t.Parallel()
-	rng := rand.New(rand.NewPCG(52, 0))
-	for range 50 {
-		h := newControllerTestHarness(t, nil)
-		setupFuzzWorld(t, h, rng)
+	runFuzz(t, 52, nil, func(t *testing.T, h *controllerTestHarness, rng *rand.Rand) {
 		h.ctrl.HandleSnaplock(h.ctx, &brevity.SnaplockRequest{
-			Callsign: "eagle 1",
+			Callsign: randomCallsign(rng),
 			BRA:      brevity.NewBRA(randomBearing(rng), randomRange(rng), randomAltitude(rng)),
 		})
 		got := h.expectResponse(t)
@@ -284,18 +274,13 @@ func TestFuzz_HandleSnaplock(t *testing.T) {
 		default:
 			t.Fatalf("unexpected response type %T", got)
 		}
-	}
+	})
 }
 
 func TestFuzz_HandleDeclare(t *testing.T) {
-	t.Parallel()
-	rng := rand.New(rand.NewPCG(53, 0))
-	for range 50 {
-		h := newControllerTestHarness(t, nil)
-		setupFuzzWorld(t, h, rng)
-
+	runFuzz(t, 53, nil, func(t *testing.T, h *controllerTestHarness, rng *rand.Rand) {
 		var req brevity.DeclareRequest
-		req.Callsign = "eagle 1"
+		req.Callsign = randomCallsign(rng)
 		switch rng.IntN(3) {
 		case 0:
 			req.Sour = true
@@ -304,10 +289,13 @@ func TestFuzz_HandleDeclare(t *testing.T) {
 			req.Bearing = randomBearing(rng)
 			req.Range = randomRange(rng)
 			req.Altitude = randomAltitude(rng)
+			req.Track = randomTrack(rng)
 		case 2:
 			req.IsBRAA = false
+			req.IsAmbiguous = rng.IntN(2) == 0
 			req.Bullseye = brevity.NewBullseye(randomBearing(rng), randomRange(rng))
 			req.Altitude = randomAltitude(rng)
+			req.Track = randomTrack(rng)
 		}
 
 		h.ctrl.HandleDeclare(h.ctx, &req)
@@ -332,23 +320,19 @@ func TestFuzz_HandleDeclare(t *testing.T) {
 		default:
 			t.Fatalf("unexpected response type %T", got)
 		}
-	}
+	})
 }
 
 func TestFuzz_HandleVector(t *testing.T) {
-	t.Parallel()
-	rng := rand.New(rand.NewPCG(54, 0))
 	locs := []locations.Location{
 		{Names: []string{"home plate"}, Longitude: 30.0, Latitude: 40.0},
 		{Names: []string{"divert", "alternate"}, Longitude: 31.0, Latitude: 40.5},
 	}
 	locNames := []string{"home plate", "divert", "alternate", "atlantis", brevity.LocationTanker}
-	for range 50 {
-		h := newControllerTestHarness(t, locs)
-		setupFuzzWorld(t, h, rng)
+	runFuzz(t, 54, locs, func(t *testing.T, h *controllerTestHarness, rng *rand.Rand) {
 		loc := locNames[rng.IntN(len(locNames))]
 		h.ctrl.HandleVector(h.ctx, &brevity.VectorRequest{
-			Callsign: "eagle 1",
+			Callsign: randomCallsign(rng),
 			Location: loc,
 		})
 		got := h.expectResponse(t)
@@ -363,5 +347,5 @@ func TestFuzz_HandleVector(t *testing.T) {
 				assert.NotNil(t, resp.Vector, "location vector requires Vector")
 			}
 		}
-	}
+	})
 }

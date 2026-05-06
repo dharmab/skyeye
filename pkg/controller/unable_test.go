@@ -18,7 +18,7 @@ func TestHandleUnableToUnderstand_CallsignOnRadar(t *testing.T) {
 	h.ctrl.HandleUnableToUnderstand(h.ctx, &brevity.UnableToUnderstandRequest{Callsign: "eagle 1"})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SayAgainResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Contains(t, resp.Callsign, "eagle 1")
 }
 
@@ -29,6 +29,6 @@ func TestHandleUnableToUnderstand_CallsignNotOnRadar(t *testing.T) {
 	h.ctrl.HandleUnableToUnderstand(h.ctx, &brevity.UnableToUnderstandRequest{Callsign: "ghost 1"})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SayAgainResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.LastCaller, resp.Callsign)
 }

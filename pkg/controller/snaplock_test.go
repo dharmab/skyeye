@@ -22,7 +22,7 @@ func TestHandleSnaplock_CallsignNotOnRadar(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	_, ok := got.(brevity.NegativeRadarContactResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 }
 
 func TestHandleSnaplock_Clean(t *testing.T) {
@@ -37,7 +37,7 @@ func TestHandleSnaplock_Clean(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SnaplockResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Clean, resp.Declaration)
 }
 
@@ -54,7 +54,7 @@ func TestHandleSnaplock_Friendly(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SnaplockResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Friendly, resp.Declaration)
 }
 
@@ -71,7 +71,7 @@ func TestHandleSnaplock_Hostile(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SnaplockResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Hostile, resp.Declaration)
 	require.NotNil(t, resp.Group)
 }
@@ -90,7 +90,7 @@ func TestHandleSnaplock_Furball(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SnaplockResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Furball, resp.Declaration)
 }
 
@@ -111,7 +111,7 @@ func TestHandleSnaplock_HostilePrefersHotAspect(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SnaplockResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, brevity.Hostile, resp.Declaration)
 	require.NotNil(t, resp.Group)
 	assert.Equal(t, brevity.Aspect(brevity.Hot), resp.Group.Aspect())

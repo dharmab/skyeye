@@ -18,7 +18,7 @@ func TestHandleCheckIn_CallsignOnRadar(t *testing.T) {
 	h.ctrl.HandleCheckIn(h.ctx, &brevity.CheckInRequest{Callsign: "eagle 1"})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.CheckInResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Contains(t, resp.Callsign, "eagle 1")
 }
 
@@ -29,6 +29,6 @@ func TestHandleCheckIn_CallsignNotOnRadar(t *testing.T) {
 	h.ctrl.HandleCheckIn(h.ctx, &brevity.CheckInRequest{Callsign: "eagle 1"})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.NegativeRadarContactResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Equal(t, "eagle 1", resp.Callsign)
 }

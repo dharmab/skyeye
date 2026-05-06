@@ -18,7 +18,7 @@ func TestHandleAlphaCheck_CallsignOnRadar(t *testing.T) {
 	h.ctrl.HandleAlphaCheck(h.ctx, &brevity.AlphaCheckRequest{Callsign: "eagle 1"})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.AlphaCheckResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.True(t, resp.Status)
 	require.NotNil(t, resp.Location)
 	assert.InDelta(t, 8.0, resp.Location.Distance().NauticalMiles(), 5.0)
@@ -31,7 +31,7 @@ func TestHandleAlphaCheck_CallsignNotOnRadar(t *testing.T) {
 	h.ctrl.HandleAlphaCheck(h.ctx, &brevity.AlphaCheckRequest{Callsign: "eagle 1"})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.AlphaCheckResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.False(t, resp.Status)
 	assert.Nil(t, resp.Location)
 }

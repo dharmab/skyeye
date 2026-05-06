@@ -17,7 +17,7 @@ func TestHandleBogeyDope_CallsignNotOnRadar(t *testing.T) {
 	h.ctrl.HandleBogeyDope(h.ctx, &brevity.BogeyDopeRequest{Callsign: "eagle 1", Filter: brevity.Aircraft})
 	got := h.expectResponse(t)
 	_, ok := got.(brevity.NegativeRadarContactResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 }
 
 func TestHandleBogeyDope_NoHostiles(t *testing.T) {
@@ -28,7 +28,7 @@ func TestHandleBogeyDope_NoHostiles(t *testing.T) {
 	h.ctrl.HandleBogeyDope(h.ctx, &brevity.BogeyDopeRequest{Callsign: "eagle 1", Filter: brevity.Aircraft})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.BogeyDopeResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.Nil(t, resp.Group)
 }
 
@@ -41,7 +41,7 @@ func TestHandleBogeyDope_HostilePresent(t *testing.T) {
 	h.ctrl.HandleBogeyDope(h.ctx, &brevity.BogeyDopeRequest{Callsign: "eagle 1", Filter: brevity.Aircraft})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.BogeyDopeResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	require.NotNil(t, resp.Group)
 	assert.Equal(t, brevity.Hostile, resp.Group.Declaration())
 	require.NotNil(t, resp.Group.BRAA())
@@ -58,7 +58,7 @@ func TestHandleBogeyDope_FilterFixedWing(t *testing.T) {
 	h.ctrl.HandleBogeyDope(h.ctx, &brevity.BogeyDopeRequest{Callsign: "eagle 1", Filter: brevity.FixedWing})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.BogeyDopeResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	require.NotNil(t, resp.Group)
 	// The Su-27 is fixed-wing; the Ka-50 is rotary. With FixedWing filter,
 	// the nearest match should be the Su-27 (farther away), not the Ka-50.

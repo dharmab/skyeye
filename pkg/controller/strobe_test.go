@@ -22,7 +22,7 @@ func TestHandleStrobe_CallsignNotOnRadar(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	_, ok := got.(brevity.NegativeRadarContactResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 }
 
 func TestHandleStrobe_NoHostileInCone(t *testing.T) {
@@ -36,7 +36,7 @@ func TestHandleStrobe_NoHostileInCone(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.StrobeResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.False(t, resp.Status)
 }
 
@@ -52,7 +52,7 @@ func TestHandleStrobe_HostileInCone(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.StrobeResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.True(t, resp.Status)
 	require.NotNil(t, resp.Group)
 }
@@ -70,6 +70,6 @@ func TestHandleStrobe_HostileOutsideCone(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.StrobeResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.False(t, resp.Status)
 }

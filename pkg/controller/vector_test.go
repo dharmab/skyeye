@@ -21,7 +21,7 @@ func TestHandleVector_CallsignNotOnScope(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.VectorResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.False(t, resp.Contact)
 }
 
@@ -36,7 +36,7 @@ func TestHandleVector_LocationNotConfigured(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.VectorResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.True(t, resp.Contact)
 	assert.False(t, resp.Status)
 }
@@ -55,7 +55,7 @@ func TestHandleVector_HappyPath(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.VectorResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.True(t, resp.Contact)
 	assert.True(t, resp.Status)
 	require.NotNil(t, resp.Vector)
@@ -74,7 +74,7 @@ func TestHandleVector_Tanker_NoCompatibleTanker(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.VectorResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.True(t, resp.Contact)
 	assert.False(t, resp.Status)
 }
@@ -95,7 +95,7 @@ func TestHandleVector_Tanker_FlyingBoomReceiverMatchesBoomTanker(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.VectorResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.True(t, resp.Contact)
 	assert.True(t, resp.Status)
 	assert.Equal(t, "Texaco 1", resp.Location)
@@ -117,7 +117,7 @@ func TestHandleVector_Tanker_ProbeReceiverMatchesBasketTanker(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.VectorResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.True(t, resp.Contact)
 	assert.True(t, resp.Status)
 	assert.Equal(t, "Arco 1", resp.Location)

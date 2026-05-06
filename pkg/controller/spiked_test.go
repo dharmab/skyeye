@@ -22,7 +22,7 @@ func TestHandleSpiked_CallsignNotOnRadar(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	_, ok := got.(brevity.NegativeRadarContactResponse)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 }
 
 func TestHandleSpiked_NoHostileInCone(t *testing.T) {
@@ -36,7 +36,7 @@ func TestHandleSpiked_NoHostileInCone(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SpikedResponseV2)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.False(t, resp.Status)
 }
 
@@ -53,7 +53,7 @@ func TestHandleSpiked_HostileInCone(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SpikedResponseV2)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.True(t, resp.Status)
 	require.NotNil(t, resp.Group)
 }
@@ -71,6 +71,6 @@ func TestHandleSpiked_HostileOutsideCone(t *testing.T) {
 	})
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SpikedResponseV2)
-	require.True(t, ok, "got %T", got)
+	require.True(t, ok)
 	assert.False(t, resp.Status)
 }
