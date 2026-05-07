@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/dharmab/collections/sets"
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
@@ -148,7 +149,7 @@ func (g *group) Heavy() bool {
 
 // Platforms implements [brevity.Group.Platforms].
 func (g *group) Platforms() []string {
-	platforms := make(map[string]struct{})
+	platforms := sets.New[string]()
 	for _, trackfile := range g.contacts {
 		var name string
 		data, ok := encyclopedia.GetAircraftData(trackfile.Contact.ACMIName)
@@ -160,13 +161,9 @@ func (g *group) Platforms() []string {
 				}
 			}
 		}
-		platforms[name] = struct{}{}
+		sets.Add(platforms, name)
 	}
-	result := make([]string, 0, len(platforms))
-	for platform := range platforms {
-		result = append(result, platform)
-	}
-	return result
+	return slices.Collect(sets.All(platforms))
 }
 
 // High implements [brevity.Group.High].

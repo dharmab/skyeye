@@ -3,6 +3,7 @@ package radar
 import (
 	"slices"
 
+	"github.com/dharmab/collections/sets"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
@@ -12,13 +13,13 @@ import (
 )
 
 func (r *Radar) enumerateGroups(coalition coalitions.Coalition) []*group {
-	visited := make(map[uint64]struct{})
+	visited := sets.New[uint64]()
 	groups := make([]*group, 0)
 	for trackfile := range r.contacts.values() {
-		if _, ok := visited[trackfile.Contact.ID]; ok {
+		if sets.Contains(visited, trackfile.Contact.ID) {
 			continue
 		}
-		visited[trackfile.Contact.ID] = struct{}{}
+		sets.Add(visited, trackfile.Contact.ID)
 
 		if trackfile.Contact.Coalition != coalition {
 			continue
@@ -33,7 +34,7 @@ func (r *Radar) enumerateGroups(coalition coalitions.Coalition) []*group {
 			continue
 		}
 		for _, id := range grp.ObjectIDs() {
-			visited[id] = struct{}{}
+			sets.Add(visited, id)
 		}
 		groups = append(groups, grp)
 	}
