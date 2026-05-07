@@ -119,12 +119,20 @@ func (c *streamingClient) Time() time.Time {
 }
 
 func (c *streamingClient) sendUpdates(updates chan<- sim.Updated) {
+	snapshot := c.collectUpdates()
+	for _, u := range snapshot {
+		updates <- u
+	}
+}
+
+func (c *streamingClient) collectUpdates() []sim.Updated {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 
+	result := make([]sim.Updated, 0, len(c.state))
 	for _, object := range c.state {
 		logger := log.With().Uint64("id", object.ID).Logger()
-		// Only send updates for aircraft.
+		// Only collect updates for aircraft.
 		taglist, err := object.GetTypes()
 		if err != nil {
 			logger.Error().Err(err).Msg("error getting object types")
@@ -179,7 +187,7 @@ func (c *streamingClient) sendUpdates(updates chan<- sim.Updated) {
 			frame.AGL = &agl
 		}
 
-		updates <- sim.Updated{
+		result = append(result, sim.Updated{
 			Labels: trackfiles.Labels{
 				ID:        object.ID,
 				Name:      callsign,
@@ -187,8 +195,9 @@ func (c *streamingClient) sendUpdates(updates chan<- sim.Updated) {
 				ACMIName:  name,
 			},
 			Frame: frame,
-		}
+		})
 	}
+	return result
 }
 
 func (c *streamingClient) handleLines(ctx context.Context, reader *bufio.Reader) error {
