@@ -3,6 +3,7 @@ package radar
 import (
 	"cmp"
 
+	"github.com/dharmab/collections/sets"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/spatial"
@@ -15,12 +16,12 @@ import (
 func (r *Radar) findNearbyGroups(pointOfInterest orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory, excludedIDs []uint64) []*group {
 	circle := geo.NewBoundAroundPoint(pointOfInterest, radius.Meters())
 	groups := make([]*group, 0)
-	visited := make(map[uint64]struct{})
+	visited := sets.New[uint64]()
 	for trackfile := range r.contacts.values() {
 		if slices.Contains(excludedIDs, trackfile.Contact.ID) {
 			continue
 		}
-		if _, ok := visited[trackfile.Contact.ID]; ok {
+		if sets.Contains(visited, trackfile.Contact.ID) {
 			continue
 		}
 		isMatch := isMatch(trackfile, coalition, filter)
@@ -29,7 +30,7 @@ func (r *Radar) findNearbyGroups(pointOfInterest orb.Point, minAltitude, maxAlti
 		if isMatch && inCircle && inStack {
 			grp := r.findGroupForAircraft(trackfile)
 			for _, id := range grp.ObjectIDs() {
-				visited[id] = struct{}{}
+				sets.Add(visited, id)
 			}
 			groups = append(groups, grp)
 		}

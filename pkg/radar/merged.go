@@ -4,6 +4,7 @@ import (
 	"maps"
 	"slices"
 
+	"github.com/dharmab/collections/sets"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
@@ -13,10 +14,10 @@ import (
 
 // Merges returns a map of hostile groups of the given coalition to friendly trackfiles.
 func (r *Radar) Merges(coalition coalitions.Coalition) map[brevity.Group][]*trackfiles.Trackfile {
-	visited := make(map[uint64]struct{})
+	visited := sets.New[uint64]()
 	merges := make(map[brevity.Group][]*trackfiles.Trackfile)
 	for contact := range r.contacts.values() {
-		if _, ok := visited[contact.Contact.ID]; ok {
+		if sets.Contains(visited, contact.Contact.ID) {
 			continue
 		}
 
@@ -36,7 +37,7 @@ func (r *Radar) Merges(coalition coalitions.Coalition) map[brevity.Group][]*trac
 		grp := r.findGroupForAircraft(contact)
 		mergedWith := make(map[uint64]*trackfiles.Trackfile)
 		for _, contact := range grp.contacts {
-			visited[contact.Contact.ID] = struct{}{}
+			sets.Add(visited, contact.Contact.ID)
 			for _, trackfile := range r.mergesForContact(contact) {
 				mergedWith[trackfile.Contact.ID] = trackfile
 			}
