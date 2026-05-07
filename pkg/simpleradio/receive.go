@@ -104,7 +104,7 @@ func (c *Client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- 
 
 			logger := log.With().Str("GUID", string(packet.OriginGUID)).Logger()
 
-			if c.secureCoalitionRadios {
+			if c.secureCoalitionRadios.Load() {
 				client, ok := c.clients[types.GUID(packet.OriginGUID)]
 				if !ok {
 					logger.Warn().Msg("ignoring voice packet from unknown client")

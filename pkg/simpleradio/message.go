@@ -78,13 +78,13 @@ func (c *Client) updateServerSettings(message types.Message) {
 	log.Debug().Any("serverSettings", message.ServerSettings).Msg("received server settings")
 	if enabled, ok := message.ServerSettings[string(types.CoalitionAudioSecurity)]; ok {
 		if strings.ToLower(enabled) == "true" {
-			if !c.secureCoalitionRadios {
+			if !c.secureCoalitionRadios.Load() {
 				log.Info().Msg("enabling secure coalition radios")
 			}
-			c.secureCoalitionRadios = true
+			c.secureCoalitionRadios.Store(true)
 		} else {
 			log.Info().Msg("disabling secure coalition radios")
-			c.secureCoalitionRadios = false
+			c.secureCoalitionRadios.Store(false)
 		}
 	}
 	if enabled, ok := message.ServerSettings[string(types.ExternalAWACSMode)]; ok {
