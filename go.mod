@@ -1,6 +1,6 @@
 module github.com/dharmab/skyeye
 
-go 1.26.0
+go 1.26.2
 
 require (
 	github.com/DCS-gRPC/go-bindings v0.7.1
@@ -8,9 +8,9 @@ require (
 	github.com/amitybell/piper-voice-alan v0.0.0-20231118093148-059963c24dbd
 	github.com/amitybell/piper-voice-jenny v0.0.0-20231118093224-dcf0d49e46b7
 	github.com/bwmarrin/discordgo v0.28.1
+	github.com/dharmab/collections v1.0.0
 	github.com/dharmab/goacmi v1.0.3
 	github.com/dharmab/numwords v1.0.1
-	github.com/gammazero/deque v0.2.1
 	github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20260319084013-9386f2394010
 	github.com/go-audio/aiff v1.1.0
 	github.com/gofrs/flock v0.13.0

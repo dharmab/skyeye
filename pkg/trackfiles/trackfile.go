@@ -7,11 +7,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dharmab/collections/deques"
 	"github.com/dharmab/skyeye/pkg/bearings"
 	"github.com/dharmab/skyeye/pkg/brevity"
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/spatial"
-	"github.com/gammazero/deque"
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/rs/zerolog/log"
@@ -36,7 +36,7 @@ type Trackfile struct {
 	// Contact contains identifying information.
 	Contact Labels
 	// track is a collection of frames, ordered from most recent to least recent.
-	track deque.Deque[Frame]
+	track *deques.Counting[Frame]
 	lock  sync.RWMutex
 }
 
@@ -61,7 +61,7 @@ type Frame struct {
 func New(labels Labels) *Trackfile {
 	return &Trackfile{
 		Contact: labels,
-		track:   *deque.New[Frame](),
+		track:   deques.NewCounting[Frame](maxLength),
 	}
 }
 
@@ -84,13 +84,10 @@ func (t *Trackfile) String() string {
 func (t *Trackfile) Update(f Frame) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
-	if t.track.Len() > 0 && f.Time.Before(t.track.Front().Time) {
+	if newest, ok := t.track.Newest(); ok && f.Time.Before(newest.Time) {
 		return
 	}
-	t.track.PushFront(f)
-	for t.track.Len() > maxLength {
-		t.track.PopBack()
-	}
+	t.track.Push(f)
 }
 
 // Bullseye returns the bearing and distance from the bullseye to the track's last known position.
@@ -108,16 +105,10 @@ func (t *Trackfile) Bullseye(bullseye orb.Point, opts ...spatial.Option) *brevit
 func (t *Trackfile) LastKnown() Frame {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
-	return t.unsafeLastKnown()
-}
-
-// unsafeLastKnown is like LastKnown, but it does not acquire a lock. The calling
-// function must acquire t.lock before calling this function.
-func (t *Trackfile) unsafeLastKnown() Frame {
-	if t.track.Len() == 0 {
-		return Frame{}
+	if f, ok := t.track.Newest(); ok {
+		return f
 	}
-	return t.track.Front()
+	return Frame{}
 }
 
 // IsLastKnownPointZero returns true if the last known point is at (0, 0).
@@ -126,8 +117,12 @@ func (t *Trackfile) IsLastKnownPointZero() bool {
 	return spatial.IsZero(t.LastKnown().Point)
 }
 
+// bestAvailableDeclination returns the magnetic declination at the track's most recent position, or 0 if unavailable.
 func (t *Trackfile) bestAvailableDeclination() unit.Angle {
-	latest := t.unsafeLastKnown()
+	latest, ok := t.track.Newest()
+	if !ok {
+		return 0
+	}
 	declincation, err := bearings.Declination(latest.Point, latest.Time)
 	if err != nil {
 		return 0
@@ -141,14 +136,22 @@ func (t *Trackfile) bestAvailableDeclination() unit.Angle {
 func (t *Trackfile) Course(opts ...spatial.Option) bearings.Bearing {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
+	return t.computeCourse(opts...)
+}
+
+// computeCourse returns the magnetic bearing between the two most recent frames, or the heading if only one frame exists. Caller must hold t.lock.
+func (t *Trackfile) computeCourse(opts ...spatial.Option) bearings.Bearing {
+	latest, ok := t.track.Newest()
+	if !ok {
+		return bearings.NewTrueBearing(0)
+	}
 	if t.track.Len() == 1 {
 		return bearings.NewTrueBearing(
-			t.track.Front().Heading,
+			latest.Heading,
 		).Magnetic(t.bestAvailableDeclination())
 	}
 
-	latest := t.track.Front()
-	previous := t.track.At(1)
+	previous, _ := t.track.At(1)
 
 	declination := t.bestAvailableDeclination()
 	course := spatial.TrueBearing(previous.Point, latest.Point, opts...).Magnetic(declination)
@@ -166,18 +169,19 @@ func (t *Trackfile) Direction() brevity.Track {
 		return brevity.UnknownDirection
 	}
 
-	course := t.Course()
-	return brevity.TrackFromBearing(course)
+	return brevity.TrackFromBearing(t.computeCourse())
 }
 
-// groundSpeed returns the approximate speed of the track along the ground (i.e. in two dimensions).
+// groundSpeed returns the approximate ground speed of the track in two dimensions. Caller must hold t.lock.
 func (t *Trackfile) groundSpeed(opts ...spatial.Option) unit.Speed {
-	if t.track.Len() < 2 {
+	latest, ok := t.track.Newest()
+	if !ok {
 		return 0
 	}
-
-	latest := t.track.Front()
-	previous := t.track.At(1)
+	previous, ok := t.track.At(1)
+	if !ok {
+		return 0
+	}
 
 	timeDelta := latest.Time.Sub(previous.Time)
 	if timeDelta == 0 {
@@ -197,12 +201,14 @@ func (t *Trackfile) groundSpeed(opts ...spatial.Option) unit.Speed {
 func (t *Trackfile) Speed() unit.Speed {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
-	if t.track.Len() < 2 {
+	latest, ok := t.track.Newest()
+	if !ok {
 		return 0
 	}
-
-	latest := t.track.Front()
-	previous := t.track.At(1)
+	previous, ok := t.track.At(1)
+	if !ok {
+		return 0
+	}
 
 	timeDelta := latest.Time.Sub(previous.Time)
 	if timeDelta == 0 {
