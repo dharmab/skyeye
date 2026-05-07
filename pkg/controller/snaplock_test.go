@@ -21,8 +21,9 @@ func TestHandleSnaplock_CallsignNotOnRadar(t *testing.T) {
 		BRA:      brevity.NewBRA(bearings.NewMagneticBearing(90*unit.Degree), 20*unit.NauticalMile, 20000*unit.Foot),
 	})
 	got := h.expectResponse(t)
-	_, ok := got.(brevity.NegativeRadarContactResponse)
+	resp, ok := got.(brevity.NegativeRadarContactResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
 }
 
 func TestHandleSnaplock_Clean(t *testing.T) {
@@ -38,7 +39,9 @@ func TestHandleSnaplock_Clean(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SnaplockResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
 	assert.Equal(t, brevity.Clean, resp.Declaration)
+	assert.Nil(t, resp.Group)
 }
 
 func TestHandleSnaplock_Friendly(t *testing.T) {
@@ -55,7 +58,10 @@ func TestHandleSnaplock_Friendly(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SnaplockResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
 	assert.Equal(t, brevity.Friendly, resp.Declaration)
+	require.NotNil(t, resp.Group)
+	assert.Equal(t, brevity.Friendly, resp.Group.Declaration())
 }
 
 func TestHandleSnaplock_Hostile(t *testing.T) {
@@ -72,8 +78,17 @@ func TestHandleSnaplock_Hostile(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SnaplockResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
 	assert.Equal(t, brevity.Hostile, resp.Declaration)
 	require.NotNil(t, resp.Group)
+	assert.Equal(t, brevity.Hostile, resp.Group.Declaration())
+	assert.Equal(t, 1, resp.Group.Contacts())
+	require.NotNil(t, resp.Group.BRAA())
+	assert.InDelta(t, 84.0, resp.Group.BRAA().Bearing().Degrees(), bearingDeltaDegrees)
+	assert.InDelta(t, 23.0, resp.Group.BRAA().Range().NauticalMiles(), rangeDeltaNauticalMiles)
+	assert.InDelta(t, 20000.0, resp.Group.BRAA().Altitude().Feet(), altitudeDeltaFeet)
+	assert.Equal(t, brevity.Aspect(brevity.Drag), resp.Group.BRAA().Aspect())
+	assert.Contains(t, resp.Group.Platforms(), "Flanker")
 }
 
 func TestHandleSnaplock_Furball(t *testing.T) {
@@ -91,7 +106,9 @@ func TestHandleSnaplock_Furball(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SnaplockResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
 	assert.Equal(t, brevity.Furball, resp.Declaration)
+	assert.Nil(t, resp.Group)
 }
 
 func TestHandleSnaplock_HostilePrefersHotAspect(t *testing.T) {
@@ -112,7 +129,13 @@ func TestHandleSnaplock_HostilePrefersHotAspect(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.SnaplockResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
 	assert.Equal(t, brevity.Hostile, resp.Declaration)
 	require.NotNil(t, resp.Group)
+	assert.Equal(t, brevity.Hostile, resp.Group.Declaration())
+	assert.Equal(t, 1, resp.Group.Contacts())
+	require.NotNil(t, resp.Group.BRAA())
+	assert.Equal(t, brevity.Aspect(brevity.Hot), resp.Group.BRAA().Aspect())
 	assert.Equal(t, brevity.Aspect(brevity.Hot), resp.Group.Aspect())
+	assert.Contains(t, resp.Group.Platforms(), "Fulcrum")
 }

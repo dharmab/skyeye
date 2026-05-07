@@ -21,8 +21,9 @@ func TestHandleStrobe_CallsignNotOnRadar(t *testing.T) {
 		Bearing:  bearings.NewMagneticBearing(90 * unit.Degree),
 	})
 	got := h.expectResponse(t)
-	_, ok := got.(brevity.NegativeRadarContactResponse)
+	resp, ok := got.(brevity.NegativeRadarContactResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
 }
 
 func TestHandleStrobe_NoHostileInCone(t *testing.T) {
@@ -37,7 +38,10 @@ func TestHandleStrobe_NoHostileInCone(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.StrobeResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.InDelta(t, 90.0, resp.Bearing.Degrees(), 0.1)
 	assert.False(t, resp.Status)
+	assert.Nil(t, resp.Group)
 }
 
 func TestHandleStrobe_HostileInCone(t *testing.T) {
@@ -53,8 +57,17 @@ func TestHandleStrobe_HostileInCone(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.StrobeResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.InDelta(t, 90.0, resp.Bearing.Degrees(), 0.1)
 	assert.True(t, resp.Status)
 	require.NotNil(t, resp.Group)
+	assert.Equal(t, brevity.Hostile, resp.Group.Declaration())
+	assert.Equal(t, 1, resp.Group.Contacts())
+	require.NotNil(t, resp.Group.BRAA())
+	assert.InDelta(t, 84.0, resp.Group.BRAA().Bearing().Degrees(), bearingDeltaDegrees)
+	assert.InDelta(t, 23.0, resp.Group.BRAA().Range().NauticalMiles(), rangeDeltaNauticalMiles)
+	assert.InDelta(t, 20000.0, resp.Group.BRAA().Altitude().Feet(), altitudeDeltaFeet)
+	assert.Contains(t, resp.Group.Platforms(), "Flanker")
 }
 
 func TestHandleStrobe_HostileOutsideCone(t *testing.T) {
@@ -71,5 +84,8 @@ func TestHandleStrobe_HostileOutsideCone(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.StrobeResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.InDelta(t, 90.0, resp.Bearing.Degrees(), 0.1)
 	assert.False(t, resp.Status)
+	assert.Nil(t, resp.Group)
 }

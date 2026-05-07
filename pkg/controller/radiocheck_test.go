@@ -19,6 +19,7 @@ func TestHandleRadioCheck_CallsignOnRadar(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.RadioCheckResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
 	assert.True(t, resp.RadarContact)
 }
 

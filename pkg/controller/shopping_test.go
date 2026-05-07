@@ -19,7 +19,7 @@ func TestHandleShopping_CallsignOnRadar(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.ShoppingResponse)
 	require.True(t, ok)
-	assert.Contains(t, resp.Callsign, "eagle 1")
+	assert.Equal(t, "eagle 1", resp.Callsign)
 }
 
 func TestHandleShopping_CallsignNotOnRadar(t *testing.T) {

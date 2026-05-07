@@ -24,8 +24,9 @@ func TestHandleDeclare_CallsignNotOnRadar(t *testing.T) {
 		Altitude: 20000 * unit.Foot,
 	})
 	got := h.expectResponse(t)
-	_, ok := got.(brevity.NegativeRadarContactResponse)
+	resp, ok := got.(brevity.NegativeRadarContactResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
 }
 
 func TestHandleDeclare_Sour(t *testing.T) {
@@ -40,8 +41,10 @@ func TestHandleDeclare_Sour(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
 	assert.True(t, resp.Sour)
 	assert.Equal(t, brevity.Unable, resp.Declaration)
+	assert.Nil(t, resp.Group)
 }
 
 func TestHandleDeclare_BRAA_Clean(t *testing.T) {
@@ -60,7 +63,10 @@ func TestHandleDeclare_BRAA_Clean(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.False(t, resp.Sour)
 	assert.Equal(t, brevity.Clean, resp.Declaration)
+	assert.Nil(t, resp.Group)
 }
 
 func TestHandleDeclare_BRAA_Friendly(t *testing.T) {
@@ -80,7 +86,11 @@ func TestHandleDeclare_BRAA_Friendly(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.False(t, resp.Sour)
 	assert.Equal(t, brevity.Friendly, resp.Declaration)
+	require.NotNil(t, resp.Group)
+	assert.Equal(t, brevity.Friendly, resp.Group.Declaration())
 }
 
 func TestHandleDeclare_BRAA_Hostile(t *testing.T) {
@@ -99,8 +109,12 @@ func TestHandleDeclare_BRAA_Hostile(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.False(t, resp.Sour)
 	assert.Equal(t, brevity.Hostile, resp.Declaration)
 	require.NotNil(t, resp.Group)
+	assert.Equal(t, 1, resp.Group.Contacts())
+	assert.Contains(t, resp.Group.Platforms(), "Flanker")
 }
 
 func TestHandleDeclare_BRAA_Furball(t *testing.T) {
@@ -121,7 +135,12 @@ func TestHandleDeclare_BRAA_Furball(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.False(t, resp.Sour)
 	assert.Equal(t, brevity.Furball, resp.Declaration)
+	require.NotNil(t, resp.Group)
+	assert.Equal(t, brevity.Furball, resp.Group.Declaration())
+	assert.Contains(t, resp.Group.Platforms(), "Flanker")
 }
 
 func TestHandleDeclare_Bullseye_Hostile(t *testing.T) {
@@ -141,8 +160,13 @@ func TestHandleDeclare_Bullseye_Hostile(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.False(t, resp.Sour)
 	assert.Equal(t, brevity.Hostile, resp.Declaration)
 	require.NotNil(t, resp.Group)
+	assert.Equal(t, brevity.Hostile, resp.Group.Declaration())
+	assert.Equal(t, 1, resp.Group.Contacts())
+	assert.Contains(t, resp.Group.Platforms(), "Flanker")
 }
 
 func TestHandleDeclare_Bullseye_NilBullseye(t *testing.T) {
@@ -159,7 +183,9 @@ func TestHandleDeclare_Bullseye_NilBullseye(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
 	assert.Equal(t, brevity.Unable, resp.Declaration)
+	assert.Nil(t, resp.Group)
 }
 
 func TestHandleDeclare_Bullseye_Clean(t *testing.T) {
@@ -177,7 +203,10 @@ func TestHandleDeclare_Bullseye_Clean(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.False(t, resp.Sour)
 	assert.Equal(t, brevity.Clean, resp.Declaration)
+	assert.Nil(t, resp.Group)
 }
 
 func TestHandleDeclare_Bullseye_Friendly(t *testing.T) {
@@ -195,7 +224,11 @@ func TestHandleDeclare_Bullseye_Friendly(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.False(t, resp.Sour)
 	assert.Equal(t, brevity.Friendly, resp.Declaration)
+	require.NotNil(t, resp.Group)
+	assert.Equal(t, brevity.Friendly, resp.Group.Declaration())
 }
 
 func TestHandleDeclare_Bullseye_Furball(t *testing.T) {
@@ -214,7 +247,12 @@ func TestHandleDeclare_Bullseye_Furball(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.False(t, resp.Sour)
 	assert.Equal(t, brevity.Furball, resp.Declaration)
+	require.NotNil(t, resp.Group)
+	assert.Equal(t, brevity.Furball, resp.Group.Declaration())
+	assert.Contains(t, resp.Group.Platforms(), "Flanker")
 }
 
 func TestHandleDeclare_BRAA_ZeroAltitude(t *testing.T) {
@@ -234,5 +272,11 @@ func TestHandleDeclare_BRAA_ZeroAltitude(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.DeclareResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.False(t, resp.Sour)
 	assert.Equal(t, brevity.Hostile, resp.Declaration)
+	require.NotNil(t, resp.Group)
+	assert.Equal(t, brevity.Hostile, resp.Group.Declaration())
+	assert.Equal(t, 1, resp.Group.Contacts())
+	assert.Contains(t, resp.Group.Platforms(), "Flanker")
 }

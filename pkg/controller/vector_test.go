@@ -22,7 +22,11 @@ func TestHandleVector_CallsignNotOnScope(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.VectorResponse)
 	require.True(t, ok)
+	assert.Equal(t, "home plate", resp.Location)
 	assert.False(t, resp.Contact)
+	assert.False(t, resp.Status)
+	assert.Nil(t, resp.Vector)
+	assert.Nil(t, resp.BRA)
 }
 
 func TestHandleVector_LocationNotConfigured(t *testing.T) {
@@ -37,8 +41,12 @@ func TestHandleVector_LocationNotConfigured(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.VectorResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.Equal(t, "atlantis", resp.Location)
 	assert.True(t, resp.Contact)
 	assert.False(t, resp.Status)
+	assert.Nil(t, resp.Vector)
+	assert.Nil(t, resp.BRA)
 }
 
 func TestHandleVector_HappyPath(t *testing.T) {
@@ -56,10 +64,14 @@ func TestHandleVector_HappyPath(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.VectorResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.Equal(t, "home plate", resp.Location)
 	assert.True(t, resp.Contact)
 	assert.True(t, resp.Status)
 	require.NotNil(t, resp.Vector)
-	assert.InDelta(t, 8.0, resp.Vector.Range().NauticalMiles(), 1.0)
+	assert.InDelta(t, 211.0, resp.Vector.Bearing().Degrees(), bearingDeltaDegrees)
+	assert.InDelta(t, 8.0, resp.Vector.Range().NauticalMiles(), rangeDeltaNauticalMiles)
+	assert.Nil(t, resp.BRA)
 }
 
 func TestHandleVector_Tanker_NoCompatibleTanker(t *testing.T) {
@@ -74,8 +86,12 @@ func TestHandleVector_Tanker_NoCompatibleTanker(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.VectorResponse)
 	require.True(t, ok)
+	assert.Equal(t, "eagle 1", resp.Callsign)
+	assert.Equal(t, brevity.LocationTanker, resp.Location)
 	assert.True(t, resp.Contact)
 	assert.False(t, resp.Status)
+	assert.Nil(t, resp.Vector)
+	assert.Nil(t, resp.BRA)
 }
 
 func TestHandleVector_Tanker_FlyingBoomReceiverMatchesBoomTanker(t *testing.T) {
@@ -95,10 +111,15 @@ func TestHandleVector_Tanker_FlyingBoomReceiverMatchesBoomTanker(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.VectorResponse)
 	require.True(t, ok)
+	assert.Equal(t, "warthog 1", resp.Callsign)
 	assert.True(t, resp.Contact)
 	assert.True(t, resp.Status)
 	assert.Equal(t, "Texaco 1", resp.Location)
 	require.NotNil(t, resp.BRA)
+	assert.InDelta(t, 31.0, resp.BRA.Bearing().Degrees(), bearingDeltaDegrees)
+	assert.InDelta(t, 16.0, resp.BRA.Range().NauticalMiles(), rangeDeltaNauticalMiles)
+	assert.InDelta(t, 20000.0, resp.BRA.Altitude().Feet(), altitudeDeltaFeet)
+	assert.Nil(t, resp.Vector)
 }
 
 func TestHandleVector_Tanker_ProbeReceiverMatchesBasketTanker(t *testing.T) {
@@ -117,7 +138,13 @@ func TestHandleVector_Tanker_ProbeReceiverMatchesBasketTanker(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.VectorResponse)
 	require.True(t, ok)
+	assert.Equal(t, "hornet 1", resp.Callsign)
 	assert.True(t, resp.Contact)
 	assert.True(t, resp.Status)
 	assert.Equal(t, "Arco 1", resp.Location)
+	require.NotNil(t, resp.BRA)
+	assert.InDelta(t, 31.0, resp.BRA.Bearing().Degrees(), bearingDeltaDegrees)
+	assert.InDelta(t, 16.0, resp.BRA.Range().NauticalMiles(), rangeDeltaNauticalMiles)
+	assert.InDelta(t, 20000.0, resp.BRA.Altitude().Feet(), altitudeDeltaFeet)
+	assert.Nil(t, resp.Vector)
 }

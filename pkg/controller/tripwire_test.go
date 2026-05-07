@@ -19,7 +19,7 @@ func TestHandleTripwire_CallsignOnRadar(t *testing.T) {
 	got := h.expectResponse(t)
 	resp, ok := got.(brevity.TripwireResponse)
 	require.True(t, ok)
-	assert.Contains(t, resp.Callsign, "eagle 1")
+	assert.Equal(t, "eagle 1", resp.Callsign)
 }
 
 func TestHandleTripwire_CallsignNotOnRadar(t *testing.T) {

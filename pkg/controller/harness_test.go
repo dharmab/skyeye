@@ -65,6 +65,12 @@ func newControllerTestHarness(t *testing.T, locs []locations.Location) *controll
 }
 
 const (
+	bearingDeltaDegrees     = 5.0
+	rangeDeltaNauticalMiles = 1.0
+	altitudeDeltaFeet       = 1000.0
+)
+
+const (
 	acmiF15C      = "F-15C"
 	acmiF16C      = "F-16C_50"
 	acmiFA18C     = "FA-18C_hornet"
