@@ -45,7 +45,7 @@ func TestHandleBogeyDope_HostilePresent(t *testing.T) {
 	require.NotNil(t, resp.Group)
 	assert.Equal(t, brevity.Hostile, resp.Group.Declaration())
 	require.NotNil(t, resp.Group.BRAA())
-	assert.InDelta(t, 25.0, resp.Group.BRAA().Range().NauticalMiles(), 10.0)
+	assert.InDelta(t, 23.0, resp.Group.BRAA().Range().NauticalMiles(), 1.0)
 }
 
 func TestHandleBogeyDope_FilterFixedWing(t *testing.T) {
@@ -62,5 +62,5 @@ func TestHandleBogeyDope_FilterFixedWing(t *testing.T) {
 	require.NotNil(t, resp.Group)
 	// The Su-27 is fixed-wing; the Ka-50 is rotary. With FixedWing filter,
 	// the nearest match should be the Su-27 (farther away), not the Ka-50.
-	assert.InDelta(t, 25.0, resp.Group.BRAA().Range().NauticalMiles(), 10.0)
+	assert.InDelta(t, 23.0, resp.Group.BRAA().Range().NauticalMiles(), 1.0)
 }

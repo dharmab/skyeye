@@ -59,8 +59,7 @@ func TestHandleVector_HappyPath(t *testing.T) {
 	assert.True(t, resp.Contact)
 	assert.True(t, resp.Status)
 	require.NotNil(t, resp.Vector)
-	// Range from (30.1, 40.1) back to (30.0, 40.0) is around 7-8 NM.
-	assert.InDelta(t, 8.0, resp.Vector.Range().NauticalMiles(), 4.0)
+	assert.InDelta(t, 8.0, resp.Vector.Range().NauticalMiles(), 1.0)
 }
 
 func TestHandleVector_Tanker_NoCompatibleTanker(t *testing.T) {

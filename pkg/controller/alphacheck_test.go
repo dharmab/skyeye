@@ -21,7 +21,7 @@ func TestHandleAlphaCheck_CallsignOnRadar(t *testing.T) {
 	require.True(t, ok)
 	assert.True(t, resp.Status)
 	require.NotNil(t, resp.Location)
-	assert.InDelta(t, 8.0, resp.Location.Distance().NauticalMiles(), 5.0)
+	assert.InDelta(t, 8.0, resp.Location.Distance().NauticalMiles(), 1.0)
 }
 
 func TestHandleAlphaCheck_CallsignNotOnRadar(t *testing.T) {
