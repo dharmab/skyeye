@@ -9,39 +9,51 @@ on:
 permissions: {}
 jobs:
   lint:
-    name: Lint
+    name: Lint (${{ matrix.backend }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [cpu, vulkan]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup
         uses: ./.github/actions/setup
+      - name: Install Vulkan dependencies
+        if: matrix.backend == 'vulkan'
+        run: sudo apt-get update && sudo apt-get install -y libvulkan-dev glslc
       - name: Build whisper.cpp
         uses: ./.github/actions/build-whisper
+        with:
+          backend: ${{ matrix.backend }}
       - name: Lint
-        run: |
-          make lint
-          make vet
-          make fix
-          make format
-          go mod tidy
-          git diff --exit-code
+        run: WHISPER_CPP_BACKEND=${{ matrix.backend }} make ci-lint
   test:
-    name: Test
+    name: Test (${{ matrix.backend }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [cpu, vulkan]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup
         uses: ./.github/actions/setup
+      - name: Install Vulkan dependencies
+        if: matrix.backend == 'vulkan'
+        run: sudo apt-get update && sudo apt-get install -y libvulkan-dev glslc
       - name: Build whisper.cpp
         uses: ./.github/actions/build-whisper
+        with:
+          backend: ${{ matrix.backend }}
       - name: Test
-        run: make test
+        run: WHISPER_CPP_BACKEND=${{ matrix.backend }} make test
   build-linux-amd64:
     name: Build on Linux AMD64
     runs-on: ubuntu-latest
@@ -54,29 +66,40 @@ jobs:
         uses: ./.github/actions/setup
       - name: Build whisper.cpp
         uses: ./.github/actions/build-whisper
-      - name: Build SkyEye
-        run: make skyeye
-      - name: Build SkyEye Scaler
-        run: make skyeye-scaler
       - name: Create dist
-        shell: bash
-        run: |
-          mkdir -p dist/skyeye-linux-amd64/docs/
-          cp skyeye dist/skyeye-linux-amd64/skyeye
-          cp skyeye-scaler dist/skyeye-linux-amd64/skyeye-scaler
-          chmod +x dist/skyeye-linux-amd64/skyeye
-          chmod +x dist/skyeye-linux-amd64/skyeye-scaler
-          cp README.md dist/skyeye-linux-amd64/README.md
-          cp LICENSE dist/skyeye-linux-amd64/LICENSE
-          cp config.yaml dist/skyeye-linux-amd64/config.yaml
-          cp docs/*.md dist/skyeye-linux-amd64/docs/
-          tar -czf dist/skyeye-linux-amd64.tar.gz -C dist skyeye-linux-amd64
+        run: make dist-linux
       - name: Upload artifact
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
           name: skyeye-linux-amd64.tar.gz
           path: dist/skyeye-linux-amd64.tar.gz
+          if-no-files-found: error
+          overwrite: true
+  build-linux-amd64-vulkan:
+    name: Build on Linux AMD64 (Vulkan)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup
+      - name: Install Vulkan dependencies
+        run: sudo apt-get update && sudo apt-get install -y libvulkan-dev glslc
+      - name: Build whisper.cpp
+        uses: ./.github/actions/build-whisper
+        with:
+          backend: vulkan
+      - name: Create dist
+        run: make dist-linux-vulkan
+      - name: Upload artifact
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: skyeye-linux-amd64-vulkan.tar.gz
+          path: dist/skyeye-linux-amd64-vulkan.tar.gz
           if-no-files-found: error
           overwrite: true
   build-macos-arm64:
@@ -88,30 +111,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install dependencies
-        shell: bash
         run: make install-macos-dependencies
       - name: Build whisper.cpp
         uses: ./.github/actions/build-whisper
         with:
           os: macos
           arch: arm64
-      - name: Build SkyEye
-        run: make skyeye
-      - name: Build SkyEye Scaler
-        run: make skyeye-scaler
       - name: Create dist
-        shell: bash
-        run: |
-          mkdir -p dist/skyeye-macos-arm64/docs/
-          cp skyeye dist/skyeye-macos-arm64/skyeye
-          cp skyeye-scaler dist/skyeye-macos-arm64/skyeye-scaler
-          chmod +x dist/skyeye-macos-arm64/skyeye
-          chmod +x dist/skyeye-macos-arm64/skyeye-scaler
-          cp README.md dist/skyeye-macos-arm64/README.md
-          cp LICENSE dist/skyeye-macos-arm64/LICENSE
-          cp config.yaml dist/skyeye-macos-arm64/config.yaml
-          cp docs/*.md dist/skyeye-macos-arm64/docs/
-          tar -czf dist/skyeye-macos-arm64.tar.gz -C dist skyeye-macos-arm64
+        run: make dist-macos
       - name: Upload artifact
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
@@ -151,35 +158,62 @@ jobs:
         with:
           os: windows
           shell: msys2 {0}
-      - name: Build Skyeye
-        shell: msys2 {0}
-        run: make skyeye.exe
-      - name: Build Skyeye Scaler
-        shell: msys2 {0}
-        run: make skyeye-scaler.exe
       - name: Create dist
         shell: msys2 {0}
-        run: |
-          mkdir -p dist/skyeye-windows-amd64/docs/
-          cp skyeye.exe dist/skyeye-windows-amd64/skyeye.exe
-          cp skyeye-scaler.exe dist/skyeye-windows-amd64/skyeye-scaler.exe
-          curl -fsL https://github.com/winsw/winsw/releases/download/v2.12.0/WinSW-x64.exe -o winsw.exe
-          cp README.md dist/skyeye-windows-amd64/README.md
-          cp LICENSE dist/skyeye-windows-amd64/LICENSE
-          cp config.yaml dist/skyeye-windows-amd64/config.yaml
-          cp docs/*.md dist/skyeye-windows-amd64/docs/
-          cp winsw.exe dist/skyeye-windows-amd64/skyeye-service.exe
-          cp init/winsw/skyeye-service.yml dist/skyeye-windows-amd64/skyeye-service.yml
-          cp winsw.exe dist/skyeye-windows-amd64/skyeye-scaler-service.exe
-          cp init/winsw/skyeye-scaler-service.yml dist/skyeye-windows-amd64/skyeye-scaler-service.yml
-          cd dist
-          zip -r skyeye-windows-amd64.zip skyeye-windows-amd64
+        run: make dist-windows
       - name: Upload artifact
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
           name: skyeye-windows-amd64.zip
           path: dist/skyeye-windows-amd64.zip
+          if-no-files-found: error
+          overwrite: true
+  build-windows-amd64-vulkan:
+    name: Build on Windows AMD64 (Vulkan)
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    env:
+      GOROOT: /ucrt64/lib/go
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          install: |
+            base-devel
+            git
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-opus
+            mingw-w64-ucrt-x86_64-libsoxr
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-go
+            mingw-w64-ucrt-x86_64-curl
+            mingw-w64-ucrt-x86_64-vulkan-headers
+            mingw-w64-ucrt-x86_64-vulkan-loader
+            mingw-w64-ucrt-x86_64-shaderc
+            mingw-w64-ucrt-x86_64-spirv-tools
+            zip
+      - name: Build whisper.cpp
+        uses: ./.github/actions/build-whisper
+        with:
+          os: windows
+          shell: msys2 {0}
+          backend: vulkan
+      - name: Create dist
+        shell: msys2 {0}
+        run: make dist-windows-vulkan
+      - name: Upload artifact
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: skyeye-windows-amd64-vulkan.zip
+          path: dist/skyeye-windows-amd64-vulkan.zip
           if-no-files-found: error
           overwrite: true
   build-image:
@@ -205,7 +239,9 @@ jobs:
       - lint
       - test
       - build-linux-amd64
+      - build-linux-amd64-vulkan
       - build-windows-amd64
+      - build-windows-amd64-vulkan
       - build-macos-arm64
     runs-on: ubuntu-latest
     steps:
@@ -222,8 +258,10 @@ jobs:
         with:
           files: |
             dist/skyeye-linux-amd64.tar.gz
+            dist/skyeye-linux-amd64-vulkan.tar.gz
             dist/skyeye-macos-arm64.tar.gz
             dist/skyeye-windows-amd64.zip
+            dist/skyeye-windows-amd64-vulkan.zip
           token: ${{ secrets.RELEASE_TOKEN }}
   push-images:
     name: Build and push container images
@@ -256,3 +294,13 @@ jobs:
           image-name: ${{ github.repository }}-scaler
           target: skyeye-scaler
           skyeye-version: ${{ env.GITHUB_REF_NAME }}
+      - name: Build and push Vulkan image
+        uses: ./.github/actions/build-container
+        with:
+          registry-username: ${{ github.actor }}
+          registry-password: ${{ secrets.GITHUB_TOKEN }}
+          image-name: ${{ github.repository }}
+          target: skyeye
+          tag-suffix: '-vulkan'
+          skyeye-version: ${{ env.GITHUB_REF_NAME }}
+          backend: vulkan
