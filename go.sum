@@ -180,6 +180,8 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/denis-tingaikin/go-header v0.5.0 h1:SRdnP5ZKvcO9KKRP1KJrhFR3RrlGuD+42t4429eC9k8=
 github.com/denis-tingaikin/go-header v0.5.0/go.mod h1:mMenU5bWrok6Wl2UsZjy+1okegmwQ3UgWl4V1D8gjlY=
+github.com/dharmab/collections v1.0.0 h1:61nyF4uDE8JvyiGC2VPz0rDXO6WVqKTlIpuXmzhreyo=
+github.com/dharmab/collections v1.0.0/go.mod h1:XL7nAecAuQ07ZGWSM0/kqVyl1z8ucE/jLUiIWQo6jCA=
 github.com/dharmab/goacmi v1.0.3 h1:NSxBKlLgJlI/V7Q68lh2uLZC6BJgZkphelKKEmSaEMc=
 github.com/dharmab/goacmi v1.0.3/go.mod h1:wZArjjRgFNYtQJkA9vBTbpM3FqkP3fg+bhQJzkEwpq0=
 github.com/dharmab/numwords v1.0.1 h1:6zFMoWEiavZmQAiyd1/0h8x/5gzpj8ijbZWgcIHoQAA=
@@ -208,8 +210,6 @@ github.com/fsnotify/fsnotify v1.7.0 h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nos
 github.com/fsnotify/fsnotify v1.7.0/go.mod h1:40Bi/Hjc2AVfZrqy+aj+yEI+/bRxZnMJyTJwOpGvigM=
 github.com/fzipp/gocyclo v0.6.0 h1:lsblElZG7d3ALtGMx9fmxeTKZaLLpU8mET09yN4BBLo=
 github.com/fzipp/gocyclo v0.6.0/go.mod h1:rXPyn8fnlpa0R2csP/31uerbiVBugk5whMdlyaLkLoA=
-github.com/gammazero/deque v0.2.1 h1:qSdsbG6pgp6nL7A0+K/B7s12mcCY/5l5SIUpMOl+dC0=
-github.com/gammazero/deque v0.2.1/go.mod h1:LFroj8x4cMYCukHJDbxFCkT+r9AndaJnFMuZDV34tuU=
 github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20260319084013-9386f2394010 h1:+m6yO3VYSAUUzpG9lz4ktBx0cCba/Nvww8OKDgnapQQ=
 github.com/ggerganov/whisper.cpp/bindings/go v0.0.0-20260319084013-9386f2394010/go.mod h1:qyHjS/50ORo01H0NsuEEGsQR9VCtOcEye0gUl2sx1s8=
 github.com/ghostiam/protogetter v0.3.20 h1:oW7OPFit2FxZOpmMRPP9FffU4uUpfeE/rEdE1f+MzD0=
