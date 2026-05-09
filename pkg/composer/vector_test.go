@@ -17,8 +17,8 @@ func TestComposeVectorResponse_NoContact(t *testing.T) {
 		Location: "home plate",
 		Contact:  false,
 	})
-	assert.Equal(t, "eagle 1, negative contact", resp.Subtitle)
-	assert.Equal(t, "eagle 1, negative contact", resp.Speech)
+	assert.Equal(t, "EAGLE 1, negative contact", resp.Subtitle)
+	assert.Equal(t, "EAGLE 1, negative contact", resp.Speech)
 }
 
 func TestComposeVectorResponse_UnableNamedLocation(t *testing.T) {

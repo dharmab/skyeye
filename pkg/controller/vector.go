@@ -22,8 +22,14 @@ func (c *Controller) HandleVector(ctx context.Context, request *brevity.VectorRe
 		Location: request.Location,
 	}
 
-	var trackfile *trackfiles.Trackfile
-	response.Callsign, trackfile, response.Contact = c.findCallsign(request.Callsign)
+	foundCallsign, trackfile, ok := c.findCallsign(request.Callsign)
+	if !ok {
+		response.Callsign = request.Callsign
+		response.Contact = false
+	} else {
+		response.Callsign = foundCallsign
+		response.Contact = true
+	}
 	if !response.Contact {
 		c.calls <- NewCall(ctx, response)
 		return
