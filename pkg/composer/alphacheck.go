@@ -34,7 +34,7 @@ func (c *Composer) ComposeAlphaCheckResponse(response brevity.AlphaCheckResponse
 		}
 	}
 
-	reply := response.Callsign + ", negative contact."
+	reply := c.composeCallsigns(response.Callsign) + ", negative contact."
 	return NaturalLanguageResponse{
 		Subtitle: reply,
 		Speech:   reply,

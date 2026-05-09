@@ -8,8 +8,9 @@ import (
 )
 
 func (c *Composer) ComposeVectorResponse(response brevity.VectorResponse) NaturalLanguageResponse {
+	callsign := c.composeCallsigns(response.Callsign)
 	if !response.Contact {
-		reply := response.Callsign + ", negative contact"
+		reply := callsign + ", negative contact"
 		return NaturalLanguageResponse{
 			Subtitle: reply,
 			Speech:   reply,
@@ -18,13 +19,13 @@ func (c *Composer) ComposeVectorResponse(response brevity.VectorResponse) Natura
 
 	if !response.Status {
 		if response.Location == brevity.LocationTanker {
-			reply := response.Callsign + ", no compatible tankers available"
+			reply := callsign + ", no compatible tankers available"
 			return NaturalLanguageResponse{
 				Subtitle: reply,
 				Speech:   reply,
 			}
 		}
-		reply := response.Callsign + ", unable to provide vector to " + response.Location
+		reply := callsign + ", unable to provide vector to " + response.Location
 		return NaturalLanguageResponse{
 			Subtitle: reply,
 			Speech:   reply,
@@ -43,14 +44,14 @@ func (c *Composer) ComposeVectorResponse(response brevity.VectorResponse) Natura
 	return NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf(
 			"%s, vector to %s, %s/%d",
-			response.Callsign,
+			callsign,
 			response.Location,
 			response.Vector.Bearing().String(),
 			distance,
 		),
 		Speech: fmt.Sprintf(
 			"%s, vector to %s, %s %d",
-			response.Callsign,
+			callsign,
 			response.Location,
 			pronounceBearing(response.Vector.Bearing()),
 			distance,
@@ -63,14 +64,15 @@ func (c *Composer) composeTankerVectorResponse(response brevity.VectorResponse) 
 		log.Error().Stringer("bearing", response.BRA.Bearing()).Msg("bearing provided to composeTankerVectorResponse should be magnetic")
 	}
 
+	callsign := c.composeCallsigns(response.Callsign)
 	bearing := pronounceBearing(response.BRA.Bearing())
 	_range := int(response.BRA.Range().NauticalMiles())
-	altitude := c.composeAltitudeStacks(response.BRA.Stacks(), brevity.Unable)
+	altitude := c.composeAltitudeStacks(response.BRA.Stacks(), brevity.Friendly)
 
 	resp := NaturalLanguageResponse{
 		Subtitle: fmt.Sprintf(
 			"%s, nearest tanker, %s, BRA %s/%d, %s",
-			response.Callsign,
+			callsign,
 			response.Location,
 			response.BRA.Bearing().String(),
 			_range,
@@ -78,7 +80,7 @@ func (c *Composer) composeTankerVectorResponse(response brevity.VectorResponse) 
 		),
 		Speech: fmt.Sprintf(
 			"%s, nearest tanker, %s, bra %s, %d, %s",
-			response.Callsign,
+			callsign,
 			response.Location,
 			bearing,
 			_range,
