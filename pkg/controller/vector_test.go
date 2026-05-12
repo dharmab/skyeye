@@ -74,6 +74,28 @@ func TestHandleVector_HappyPath(t *testing.T) {
 	assert.Nil(t, resp.BRA)
 }
 
+func TestHandleVector_UsesCanonicalConfiguredLocationName(t *testing.T) {
+	t.Parallel()
+	locs := []locations.Location{
+		{Names: []string{"home plate", "base"}, Longitude: 30.0, Latitude: 40.0},
+	}
+	h := newControllerTestHarness(t, locs)
+	h.insertAircraft(t, "Eagle 1 Reaper", acmiF15C, coalitions.Blue, orb.Point{30.1, 40.1})
+
+	h.ctrl.HandleVector(h.ctx, &brevity.VectorRequest{
+		Callsign: "eagle 1",
+		Location: "base",
+	})
+	got := h.expectResponse(t)
+	resp, ok := got.(brevity.VectorResponse)
+	require.True(t, ok)
+	assert.Equal(t, "home plate", resp.Location)
+	assert.True(t, resp.Contact)
+	assert.True(t, resp.Status)
+	require.NotNil(t, resp.Vector)
+	assert.Nil(t, resp.BRA)
+}
+
 func TestHandleVector_Tanker_NoCompatibleTanker(t *testing.T) {
 	t.Parallel()
 	h := newControllerTestHarness(t, nil)
