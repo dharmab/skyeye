@@ -50,7 +50,7 @@ func (c *Composer) ComposeVectorResponse(response brevity.VectorResponse) Natura
 			distance,
 		),
 		Speech: fmt.Sprintf(
-			"%s, vector to %s, %s %d",
+			"%s, vector to %s, %s, %d",
 			callsign,
 			response.Location,
 			pronounceBearing(response.Vector.Bearing()),

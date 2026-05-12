@@ -50,6 +50,10 @@ func (c *Controller) HandleVector(ctx context.Context, request *brevity.VectorRe
 	response.Status = targetLocation != nil
 
 	if response.Status {
+		if len(targetLocation.Names) > 0 {
+			response.Location = targetLocation.Names[0]
+		}
+
 		origin := trackfile.LastKnown().Point
 		target := targetLocation.Point()
 		declination := c.scope.Declination(origin)
