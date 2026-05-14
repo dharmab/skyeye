@@ -182,8 +182,8 @@ github.com/denis-tingaikin/go-header v0.5.0 h1:SRdnP5ZKvcO9KKRP1KJrhFR3RrlGuD+42
 github.com/denis-tingaikin/go-header v0.5.0/go.mod h1:mMenU5bWrok6Wl2UsZjy+1okegmwQ3UgWl4V1D8gjlY=
 github.com/dharmab/collections v1.0.0 h1:61nyF4uDE8JvyiGC2VPz0rDXO6WVqKTlIpuXmzhreyo=
 github.com/dharmab/collections v1.0.0/go.mod h1:XL7nAecAuQ07ZGWSM0/kqVyl1z8ucE/jLUiIWQo6jCA=
-github.com/dharmab/goacmi v1.0.3 h1:NSxBKlLgJlI/V7Q68lh2uLZC6BJgZkphelKKEmSaEMc=
-github.com/dharmab/goacmi v1.0.3/go.mod h1:wZArjjRgFNYtQJkA9vBTbpM3FqkP3fg+bhQJzkEwpq0=
+github.com/dharmab/goacmi/v2 v2.0.1 h1:ko2T/CZzEPJqTZ7yIPS3DSomTilLUmxgcManiMEQLlE=
+github.com/dharmab/goacmi/v2 v2.0.1/go.mod h1:9GqZ0fsRGKYcge++tRGHeAgKwSgKIVOzPuyB8cL0dPg=
 github.com/dharmab/numwords v1.0.1 h1:6zFMoWEiavZmQAiyd1/0h8x/5gzpj8ijbZWgcIHoQAA=
 github.com/dharmab/numwords v1.0.1/go.mod h1:JtKH/TWNyBBkmVJVdZGyX+fBXTcknxOI+75dISW+PXc=
 github.com/dlclark/regexp2 v1.11.5 h1:Q/sSnsKerHeCkc/jSTNq1oCm7KiVgUMZRDUoRu0JQZQ=
