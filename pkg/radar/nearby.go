@@ -2,6 +2,7 @@ package radar
 
 import (
 	"cmp"
+	"slices"
 
 	"github.com/dharmab/collections/sets"
 	"github.com/dharmab/skyeye/pkg/brevity"
@@ -10,7 +11,6 @@ import (
 	"github.com/martinlindhe/unit"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geo"
-	"golang.org/x/exp/slices"
 )
 
 func (r *Radar) findNearbyGroups(pointOfInterest orb.Point, minAltitude, maxAltitude, radius unit.Length, coalition coalitions.Coalition, filter brevity.ContactCategory, excludedIDs []uint64) []*group {
