@@ -1,7 +1,7 @@
 package telemetry
 
 import (
-	acmi "github.com/dharmab/goacmi/properties/coalitions"
+	acmi "github.com/dharmab/goacmi/v2/properties/coalitions"
 	skyeye "github.com/dharmab/skyeye/pkg/coalitions"
 )
 
