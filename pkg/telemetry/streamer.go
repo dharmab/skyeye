@@ -218,7 +218,7 @@ func (c *streamingClient) handleLines(ctx context.Context, reader *bufio.Reader)
 	go func() {
 		defer close(lines)
 		for {
-			line, err := reader.ReadString('\n')
+			line, err := readACMILine(reader)
 			select {
 			case lines <- result{line, err}:
 			case <-ctx.Done():
@@ -252,29 +252,37 @@ func (c *streamingClient) handleLines(ctx context.Context, reader *bufio.Reader)
 				}
 				return fmt.Errorf("error reading line: %w", r.err)
 			}
-			if err := c.handleLine(r.line, reader); err != nil {
+			if err := c.handleLine(r.line); err != nil {
 				return fmt.Errorf("error reading ACMI stream: %w", err)
 			}
 		}
 	}
 }
 
-func (c *streamingClient) handleLine(line string, reader *bufio.Reader) error {
-	if strings.HasSuffix(line, "\\\n") {
-		var sb strings.Builder
-		sb.WriteString(line[:len(line)-2])
-		for {
-			next, err := reader.ReadString('\n')
-			if err != nil {
-				return fmt.Errorf("error reading continuation line: %w", err)
-			}
-			sb.WriteString(next)
-			if !strings.HasSuffix(next, "\\\n") {
-				break
-			}
-		}
-		line = sb.String()
+func readACMILine(reader *bufio.Reader) (string, error) {
+	line, err := reader.ReadString('\n')
+	if err != nil {
+		return line, err
 	}
+	if !strings.HasSuffix(line, "\\\n") {
+		return line, nil
+	}
+
+	var sb strings.Builder
+	sb.WriteString(line[:len(line)-2])
+	for {
+		next, readErr := reader.ReadString('\n')
+		if readErr != nil {
+			return "", fmt.Errorf("error reading continuation line: %w", readErr)
+		}
+		sb.WriteString(next)
+		if !strings.HasSuffix(next, "\\\n") {
+			return sb.String(), nil
+		}
+	}
+}
+
+func (c *streamingClient) handleLine(line string) error {
 	line = strings.TrimSpace(line)
 	if line == "" {
 		return nil
