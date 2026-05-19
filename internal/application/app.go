@@ -153,24 +153,26 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		)
 	}
 
+	locationNames := make([]string, 0)
+	for _, loc := range config.Locations {
+		locationNames = append(locationNames, loc.Names...)
+	}
+
+	recognizerOpts := []recognizer.Option{recognizer.WithLocations(locationNames)}
+
 	log.Info().Msg("constructing speech-to-text recognizer")
 	var speechRecognizer recognizer.Recognizer
 	switch config.Recognizer {
 	case conf.WhisperLocal:
-		speechRecognizer = recognizer.NewWhisperRecognizer(config.WhisperModel, config.Callsign)
+		speechRecognizer = recognizer.NewWhisperRecognizer(config.WhisperModel, config.Callsign, recognizerOpts...)
 	case conf.WhisperAPI:
-		speechRecognizer = recognizer.NewWhisperAPIRecognizer(config.OpenAIAPIKey, config.Callsign)
+		speechRecognizer = recognizer.NewWhisperAPIRecognizer(config.OpenAIAPIKey, config.Callsign, recognizerOpts...)
 	case conf.GPT4o:
-		speechRecognizer = recognizer.NewGPT4oRecognizer(config.OpenAIAPIKey, config.Callsign)
+		speechRecognizer = recognizer.NewGPT4oRecognizer(config.OpenAIAPIKey, config.Callsign, recognizerOpts...)
 	case conf.GPT4oMini:
-		speechRecognizer = recognizer.NewGPT4oMiniRecognizer(config.OpenAIAPIKey, config.Callsign)
+		speechRecognizer = recognizer.NewGPT4oMiniRecognizer(config.OpenAIAPIKey, config.Callsign, recognizerOpts...)
 	default:
 		return nil, fmt.Errorf("failed to construct application: unrecognized recognizer %q", config.Recognizer)
-	}
-
-	locationNames := make([]string, 0)
-	for _, loc := range config.Locations {
-		locationNames = append(locationNames, loc.Names...)
 	}
 
 	log.Info().Msg("constructing request parser")

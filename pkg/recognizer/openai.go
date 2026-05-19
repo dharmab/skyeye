@@ -18,39 +18,44 @@ type openAIRecognizer struct {
 	callsign string
 	client   *openai.Client
 	model    string
+	recognizerOptions
 }
 
 var _ Recognizer = &openAIRecognizer{}
 
-func newOpenAIRecognizer(apiKey, model, callsign string) Recognizer {
-	return &openAIRecognizer{
+func newOpenAIRecognizer(apiKey, model, callsign string, opts ...Option) Recognizer {
+	r := &openAIRecognizer{
 		callsign: callsign,
 		client: openai.NewClient(
 			option.WithAPIKey(apiKey),
 		),
 		model: model,
 	}
+	for _, opt := range opts {
+		opt(&r.recognizerOptions)
+	}
+	return r
 }
 
-func NewWhisperAPIRecognizer(apiKey, callsign string) Recognizer {
-	return newOpenAIRecognizer(apiKey, "whisper-1", callsign)
+func NewWhisperAPIRecognizer(apiKey, callsign string, opts ...Option) Recognizer {
+	return newOpenAIRecognizer(apiKey, "whisper-1", callsign, opts...)
 }
 
 // NewGPT4oRecognizer creates a new recognizer using OpenAI Platform's GPT-4o model.
-func NewGPT4oRecognizer(apiKey, callsign string) Recognizer {
-	return newOpenAIRecognizer(apiKey, "gpt-4o-transcribe", callsign)
+func NewGPT4oRecognizer(apiKey, callsign string, opts ...Option) Recognizer {
+	return newOpenAIRecognizer(apiKey, "gpt-4o-transcribe", callsign, opts...)
 }
 
 // NewGPT4oMiniRecognizer creates a new recognizer using OpenAI Platform's GPT-4o Mini model.
-func NewGPT4oMiniRecognizer(apiKey, callsign string) Recognizer {
-	return newOpenAIRecognizer(apiKey, "gpt-4o-mini-transcribe", callsign)
+func NewGPT4oMiniRecognizer(apiKey, callsign string, opts ...Option) Recognizer {
+	return newOpenAIRecognizer(apiKey, "gpt-4o-mini-transcribe", callsign, opts...)
 }
 
 // NewOpenAIRecognizer creates a new recognizer using OpenAI Platform.
 //
 // Deprecated: Use NewWhisperAPIRecognizer, NewGPT4oRecognizer, or NewGPT4oMiniRecognizer instead.
-func NewOpenAIRecognizer(apiKey, callsign string) Recognizer { // nolint: revive // Ignore deprecated function
-	return NewWhisperAPIRecognizer(apiKey, callsign)
+func NewOpenAIRecognizer(apiKey, callsign string, opts ...Option) Recognizer { // nolint: revive // Ignore deprecated function
+	return NewWhisperAPIRecognizer(apiKey, callsign, opts...)
 }
 
 // Recognize implements [Recognizer.Recognize] using OpenAI Platform's hosted GPT4 transcription model.
@@ -65,7 +70,7 @@ func (r *openAIRecognizer) Recognize(ctx context.Context, sample []float32, _ bo
 		File:     openai.FileParam(buf, "audio.wav", "audio/wav"),
 		Model:    openai.String(r.model),
 		Language: openai.String("en"),
-		Prompt:   openai.String(prompt(r.callsign)),
+		Prompt:   openai.String(prompt(r.callsign, r.locations)),
 	}
 
 	log.Info().Str("model", r.model).Msg("calling OpenAI Audio Transcriptions API")

@@ -14,16 +14,21 @@ import (
 type whisperRecognizer struct {
 	model    whisper.Model
 	callsign string
+	recognizerOptions
 }
 
 var _ Recognizer = &whisperRecognizer{}
 
 // NewWhisperRecognizer creates a new recognizer using OpenAI Whisper.
-func NewWhisperRecognizer(model *whisper.Model, callsign string) Recognizer {
-	return &whisperRecognizer{
+func NewWhisperRecognizer(model *whisper.Model, callsign string, opts ...Option) Recognizer {
+	r := &whisperRecognizer{
 		model:    *model,
 		callsign: callsign,
 	}
+	for _, opt := range opts {
+		opt(&r.recognizerOptions)
+	}
+	return r
 }
 
 const maxSize = 256 * 1024
@@ -40,7 +45,7 @@ func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32, ena
 		return "", fmt.Errorf("error creating whisper context: %w", err)
 	}
 
-	wCtx.SetInitialPrompt(prompt(r.callsign))
+	wCtx.SetInitialPrompt(prompt(r.callsign, r.locations))
 
 	if wCtx.IsMultilingual() {
 		_ = wCtx.SetLanguage("en")
