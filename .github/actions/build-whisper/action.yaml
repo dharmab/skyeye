@@ -21,9 +21,13 @@ inputs:
     description: 'The shell to use'
     required: true
     default: 'bash'
+  backend:
+    description: 'Which whisper.cpp backend to build (cpu or vulkan)'
+    required: true
+    default: 'cpu'
 runs:
   using: composite
   steps:
     - name: Build whisper.cpp
       shell: ${{ inputs.shell }}
-      run: make whisper
+      run: make whisper WHISPER_CPP_BACKEND=${{ inputs.backend }}
