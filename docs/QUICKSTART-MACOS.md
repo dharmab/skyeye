@@ -30,6 +30,7 @@ Run the following commands in a terminal:
 
 ```sh
 brew tap skyeye/skyeye
+brew trust dharmab/skyeye/skyeye
 brew install dharmab/skyeye/skyeye
 ```
 
