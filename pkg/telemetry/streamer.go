@@ -34,6 +34,10 @@ type streamingClient struct {
 
 	// referenceTime is the reference point provided in the ACMI data.
 	referenceTime time.Time
+	// referenceTimeSet tracks whether a ReferenceTime property has been received. It must not be
+	// replaced by referenceTime.IsZero() because 0001-01-01T00:00:00Z is a valid reference time
+	// used by some ACMI recorders (e.g. DCS2ACMI) and is also Go's zero time.Time value.
+	referenceTimeSet bool
 	// referencePoint is the reference point provided in the ACMI data.
 	referencePoint orb.Point
 	// cursorTime is the current frame time, computed by adding the current time frame to the reference time.
@@ -333,7 +337,7 @@ func (c *streamingClient) handleTimeFrame(line string) error {
 	if err != nil {
 		return fmt.Errorf("error parsing time frame: %w", err)
 	}
-	if c.referenceTime.IsZero() {
+	if !c.referenceTimeSet {
 		return errors.New("time frame received before reference time")
 	}
 	c.cursorTime = c.referenceTime.Add(offset)
@@ -353,6 +357,7 @@ func (c *streamingClient) updateGlobalObject(update *objects.Update) error {
 			return fmt.Errorf("error parsing reference time: %w", err)
 		}
 		c.referenceTime = referenceTime
+		c.referenceTimeSet = true
 		if c.cursorTime.IsZero() {
 			c.cursorTime = c.referenceTime
 		}
@@ -450,6 +455,7 @@ func (c *streamingClient) reset() {
 	defer c.lock.Unlock()
 
 	c.referenceTime = time.Time{}
+	c.referenceTimeSet = false
 	c.referencePoint = orb.Point{}
 	c.cursorTime = time.Time{}
 	c.state = map[uint64]*objects.Object{}
