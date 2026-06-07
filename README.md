@@ -59,6 +59,7 @@ On macOS, SkyEye can be installed using [Homebrew](https://brew.sh/):
 
 ```bash
 brew tap dharmab/skyeye
+brew trust dharmab/skyeye/skyeye
 brew install dharmab/skyeye/skyeye
 ```
 

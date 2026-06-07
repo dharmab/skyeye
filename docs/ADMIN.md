@@ -566,6 +566,7 @@ Install SkyEye. The installation includes the `ggml-small.en.bin` model.
 
 ```sh
 brew tap dharmab/skyeye
+brew trust dharmab/skyeye/skyeye
 brew install dharmab/skyeye/skyeye
 ```
 
