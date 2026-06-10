@@ -28,7 +28,7 @@ WHISPER_CPP_BUILD_DIR = $(WHISPER_CPP_PATH)/build_go
 LIBWHISPER_PATH = $(WHISPER_CPP_BUILD_DIR)/src/libwhisper.a
 WHISPER_H_PATH = $(WHISPER_CPP_PATH)/include/whisper.h
 WHISPER_CPP_REPO = https://github.com/ggml-org/whisper.cpp.git
-WHISPER_CPP_VERSION = v1.8.4
+WHISPER_CPP_VERSION = v1.8.6
 WHISPER_CPP_CMAKE_ARGS =
 
 # Compiler variables and flags
