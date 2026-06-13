@@ -69,13 +69,22 @@ SKYEYE_SCALER_BIN = skyeye-scaler.exe
 GO = /ucrt64/bin/go
 GOBUILDVARS += GOROOT="/ucrt64/lib/go" GOPATH="/ucrt64"
 # Use MSYS Makefiles generator for cmake on MSYS2
-WHISPER_CPP_CMAKE_ARGS = -G "MSYS Makefiles"
+WHISPER_CPP_CMAKE_ARGS += -G "MSYS Makefiles"
 # Static linking on Windows to avoid MSYS2 dependency at runtime
 LIBRARIES = opus soxr
 CFLAGS = $(shell pkg-config $(LIBRARIES) --cflags --static)
 BUILD_VARS += CFLAGS='$(CFLAGS)'
 EXTLDFLAGS = $(shell pkg-config $(LIBRARIES) --libs --static)
 LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS) -lgomp -static"
+endif
+
+# AMD64-specific settings (Windows and Linux)
+ifeq ($(GOARCH),amd64)
+# Pin CPU features explicitly instead of letting ggml auto-detect via
+# -march=native. CI runners may have AVX-512, but Intel disabled it on
+# consumer 12th-14th gen CPUs, causing STATUS_ILLEGAL_INSTRUCTION crashes.
+WHISPER_CPP_CMAKE_ARGS += -DGGML_NATIVE=OFF -DGGML_AVX=ON -DGGML_AVX2=ON \
+  -DGGML_F16C=ON -DGGML_FMA=ON -DGGML_BMI2=ON -DGGML_SSE42=ON
 endif
 
 BUILD_VARS += LDFLAGS='$(LDFLAGS)'
