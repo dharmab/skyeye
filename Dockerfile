@@ -22,7 +22,7 @@ COPY pkg pkg
 RUN make skyeye
 RUN make skyeye-scaler
 
-FROM debian:bookworm-slim AS base
+FROM debian:trixie-slim AS base
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     libopus0 \
