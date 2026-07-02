@@ -21,6 +21,10 @@ inputs:
   skyeye-version:
     description: 'Version to use in build args'
     required: true
+  tag-suffix:
+    description: 'Suffix appended to image tags (e.g. -vulkan)'
+    required: false
+    default: ''
 runs:
   using: composite
   steps:
@@ -35,6 +39,8 @@ runs:
       uses: docker/metadata-action@v5
       with:
         images: ${{ inputs.registry }}/${{ inputs.image-name }}
+        flavor: |
+          suffix=${{ inputs.tag-suffix }},onlatest=true
     - name: Build and push Docker image
       id: push
       uses: docker/build-push-action@v6
