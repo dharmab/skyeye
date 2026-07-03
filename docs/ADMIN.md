@@ -38,6 +38,9 @@ Local speech recognition is more performance intensive, usually requiring two co
 - If you have very powerful hardware, self-hosting can be lower-latency and/or cheaper than cloud speech recognition.
 - If you have a Mac with an Apple Sillicon CPU, local speech recognition is the best option, since it uses the GPU/Neural Engine for extremely fast performance.
 
+<!-- TODO(vulkan): Mention the experimental GPU-accelerated (Vulkan) builds for Windows and Linux as an option for local speech recognition. -->
+
+
 On the other hand, cloud speech recognition has a separate set of tradeoffs:
 
 - Less technical users will likely prefer cloud speech recognition, since it requires only one computer instead of two networked together.
@@ -91,6 +94,9 @@ flowchart TD
 
 SkyEye is officially supported on Windows AMD64, Linux AMD64 and Apple Silicon. The Windows version bundles all required libraries within skyeye.exe. The Linux and macOS versions require [Opus](https://opus-codec.org/) and [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/) to be installed through the package manager or Homebrew, respectively.
 
+<!-- TODO(vulkan): Document the experimental Vulkan builds' runtime requirements: a Vulkan-capable GPU driver on Windows (the exe won't start without vulkan-1.dll, which ships with GPU drivers), and the Vulkan loader package (e.g. libvulkan1) on Linux. Falls back to CPU inference with a "no GPU found" log message when no Vulkan device is present. -->
+
+
 ## Hardware
 
 ### Cloud Speech Recognition
@@ -102,6 +108,9 @@ When using cloud speech recognition, SkyEye has relatively modest requirements: 
 #### Windows and Linux
 
 When running on Windows and Linux, local speech recognition runs on the CPU. In this configuration, SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space. The CPU must have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
+
+<!-- TODO(vulkan): Document the experimental Vulkan builds, which run speech recognition on the GPU instead of the CPU on Windows and Linux. Cover which GPUs are expected to work (any with Vulkan drivers: NVIDIA/AMD/Intel) and that CPU requirements are lower when GPU inference is used. -->
+
 
 CPU Series|AVX2 Added In
 -|-
@@ -409,6 +418,9 @@ sudo systemctl restart skyeye
 
 > Note: The container image is only supported on Linux; it will not work correctly on macOS or Windows because of CPU latency requirements.
 
+<!-- TODO(vulkan): Document the experimental GPU-accelerated container image (ghcr.io/dharmab/skyeye:latest-vulkan and version-vulkan tags). Cover GPU passthrough: NVIDIA requires the NVIDIA Container Toolkit (--gpus all); AMD/Intel GPUs work with --device /dev/dri using the Mesa drivers bundled in the image. -->
+
+
 ### Manual Installation with Native Binary
 
 You can install SkyEye on a Linux server by manually downloading a release and installing it. The instructions below should be compatible with Debian, Ubuntu, Fedora and Arch Linux, and adaptable to other distributions.
@@ -426,6 +438,8 @@ sudo dnf install opus sox
 # Install shared libraries on Arch Linux
 sudo pacman -Syu opus soxr
 ```
+
+<!-- TODO(vulkan): Document installing the experimental GPU-accelerated build: download skyeye-linux-amd64-vulkan.tar.gz instead, install the Vulkan loader (libvulkan1 on Debian/Ubuntu, vulkan-loader on Fedora, vulkan-icd-loader on Arch) and GPU drivers. -->
 
 Install SkyEye:
 

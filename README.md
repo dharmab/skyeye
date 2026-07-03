@@ -55,6 +55,9 @@ On Windows and Linux, SkyEye can be downloaded from [GitHub Releases](https://gi
 
 On Linux, SkyEye is also available as a container: `ghcr.io/dharmab/skyeye:latest`. Note this container won't work on Windows or macOS.
 
+<!-- TODO(vulkan): Document the experimental GPU-accelerated builds: skyeye-windows-amd64-vulkan.zip, skyeye-linux-amd64-vulkan.tar.gz, and the ghcr.io/dharmab/skyeye:latest-vulkan container tag. -->
+
+
 On macOS, SkyEye can be installed using [Homebrew](https://brew.sh/):
 
 ```bash
@@ -81,6 +84,8 @@ Generally, local speech recognition requires one of:
 
 * Any Apple Silicon Mac, such as a Mac Mini or MacBook Air/Pro.
 * A Windows or Linux computer with a fast quad-core CPU from the last 2-3 CPU generations.
+
+<!-- TODO(vulkan): Mention the experimental GPU-accelerated builds as an alternative to a fast CPU on Windows and Linux. -->
 
 Cloud speech recognition requirements are quite modest.
 
