@@ -100,7 +100,9 @@ ifeq ($(OS_DISTRIBUTION),Windows)
 # path must be converted with cygpath because the linker is a native Windows
 # program that doesn't understand MSYS2 paths like /ucrt64. The exe imports
 # vulkan-1.dll from the GPU driver / System32 at runtime.
-BUILD_VARS += CGO_LDFLAGS='-lggml-vulkan $(shell cygpath -m /ucrt64/lib/libvulkan-1.dll.a)'
+# Repeat -lstdc++ because the static libstdc++.a earlier in the link order is
+# not re-scanned for symbols that only libggml-vulkan.a needs.
+BUILD_VARS += CGO_LDFLAGS='-lggml-vulkan $(shell cygpath -m /ucrt64/lib/libvulkan-1.dll.a) -lstdc++'
 else
 BUILD_VARS += CGO_LDFLAGS='-lggml-vulkan -lvulkan'
 endif
