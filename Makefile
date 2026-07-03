@@ -96,9 +96,11 @@ WHISPER_CPP_CMAKE_ARGS += -DGGML_VULKAN=ON
 LIBRARY_PATHS := $(LIBRARY_PATHS):$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src/ggml-vulkan
 ifeq ($(OS_DISTRIBUTION),Windows)
 # Link MSYS2's Vulkan import library by full path: -static limits -l searches
-# to static libraries, but explicit file arguments are always accepted. The exe
-# imports vulkan-1.dll from the GPU driver / System32 at runtime.
-BUILD_VARS += CGO_LDFLAGS='-lggml-vulkan /ucrt64/lib/libvulkan-1.dll.a'
+# to static libraries, but explicit file arguments are always accepted. The
+# path must be converted with cygpath because the linker is a native Windows
+# program that doesn't understand MSYS2 paths like /ucrt64. The exe imports
+# vulkan-1.dll from the GPU driver / System32 at runtime.
+BUILD_VARS += CGO_LDFLAGS='-lggml-vulkan $(shell cygpath -m /ucrt64/lib/libvulkan-1.dll.a)'
 else
 BUILD_VARS += CGO_LDFLAGS='-lggml-vulkan -lvulkan'
 endif
