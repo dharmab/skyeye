@@ -206,9 +206,9 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist/skyeye-linux-amd64-vulkan/docs/
-          cp skyeye-vulkan dist/skyeye-linux-amd64-vulkan/skyeye-vulkan
+          cp skyeye-vulkan dist/skyeye-linux-amd64-vulkan/skyeye
           cp skyeye-scaler dist/skyeye-linux-amd64-vulkan/skyeye-scaler
-          chmod +x dist/skyeye-linux-amd64-vulkan/skyeye-vulkan
+          chmod +x dist/skyeye-linux-amd64-vulkan/skyeye
           chmod +x dist/skyeye-linux-amd64-vulkan/skyeye-scaler
           cp README.md dist/skyeye-linux-amd64-vulkan/README.md
           cp LICENSE dist/skyeye-linux-amd64-vulkan/LICENSE
@@ -272,7 +272,7 @@ jobs:
         shell: msys2 {0}
         run: |
           mkdir -p dist/skyeye-windows-amd64-vulkan/docs/
-          cp skyeye-vulkan.exe dist/skyeye-windows-amd64-vulkan/skyeye-vulkan.exe
+          cp skyeye-vulkan.exe dist/skyeye-windows-amd64-vulkan/skyeye.exe
           cp skyeye-scaler.exe dist/skyeye-windows-amd64-vulkan/skyeye-scaler.exe
           curl -fsL https://github.com/winsw/winsw/releases/download/v2.12.0/WinSW-x64.exe -o winsw.exe
           cp README.md dist/skyeye-windows-amd64-vulkan/README.md
@@ -280,7 +280,7 @@ jobs:
           cp config.yaml dist/skyeye-windows-amd64-vulkan/config.yaml
           cp docs/*.md dist/skyeye-windows-amd64-vulkan/docs/
           cp winsw.exe dist/skyeye-windows-amd64-vulkan/skyeye-service.exe
-          sed 's/^executable: skyeye.exe$/executable: skyeye-vulkan.exe/' init/winsw/skyeye-service.yml > dist/skyeye-windows-amd64-vulkan/skyeye-service.yml
+          cp init/winsw/skyeye-service.yml dist/skyeye-windows-amd64-vulkan/skyeye-service.yml
           cp winsw.exe dist/skyeye-windows-amd64-vulkan/skyeye-scaler-service.exe
           cp init/winsw/skyeye-scaler-service.yml dist/skyeye-windows-amd64-vulkan/skyeye-scaler-service.yml
           cd dist
