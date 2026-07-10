@@ -29,6 +29,7 @@ import (
 	"github.com/dharmab/skyeye/internal/cli"
 	"github.com/dharmab/skyeye/internal/conf"
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/locations"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
@@ -80,6 +81,7 @@ var (
 	exitAfter                    time.Duration
 	enableTerrainDetection       bool
 	locationsFile                string
+	aircraftFile                 string
 )
 
 const (
@@ -160,6 +162,10 @@ func init() {
 	skyeye.Flags().BoolVar(&threatMonitoringRequiresSRS, "threat-monitoring-requires-srs", true, "Require aircraft to be on SRS to receive THREAT calls. Only useful to disable when debugging")
 	skyeye.Flags().StringVar(&locationsFile, "locations-file", "", "Path to file containing additional locations that may be referenced in VECTOR calls.")
 	if err := skyeye.MarkFlagFilename("locations-file", "json", "yaml", "yml"); err != nil {
+		log.Fatal().Err(err).Msg("failed to mark flag as filename")
+	}
+	skyeye.Flags().StringVar(&aircraftFile, "aircraft-file", "", "Path to file containing additional aircraft that extend or override the built-in encyclopedia.")
+	if err := skyeye.MarkFlagFilename("aircraft-file", "json", "yaml", "yml"); err != nil {
 		log.Fatal().Err(err).Msg("failed to mark flag as filename")
 	}
 
@@ -361,6 +367,22 @@ func loadLocations() []locations.Location {
 	return locs
 }
 
+func loadAircraft() []encyclopedia.Aircraft {
+	if aircraftFile == "" {
+		return nil
+	}
+	data, err := os.ReadFile(aircraftFile)
+	if err != nil {
+		log.Fatal().Err(err).Str("path", aircraftFile).Msg("failed to read aircraft file")
+	}
+	aircraft, err := encyclopedia.LoadCustomAircraft(data)
+	if err != nil {
+		log.Fatal().Err(err).Str("path", aircraftFile).Msg("failed to load aircraft file")
+	}
+	log.Info().Int("count", len(aircraft)).Msg("loaded custom aircraft")
+	return aircraft
+}
+
 func preRun(cmd *cobra.Command, _ []string) error {
 	if err := initializeConfig(cmd); err != nil {
 		return fmt.Errorf("failed to initialize config: %w", err)
@@ -409,6 +431,7 @@ func run(_ *cobra.Command, _ []string) {
 	recognizerLock := loadLock(recognizerLockPath)
 	volume := loadVoiceVolume()
 	locs := loadLocations()
+	customAircraft := loadAircraft()
 
 	config := conf.Configuration{
 		ACMIFile:                     acmiFile,
@@ -453,6 +476,7 @@ func run(_ *cobra.Command, _ []string) {
 		GRPCAPIKey:                   grpcAPIKey,
 		EnableTerrainDetection:       enableTerrainDetection,
 		Locations:                    locs,
+		CustomAircraft:               customAircraft,
 	}
 
 	log.Info().Msg("starting application")
