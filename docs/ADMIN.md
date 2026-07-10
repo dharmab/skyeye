@@ -280,6 +280,10 @@ To enable this feature, first create a webhook in your Discord server (Server Se
 
 SkyEye includes an optional feature to define custom locations that players can reference in VECTOR TO requests. This can be useful for providing navigation assistance to airbases and other points of interest. See [LOCATIONS.md](LOCATIONS.md) for a guide.
 
+## Custom Aircraft
+
+SkyEye includes an optional feature to extend or override its built-in aircraft encyclopedia. This is useful for supporting community aircraft mods that SkyEye does not recognize out of the box. See [AIRCRAFT.md](AIRCRAFT.md) for a guide.
+
 ## Autoscaling (Experimental)
 
 The included `skyeye-scaler` program is an optional autoscaler tool. It monitors a set of frequencies in SRS, and continually sends POST requests to a custom webhook. The webhook URL is defined by setting the `--webhook-url` flag or `SKYEYE_SCALER_WEBHOOK_URL` environment variable.

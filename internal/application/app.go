@@ -17,6 +17,7 @@ import (
 	"github.com/dharmab/skyeye/pkg/commands"
 	"github.com/dharmab/skyeye/pkg/composer"
 	"github.com/dharmab/skyeye/pkg/controller"
+	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/parser"
 	"github.com/dharmab/skyeye/pkg/radar"
 	"github.com/dharmab/skyeye/pkg/recognizer"
@@ -177,6 +178,9 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 
 	log.Info().Msg("constructing request parser")
 	requestParser := parser.New(config.Callsign, locationNames, config.EnableTranscriptionLogging)
+
+	// Register custom aircraft into the encyclopedia before the radar, its first consumer, is built.
+	encyclopedia.AddCustomAircraft(config.CustomAircraft)
 
 	log.Info().Msg("constructing radar scope")
 

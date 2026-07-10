@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dharmab/skyeye/pkg/coalitions"
+	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/locations"
 	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
@@ -102,6 +103,9 @@ type Configuration struct {
 	ThreatMonitoringRequiresSRS bool
 	// Locations is a slice of named locations that can be referenced in VECTOR calls.
 	Locations []locations.Location
+	// CustomAircraft is a slice of user-provided aircraft entries that extend or override the
+	// built-in encyclopedia. Registered into the encyclopedia at application startup.
+	CustomAircraft []encyclopedia.Aircraft
 	// EnableTracing controls whether to publish traces
 	EnableTracing bool
 	// DiscordWebhookID is the ID of the Discord webhook
