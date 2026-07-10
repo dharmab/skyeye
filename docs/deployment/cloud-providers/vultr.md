@@ -4,7 +4,7 @@ This guide is a step-by-step on how to run SkyEye on [Vultr](https://www.vultr.c
 
 It is assumed that you have set up an account, SSH keys and a billing method.
 
-This guide is provider-specific. For a provider-agnostic guide, see [the Linux CPU guide](../linux/cpu.md).
+This guide is provider-specific. For a provider-agnostic guide, see [the Linux guide](../linux/cpu.md).
 
 ## Getting Help
 
@@ -58,4 +58,8 @@ If the configuration was correct, SkyEye should connect to your SRS server withi
 
 You pay for the SkyEye server on an hourly basis. You can delete the server when you're not playing DCS to reduce your bill. Note that it's not enough to power off the server; you must delete it. 
 
-You can recreate the server at any time by following the steps above; if you saved the customized `cloud-config.yaml` file, you can recreate the server in a few minutes. If you're an advanced user, see the [autoscaling documentation](../../ADMIN.md#autoscaling-experimental) for a way to automate this task.
+You can recreate the server at any time by following the steps above; if you saved the customized `cloud-config.yaml` file, you can recreate the server in a few minutes.
+
+## Advanced Topics
+
+See the [autoscaling documentation](../../ADMIN.md#autoscaling-experimental) for a way to automate recreating the server.

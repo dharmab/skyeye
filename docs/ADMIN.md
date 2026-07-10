@@ -341,4 +341,10 @@ Lastly, I cannot predict how these locks work in combination with CPU Core Affin
 
 # Next Steps
 
-Once you've decided on an architecture, follow the [deployment guide](#deployment) for your operating system and speech recognition method to install and configure SkyEye.
+Once you've decided on an architecture, follow the deployment guide for your operating system and speech recognition method to install and configure SkyEye.
+
+|Operating System|Voice Recognition on CPU|Voice Recognition on GPU|Voice Recognition via Cloud API|
+|-|-|-|-|
+|macOS|N/A|[guide](deployment/macos/gpu.md)|N/A|
+|Windows|[guide](deployment/windows/cpu.md)|[guide](deployment/windows/gpu.md)|[guide](deployment/windows/api.md)|
+|Linux|[guide](deployment/linux/cpu.md)|[guide](deployment/linux/gpu.md)|[guide](deployment/linux/api.md)|

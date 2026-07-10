@@ -8,7 +8,7 @@ SkyEye is a substantial improvement over the DCS AWACS:
 
 1. SkyEye offers modern voice recognition using a current-generation AI model. Keyboard input is also supported.
 2. SkyEye has natural sounding voices, instead of robotically clipping together samples. On Windows and Linux, SkyEye uses a neural network to speak in a human-like voice. On macOS, SkyEye speaks using Siri's voice.
-3. SkyEye adheres more closely to real-world [brevity](https://rdl.train.army.mil/catalog-ws/view/100.ATSC/5773E259-8F90-4694-97AD-81EFE6B73E63-1414757496033/atp1-02x1.pdf) and [procedures](https://www.alssa.mil/Portals/9/Documents/mttps/sd_acc_2024.pdf?ver=IZRWZy_DhRSOJWgNSAbMWA%3D%3D) instead of the incorrect brevity used by the in-game AWACS.
+3. SkyEye adheres more closely to real-world [brevity](https://www.alssa.mil/Portals/9/Documents/mttps/brevity_2025.pdf?ver=cm6IQtKGlwVtQPbVyTxsYg%3D%3D) and [procedures](https://www.alssa.mil/Portals/9/Documents/mttps/sd_acc_2024.pdf?ver=IZRWZy_DhRSOJWgNSAbMWA%3D%3D) instead of the incorrect brevity used by the in-game AWACS.
 4. SkyEye supports a larger number of commands, including [PICTURE](docs/PLAYER.md#picture), [BOGEY DOPE](docs/PLAYER.md#bogey-dope), [DECLARE](docs/PLAYER.md#declare), [SNAPLOCK](docs/PLAYER.md#snaplock), [SPIKED](docs/PLAYER.md#spikedstrobe), [STROBE](docs/PLAYER.md#spikedstrobe), [ALPHA CHECK](docs/PLAYER.md#alpha-check) and [VECTOR](docs/PLAYER.md#vector).
 5. SkyEye intelligently monitors the battlespace, providing automatic [THREAT](docs/PLAYER.md#threat), [MERGED](docs/PLAYER.md#merged) and [FADED](docs/PLAYER.md#faded) callouts to improve situational awareness.
 
@@ -53,7 +53,7 @@ See https://limakilo.net for server details.
 
 On Windows and Linux, SkyEye can be downloaded from [GitHub Releases](https://github.com/dharmab/skyeye/releases).
 
-On Linux, SkyEye is also available as a container: `ghcr.io/dharmab/skyeye:latest` (CPU version) and `ghcr.io/dharmab/skyeye:latest-vulkan` (GPU version).
+On Linux, SkyEye is also available as a container: `ghcr.io/dharmab/skyeye:latest` and `ghcr.io/dharmab/skyeye:latest-vulkan`.
 
 On macOS, SkyEye can be installed using [Homebrew](https://brew.sh/):
 
@@ -71,8 +71,8 @@ There are a few different ways to run SkyEye.
 
 1. On an Apple Sillicon Mac networked to your DCS server, using local speech recognition. This offers the fastest speech recognition and the highest quality AI voice.
 2. On your Windows or Linux computer with a GPU, using local speech recognition and the experimental Vulkan build of SkyEye. This offers fast speech recognition and good quality AI voices, although the performance and quality of the speech recognition can vary based on GPU hardware and drivers.
-3. On your DCS server, using the OpenAI API for speech recognition. This offers fast speech recognition and good quality AI voices, but requires a credit card accepted by OpenAI to purchase API credits from OpenAI. At current pricing, $1 of OpenAI credit pays to recognize more than 1000 transmissions over SRS.
-4. On a separate Windows or Linux computer networked to your DCS server, using local speech recognition. This offers good-enough speech recognition performance and good quality AI voices without any credit card required. This also works with rented cloud servers, some of whom accept other payment methods compared to OpenAI.
+3. On your Windows or Linux computer, using the OpenAI API for speech recognition. This offers fast speech recognition and good quality AI voices, but requires a credit card accepted by OpenAI to purchase API credits from OpenAI. At current pricing, $1 of OpenAI credit pays to recognize more than 1000 transmissions over SRS.
+4. On a separate Windows or Linux computer networked to your DCS server, using local speech recognition. This offers good-enough speech recognition performance and good quality AI voice. This also works with rented cloud servers, some of whom accept other payment methods compared to OpenAI.
 
 ### What kind of hardware does it require?
 
@@ -94,7 +94,7 @@ I don't plan to provide a mechanism for players to submit their voice recordings
 
 ### Does this use Line-Of-Sight restrictions?
 
-Not at this time. I am working on a solution for this, but it will take me a while.
+Not at this time. I plan to add support for this after the release of Tacview 2.
 
 If this is a critical feature for you, consider using [MOOSE's AWACS module](https://flightcontrol-master.github.io/MOOSE_DOCS_DEVELOP/Documentation/Ops.AWACS.html) instead. It supports Line-Of-Sight and datalink simulation, at the tradeoff of requiring some special setup in the Mission Editor.
 
@@ -104,7 +104,7 @@ OverlordBot also optionally supports this feature, although less than 1% of user
 
 As of this writing, DCS' built-in VoIP does not support external clients. SkyEye therefore requires SRS to function.
 
-### Could this use a Large Language Model? (llama, mistral, etc.)
+### Could this use a Large Language Model? (ChatGPT, Ollama, etc.)
 
 SkyEye uses an embedded LLM for speech-to-text, but I deliberately chose not to use an LLM for SkyEye's language parsing or decision-making logic.
 
@@ -112,13 +112,19 @@ Within the domain of air combat communication, these problems are less linguisti
 
 While working on this software I spoke to a number of people who thought it would be as easy as feeding a bunch of PDFs to an LLM and it would magically learn how to be a competent tactical controller. This could not be further from the truth!
 
+### Can I use a separate Whisper server or Speech Recognition API?
+
+I don't plan on adding support to this in the main repo because the inregration with Whisper is deeper than a simple transcription request. Certain context from the GCI controller is also passed to the model to improve speech recognition accuracy, e.g. for non-English airport names. If you have a use case for this and are willing to program, I can give you advice on how to do this in your fork.
+
 ### Could this provide ATC services?
 
 I have no plans to attempt an ATC bot due to limitations within DCS.
 
 AI aircraft in DCS cannot be directly commanded through scripting or external software and are incapable of safely operating in controlled airspace. for example, AI aircraft in DCS do not sequence for landing, and will only begin an approach if the entire approach and runway are clear. AI aircraft also cannot execute a hold or a missed approach, and they make no effort to maintain separation from other aircraft.
 
-While working on this software I spoke to a number of people who thought it would be as easy as feeding a bunch of PDFs to an LLM and it would magically become a capable Air Traffic Controller. This could not be further from the truth! [See this post by a startup working on AI for ATC on the challenges involved.](https://news.ycombinator.com/item?id=43257323)
+While working on this software I spoke to a number of people who thought it would be as easy as feeding a bunch of PDFs to an LLM and it would magically become a capable Air Traffic Controller. This could not be further from the truth! 
+
+See this post from [Enhanced Radar](https://www.enhancedradar.com/) on the challenges of building AI for ATC: [link](https://news.ycombinator.com/item?id=43257323)
 
 ### Are there options for different voices?
 
@@ -134,6 +140,7 @@ I have chosen these voices because they meet the following criteria:
 - Permissive licensing
 - Source data was recorded with consent
 - Correct and unambiguous pronunciation, especially of numeric values, NATO reporting names and the Core Information Format
+- Works equally well for short phrases such as MERGED calls and longer transmissions such as PICTURE calls
 - Able to run fully offline on modest hardware in near-realtime
 - Easily redistributable without requiring complex additional software to be installed
 - Sound the same regardless of the make and model of CPU or GPU used to generate it
@@ -147,7 +154,7 @@ I'm happy to hear your ideas, but I am very selective about what I choose to imp
 
 I develop SkyEye at no monetary cost to the user; therefore, one of my priorities is to keep the complexity of the software close to the minimum necessary level to ease the maintenance burden. I'm focusing only on features that are useful to most players. I avoid adding features that are gated by configuration options, because each one multiplies the permutations that need to be tested and debugged. [See this video.](https://youtu.be/czzAVuVz7u4?t=995)
 
-SkyEye is open source software. If you want a feature that I don't want to maintain, you have the right to fork the project and add it yourself (or hire a programmer to add it for you).
+SkyEye is open source software. If you want a feature that I don't want to maintain, you have the right to fork the project and add it yourself (or hire a programmer/prompt an AI agent to add it for you).
 
 ## Technology
 
