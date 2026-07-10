@@ -17,7 +17,7 @@ Each entry supports the following properties:
 
 | Property | Required | Description |
 | --- | --- | --- |
-| `acmi_short_name` | Yes | The name used for this aircraft in Tacview/ACMI telemetry. This must match exactly. See [Finding the ACMI short name](#finding-the-acmi-short-name). |
+| `acmi_short_name` | Yes | The aircraft's `ShortName` in [Tacview/ACMI telemetry](https://raia-software-inc.gitbook.io/tacview/technical-documentation/acmi-telemetry-file-format). Must match exactly; case and punctuation matter. |
 | `tags` | Yes | A list of tags describing the aircraft. See [Tags](#tags). |
 | `nato_reporting_name` | No | The NATO reporting name, e.g. `Flanker`, `Fulcrum`. Not all aircraft have one. |
 | `nickname` | No | A common nickname, e.g. `Warthog`, `Viper`, `Scooter`. Not all aircraft have one. |
@@ -77,12 +77,6 @@ The two properties apply to different kinds of aircraft, so set only the one rel
 
 When a player asks for a vector to a tanker, SkyEye only sends them to a tanker whose `fuel_provider`
 matches their own aircraft's `fuel_receiver`.
-
-## Finding the ACMI Short Name
-
-The `acmi_short_name` must match the aircraft's `ShortName` property in Tacview/ACMI telemetry
-exactly. Case and punctuation matter. See the [ACMI telemetry file format reference](https://raia-software-inc.gitbook.io/tacview/technical-documentation/acmi-telemetry-file-format)
-for details on the `ShortName` property.
 
 ## Overriding Built-In Aircraft
 
