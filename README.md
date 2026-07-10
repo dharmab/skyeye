@@ -53,7 +53,7 @@ See https://limakilo.net for server details.
 
 On Windows and Linux, SkyEye can be downloaded from [GitHub Releases](https://github.com/dharmab/skyeye/releases).
 
-On Linux, SkyEye is also available as a container: `ghcr.io/dharmab/skyeye:latest` (CPU version) and `ghcr.io/dharmab/skyeye/latest-vulkan` (GPU version).
+On Linux, SkyEye is also available as a container: `ghcr.io/dharmab/skyeye:latest` (CPU version) and `ghcr.io/dharmab/skyeye:latest-vulkan` (GPU version).
 
 On macOS, SkyEye can be installed using [Homebrew](https://brew.sh/):
 
