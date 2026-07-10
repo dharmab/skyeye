@@ -1,8 +1,6 @@
 # Deploy SkyEye on macOS - GPU
 
-This guide is a step-by-step on how to run SkyEye on macOS, using the GPU/Neural Engine for local speech recognition. This is the fastest and highest-quality way to run SkyEye, but requires an Apple Silicon Mac and a separate Windows computer for DCS, TacView and SRS Server.
-
-There is no cloud API or CPU-only guide for macOS: local speech recognition on the GPU/Neural Engine is the only recommended way to run SkyEye on macOS.
+This guide is a step-by-step on how to run SkyEye on an Apple Silicon computer, separate from the computer running DCS, TacView and SRS Server, using the Apple Silicon GPU for local speech recognition.
 
 ## Getting Help
 
@@ -10,7 +8,9 @@ See [the admin guide](../../ADMIN.md#getting-help) for how to get help if you ha
 
 ## Hardware Requirements
 
-You need an Apple Silicon Mac (M-series), such as a Mac Mini or MacBook Air/Pro. SkyEye requires around 3GB of RAM and about 2GB of disk space. Intel Macs are not supported.
+You need an Apple Silicon Mac, such as a Mac Mini or MacBook Air/Pro. SkyEye requires around 3GB of RAM and about 2GB of disk space.
+
+Intel Macs are not supported.
 
 ## Set Up DCS, TacView, and SRS
 
