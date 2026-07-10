@@ -1,8 +1,8 @@
 # Deploy SkyEye on Linux - GPU
 
-This guide is a step-by-step on how to run SkyEye on the same Linux computer as DCS, TacView and SRS Server, using the GPU for local speech recognition via the experimental Vulkan build.
+This guide is a step-by-step on how to run SkyEye on a Linux computer with a GPU, using local speech recognition via the experimental Vulkan build. This can be the same computer running DCS, TacView and SRS Server, or a separate one.
 
-You can also deploy SkyEye on Linux using either [a separate computer using CPU speech recognition](cpu.md) or [cloud API speech recognition](api.md).
+You can also deploy SkyEye on Linux using either [cloud API speech recognition](api.md) or [a separate computer using CPU speech recognition](cpu.md).
 
 > ⚠️ The Vulkan (GPU) build of SkyEye is experimental. Performance and speech recognition quality can vary significantly between GPU models — it might run great on one and perform poorly on another. I can only test against the GPU hardware I personally own, so I have no control over and very limited ability to troubleshoot how well the Vulkan build runs on any particular GPU or driver.
 

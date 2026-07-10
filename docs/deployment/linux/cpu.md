@@ -1,8 +1,8 @@
 # Deploy SkyEye on Linux - CPU
 
-This guide is a step-by-step on how to run SkyEye on a Linux computer or server, separate from the computer running DCS, TacView and SRS Server, using the CPU for local speech recognition. This guide is not tied to any particular hosting provider; it works on a spare Linux machine, a rented cloud server, or a container host. If you want a guide tailored to a specific cloud provider, see the [Hetzner Cloud](../cloud-providers/hetzner.md) or [Vultr](../cloud-providers/vultr.md) guides.
+This guide is a step-by-step on how to run SkyEye on a Linux computer, separate from the computer running DCS, TacView and SRS Server, using the CPU for local speech recognition. This guide is not tied to any particular hosting provider; it works on either a Linux computer you own, or a rented cloud server. If you want a guide tailored to a specific cloud provider, see the [Hetzner Cloud](../cloud-providers/hetzner.md) or [Vultr](../cloud-providers/vultr.md) guides.
 
-You can also deploy SkyEye on Linux using either [the same computer as DCS using GPU speech recognition](gpu.md) or [cloud API speech recognition](api.md).
+You can also deploy SkyEye on Linux using either [GPU speech recognition](gpu.md) or [cloud API speech recognition](api.md).
 
 ## Getting Help
 
@@ -10,7 +10,7 @@ See [the admin guide](../../ADMIN.md#getting-help) for how to get help if you ha
 
 ## Hardware Requirements
 
-This guide requires a **second** Linux computer or server, separate from the one running DCS, TacView and SRS Server. The computer running SkyEye needs a fast, multithreaded, **dedicated** CPU with support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2), 3GB of RAM, and about 2GB of disk space.
+This guide requires a **second** Linux computer, separate from the one running DCS, TacView and SRS Server. The computer running SkyEye needs a fast, multithreaded, **dedicated** CPU with support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2), 3GB of RAM, and about 2GB of disk space.
 
 CPU Series|AVX2 Added In
 -|-

@@ -1,8 +1,8 @@
 # Deploy SkyEye on Linux - Cloud API
 
-This guide is a step-by-step on how to run SkyEye on a Linux computer or server alongside DCS, TacView and SRS Server, using the OpenAI API for cloud speech recognition.
+This guide is a step-by-step on how to run SkyEye on a Linux computer, using the OpenAI API for cloud speech recognition. This can be the same computer running DCS, TacView and SRS Server, or a separate one.
 
-You can also deploy SkyEye on Linux using either [a separate computer using CPU speech recognition](cpu.md) or [the same computer as DCS using GPU speech recognition](gpu.md).
+You can also deploy SkyEye on Linux using either [GPU speech recognition](gpu.md) or [a separate computer using CPU speech recognition](cpu.md).
 
 ## Getting Help
 
