@@ -1,10 +1,12 @@
-# Simple Quickstart on Windows
+# Deploy SkyEye on Windows - Cloud API
 
 This guide is a step-by-step on how to run SkyEye on Windows alongside DCS, TacView and SRS Server using the OpenAI API for cloud speech recognition.
 
+You can also deploy SkyEye on Windows using either [a separate computer using speech recognition on CPU](cpu.md) or [the same computer as DCS using speech recognition on GPU](gpu.md)
+
 ## Getting Help
 
-See [the admin guide](ADMIN.md#getting-help) for how to get help if you have a problem.
+See [the admin guide](../../ADMIN.md#getting-help) for how to get help if you have a problem.
 
 ## Set up OpenAI API
 
@@ -56,7 +58,7 @@ Confirm SkyEye is running using
 
 Also, open the `skyeye-service.err.log` in Visual Studio Code. If you see a lot of repeated WARN or ERROR lines that don't go away, something may be wrong.
 
-Connect to your DCS game and SRS server. Switch to one of the SkyEye frequencies you configured. Try some test commands like a RADIO CHECK, ALPHA CHECK and PICTURE. (See the [player guide](PLAYER.md).)
+Connect to your DCS game and SRS server. Switch to one of the SkyEye frequencies you configured. Try some test commands like a RADIO CHECK, ALPHA CHECK and PICTURE. (See the [player guide](../../PLAYER.md).)
 
 To stop SkyEye, run this command:
 
@@ -64,10 +66,47 @@ To stop SkyEye, run this command:
 ./skyeye-service.exe stopwait
 ```
 
-For instructions on:
+## Automatically Starting SkyEye on Boot
 
-- Uninstalling SkyEye
-- Upgrading to a newer version of SkyEye
-- Automatically starting SkyEye on boot
+By default, SkyEye only starts when you run `./skyeye-service.exe start`. To make it start automatically on boot:
 
-See [the full admin guide](ADMIN.md#windows).
+```powershell
+./skyeye-service.exe stopwait
+./skyeye-service.exe uninstall
+```
+
+Open `skyeye-service.yml` with a text editor and change `startmode` from `Manual` to `Automatic`, then reinstall and start SkyEye:
+
+```powershell
+./skyeye-service.exe install
+./skyeye-service.exe start
+```
+
+## Upgrading SkyEye
+
+Stop and uninstall the current version:
+
+```powershell
+./skyeye-service.exe stopwait skyeye-service.yml
+./skyeye-service.exe uninstall skyeye-service.yml
+```
+
+Download the latest release of SkyEye from https://github.com/dharmab/skyeye/releases. (Click on the file `skyeye-windows-amd64.zip`.) Extract it, then replace both `skyeye.exe` and `skyeye-service.yml` in your SkyEye folder with the new versions.
+
+If you enabled autostart on boot, the new `skyeye-service.yml` won't have your `startmode` setting. Re-apply it before proceeding.
+
+Install and start the new version:
+
+```powershell
+./skyeye-service.exe install skyeye-service.yml
+./skyeye-service.exe start skyeye-service.yml
+```
+
+## Uninstalling SkyEye
+
+```powershell
+./skyeye-service.exe stopwait
+./skyeye-service.exe uninstall
+```
+
+Delete the SkyEye folder if you no longer need it.

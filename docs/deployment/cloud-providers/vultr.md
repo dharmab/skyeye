@@ -1,12 +1,14 @@
-# Quickstart on Vultr
+# Deploy SkyEye on Vultr
 
-This guide is a step-by-step on how to run SkyEye on [Vultr](https://www.vultr.com/) using local speech recogntion.
+This guide is a step-by-step on how to run SkyEye on [Vultr](https://www.vultr.com/) using local speech recognition.
 
 It is assumed that you have set up an account, SSH keys and a billing method.
 
+This guide is provider-specific. For a provider-agnostic guide, see [the Linux CPU guide](../linux/cpu.md).
+
 ## Getting Help
 
-See [the admin guide](ADMIN.md#getting-help) for how to get help if you have a problem.
+See [the admin guide](../../ADMIN.md#getting-help) for how to get help if you have a problem.
 
 ## Set Up DCS, TacView, and SRS
 
@@ -40,9 +42,9 @@ Server 1 Label: "skyeye"
 
 Deselect the "Automatic Backups" feature. SkyEye does not retain any data that needs to be backed up.
 
-Select the "Cloud-Init User-Data" feature. Copy the contents of [`cloud-config.yaml`](../init/cloud-init/cloud-config.yaml) into a text editor.
+Select the "Cloud-Init User-Data" feature. Copy the contents of [`cloud-config.yaml`](../../../init/cloud-init/cloud-config.yaml) into a text editor.
 
-Find the line that contains `/etc/skyeye/config.yaml`, then below it, the block under `content:`. This indented block is your SkyEye config file. Reference the [example config file](../config.yaml) and set the values as required. Remember to preserve the indentation.
+Find the line that contains `/etc/skyeye/config.yaml`, then below it, the block under `content:`. This indented block is your SkyEye config file. Reference the [example config file](../../../config.yaml) and set the values as required. Remember to preserve the indentation.
 
 Find the line that contains `ghcr.io/dharmab/skyeye:latest`. This default value will install the latest version of SkyEye **at the time the server is created**. If you want to install a specific version, replace `latest` with a version number. Example: `ghcr.io/dharmab/skyeye:v0.14.0`.
 
@@ -50,10 +52,10 @@ Copy the entire contents of the customized `cloud-config.yaml` file and paste it
 
 Click "Deploy".
 
-If the configuration was correct, SkyEye should connect to your SRS server within a few minutes and announce itself with a SUNRISE broadcast. If you're comfortable with Linux, SSH into the server and check the service and logs with `systemctl status skyeye` and `journalctl -u skyeye` for any weird warnings or errors. Try some basic SkyEye commands such as a [RADIO CHECK](PLAYER.md#radio-check) and a [PICTURE](PLAYER.md#picture). Make sure the results you hear match what you see in the DCS F10 map.
+If the configuration was correct, SkyEye should connect to your SRS server within a few minutes and announce itself with a SUNRISE broadcast. If you're comfortable with Linux, SSH into the server and check the service and logs with `systemctl status skyeye` and `journalctl -u skyeye` for any weird warnings or errors. Try some basic SkyEye commands such as a [RADIO CHECK](../../PLAYER.md#radio-check) and a [PICTURE](../../PLAYER.md#picture). Make sure the results you hear match what you see in the DCS F10 map.
 
 ## Reducing the Bill
 
 You pay for the SkyEye server on an hourly basis. You can delete the server when you're not playing DCS to reduce your bill. Note that it's not enough to power off the server; you must delete it. 
 
-You can recreate the server at any time by following the steps above; if you saved the customized `cloud-config.yaml` file, you can recreate the server in a few minutes. If you're an advanced user, see the [autoscaling documentation](ADMIN.md#autoscaling-experimental) for a way to automate this task.
+You can recreate the server at any time by following the steps above; if you saved the customized `cloud-config.yaml` file, you can recreate the server in a few minutes. If you're an advanced user, see the [autoscaling documentation](../../ADMIN.md#autoscaling-experimental) for a way to automate this task.

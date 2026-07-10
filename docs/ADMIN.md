@@ -2,12 +2,13 @@
 
 This is a technical article on how to deploy SkyEye, targeted at multiplayer server administrators. It assumes you are a semi-technical user who is comfortable administering a Linux or Windows server.
 
-For an easier step-by-step guide, see one of the quickstart guides:
+For a step-by-step guide, see one of the deployment guides.
 
-- [Windows](QUICKSTART-WINDOWS.md)
-- [macOS](QUICKSTART-MACOS.md)
-- [Linux on Hetzner Cloud](QUICKSTART-HETZNER.md)
-- [Linux on Vultr](QUICKSTART-VULTR.md)
+|Operating System|Voice Recognition on CPU|Voice Recognition on GPU|Voice Recognition via Cloud API|
+|-|-|-|-|
+|macOS|N/A|[guide](deployment/macos/gpu.md)|N/A|
+|Windows|[guide](deployment/windows/cpu.md)|[guide](deployment/windows/gpu.md)|[guide](deployment/windows/api.md)|
+|Linux|[guide](deployment/linux/cpu.md)|[guide](deployment/linux/gpu.md)|[guide](deployment/linux/api.md)|
 
 # Getting Help
 
@@ -24,35 +25,36 @@ I do not respond to direct messages on social media or the Eagle Dynamics forums
   - If using any older version of Tacview, SkyEye does not have access to the terrain height. It instead falls back to a 50 knot speed filter. Unfortunately, this excludes hostile helicopters that are moving slowly or hovering.
 - By default, SkyEye uses a simple spherical earth model for calculating distance and bearings. This is accurate enough near the equator, but becomes increasingly inaccurate at extreme latitudes, such as on the Kola and South Atlantic maps. Workaround: See the `x-detect-terrain` experimental config option. This is not enabled by default because it uses a "best guess" method to detect the current map, which may actually reduce accuracy in certain cases, such as when playing on a map that was released after the current version of SkyEye.
 - SkyEye does not work when (1) running on macOS 15 or newer AND (2) as a background service AND (3) connecting to a SRS, Tacview, or DCS-gRPC server running within the same LAN. [Bug tracked here, multiple workarounds available](https://github.com/dharmab/skyeye/issues/566).
+- The Vulkan build of SkyEye has varying quality and performance on different OSes, GPU hardware, and GPU drivers. Because I have very limited access to GPU hardware, I am unable to provide troubleshooting/debugging for many of these issues.
 - See also [this section in the player guide](PLAYER.md#a-word-of-warning) about the bot's limitations.
 
 ## System Architecture
 
-SkyEye can be deployed in two architectures: Local speech recognition and cloud-hosted speech recognition. Neither is universally better than the other; they each suit different use cases.
+SkyEye can be deployed in three architectures: 
 
-Local speech recognition is more performance intensive, usually requiring two computers with quite good CPUs (one to run DCS and one to run SkyEye). However, it has a number of advantages:
+- Local speech recongition, running SkyEye on a different PC as DCS and speech recognition on the CPU
+- Local speech reconition, running SkyEye on the same PC as DCS and speech recognition on the GPU
+- Cloud speech recognition, running SkyEye on the same PC as DCS and offloading speech recognition to the OpenAI API
+
+Local speech recognition is more hardware intensive than cloud speech recognition. However, it has a number of advantages:
 
 - Local speech recognition generally has a predictable fixed cost; it costs the same whether players talk only a little or chatter a lot. This makes hosting costs more predictable and reduces the impact a of a malicious or abusive player.
 - Local speech recognition is fully self-contained. It has better privacy qualities, and you can expect it to continue to work far into the future.
 - Local speech recognition can be self-hosted on your own hardware. This makes it a viable option for some international groups whose payment methods are not accepted by cloud hosting providers.
-- If you have very powerful hardware, self-hosting can be lower-latency and/or cheaper than cloud speech recognition.
+- If you have a powerful CPU, or a GPU, self-hosting can be lower-latency and/or cheaper than cloud speech recognition.
 - If you have a Mac with an Apple Sillicon CPU, local speech recognition is the best option, since it uses the GPU/Neural Engine for extremely fast performance.
-
-<!-- TODO(vulkan): Mention the experimental GPU-accelerated (Vulkan) builds for Windows and Linux as an option for local speech recognition. -->
-
 
 On the other hand, cloud speech recognition has a separate set of tradeoffs:
 
-- Less technical users will likely prefer cloud speech recognition, since it requires only one computer instead of two networked together.
 - Cloud speech recognition has a variable cost; this can be an advantage or disadvantage. In general, light to moderate usage is less expensive when using cloud speech recognition compared to using local speech recognition on a rented server. However, this can still be more expensive compared to self-hosted local speech recognition, or if you have a particularly chatty group of players. On public servers, there is a potential for abuse if a particular player spams the channel and racks up the cloud services bill. And of course, the company providing the service may choose to change their prices in the future.
 - Cloud speech recognition shares audio recordings with a third party, which may be a privacy concern.
 - Cloud speech recognition depends on an externally hosted API. It could break temporarily or permanently if the external API has an outage, makes a breaking change, or the company decides to stop providing the service to you.
 - Cloud speech recognition has good performance; while local speech recognition can be faster, in practice most players will be satisfied with the performance of cloud speech recognition.
 - When using cloud speech recognition, you have a **legal obligation** to disclose to your players that they are interacting with AI. (ref: [OpenAI Usage Policies](https://openai.com/policies/usage-policies/)). Of course, you should be doing this anyway! I recommend adding a disclosure to your mission briefing, and enabling "Show Transmitter Name" in your SRS server.
 
-### Deployment with Local Speech Recognition
+### Deployment with Local Speech Recognition on CPU
 
-When using local speech recognition, SkyEye works best when run on a dedicated system, separate from the DCS World and SRS servers.
+When using local speech recognition on CPU, SkyEye works best when run on a dedicated system, separate from the DCS World and SRS servers.
 
 _Recommended Architecture: DCS, TacView and SRS on one Windows server. SkyEye on another Linux or macOS server._
 
@@ -61,9 +63,9 @@ flowchart LR
     dcs[Windows<br/>DCS World Server<br/>TacView Exporter<br/>SRS Server] <--> skyeye[Linux/macOS<br/>SkyEye]
 ```
 
-#### Caution: Running SkyEye and DCS World on One Computer
+#### Caution: Running SkyEye with Local Speech Recognition on CPU along with DCS World on One Computer
 
-**Running SkyEye with local speech recognition on the same computer as DCS World is not intended and probably won't work. I cannott provide support for this configuration.** Even if I wanted to support this configuration, I do not have the appropriate tools to troubleshoot _your specific hardware configuration_. It's difficult enough to troubleshoot these kinds of issues when the hardware is physically in front of me and I have full admin access. Trying to troubleshoot a non-technical user's hardware remotely is impossible. (This is a big reason AI applications, including SkyEye, are so much better on Apple devices; standardized hardware is much easier to support.)
+**Running SkyEye with local speech recognition on CPU on the same computer as DCS World is not intended and probably won't work. I cannott provide support for this configuration.** Even if I wanted to support this configuration, I do not have the appropriate tools to troubleshoot _your specific hardware configuration_. It's difficult enough to troubleshoot these kinds of issues when the hardware is physically in front of me and I have full admin access. Trying to troubleshoot a non-technical user's hardware remotely is impossible. (This is a big reason AI applications, including SkyEye, are so much better on Apple devices; standardized hardware is much easier to support.)
 
 **If you open a GitHub Issue regarding performance issues with this configuration, I will tell you to use a second computer or switch to cloud speech recognition.** Almost every report I've received about performance issues with SkyEye have been from users attempting to run SkyEye's local speech recognition on the same computer as DCS World, which is **not an intended way to run SkyEye**. 😾
 
@@ -79,7 +81,14 @@ If you have read all of the above, and are still serious about, attempting this,
 
 </details>
 
-Running SkyEye with cloud speech recognition on the same computer as DCS World _is_ supported. 🤗
+### Deployment with Local Speech Recognition on GPU
+
+When using local speech recognition on GPU, you may deploy SkyEye on the same computer as DCS World and the SRS Server.
+
+```mermaid
+flowchart TD
+    gpu[GPU Driver] <--> dcs[Windows<br/>DCS World Server<br/>TacView Exporter<br/>SRS Server<br/>SkyEye]
+```
 
 ### Deployment with Cloud Speech Recognition
 
@@ -92,25 +101,15 @@ flowchart TD
 
 ## Software
 
-SkyEye is officially supported on Windows AMD64, Linux AMD64 and Apple Silicon. The Windows version bundles all required libraries within skyeye.exe. The Linux and macOS versions require [Opus](https://opus-codec.org/) and [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/) to be installed through the package manager or Homebrew, respectively.
-
-<!-- TODO(vulkan): Document the experimental Vulkan builds' runtime requirements: a Vulkan-capable GPU driver on Windows (the exe won't start without vulkan-1.dll, which ships with GPU drivers), and the Vulkan loader package (e.g. libvulkan1) on Linux. Falls back to CPU inference with a "no GPU found" log message when no Vulkan device is present. -->
-
+SkyEye is officially supported on Windows AMD64, Linux AMD64 and Apple Silicon. The Windows version bundles all required libraries within `skyeye.exe`. The Linux and macOS versions require [Opus](https://opus-codec.org/) and [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/) to be installed through the package manager or Homebrew, respectively. Additionally, the Linux Vulkan version requires GPU driver packages and `libvulcan`. Consult your Linux distro documentation for more information.
 
 ## Hardware
 
-### Cloud Speech Recognition
-
-When using cloud speech recognition, SkyEye has relatively modest requirements: Any decent multithreaded CPU, around 1.5GB of RAM, and about 2GB of disk space.
-
-### Local Speech Recognition
-
 #### Windows and Linux
 
-When running on Windows and Linux, local speech recognition runs on the CPU. In this configuration, SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space. The CPU must have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
+##### CPU
 
-<!-- TODO(vulkan): Document the experimental Vulkan builds, which run speech recognition on the GPU instead of the CPU on Windows and Linux. Cover which GPUs are expected to work (any with Vulkan drivers: NVIDIA/AMD/Intel) and that CPU requirements are lower when GPU inference is used. -->
-
+When running on Windows or Linux with local speech recognition on CPU, SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space. The CPU must have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
 
 CPU Series|AVX2 Added In
 -|-
@@ -121,6 +120,10 @@ Intel Pentium/Celeron|Tiger Lake (2020)
 SkyEye currently only officially supports the AMD64 (x86-64) CPU architecure on Windows and Linux. ARM CPUs are not yet officially supported on these operating systems.
 
 I've found that at least 4 dedicated CPU cores are needed for a good experience, but this may differ by the exact CPU being used, so experiment and see what works well for you. It is important that the CPU cores be **dedicated** cores. Shared core virtual machines are **not supported** and will result in **high latency and stuttering audio.**
+
+##### GPU
+
+When running on Windows or Linux with local speech recognition on GPU, SkyEye requires a any decent multithreaded CPU, 3GB of RAM, about 2GB of VRAM, and about 2GB of disk space. The CPU must have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
 
 #### macOS
 
@@ -163,6 +166,10 @@ Examples of suitable servers include:
 * [Linode Dedicated CPU Instances](https://www.linode.com/pricing/#compute-dedicated)
 
 I won't provide an endorsement of any particular provider, but I will point out that as of August 2024 Hetzner's CCX23 instance is probably the cheapest way the run SkyEye on public cloud. The cheapest way to run SkyEye overall is probably on a spare computer in your house.
+
+### Cloud Speech Recognition
+
+When using cloud speech recognition, SkyEye has relatively modest requirements: Any decent multithreaded CPU, around 1.5GB of RAM, and about 2GB of disk space.
 
 ## Configuration
 
@@ -236,55 +243,7 @@ You can select between these voices using the `voice` configuration option. If y
 
 ### macOS
 
-SkyEye uses AI generated voices built into macOS.
-
-By default, the "Samantha" voice is used. This is the version of Siri's voice from the iPhone 4s, iPhone 5 and iPhone 6, based on [Susan Bennett](https://susancbennett.com/).
-
-It is also possible to use one of the newer Siri voices. **I strongly recommend enabling one of the newer voices.**, because they provide excellent quality, nearly indistinguishable from a human voice.
-
-Not all Siri voices work equally well; many struggle to pronounce aviation terminology. I've manually validated a voice for each version of macOS:
-
-#### macOS 26 Tahoe
-
-On macOS 26 Tahoe, the best voice is **Siri Voice 2**.
-
-1. Open System Settings
-2. Click on "Accessibility"
-3. Click on "Siri"
-4. If the system language is not English, set the system speech language to English
-5. Next to "System Voice", click the "i" button
-6. In the list of languages, make sure "English" is selected
-7. Click on "Voice"
-8. Scroll down to "Siri".
-9. Download Siri Voice 2.
-10. Click "Done"
-11. Set the system voice to Siri Voice 2.
-
-#### macOS 15 Tahoe
-
-On macOS 15 Sequoia, the best voice is **Siri Voice 5**.
-
-1. Open System Settings
-2. Click on "Accessibility"
-3. Click on "Spoken Content"
-4. If the system language is not English, set the system speech language to English
-5. Next to "System Voice", click the "i" button
-6. In the list of languages, make sure "English" is selected
-7. Click on "Voice"
-8. Scroll down to "Siri".
-9. Download the English (United States) Siri Voice 5.
-10. Click "Done"
-11. Set the system voice to Siri Voice 5.
-
-#### Testing the System Voice
-
-To test your change, open Terminal and run this command:
-
-```sh
-say "Hello! This should be read in the voice you chose."
-```
-
-Finally, to use the selected voice instead of Samantha, set SkyEye's `use-system-voice` configuration option to `true`.
+SkyEye uses AI generated voices built into macOS. See [the macOS deployment guide](deployment/macos/gpu.md#configure-system-voice-optional-strongly-recommended) for recommended voice configuration.
 
 ## Networking
 
@@ -380,321 +339,6 @@ This architecture is marked experimental because I don't test this configuration
 
 Lastly, I cannot predict how these locks work in combination with CPU Core Affinity/Process Lasso. I suspect results will vary depending on the CPU's core and cache layout. To repeat and emphasize: **Core Affinity/Process Lasso configurations have no guarantees of performance and are at your own risk.**
 
-# Installation
+# Next Steps
 
-You will need to install the Tacview Exporter in your DCS server. Use the official TacView client to verify that you can connect to the Real-Time Telemetry address and port. (Real-Time Telemetry is a paid feature of the Tacview client, but is available in the free trial if you don't have a paid license.)
-
-You will need to enable External AWACS Mode (EAM) in your SRS server settings and configure an EAM password for the coalition(s) you want SkyEye to serve (i.e. configure the blue password for SkyEye to provide GCI to blue players).
-
-## Linux
-
-_Note: I am planning to improve the installation on Linux by creating a method to install and run SkyEye using [podman-systemd](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html)._
-
-### Automated Installation with Container Image
-
-A sample [cloud-init](https://cloudinit.readthedocs.io/en/latest/) config is provided in the `/init/cloud-init` directory in the Git repository ([direct link](https://raw.githubusercontent.com/dharmab/skyeye/refs/heads/main/init/cloud-init/cloud-config.yaml)). This automates the installation and startup on a new cloud server instance, using the container `ghcr.io/dharmab/skyeye`. It should be compatible with most Linux distributions including Debian, Ubuntu, Fedora, Arch Linux and OpenSUSE.
-
-See documentation on cloud-init:
-
-- [Official documentation](https://cloudinit.readthedocs.io/en/latest/index.html)
-- [AWS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html#user-data-cloud-init)
-- Hetzner: [GUI](https://docs.hetzner.com/cloud/servers/getting-started/creating-a-server), [API](https://docs.hetzner.cloud/#servers-create-a-server)
-- [Linode](https://techdocs.akamai.com/cloud-computing/docs/add-user-data-when-deploying-a-compute-instance)
-- [Vultr](https://docs.vultr.com/how-to-deploy-a-vultr-server-with-cloudinit-userdata)
-
-To customize this cloud-init file:
-
-1. Edit the `content` field of the `/etc/skyeye/config.yaml` file with your desired configuration.
-1. If you want to pin to a specific version of SkyEye, replace `ghcr.io/dharmab/skyeye:latest` with the desired version. I strongly recommend you pin the version in case of any breaking changes in the future.
-
-If you wish to change the version of SkyEye in the future:
-
-```sh
-# Edit the image.env file to change the image version
-sudoedit /etc/skyeye/image.env
-# Restart SkyEye
-sudo systemctl restart skyeye
-```
-
-> Note: The container image is only supported on Linux; it will not work correctly on macOS or Windows because of CPU latency requirements.
-
-<!-- TODO(vulkan): Document the experimental GPU-accelerated container image (ghcr.io/dharmab/skyeye:latest-vulkan and version-vulkan tags). Cover GPU passthrough: NVIDIA requires the NVIDIA Container Toolkit (--gpus all); AMD/Intel GPUs work with --device /dev/dri using the Mesa drivers bundled in the image. -->
-
-
-### Manual Installation with Native Binary
-
-You can install SkyEye on a Linux server by manually downloading a release and installing it. The instructions below should be compatible with Debian, Ubuntu, Fedora and Arch Linux, and adaptable to other distributions.
-
-Install shared libraries for [Opus](https://opus-codec.org/) and [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/):
-
-```sh
-# Install shared libraries on Debian/Ubuntu
-sudo apt-get update
-sudo apt-get install libopus0 libsoxr0
-
-# Install shared libraries on Fedora
-sudo dnf install opus sox
-
-# Install shared libraries on Arch Linux
-sudo pacman -Syu opus soxr
-```
-
-<!-- TODO(vulkan): Document installing the experimental GPU-accelerated build: download skyeye-linux-amd64-vulkan.tar.gz instead, install the Vulkan loader (libvulkan1 on Debian/Ubuntu, vulkan-loader on Fedora, vulkan-icd-loader on Arch) and GPU drivers. -->
-
-Install SkyEye:
-
-```sh
-# Create a user named "skyeye" to run SkyEye
-sudo useradd -G users skyeye
-
-# Download the latest version of SkyEye and install to /opt/skyeye
-curl -sL https://github.com/dharmab/skyeye/releases/download/latest/skyeye-linux-amd64.tar.gz -o /tmp/skyeye-linux-amd64.tar.gz
-tar -xzf /tmp/skyeye-linux-amd64.tar.gz -C /tmp/
-sudo mkdir -p /opt/skyeye/bin
-sudo mv /tmp/skyeye-linux-amd64/skyeye /opt/skyeye/bin/skyeye
-sudo chmod +x /opt/skyeye/bin/skyeye
-
-# Download a Whisper speech recognition model and install it to /opt/skyeye/models
-sudo mkdir -p /opt/skyeye/models
-curl -sL https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin -o /opt/skyeye/models/ggml-small.en.bin
-
-# Grant the "skyeye" user ownership of the SkyEye installation directory
-sudo chown -R skyeye:users /opt/skyeye
-
-# Create a SkyEye config directory and copy the sample config file there.
-sudo mkdir -p /etc/skyeye
-sudo mv /tmp/skyeye-linux-amd64/config.yaml /etc/skyeye/config.yaml
-
-# Grant the "skyeye" user ownership of the SkyEye config directory
-sudo chmod 600 /etc/skyeye/config.yaml
-sudo chown -R skyeye:users /etc/skyeye
-
-# Clean up the downloaded files
-rm -rf /tmp/skyeye-linux-amd64.tar.gz /tmp/skyeye-linux-amd64
-```
-
-Edit the config file as required:
-
-```sh
-# Edit the configuration file using the text editor specified in the EDITOR environment variable
-sudoedit /etc/skyeye/config.yaml
-```
-
-If you are a Linux noob, you can use [micro](https://micro-editor.github.io/) for a friendly experience:
-
-```sh
-# Install micro on Ubuntu
-sudo apt-get install micro
-# Install micro on Arch Linux
-sudo pacman -Syu micro
-
-# Edit the configuration file using micro
-EDITOR=micro sudoedit /etc/skyeye/config.yaml
-```
-
-Save this systemd unit to `/etc/systemd/system/skyeye.service`:
-
-```ini
-[Unit]
-Description=SkyEye GCI Bot
-After=network-online.target
-
-[Service]
-Type=simple
-User=skyeye
-WorkingDirectory=/opt/skyeye
-ExecStart=/opt/skyeye/bin/skyeye
-Restart=always
-RestartSec=60
-
-[Install]
-WantedBy=multi-user.target
-```
-
-To start SkyEye, and enable it to start on boot:
-
-```sh
-# Load changes to skyeye.service file
-sudo systemctl daemon-reload
-# Configure SkyEye to start on boot, and also start it immediately
-sudo systemctl enable skyeye.service --now
-```
-
-If you wish to change the version of SkyEye in the future:
-
-```sh
-# Remove any old downloads
-rm -rf /tmp/skyeye-linux-amd64.tar.gz /tmp/skyeye-linux-amd64
-# Set new_version to whichever version you want to change to
-new_version=v1.1.4
-# Download the new version and replace the SkyEye executable
-curl -sL https://github.com/dharmab/skyeye/releases/dowload/$new_version/skyeye-linux-amd64.tar.gz -o /tmp/skyeye-linux-amd64.tar.gz
-tar -xzf /tmp/skyeye-linux-amd64.tar.gz -C /tmp/
-sudo mv /tmp/skyeye-linux-amd64/skyeye /opt/skyeye/bin/skyeye
-sudo chown skyeye:users /opt/skyeye/bin/skyeye
-# Restart SkyEye
-sudo systemctl start skyeye.service
-```
-
-### Service Management
-
-Use `systemctl` to manage SkyEye:
-
-```sh
-# Load changes to skyeye.service file
-sudo systemctl daemon-reload
-
-# Start the bot
-sudo systemctl start skyeye.service
-
-# Stop the bot
-sudo systemctl stop skyeye.service
-
-# Autostart the bot when the system boots
-sudo systemctl enable skyeye.service
-
-# Disable autostart on boot
-sudo systemctl disable skyeye.service
-```
-
-View the logs with `journalctl`:
-
-```sh
-# Stream the logs
-journalctl -fu skyeye
-
-# Page through recent logs
-journalctl -u skyeye
-
-# Save recent logs to a file (handy for bug reports)
-journalctl -u skyeye > skyeye.log
-```
-
-## macOS
-
-### Installation
-
-Install [Homebrew](https://brew.sh).
-
-Install SkyEye. The installation includes the `ggml-small.en.bin` model.
-
-```sh
-brew tap dharmab/skyeye
-brew trust dharmab/skyeye/skyeye
-brew install dharmab/skyeye/skyeye
-```
-
-Configure SkyEye by editing the config file at `$(brew --prefix)/etc/skyeye/config.yaml` as required.
-
-```sh
-$EDITOR "$(brew --prefix)/etc/skyeye/config.yaml"
-```
-
-You'll likely want to configure local speech recognition, since on macOS it is as fast or faster than cloud speech recognition:
-
-```yaml
-recognizer: openai-whisper-local
-whisper-model: /opt/homebrew/share/skyeye/models/ggml-small.en.bin
-```
-
-It also also strongly recommended to configure the system voice as documented in [Speech Synthesis section](#speech-synthesis), and configure SkyEye to use the system voice:
-
-```yaml
-use-system-voice: true
-```
-
-To start SkyEye, and automatically start it on login:
-
-```sh
-brew services start dharmab/skyeye/skyeye
-```
-
-If you wish to upgrade to the latest version of SkyEye:
-
-```sh
-brew update
-brew upgrade dharmab/skyeye/skyeye
-brew services restart dharmab/skyeye/skyeye
-```
-
-### Service Management
-
-Use `brew services` to manage SkyEye:
-
-```sh
-# Start the bot without enabling autostart
-brew services run dharmab/skyeye/skyeye
-
-# Stop the bot without disabling autostart
-brew services kill dharmab/skyeye/skyeye
-
-# Start the bot and enable autostart on login
-brew services start dharmab/skyeye/skyeye
-
-# Stop the bot and disable autostart on login
-brew services stop dharmab/skyeye/skyeye
-
-# Restart SkyEye
-brew services restart dharmab/skyeye/skyeye
-
-# Uninstall SkyEye
-brew uninstall dharmab/skyeye/skyeye
-```
-
-Logs will be saved to `$(brew --prefix)/var/log/skyeye.log`:
-
-```sh
-# Follow logs
-tail -f "$(brew --prefix)/var/log/skyeye.log"
-
-# Examine the full log
-less "$(brew --prefix)/var/log/skyeye.log"
-```
-
-## Windows
-
-Download the SkyEye release ZIP from the [releases page](https://github.com/dharmab/skyeye/releases) and extract it.
-
-Edit `config.yaml` to configure SkyEye as desired. Note that any provided value of `whisper-model` here is ignored because it is overridden in `skyeye-service.yml`. If you wish to change the whisper.cpp model, edit `skyeye-service.yml`.
-
-If you want SkyEye to automatically start on boot, edit `skyeye-service.yml` and change `startmode` to "Automatic".
-
-Use the bundled `skyeye-service.exe` to install and start SkyEye:
-
-```batch
-:: Install SkyEye
-./skyeye-service.exe install
-
-:: Start SkyEye
-./skyeye-service.exe start
-
-:: Check if SkyEye is running
-./skyeye-service.exe status
-
-:: Stop SkyEye
-./skyeye-service.exe stopwait
-
-:: Restart SkyEye
-./skyeye-service.exe restart
-
-:: Uninstall SkyEye
-./skyeye-service.exe uninstall
-```
-
-Refer to the [WinSW documentation](https://github.com/winsw/winsw/tree/v2.12.0) for more information (`skyeye-service.exe` is a renamed `winsw.exe`).
-
-Logs will be saved in a `skyeye-service.err.log` file in the same directory as `skyeye-service.yml`.
-
-If you want to change the version of SkyEye in the future:
-
-```batch
-:: Stop and Uninstall SkyEye
-./skyeye-service.exe stopwait skyeye-service.yml
-./skyeye-service.exe uninstall skyeye-service.yml
-
-:: Download a newer version of SkyEye and replace both skyeye.exe and skyeye-service.yml
-
-:: Install and Start the new version of SkyEye
-./skyeye-service.exe install skyeye-service.yml
-./skyeye-service.exe start skyeye-service.yml
-```
+Once you've decided on an architecture, follow the [deployment guide](#deployment) for your operating system and speech recognition method to install and configure SkyEye.
