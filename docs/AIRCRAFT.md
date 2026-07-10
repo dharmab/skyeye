@@ -17,7 +17,7 @@ Each entry supports the following properties:
 
 | Property | Required | Description |
 | --- | --- | --- |
-| `acmi_short_name` | Yes | The aircraft's `ShortName` in [Tacview/ACMI telemetry](https://raia-software-inc.gitbook.io/tacview/technical-documentation/acmi-telemetry-file-format). Must match exactly; case and punctuation matter. |
+| `acmi_short_name` | Yes | The aircraft's `ShortName` in [Tacview/ACMI telemetry](https://raia-software-inc.gitbook.io/tacview/technical-documentation/acmi-telemetry-file-format). It must match exactly, including case and punctuation. |
 | `tags` | Yes | A list of tags describing the aircraft. See [Tags](#tags). |
 | `nato_reporting_name` | No | The NATO reporting name, e.g. `Flanker`, `Fulcrum`. Not all aircraft have one. |
 | `nickname` | No | A common nickname, e.g. `Warthog`, `Viper`, `Scooter`. Not all aircraft have one. |
