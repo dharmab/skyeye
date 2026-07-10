@@ -21,9 +21,13 @@ inputs:
     description: 'The shell to use'
     required: true
     default: 'bash'
+  make-args:
+    description: 'Extra arguments passed to make (e.g. GGML_VULKAN=1)'
+    required: false
+    default: ''
 runs:
   using: composite
   steps:
     - name: Build whisper.cpp
       shell: ${{ inputs.shell }}
-      run: make whisper
+      run: make whisper ${{ inputs.make-args }}

@@ -29,6 +29,8 @@ Run `make install-msys2-dependencies` to install the C++ and Go compilers as wel
 
 Run `make` to build `skyeye.exe`.
 
+<!-- TODO(vulkan): Document `make skyeye-vulkan` to build the experimental GPU-accelerated skyeye-vulkan.exe. -->
+
 ### Linux
 
 Clone this Git repository somewhere, and navigate to it in your favorite terminal.
@@ -47,6 +49,8 @@ make install-fedora-dependencies
 Run `make` to build `skyeye`.
 
 Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
+
+<!-- TODO(vulkan): Document `make skyeye-vulkan` to build the experimental GPU-accelerated skyeye-vulkan binary. -->
 
 ### macOS
 
@@ -177,6 +181,9 @@ SkyEye's performance bottleneck on most systems is speech recognition. A small b
 ```
 SKYEYE_WHISPER_MODEL=$(pwd)/path/to/whisper-model.bin make benchmark-whisper
 ```
+
+<!-- TODO(vulkan): Document benchmarking the experimental Vulkan build with `make benchmark-whisper GGML_VULKAN=1`. -->
+
 
 ## Lint
 

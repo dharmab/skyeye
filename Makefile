@@ -78,6 +78,36 @@ EXTLDFLAGS = $(shell pkg-config $(LIBRARIES) --libs --static)
 LDFLAGS += -linkmode external -extldflags "$(EXTLDFLAGS) -lgomp -static"
 endif
 
+# Experimental: Vulkan GPU acceleration for whisper.cpp (Windows and Linux).
+# Build with: make skyeye-vulkan
+ifeq ($(GGML_VULKAN),1)
+ifeq ($(OS_DISTRIBUTION),macOS)
+$(error GGML_VULKAN is not supported on macOS; the Metal backend is already used there)
+endif
+SKYEYE_BIN = skyeye-vulkan
+ifeq ($(OS_DISTRIBUTION),Windows)
+SKYEYE_BIN = skyeye-vulkan.exe
+endif
+# Suffix --version output to distinguish Vulkan builds
+SKYEYE_VERSION := $(SKYEYE_VERSION)+vulkan
+# Separate build directory so CPU-only and Vulkan whisper.cpp builds don't collide
+WHISPER_CPP_BUILD_DIR = $(WHISPER_CPP_PATH)/build_go_vulkan
+WHISPER_CPP_CMAKE_ARGS += -DGGML_VULKAN=ON
+LIBRARY_PATHS := $(LIBRARY_PATHS):$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src/ggml-vulkan
+ifeq ($(OS_DISTRIBUTION),Windows)
+# Link MSYS2's Vulkan import library by full path: -static limits -l searches
+# to static libraries, but explicit file arguments are always accepted. The
+# path must be converted with cygpath because the linker is a native Windows
+# program that doesn't understand MSYS2 paths like /ucrt64. The exe imports
+# vulkan-1.dll from the GPU driver / System32 at runtime.
+# Repeat -lstdc++ because the static libstdc++.a earlier in the link order is
+# not re-scanned for symbols that only libggml-vulkan.a needs.
+BUILD_VARS += CGO_LDFLAGS='-lggml-vulkan $(shell cygpath -m /ucrt64/lib/libvulkan-1.dll.a) -lstdc++'
+else
+BUILD_VARS += CGO_LDFLAGS='-lggml-vulkan -lvulkan'
+endif
+endif
+
 # AMD64-specific settings (Windows and Linux)
 ifeq ($(GOARCH),amd64)
 # Pin CPU features explicitly instead of letting ggml auto-detect via
@@ -103,7 +133,11 @@ install-msys2-dependencies:
 	  $(MINGW_PACKAGE_PREFIX)-toolchain \
 	  $(MINGW_PACKAGE_PREFIX)-go \
 	  $(MINGW_PACKAGE_PREFIX)-opus \
-	  $(MINGW_PACKAGE_PREFIX)-libsoxr
+	  $(MINGW_PACKAGE_PREFIX)-libsoxr \
+	  $(MINGW_PACKAGE_PREFIX)-vulkan-headers \
+	  $(MINGW_PACKAGE_PREFIX)-vulkan-loader \
+	  $(MINGW_PACKAGE_PREFIX)-shaderc \
+	  $(MINGW_PACKAGE_PREFIX)-spirv-headers
 
 .PHONY: install-arch-linux-dependencies
 install-arch-linux-dependencies:
@@ -113,7 +147,11 @@ install-arch-linux-dependencies:
 	  cmake \
 	  go \
 	  opus \
-	  libsoxr
+	  libsoxr \
+	  vulkan-headers \
+	  vulkan-icd-loader \
+	  shaderc \
+	  spirv-headers
 
 .PHONY: install-debian-dependencies
 install-debian-dependencies:
@@ -126,7 +164,10 @@ install-debian-dependencies:
 	  libopus-dev \
 	  libopus0 \
 	  libsoxr-dev \
-	  libsoxr0
+	  libsoxr0 \
+	  libvulkan-dev \
+	  glslc \
+	  spirv-headers
 
 .PHONY: install-fedora-dependencies
 install-fedora-dependencies:
@@ -139,7 +180,11 @@ install-fedora-dependencies:
 	  opus-devel \
 	  opus \
 	  soxr-devel \
-	  sox
+	  sox \
+	  vulkan-headers \
+	  vulkan-loader-devel \
+	  glslc \
+	  spirv-headers-devel
 
 .PHONY: install-macos-dependencies
 install-macos-dependencies:
@@ -179,7 +224,16 @@ generate:
 	$(BUILD_VARS) $(GO) generate $(BUILD_FLAGS) ./...
 
 $(SKYEYE_BIN): generate $(SKYEYE_SOURCES) $(LIBWHISPER_PATH) $(WHISPER_H_PATH)
-	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye/
+	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) -o "$(SKYEYE_BIN)" ./cmd/skyeye/
+
+# Wrapper for the experimental Vulkan build. Re-runs make with GGML_VULKAN=1,
+# which renames SKYEYE_BIN to skyeye-vulkan[.exe] so the rule above builds it.
+# Only defined when GGML_VULKAN is unset to avoid clashing with that rule.
+ifneq ($(GGML_VULKAN),1)
+.PHONY: skyeye-vulkan skyeye-vulkan.exe
+skyeye-vulkan skyeye-vulkan.exe:
+	$(MAKE) GGML_VULKAN=1
+endif
 
 $(SKYEYE_SCALER_BIN): generate $(SKYEYE_SOURCES)
 	$(BUILD_VARS) $(GO) build $(BUILD_FLAGS) ./cmd/skyeye-scaler/
@@ -218,7 +272,7 @@ format:
 
 .PHONY: mostlyclean
 mostlyclean:
-	rm -f "$(SKYEYE_BIN)" "$(SKYEYE_SCALER_BIN)"
+	rm -f "$(SKYEYE_BIN)" "$(SKYEYE_SCALER_BIN)" skyeye-vulkan skyeye-vulkan.exe
 	find . -type f -name 'mock_*.go' -delete
 
 .PHONY: clean

@@ -12,7 +12,7 @@ SkyEye is a substantial improvement over the DCS AWACS:
 4. SkyEye supports a larger number of commands, including [PICTURE](docs/PLAYER.md#picture), [BOGEY DOPE](docs/PLAYER.md#bogey-dope), [DECLARE](docs/PLAYER.md#declare), [SNAPLOCK](docs/PLAYER.md#snaplock), [SPIKED](docs/PLAYER.md#spikedstrobe), [STROBE](docs/PLAYER.md#spikedstrobe), [ALPHA CHECK](docs/PLAYER.md#alpha-check) and [VECTOR](docs/PLAYER.md#vector).
 5. SkyEye intelligently monitors the battlespace, providing automatic [THREAT](docs/PLAYER.md#threat), [MERGED](docs/PLAYER.md#merged) and [FADED](docs/PLAYER.md#faded) callouts to improve situational awareness.
 
-SkyEye uses Speech-To-Text and Text-To-Speech technology which can run locally on the same computer as SkyEye. No cloud APIs are required, although cloud APIs are optionally supported. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can run it for less than a nickel per hour on a cloud server, or run it on a computer in your home running Windows, Linux or macOS.
+SkyEye uses Speech-To-Text and Text-To-Speech technology which can run locally on the same computer as SkyEye. No cloud APIs are required, although cloud APIs are optionally supported. It works with any DCS mission, singleplayer or multiplayer. No special scripting or mission editor setup is required. You can run it on a cloud server, or run it on a computer in your home running Windows, Linux or macOS.
 
 SkyEye is production ready software. It is used by a few public servers and many private squadrons. Based on download statistics, I estimate over 100 communities are using SkyEye, such as:
 
@@ -53,7 +53,7 @@ See https://limakilo.net for server details.
 
 On Windows and Linux, SkyEye can be downloaded from [GitHub Releases](https://github.com/dharmab/skyeye/releases).
 
-On Linux, SkyEye is also available as a container: `ghcr.io/dharmab/skyeye:latest`. Note this container won't work on Windows or macOS.
+On Linux, SkyEye is also available as a container: `ghcr.io/dharmab/skyeye:latest` (CPU version) and `ghcr.io/dharmab/skyeye:latest-vulkan` (GPU version).
 
 On macOS, SkyEye can be installed using [Homebrew](https://brew.sh/):
 
@@ -67,19 +67,19 @@ See the [admin guide](docs/ADMIN.md) for detailed instructions on installing, co
 
 ### What do I need to run SkyEye?
 
-There are a few different ways to run SkyEye. In order from best to least recommended:
+There are a few different ways to run SkyEye.
 
 1. On an Apple Sillicon Mac networked to your DCS server, using local speech recognition. This offers the fastest speech recognition and the highest quality AI voice.
-2. On your DCS server, using the OpenAI API for speech recognition. This offers fast speech recognition and good quality AI voices, but requires a credit card accepted by OpenAI to purchase API credits from OpenAI. At current pricing, $1 of OpenAI credit pays to recognize more than 1000 transmissions over SRS.
-3. On a separate Windows or Linux computer networked to your DCS server, using local speech recognition. This offers good-enough speech recognition performance and good quality AI voices without any credit card required. This also works with rented cloud servers, some of whom accept other payment methods compared to OpenAI.
-
-Running SkyEye on the same computer as DCS, using local speech recognition, is not recommended and no support can be provided for that configuration. Use a separate computer or OpenAI's API instead.
+2. On your Windows or Linux computer with a GPU, using local speech recognition and the experimental Vulkan build of SkyEye. This offers fast speech recognition and good quality AI voices, although the performance and quality of the speech recognition can vary based on GPU hardware and drivers.
+3. On your DCS server, using the OpenAI API for speech recognition. This offers fast speech recognition and good quality AI voices, but requires a credit card accepted by OpenAI to purchase API credits from OpenAI. At current pricing, $1 of OpenAI credit pays to recognize more than 1000 transmissions over SRS.
+4. On a separate Windows or Linux computer networked to your DCS server, using local speech recognition. This offers good-enough speech recognition performance and good quality AI voices without any credit card required. This also works with rented cloud servers, some of whom accept other payment methods compared to OpenAI.
 
 ### What kind of hardware does it require?
 
 Generally, local speech recognition requires one of:
 
 * Any Apple Silicon Mac, such as a Mac Mini or MacBook Air/Pro.
+* A Windows or Linux computer with a GPU.
 * A Windows or Linux computer with a fast quad-core CPU from the last 2-3 CPU generations.
 
 Cloud speech recognition requirements are quite modest.
