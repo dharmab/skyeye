@@ -102,6 +102,5 @@ probe-and-drogue refueling, and its ACMI short name is `A-4E-C`.
   fuel_receiver: probe-and-drogue
 ```
 
-With this file loaded, SkyEye recognizes the A-4, calls it a "Scooter" (the `nickname` is preferred
-over the `official_name`), treats it as an attack aircraft with a 15 NM threat radius, and sends it
-to probe-and-drogue tankers.
+With this file loaded, SkyEye recognizes the A-4, calls it a "Scooter", treats it as an attack
+aircraft with a 15 NM threat radius, and sends it to probe-and-drogue tankers.
