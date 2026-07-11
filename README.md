@@ -104,6 +104,14 @@ OverlordBot also optionally supports this feature, although less than 1% of user
 
 As of this writing, DCS' built-in VoIP does not support external clients. SkyEye therefore requires SRS to function.
 
+### Will this work in singleplayer?
+
+Yes. You will need to install Tacview and run the SRS Server application on your PC while you play. SkyEye can connect to both and provide GCI service in any singleplayer mission.
+
+### Is this compatible with Integrity Check (IC)?
+
+Yes. SkyEye runs as a separate application, and does not even need to run on the same PC as DCS. The only requirements are that DCS provides real-time Tacview telemetry to SkyEye and SkyEye can connect to SRS. (This does _not_ require providing any Tacview telemetry to players).
+
 ### Could this use a Large Language Model? (ChatGPT, Ollama, etc.)
 
 SkyEye uses an embedded LLM for speech-to-text, but I deliberately chose not to use an LLM for SkyEye's language parsing or decision-making logic.
