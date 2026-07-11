@@ -22,7 +22,7 @@ SkyEye is production ready software. It is used by a few public servers and many
 
 SkyEye is **free software**. It is free as in beer; you can download and run it for free. It is also free as in freedom; the source code is available for you to study and modify to fit your needs.
 
-As of late 2025, SkyEye is curently **maintained but not actively developed**. The author hopes to resume active development in the future, but is currently too busy with professional work and other hobbies to dedicate the necessary time. The author intends to publish compatibility updates for new versions of DCS/SRS/Tacview as needed, but new features are on pause.
+As of late 2025, SkyEye is currently **maintained but not actively developed**. The author hopes to resume active development in the future, but is currently too busy with professional work and other hobbies to dedicate the necessary time. The author intends to publish compatibility updates for new versions of DCS/SRS/Tacview as needed, but new features are on pause.
 
 ## Getting Started
 
@@ -69,7 +69,7 @@ See the [admin guide](docs/ADMIN.md) for detailed instructions on installing, co
 
 There are a few different ways to run SkyEye.
 
-1. On an Apple Sillicon Mac networked to your DCS server, using local speech recognition. This offers the fastest speech recognition and the highest quality AI voice.
+1. On an Apple Silicon Mac networked to your DCS server, using local speech recognition. This offers the fastest speech recognition and the highest quality AI voice.
 2. On your Windows or Linux computer with a GPU, using local speech recognition and the experimental Vulkan build of SkyEye. This offers fast speech recognition and good quality AI voices, although the performance and quality of the speech recognition can vary based on GPU hardware and drivers.
 3. On your Windows or Linux computer, using the OpenAI API for speech recognition. This offers fast speech recognition and good quality AI voices, but requires a credit card accepted by OpenAI to purchase API credits from OpenAI. At current pricing, $1 of OpenAI credit pays to recognize more than 1000 transmissions over SRS.
 4. On a separate Windows or Linux computer networked to your DCS server, using local speech recognition. This offers good-enough speech recognition performance and good quality AI voice. This also works with rented cloud servers, some of whom accept other payment methods compared to OpenAI.
@@ -108,19 +108,19 @@ As of this writing, DCS' built-in VoIP does not support external clients. SkyEye
 
 SkyEye uses an embedded LLM for speech-to-text, but I deliberately chose not to use an LLM for SkyEye's language parsing or decision-making logic.
 
-Within the domain of air combat communication, these problems are less linguistic and more mathematical in nature. Air combat communication uses a limited, highly specific vocabulary and a low-context grammar that can be parsed quickly with traditional programming methods. The workflow for the tactical controller is a straightforward decision tree mostly based on tables of aircraft data, some middle school geometry and a few statistical methods. These workflows can be implemented in a few hundred lines of code and run in a few milliseconds. An LLM would have worse performance, no guarantee of consistency, much larger CPU and memory requirements, and introduces a large surface area of ML-specific issues such as privacy of training data sets, debugging hallucinations, and a much more difficult testing and validation process.
+Within the domain of air combat communication, these problems are less linguistic and more mathematical in nature. Air combat communication uses a limited, highly specific vocabulary and a low-context grammar that can be parsed quickly with traditional programming methods. The workflow for the tactical controller is a straightforward decision tree mostly based on tables of aircraft data, some middle school geometry and a few statistical methods. These workflows can be implemented in a few hundred lines of code and run in a few milliseconds. An LLM would have worse performance, no guarantee of consistency, much larger CPU and memory requirements, and would introduce a large surface area of ML-specific issues such as privacy of training data sets, debugging hallucinations, and a much more difficult testing and validation process.
 
 While working on this software I spoke to a number of people who thought it would be as easy as feeding a bunch of PDFs to an LLM and it would magically learn how to be a competent tactical controller. This could not be further from the truth!
 
 ### Can I use a separate Whisper server or Speech Recognition API?
 
-I don't plan on adding support to this in the main repo because the inregration with Whisper is deeper than a simple transcription request. Certain context from the GCI controller is also passed to the model to improve speech recognition accuracy, e.g. for non-English airport names. If you have a use case for this and are willing to program, I can give you advice on how to do this in your fork.
+I don't plan on adding support to this in the main repo because the integration with Whisper is deeper than a simple transcription request. Certain context from the GCI controller is also passed to the model to improve speech recognition accuracy, e.g. for non-English airport names. If you have a use case for this and are willing to program, I can give you advice on how to do this in your fork.
 
 ### Could this provide ATC services?
 
 I have no plans to attempt an ATC bot due to limitations within DCS.
 
-AI aircraft in DCS cannot be directly commanded through scripting or external software and are incapable of safely operating in controlled airspace. for example, AI aircraft in DCS do not sequence for landing, and will only begin an approach if the entire approach and runway are clear. AI aircraft also cannot execute a hold or a missed approach, and they make no effort to maintain separation from other aircraft.
+AI aircraft in DCS cannot be directly commanded through scripting or external software and are incapable of safely operating in controlled airspace. For example, AI aircraft in DCS do not sequence for landing, and will only begin an approach if the entire approach and runway are clear. AI aircraft also cannot execute a hold or a missed approach, and they make no effort to maintain separation from other aircraft.
 
 While working on this software I spoke to a number of people who thought it would be as easy as feeding a bunch of PDFs to an LLM and it would magically become a capable Air Traffic Controller. This could not be further from the truth! 
 

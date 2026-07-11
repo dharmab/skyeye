@@ -32,17 +32,17 @@ I do not respond to direct messages on social media or the Eagle Dynamics forums
 
 SkyEye can be deployed in three architectures: 
 
-- Local speech recongition, running SkyEye on a different PC as DCS and speech recognition on the CPU
-- Local speech reconition, running SkyEye on the same PC as DCS and speech recognition on the GPU
+- Local speech recognition on CPU, running SkyEye on a different PC from DCS
+- Local speech recognition on GPU, running SkyEye on either the same PC as or a different PC from DCS
 - Cloud speech recognition, running SkyEye on the same PC as DCS and offloading speech recognition to the OpenAI API
 
 Local speech recognition is more hardware intensive than cloud speech recognition. However, it has a number of advantages:
 
-- Local speech recognition generally has a predictable fixed cost; it costs the same whether players talk only a little or chatter a lot. This makes hosting costs more predictable and reduces the impact a of a malicious or abusive player.
+- Local speech recognition generally has a predictable fixed cost; it costs the same whether players talk only a little or chatter a lot. This makes hosting costs more predictable and reduces the impact of a malicious or abusive player.
 - Local speech recognition is fully self-contained. It has better privacy qualities, and you can expect it to continue to work far into the future.
 - Local speech recognition can be self-hosted on your own hardware. This makes it a viable option for some international groups whose payment methods are not accepted by cloud hosting providers.
 - If you have a powerful CPU, or a GPU, self-hosting can be lower-latency and/or cheaper than cloud speech recognition.
-- If you have a Mac with an Apple Sillicon CPU, local speech recognition is the best option, since it uses the GPU/Neural Engine for extremely fast performance.
+- If you have a Mac with an Apple Silicon CPU, local speech recognition is the best option, since it uses the GPU/Neural Engine for extremely fast performance.
 
 On the other hand, cloud speech recognition has a separate set of tradeoffs:
 
@@ -65,11 +65,11 @@ flowchart LR
 
 #### Caution: Running SkyEye with Local Speech Recognition on CPU along with DCS World on One Computer
 
-**Running SkyEye with local speech recognition on CPU on the same computer as DCS World is not intended and probably won't work. I cannott provide support for this configuration.** Even if I wanted to support this configuration, I do not have the appropriate tools to troubleshoot _your specific hardware configuration_. It's difficult enough to troubleshoot these kinds of issues when the hardware is physically in front of me and I have full admin access. Trying to troubleshoot a non-technical user's hardware remotely is impossible. (This is a big reason AI applications, including SkyEye, are so much better on Apple devices; standardized hardware is much easier to support.)
+**Running SkyEye with local speech recognition on CPU on the same computer as DCS World is not intended and probably won't work. I cannot provide support for this configuration.** Even if I wanted to support this configuration, I do not have the appropriate tools to troubleshoot _your specific hardware configuration_. It's difficult enough to troubleshoot these kinds of issues when the hardware is physically in front of me and I have full admin access. Trying to troubleshoot a non-technical user's hardware remotely is impossible. (This is a big reason AI applications, including SkyEye, are so much better on Apple devices; standardized hardware is much easier to support.)
 
-**If you open a GitHub Issue regarding performance issues with this configuration, I will tell you to use a second computer or switch to cloud speech recognition.** Almost every report I've received about performance issues with SkyEye have been from users attempting to run SkyEye's local speech recognition on the same computer as DCS World, which is **not an intended way to run SkyEye**. 😾
+**If you open a GitHub Issue regarding performance issues with this configuration, I will tell you to use a second computer or switch to cloud speech recognition.** Almost every report I've received about performance issues with SkyEye has been from users attempting to run SkyEye's local speech recognition on the same computer as DCS World, which is **not an intended way to run SkyEye**. 😾
 
-If you have read all of the above, and are still serious about, attempting this, here is the best advice I have:
+If you have read all of the above, and are still serious about attempting this, here is the best advice I have:
 
 1. [Watch this talk by Xe Iaso about running AI workloads using local infrastructure](https://xeiaso.net/talks/2025/ai-chatbot-friends/). It's a good primer on the complexity of the problem you're trying to ignore.
 2. If, after watching that talk, you still want to try this, click the button for some hints:
@@ -101,7 +101,7 @@ flowchart TD
 
 ## Software
 
-SkyEye is officially supported on Windows AMD64, Linux AMD64 and Apple Silicon. The Windows version bundles all required libraries within `skyeye.exe`. The Linux and macOS versions require [Opus](https://opus-codec.org/) and [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/) to be installed through the package manager or Homebrew, respectively. Additionally, the Linux Vulkan version requires GPU driver packages and `libvulcan`. Consult your Linux distro documentation for more information.
+SkyEye is officially supported on Windows AMD64, Linux AMD64 and Apple Silicon. The Windows version bundles all required libraries within `skyeye.exe`. The Linux and macOS versions require [Opus](https://opus-codec.org/) and [SoX Resampler](https://sourceforge.net/p/soxr/wiki/Home/) to be installed through the package manager or Homebrew, respectively. Additionally, the Linux Vulkan version requires GPU driver packages and `libvulkan`. Consult your Linux distro documentation for more information.
 
 ## Hardware
 
@@ -117,13 +117,13 @@ Intel Core|Haswell (2013)
 AMD|Excavator (2015)
 Intel Pentium/Celeron|Tiger Lake (2020)
 
-SkyEye currently only officially supports the AMD64 (x86-64) CPU architecure on Windows and Linux. ARM CPUs are not yet officially supported on these operating systems.
+SkyEye currently only officially supports the AMD64 (x86-64) CPU architecture on Windows and Linux. ARM CPUs are not yet officially supported on these operating systems.
 
 I've found that at least 4 dedicated CPU cores are needed for a good experience, but this may differ by the exact CPU being used, so experiment and see what works well for you. It is important that the CPU cores be **dedicated** cores. Shared core virtual machines are **not supported** and will result in **high latency and stuttering audio.**
 
 ##### GPU
 
-When running on Windows or Linux with local speech recognition on GPU, SkyEye requires a any decent multithreaded CPU, 3GB of RAM, about 2GB of VRAM, and about 2GB of disk space. The CPU must have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
+When running on Windows or Linux with local speech recognition on GPU, SkyEye requires any decent multithreaded CPU, 3GB of RAM, about 2GB of VRAM, and about 2GB of disk space. The CPU must have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
 
 #### macOS
 
@@ -165,7 +165,7 @@ Examples of suitable servers include:
 * [Vultr Optimized Cloud Compute (CPU Optimized)](https://www.vultr.com/pricing/#optimized-cloud-compute)
 * [Linode Dedicated CPU Instances](https://www.linode.com/pricing/#compute-dedicated)
 
-I won't provide an endorsement of any particular provider, but I will point out that as of August 2024 Hetzner's CCX23 instance is probably the cheapest way the run SkyEye on public cloud. The cheapest way to run SkyEye overall is probably on a spare computer in your house.
+As of 2026, cloud server prices have been increasing, so do your due diligence to compare prices.
 
 ### Cloud Speech Recognition
 
@@ -202,7 +202,7 @@ log-level: debug
 
 The config file's default location on Linux is `/etc/skyeye/config.yaml`. You can override this location by setting `--config-file` or `SKYEYE_CONFIG_FILE`. On Windows, the installer uses a `config.yaml` file within the same directory as `skyeye.exe`.
 
-It is recommended to use the configuration file as the main source of config. Most users find it the easiest option, and a file is simple to protect using access control policies, unlike a processes' environment or arguments.
+It is recommended to use the configuration file as the main source of config. Most users find it the easiest option, and a file is simple to protect using access control policies, unlike a process's environment or arguments.
 
 A sample configuration file is provided in the download which should be customized to fit your needs. It contains many explanatory comments which guide you through customization.
 
@@ -297,7 +297,7 @@ The body of the POST request is a JSON object with the following fields:
 
 By implementing a small webservice or serverless function that creates or destroys a SkyEye instance on demand, the cost of running SkyEye can be significantly reduced. This is particularly useful for servers that are only active for a few hours a week, such as a private squadron server.
 
-An example WinSW service definition is provided in the Windows release archive. You can edit this example file to include your webhook URL and the frequencies you want to monitor, then install and run it it using the included `skyeye-scaler-service.exe` executable:
+An example WinSW service definition is provided in the Windows release archive. You can edit this example file to include your webhook URL and the frequencies you want to monitor, then install and run it using the included `skyeye-scaler-service.exe` executable:
 
 ```batch
 :: Install SkyEye Scaler
@@ -337,7 +337,7 @@ Also note that TTS is pretty fast in practice and you might not need to set `voi
 
 If you are not running multiple instances, these locks are harmful to performance and should not be used. This can especially be a problem if your machine has a slow or busy disk.
 
-Be aware that it is technically possible for the file lock to become deadlocked in some cases, such as if SkyEye is unable to exit cleanly. If you use this feature you should monitor the logs and traces for errors related to lock acquisition. You may need to manually resolve a deadlock by stopping down all SkyEye instances, deleting the lock file and restarting the instances.
+Be aware that it is technically possible for the file lock to become deadlocked in some cases, such as if SkyEye is unable to exit cleanly. If you use this feature you should monitor the logs and traces for errors related to lock acquisition. You may need to manually resolve a deadlock by shutting down all SkyEye instances, deleting the lock file and restarting the instances.
 
 This architecture is marked experimental because I don't test this configuration. You are responsible for testing these features on your hardware.
 
