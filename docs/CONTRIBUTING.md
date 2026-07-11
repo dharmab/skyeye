@@ -48,7 +48,7 @@ make install-fedora-dependencies
 
 Run `make` to build `skyeye`.
 
-Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
+Anywhere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
 
 <!-- TODO(vulkan): Document `make skyeye-vulkan` to build the experimental GPU-accelerated skyeye-vulkan binary. -->
 
@@ -66,7 +66,7 @@ make install-macos-dependencies
 
 Run `make` to build `skyeye`.
 
-Anyhwere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
+Anywhere this guide mentions `skyeye.exe`, remove `.exe` - just run `skyeye`.
 
 ## Run Against a Live Server
 
@@ -80,7 +80,7 @@ Install [DCS-SRS](http://dcssimpleradio.com/). This can be on a different comput
 
 Launch the DCS server and SRS server. Load a mission on the DCS server.
 
-You will need to download an OpenAI Whisper model, or use the OpenAI API. Downloading and using a local model is free, but performance intensive. Using the OpenAPI API requires payment to OpenAI.
+You will need to download an OpenAI Whisper model, or use the OpenAI API. Downloading and using a local model is free, but performance intensive. Using the OpenAI API requires payment to OpenAI.
 
 ### Using a Local Model
 
@@ -172,7 +172,7 @@ Wow, that was easy!
 
 The canonical way to run the unit tests is by running `make test`. This can run tests for code that uses CGO. **This is the gate used for PR checks.** You can pass additional flags to `go test` using TEST_FLAGS. For example, `TEST_FLAGS=-parallel=1 make test` will run the tests without parallelism (1 test worker), which can make the logs for a failed test easier to understand.
 
-I have made an effort to structure packages so that CGO is never imported directly or indirectly within packages that aren't directly related to the Speech-To-Text and Text-To-Speech models. This means that most tests can be run though Visual Studio Code without the complexity and performance hit of CGO. **This is the easiest way to test and debug during development.**
+I have made an effort to structure packages so that CGO is never imported directly or indirectly within packages that aren't directly related to the Speech-To-Text and Text-To-Speech models. This means that most tests can be run through Visual Studio Code without the complexity and performance hit of CGO. **This is the easiest way to test and debug during development.**
 
 ## Benchmark
 

@@ -53,7 +53,7 @@ Your callsign should be unique within a server. If multiple players have the sam
 
 Numbers are pronounced individually - "Spare 15" is pronounced "Spare One Five", not "Spare Fifteen".
 
-If your name contains any content within brackets `[]`, that content is ignored, For example, "[ISAF] Mobius 1" is read as "Mobius 1".
+If your name contains any content within brackets `[]`, that content is ignored. For example, "[ISAF] Mobius 1" is read as "Mobius 1".
 
 Avoid:
 
@@ -251,7 +251,7 @@ Tips:
 
 Keyword: `DECLARE`
 
-Function: You provide the position of a radar contact on your scope. The GCI will look for contacts in that area and tell you if they are hostile, friendly, a furball (mixed) or clean (nothing on scope). You can provide the position using either Bullseye or BRAA format .
+Function: You provide the position of a radar contact on your scope. The GCI will look for contacts in that area and tell you if they are hostile, friendly, a furball (mixed) or clean (nothing on scope). You can provide the position using either Bullseye or BRAA format.
 
 Use: Additional source of Identify Friend or Foe (IFF)
 
@@ -271,7 +271,7 @@ GALAXY: Hitman One, group bullseye 122/51, 7000, track west, hostile, 2 contacts
 ```
 
 ```
-MOBUIS 1: Thunderhead, Mobius One, declare two three zero, twelve, twelve thousand.
+MOBIUS 1: Thunderhead, Mobius One, declare two three zero, twelve, twelve thousand.
 THUNDERHEAD: Mobius One, group bullseye 273/27, 2200, track east, hostile, Flanker.
 ```
 
@@ -339,7 +339,7 @@ THUNDERHEAD: "Mobius 1, threat BRAA 125/10, 8000, hot, hostile, two contacts, Fl
 
 Keyword: `SPIKED` or `STROBE`
 
-Function: You tell the GCI the approximate bearing to a enemy radar spike or electromagnetic attack. The GCI responds with information about the nearest potential source within a 30 degree cone in that direction.
+Function: You tell the GCI the approximate bearing to an enemy radar spike or electromagnetic attack. The GCI responds with information about the nearest potential source within a 30 degree cone in that direction.
 
 Use: Get ranging information to a threat whose range is unknown.
 

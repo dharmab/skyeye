@@ -47,7 +47,7 @@ Create the following rules:
 |HTTPS|TCP|443|||
 |NTP|UDP|123|||
 
-Under "Apply to", select "Select Resource", then "Label". Type the new label "skyeye" into the box and click "Add Label Selction".
+Under "Apply to", select "Select Resource", then "Label". Type the new label "skyeye" into the box and click "Add Label Selection".
 
 Under "Name", type "skyeye".
 
