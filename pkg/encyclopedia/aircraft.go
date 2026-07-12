@@ -226,6 +226,24 @@ func ch47Variants() []Aircraft {
 	)
 }
 
+var c130Data = Aircraft{
+	tags:                sets.Of(FixedWing, Unarmed),
+	PlatformDesignation: "C-130",
+	TypeDesignation:     "C-130",
+	OfficialName:        "Hercules",
+	Nickname:            "Herc",
+}
+
+func c130Variants() []Aircraft {
+	return variants(
+		c130Data,
+		map[string]string{
+			"":     "",
+			"J-30": "J-30",
+		},
+	)
+}
+
 var f86Data = Aircraft{
 	tags:                sets.Of(FixedWing, Fighter),
 	PlatformDesignation: "F-86",
@@ -292,6 +310,7 @@ func f14Variants() []Aircraft {
 		map[string]string{
 			"A-135-GR-Early": "A",
 			"A-135-GR":       "A",
+			"A-95-GR":        "A",
 			"A":              "A",
 			"B":              "B",
 		},
@@ -330,11 +349,11 @@ func f16Variants() []Aircraft {
 	return variants(
 		f16Data,
 		map[string]string{
-			"A":       "A",
-			"A MLU":   "A",
-			"C_50":    "C",
-			"C bl.50": "C",
-			"C bl.52": "C",
+			"A":        "A",
+			"A MLU":    "A",
+			"C_50":     "C",
+			"C bl.50":  "C",
+			"C bl.52d": "C",
 		},
 	)
 }
@@ -403,6 +422,8 @@ func mirageF1Variants() []Aircraft {
 	return variants(
 		mirageF1Data,
 		map[string]string{
+			"AD":    "AD",
+			"AZ":    "AZ",
 			"B":     "B",
 			"BD":    "BD",
 			"BE":    "BE",
@@ -771,14 +792,6 @@ var aircraftData = []Aircraft{
 		OfficialName:        "Skytrain",
 	},
 	{
-		ACMIShortName:       "C-130",
-		tags:                sets.Of(FixedWing, Unarmed),
-		PlatformDesignation: "C-130",
-		TypeDesignation:     "C-130",
-		OfficialName:        "Hercules",
-		Nickname:            "Herc",
-	},
-	{
 		ACMIShortName:       "CH-53E",
 		tags:                sets.Of(RotaryWing, Unarmed),
 		PlatformDesignation: "CH-53",
@@ -798,6 +811,15 @@ var aircraftData = []Aircraft{
 		PlatformDesignation: "E-3",
 		TypeDesignation:     "E-3A",
 		OfficialName:        "Sentry",
+	},
+	{
+		ACMIShortName:       "F-100D",
+		tags:                sets.Of(FixedWing, Fighter),
+		PlatformDesignation: "F-100",
+		TypeDesignation:     "F-100D",
+		OfficialName:        "Super Sabre",
+		Nickname:            "Hun",
+		threatRadius:        SAR1IRThreat,
 	},
 	{
 		ACMIShortName:       "F-117A",
@@ -1087,6 +1109,7 @@ func init() {
 		a10Variants(),
 		ah64Variants(),
 		c101Variants(),
+		c130Variants(),
 		ch47Variants(),
 		f86Variants(),
 		f4Variants(),
