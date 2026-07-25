@@ -313,6 +313,7 @@ func f14Variants() []Aircraft {
 			"A-95-GR":        "A",
 			"A":              "A",
 			"B":              "B",
+			"BU":             "B",
 		},
 	)
 }
