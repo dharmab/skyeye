@@ -50,7 +50,9 @@ func (r *receiver) receive(packet *voice.Packet) {
 
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	r.buffer = append(r.buffer, *packet)
+	if len(r.buffer) < maxRxPackets {
+		r.buffer = append(r.buffer, *packet)
+	}
 	r.origin = types.GUID(packet.OriginGUID)
 	r.deadline = time.Now().Add(maxRxGap)
 	r.packetNumber = packet.PacketID
@@ -84,6 +86,13 @@ func (r *receiver) reset() {
 
 // maxRxGap is a duration after which the receiver will assume the end of a transmission if no packets are received.
 const maxRxGap = 300 * time.Millisecond
+
+// MaxTransmissionDuration is the longest acceptable received transmission
+// length. Longer transmissions are truncated to this.
+const MaxTransmissionDuration = 30 * time.Second
+
+// maxRxPackets is the longest acceptable received transmission length in packets.
+const maxRxPackets = int(MaxTransmissionDuration / frameLength)
 
 // minRxDuration is the minimum duration of a transmission to be considered for speech recognition. This reduces
 // thrashing due to transmissions too short to contain any useful content.
@@ -136,6 +145,9 @@ func (c *Client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- 
 						duration := time.Duration(len(receiver.buffer)) * frameLength
 						logger := log.With().Stringer("duration", duration).Logger()
 						if duration > minRxDuration {
+							if len(receiver.buffer) >= maxRxPackets {
+								logger.Warn().Stringer("max", MaxTransmissionDuration).Msg("transmission truncated to maximum duration")
+							}
 							logger.Info().Msg("received transmission")
 							audio := make([]voice.Packet, len(receiver.buffer))
 							copy(audio, receiver.buffer)
