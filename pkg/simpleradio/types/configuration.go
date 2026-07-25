@@ -26,4 +26,7 @@ type ClientConfiguration struct {
 	AllowRecording bool
 	// Mute is true if the client should not transmit.
 	Mute bool
+	// SplitTransmissionGracePeriod is how long the client waits for another voice packet before
+	// treating a transmission as finished. Zero selects a sensible default.
+	SplitTransmissionGracePeriod time.Duration
 }
