@@ -75,7 +75,7 @@ func (f RadioFrequency) String() string {
 		suffix = "AM"
 	}
 
-	return fmt.Sprintf("%f.3%s", f.Frequency, suffix)
+	return fmt.Sprintf("%.3f%s", f.Frequency.Megahertz(), suffix)
 }
 
 // Frequencies returns the frequencies the client is listening on.
