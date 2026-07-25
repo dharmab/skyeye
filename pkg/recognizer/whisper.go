@@ -7,6 +7,8 @@ import (
 	"io"
 	"strings"
 
+	"github.com/dharmab/skyeye/pkg/pcm/rate"
+	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 	"github.com/rs/zerolog/log"
 )
@@ -31,10 +33,9 @@ func NewWhisperRecognizer(model *whisper.Model, callsign string, opts ...Option)
 	return r
 }
 
-const maxSize = 256 * 1024
-
 // Recognize implements [Recognizer.Recognize] using whisper.cpp.
 func (r *whisperRecognizer) Recognize(ctx context.Context, sample []float32, enableTranscriptionLogging bool) (string, error) {
+	maxSize := int(simpleradio.MaxTransmissionDuration.Seconds()) * int(rate.Wideband.Hertz())
 	if len(sample) > maxSize {
 		log.Warn().Int("length", len(sample)).Int("maxLength", maxSize).Msg("clamping sample to maximum size")
 		sample = sample[:maxSize]

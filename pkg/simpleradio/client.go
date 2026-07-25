@@ -199,8 +199,8 @@ func (c *Client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 		c.receivePings(ctx, udpPingRxChan)
 	})
 
-	udpVoiceRxChan := make(chan []byte, 64*0xFFFFF)
-	voiceBytesRxChan := make(chan []voice.Packet, 0xFFFFF)
+	udpVoiceRxChan := make(chan []byte, maxRxPackets)
+	voiceBytesRxChan := make(chan []voice.Packet, 128)
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
