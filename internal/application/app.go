@@ -134,6 +134,7 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		ExternalAWACSModePassword: config.SRSExternalAWACSModePassword,
 		Coalition:                 config.Coalition,
 		Radios:                    radios,
+		Mute:                      config.Mute,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct application: %w", err)
