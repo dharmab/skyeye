@@ -180,9 +180,7 @@ func (c *Client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 
 	defer c.close()
 
-	wg.Go(func() {
-		c.receiveTCP(ctx)
-	})
+	wg.Go(func() { c.receiveTCP(ctx) })
 
 	if initErr := c.initialize(); initErr != nil {
 		return initErr
@@ -190,45 +188,21 @@ func (c *Client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 
 	// We need to send pings to the server to keep our connection alive.
 	// The server won't send us any audio until it receives a ping from us.
-	wg.Go(func() {
-		c.sendPings(ctx)
-	})
+	wg.Go(func() { c.sendPings(ctx) })
 
 	udpPingRxChan := make(chan []byte, 0xF)
-	wg.Go(func() {
-		c.receivePings(ctx, udpPingRxChan)
-	})
+	wg.Go(func() { c.receivePings(ctx, udpPingRxChan) })
 
 	udpVoiceRxChan := make(chan []byte, maxRxPackets)
 	voiceBytesRxChan := make(chan []voice.Packet, 128)
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		c.receiveVoice(ctx, udpVoiceRxChan, voiceBytesRxChan)
-	}()
-	go func() {
-		defer wg.Done()
-		c.decodeVoice(ctx, voiceBytesRxChan)
-	}()
+	wg.Go(func() { c.receiveVoice(ctx, udpVoiceRxChan, voiceBytesRxChan) })
+	wg.Go(func() { c.decodeVoice(ctx, voiceBytesRxChan) })
 
 	voicePacketsTxChan := make(chan []voice.Packet, 3)
-	wg.Add(4)
-	go func() {
-		defer wg.Done()
-		c.encodeVoice(ctx, voicePacketsTxChan)
-	}()
-	go func() {
-		defer wg.Done()
-		c.transmitPackets(ctx, voicePacketsTxChan)
-	}()
-	go func() {
-		defer wg.Done()
-		c.receiveUDP(ctx, udpPingRxChan, udpVoiceRxChan)
-	}()
-	go func() {
-		defer wg.Done()
-		c.autoheal(ctx)
-	}()
+	wg.Go(func() { c.encodeVoice(ctx, voicePacketsTxChan) })
+	wg.Go(func() { c.transmitPackets(ctx, voicePacketsTxChan) })
+	wg.Go(func() { c.receiveUDP(ctx, udpPingRxChan, udpVoiceRxChan) })
+	wg.Go(func() { c.autoheal(ctx) })
 
 	<-ctx.Done()
 	return nil
