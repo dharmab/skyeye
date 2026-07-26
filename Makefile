@@ -243,9 +243,8 @@ run:
 	$(BUILD_VARS) $(GO) run -race $(BUILD_FLAGS) ./cmd/skyeye/ $(ARGS)
 
 .PHONY: test
-TEST_FLAGS ?= -race
 test: generate
-	$(BUILD_VARS) $(GO) tool gotestsum -- $(BUILD_FLAGS) $(TEST_FLAGS) ./...
+	$(BUILD_VARS) $(GO) tool gotestsum -- $(BUILD_FLAGS) -race $(TEST_FLAGS) ./...
 
 .PHONY: benchmark-whisper
 benchmark-whisper: whisper
