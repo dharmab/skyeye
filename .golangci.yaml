@@ -144,6 +144,13 @@ linters:
       - common-false-positives
       - legacy
       - std-error-handling
+    rules:
+      - path: _test\.go
+        linters:
+          - goconst # Tests often reuse similar strings
+      - path: pkg/encyclopedia/aircraft\.go
+        linters:
+          - goconst # Designations coincidentally repeat across unrelated fields/variants
     paths:
       - third_party$
       - builtin$
