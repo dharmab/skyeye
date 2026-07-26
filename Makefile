@@ -243,6 +243,7 @@ run:
 	$(BUILD_VARS) $(GO) run -race $(BUILD_FLAGS) ./cmd/skyeye/ $(ARGS)
 
 .PHONY: test
+TEST_FLAGS ?= -race
 test: generate
 	$(BUILD_VARS) $(GO) tool gotestsum -- $(BUILD_FLAGS) $(TEST_FLAGS) ./...
 
