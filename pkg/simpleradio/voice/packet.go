@@ -212,6 +212,19 @@ func Decode(b []byte) (packet *Packet, err error) {
 	// The packet length is the first 2 bytes of the packet.
 	packetLength := binary.LittleEndian.Uint16(b[0:2])
 
+	audioSegmentLength := binary.LittleEndian.Uint16(b[2:4])
+	frequenciesSegmentLength := binary.LittleEndian.Uint16(b[4:6])
+	if int(packetLength) != len(b) {
+		return nil, fmt.Errorf("packet length header %d does not match datagram length %d", packetLength, len(b))
+	}
+	segmentsLength := headerSegmentLength + int(audioSegmentLength) + int(frequenciesSegmentLength) + fixedSegmentLength
+	if segmentsLength != int(packetLength) {
+		return nil, fmt.Errorf("length of packet segments %d does not match packet length header %d", segmentsLength, packetLength)
+	}
+	if frequenciesSegmentLength%frequencyLength != 0 {
+		return nil, fmt.Errorf("frequencies segment length header %d is not a multiple of %d", frequenciesSegmentLength, frequencyLength)
+	}
+
 	// The fixed segment is at the end of the packet, and each field has a well-known length.
 	// Therefore, we can easily decode the fixed segment by working backwards from the end of the packet.
 	originIDPtr := packetLength - types.GUIDLength
@@ -224,8 +237,8 @@ func Decode(b []byte) (packet *Packet, err error) {
 	packet = &Packet{
 		/* Headers */
 		PacketLength:             packetLength,
-		AudioSegmentLength:       binary.LittleEndian.Uint16(b[2:4]),
-		FrequenciesSegmentLength: binary.LittleEndian.Uint16(b[4:6]),
+		AudioSegmentLength:       audioSegmentLength,
+		FrequenciesSegmentLength: frequenciesSegmentLength,
 		/* Fixed Segment */
 		UnitID:     binary.LittleEndian.Uint32(b[unitIDPtr:packetIDPtr]),
 		PacketID:   binary.LittleEndian.Uint64(b[packetIDPtr:hopsPtr]),
