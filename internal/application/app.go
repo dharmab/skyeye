@@ -128,13 +128,14 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 		Int("modulationID", int(srs.ModulationAM)).
 		Msg("constructing SRS client")
 	srsClient, err := simpleradio.NewClient(srs.ClientConfiguration{
-		Address:                   config.SRSAddress,
-		ConnectionTimeout:         config.SRSConnectionTimeout,
-		ClientName:                config.SRSClientName,
-		ExternalAWACSModePassword: config.SRSExternalAWACSModePassword,
-		Coalition:                 config.Coalition,
-		Radios:                    radios,
-		Mute:                      config.Mute,
+		Address:                      config.SRSAddress,
+		ConnectionTimeout:            config.SRSConnectionTimeout,
+		ClientName:                   config.SRSClientName,
+		ExternalAWACSModePassword:    config.SRSExternalAWACSModePassword,
+		Coalition:                    config.Coalition,
+		Radios:                       radios,
+		Mute:                         config.Mute,
+		SplitTransmissionGracePeriod: config.SRSSplitTransmissionGracePeriod,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct application: %w", err)

@@ -31,57 +31,59 @@ import (
 	"github.com/dharmab/skyeye/pkg/coalitions"
 	"github.com/dharmab/skyeye/pkg/encyclopedia"
 	"github.com/dharmab/skyeye/pkg/locations"
+	"github.com/dharmab/skyeye/pkg/simpleradio"
 	"github.com/dharmab/skyeye/pkg/synthesizer/voices"
 	"github.com/ggerganov/whisper.cpp/bindings/go/pkg/whisper"
 )
 
 // Used for CLI configuration values.
 var (
-	configFile                   string
-	logLevel                     string
-	logFormat                    string
-	enableTranscriptionLogging   bool
-	acmiFile                     string
-	telemetryAddress             string
-	telemetryConnectionTimeout   time.Duration
-	telemetryPassword            string
-	srsAddress                   string
-	srsConnectionTimeout         time.Duration
-	srsExternalAWACSModePassword string
-	srsFrequencies               []string
-	enableGRPC                   bool
-	grpcAddress                  string
-	grpcAPIKey                   string
-	controllerCallsign           string
-	controllerCallsigns          []string
-	coalitionName                string
-	telemetryUpdateInterval      time.Duration
-	recognizerName               string
-	whisperModelPath             string
-	recognizerLockPath           string
-	openAIAPIKey                 string
-	voiceName                    string
-	useSystemVoice               bool
-	mute                         bool
-	voiceSpeed                   float64
-	voiceVolume                  float64
-	voicePauseLength             time.Duration
-	voiceLockPath                string
-	enableAutomaticPicture       bool
-	automaticPictureInterval     time.Duration
-	enableThreatMonitoring       bool
-	threatMonitoringInterval     time.Duration
-	threatMonitoringRequiresSRS  bool
-	mandatoryThreatRadiusNM      float64
-	threatBRAABearingSpreadDeg   float64
-	threatBRAARangeSpreadNM      float64
-	enableTracing                bool
-	discordWebhookID             string
-	discordWebhookToken          string
-	exitAfter                    time.Duration
-	enableTerrainDetection       bool
-	locationsFile                string
-	aircraftFile                 string
+	configFile                      string
+	logLevel                        string
+	logFormat                       string
+	enableTranscriptionLogging      bool
+	acmiFile                        string
+	telemetryAddress                string
+	telemetryConnectionTimeout      time.Duration
+	telemetryPassword               string
+	srsAddress                      string
+	srsConnectionTimeout            time.Duration
+	srsExternalAWACSModePassword    string
+	srsFrequencies                  []string
+	srsSplitTransmissionGracePeriod time.Duration
+	enableGRPC                      bool
+	grpcAddress                     string
+	grpcAPIKey                      string
+	controllerCallsign              string
+	controllerCallsigns             []string
+	coalitionName                   string
+	telemetryUpdateInterval         time.Duration
+	recognizerName                  string
+	whisperModelPath                string
+	recognizerLockPath              string
+	openAIAPIKey                    string
+	voiceName                       string
+	useSystemVoice                  bool
+	mute                            bool
+	voiceSpeed                      float64
+	voiceVolume                     float64
+	voicePauseLength                time.Duration
+	voiceLockPath                   string
+	enableAutomaticPicture          bool
+	automaticPictureInterval        time.Duration
+	enableThreatMonitoring          bool
+	threatMonitoringInterval        time.Duration
+	threatMonitoringRequiresSRS     bool
+	mandatoryThreatRadiusNM         float64
+	threatBRAABearingSpreadDeg      float64
+	threatBRAARangeSpreadNM         float64
+	enableTracing                   bool
+	discordWebhookID                string
+	discordWebhookToken             string
+	exitAfter                       time.Duration
+	enableTerrainDetection          bool
+	locationsFile                   string
+	aircraftFile                    string
 )
 
 const (
@@ -114,6 +116,7 @@ func init() {
 	skyeye.Flags().DurationVar(&srsConnectionTimeout, "srs-connection-timeout", 10*time.Second, "Connection timeout for SRS client")
 	skyeye.Flags().StringVar(&srsExternalAWACSModePassword, "srs-eam-password", "", "SRS external AWACS mode password")
 	skyeye.Flags().StringSliceVar(&srsFrequencies, "srs-frequencies", []string{"251.0AM", "133.0AM", "30.0FM"}, "List of SRS frequencies to use")
+	skyeye.Flags().DurationVar(&srsSplitTransmissionGracePeriod, "srs-split-transmission-grace-period", simpleradio.DefaultSplitTransmissionGracePeriod, "How long to wait for more audio before treating a transmission as finished. Increase this if long transmissions are being split in two on a lossy network")
 
 	// DCS-gRPC
 	skyeye.Flags().BoolVar(&enableGRPC, "enable-grpc", false, "Enable DCS-gRPC features")
@@ -434,49 +437,50 @@ func run(_ *cobra.Command, _ []string) {
 	customAircraft := loadAircraft()
 
 	config := conf.Configuration{
-		ACMIFile:                     acmiFile,
-		TelemetryAddress:             telemetryAddress,
-		TelemetryConnectionTimeout:   telemetryConnectionTimeout,
-		TelemetryClientName:          callsign,
-		TelemetryPassword:            telemetryPassword,
-		SRSAddress:                   srsAddress,
-		SRSConnectionTimeout:         srsConnectionTimeout,
-		SRSClientName:                fmt.Sprintf("GCI %s [BOT]", callsign),
-		SRSExternalAWACSModePassword: srsExternalAWACSModePassword,
-		SRSFrequencies:               parsedSRSFrequencies,
-		EnableTranscriptionLogging:   enableTranscriptionLogging,
-		Callsign:                     callsign,
-		Coalition:                    coalition,
-		RadarSweepInterval:           telemetryUpdateInterval,
-		Recognizer:                   conf.Recognizer(recognizerName),
-		RecognizerLock:               recognizerLock,
-		WhisperModel:                 whisperModel,
-		OpenAIAPIKey:                 openAIAPIKey,
-		Voice:                        voice,
-		UseSystemVoice:               useSystemVoice,
-		VoiceLock:                    voiceLock,
-		Mute:                         mute,
-		VoiceSpeed:                   voiceSpeed,
-		Volume:                       volume,
-		VoicePauseLength:             voicePauseLength,
-		EnableAutomaticPicture:       enableAutomaticPicture,
-		PictureBroadcastInterval:     automaticPictureInterval,
-		EnableThreatMonitoring:       enableThreatMonitoring,
-		ThreatMonitoringInterval:     threatMonitoringInterval,
-		ThreatMonitoringRequiresSRS:  threatMonitoringRequiresSRS,
-		MandatoryThreatRadius:        unit.Length(mandatoryThreatRadiusNM) * unit.NauticalMile,
-		ThreatBRAABearingSpread:      unit.Angle(threatBRAABearingSpreadDeg) * unit.Degree,
-		ThreatBRAARangeSpread:        unit.Length(threatBRAARangeSpreadNM) * unit.NauticalMile,
-		EnableTracing:                enableTracing,
-		DiscordWebhookID:             discordWebhookID,
-		DiscorbWebhookToken:          discordWebhookToken,
-		ExitAfter:                    exitAfter,
-		EnableGRPC:                   enableGRPC,
-		GRPCAddress:                  grpcAddress,
-		GRPCAPIKey:                   grpcAPIKey,
-		EnableTerrainDetection:       enableTerrainDetection,
-		Locations:                    locs,
-		CustomAircraft:               customAircraft,
+		ACMIFile:                        acmiFile,
+		TelemetryAddress:                telemetryAddress,
+		TelemetryConnectionTimeout:      telemetryConnectionTimeout,
+		TelemetryClientName:             callsign,
+		TelemetryPassword:               telemetryPassword,
+		SRSAddress:                      srsAddress,
+		SRSConnectionTimeout:            srsConnectionTimeout,
+		SRSClientName:                   fmt.Sprintf("GCI %s [BOT]", callsign),
+		SRSExternalAWACSModePassword:    srsExternalAWACSModePassword,
+		SRSFrequencies:                  parsedSRSFrequencies,
+		SRSSplitTransmissionGracePeriod: srsSplitTransmissionGracePeriod,
+		EnableTranscriptionLogging:      enableTranscriptionLogging,
+		Callsign:                        callsign,
+		Coalition:                       coalition,
+		RadarSweepInterval:              telemetryUpdateInterval,
+		Recognizer:                      conf.Recognizer(recognizerName),
+		RecognizerLock:                  recognizerLock,
+		WhisperModel:                    whisperModel,
+		OpenAIAPIKey:                    openAIAPIKey,
+		Voice:                           voice,
+		UseSystemVoice:                  useSystemVoice,
+		VoiceLock:                       voiceLock,
+		Mute:                            mute,
+		VoiceSpeed:                      voiceSpeed,
+		Volume:                          volume,
+		VoicePauseLength:                voicePauseLength,
+		EnableAutomaticPicture:          enableAutomaticPicture,
+		PictureBroadcastInterval:        automaticPictureInterval,
+		EnableThreatMonitoring:          enableThreatMonitoring,
+		ThreatMonitoringInterval:        threatMonitoringInterval,
+		ThreatMonitoringRequiresSRS:     threatMonitoringRequiresSRS,
+		MandatoryThreatRadius:           unit.Length(mandatoryThreatRadiusNM) * unit.NauticalMile,
+		ThreatBRAABearingSpread:         unit.Angle(threatBRAABearingSpreadDeg) * unit.Degree,
+		ThreatBRAARangeSpread:           unit.Length(threatBRAARangeSpreadNM) * unit.NauticalMile,
+		EnableTracing:                   enableTracing,
+		DiscordWebhookID:                discordWebhookID,
+		DiscorbWebhookToken:             discordWebhookToken,
+		ExitAfter:                       exitAfter,
+		EnableGRPC:                      enableGRPC,
+		GRPCAddress:                     grpcAddress,
+		GRPCAPIKey:                      grpcAPIKey,
+		EnableTerrainDetection:          enableTerrainDetection,
+		Locations:                       locs,
+		CustomAircraft:                  customAircraft,
 	}
 
 	log.Info().Msg("starting application")

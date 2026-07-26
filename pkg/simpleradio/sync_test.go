@@ -131,3 +131,25 @@ func TestRemoveClient(t *testing.T) {
 	// Removing a peer that was never tracked is harmless.
 	c.removeClient(testPeer("peer000000000000000009", "Ghost", coalitions.Blue, testRadio))
 }
+
+func TestGetPeer(t *testing.T) {
+	t.Parallel()
+	c := newSyncTestClient()
+	peer := testPeer("peer000000000000000001", "Eagle 1", coalitions.Blue, testRadio)
+	c.syncClient(peer)
+
+	info, ok := c.getPeer(peer.GUID)
+	require.True(t, ok)
+	assert.Equal(t, "Eagle 1", info.Name)
+
+	name, ok := c.getPeerName(peer.GUID)
+	require.True(t, ok)
+	assert.Equal(t, "Eagle 1", name)
+
+	_, ok = c.getPeer("unknown00000000000000")
+	assert.False(t, ok)
+
+	name, ok = c.getPeerName("unknown00000000000000")
+	assert.False(t, ok)
+	assert.Empty(t, name)
+}
