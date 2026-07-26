@@ -11,7 +11,7 @@ import (
 )
 
 // ReservedNames are location names that cannot be used as custom location names.
-var ReservedNames = []string{"tanker", "bullseye"}
+var ReservedNames = []string{"tanker", "bullseye"} //nolint:goconst // coincides with parser's unrelated word-alias list
 
 // Location is a named geographic location that can be referenced in VECTOR requests.
 type Location struct {
