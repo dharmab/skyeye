@@ -112,7 +112,8 @@ const (
 	// headerSegmentLength is the length of the header segment in bytes.
 	headerSegmentLength = 6
 	// fixedSegmentLength is the length of the fixed segment in bytes.
-	fixedSegmentLength = 58
+	// UnitID (4) + PacketID (8) + Hops (1) + RelayGUID (22) + OriginGUID (22) = 57.
+	fixedSegmentLength = 57
 	// frequencyLength is the length of a Frequency in bytes.
 	frequencyLength = 10
 )
@@ -166,7 +167,7 @@ func (p *Packet) Encode() []byte {
 	}
 
 	/* Fixed Segment */
-	fixedSegmentPtr := p.PacketLength - fixedSegmentLength + 1
+	fixedSegmentPtr := p.PacketLength - fixedSegmentLength
 	unitIDPtr := fixedSegmentPtr
 	packetIDPtr := unitIDPtr + 4
 	binary.LittleEndian.PutUint32(b[unitIDPtr:packetIDPtr], p.UnitID)

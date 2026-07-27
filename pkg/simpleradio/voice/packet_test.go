@@ -2,6 +2,7 @@ package voice
 
 import (
 	"encoding/binary"
+	"math"
 	"testing"
 
 	"github.com/dharmab/skyeye/pkg/simpleradio/types"
@@ -82,24 +83,66 @@ func TestPacketRoundTrip(t *testing.T) {
 	}
 }
 
-// A packet observed on a live SRS server, to pin the framing against the real protocol rather than
-// only against our own encoder.
+// TestFixedSegmentLengthMatchesFieldWidths pins fixedSegmentLength to the actual on-wire widths of
+// the fixed segment's fields. This is the invariant an earlier off-by-one (58 vs 57) violated: the
+// encoder compensated with a stray +1, so encode/decode round trips still agreed with each other
+// and hid the bug, while real SRS packets (57-byte fixed segment) were rejected.
+func TestFixedSegmentLengthMatchesFieldWidths(t *testing.T) {
+	t.Parallel()
+	const (
+		unitIDLength   = 4
+		packetIDLength = 8
+		hopsLength     = 1
+	)
+	assert.Equal(t, unitIDLength+packetIDLength+hopsLength+types.GUIDLength+types.GUIDLength, fixedSegmentLength)
+}
+
+// TestDecodeMatchesObservedFraming decodes a datagram assembled byte-for-byte against the SRS wire
+// format (DCS-SimpleRadioStandalone UDPVoicePacket), independently of our own Encode. Round-tripping
+// our encoder cannot catch a wrong segment length because Encode and Decode share the same mistake,
+// which is exactly how the 58-vs-57 off-by-one slipped through. Hardcoding the byte layout here
+// gives an independent oracle. The numeric offsets are intentionally literal, not derived from the
+// constants under test.
+//
+//	[0:2]     packet length = 134    [77:81]   UnitID
+//	[2:4]     audio length  = 31     [81:89]   PacketID
+//	[4:6]     freq length   = 40     [89]      Hops
+//	[6:37]    audio (31 bytes)       [90:112]  RelayGUID
+//	[37:77]   frequencies (4×10)     [112:134] OriginGUID
 func TestDecodeMatchesObservedFraming(t *testing.T) {
 	t.Parallel()
-	packet := testPacket(make([]byte, 31), []Frequency{
+	frequencies := []Frequency{
 		{Frequency: 136_000_000},
 		{Frequency: 255_000_000},
 		{Frequency: 281_500_000},
 		{Frequency: 40_000_000, Modulation: 1},
-	})
-	encoded := packet.Encode()
+	}
 
-	require.Len(t, encoded, 135, "header 6 + audio 31 + frequencies 40 + fixed 58")
-	decoded, err := Decode(encoded)
+	b := make([]byte, 134)
+	binary.LittleEndian.PutUint16(b[0:2], 134)
+	binary.LittleEndian.PutUint16(b[2:4], 31)
+	binary.LittleEndian.PutUint16(b[4:6], 40)
+	for i, f := range frequencies {
+		off := 37 + i*10
+		binary.LittleEndian.PutUint64(b[off:off+8], math.Float64bits(f.Frequency))
+		b[off+8] = f.Modulation
+		b[off+9] = f.Encryption
+	}
+	binary.LittleEndian.PutUint32(b[77:81], 100000002)
+	binary.LittleEndian.PutUint64(b[81:89], 3626329)
+	b[89] = 0 // hops
+	copy(b[90:112], []byte(testRelay))
+	copy(b[112:134], []byte(testOrigin))
+
+	decoded, err := Decode(b)
 	require.NoError(t, err)
 	assert.Equal(t, uint16(31), decoded.AudioSegmentLength)
 	assert.Equal(t, uint16(40), decoded.FrequenciesSegmentLength)
-	assert.Len(t, decoded.Frequencies, 4)
+	assert.Equal(t, uint32(100000002), decoded.UnitID)
+	assert.Equal(t, uint64(3626329), decoded.PacketID)
+	assert.Equal(t, testRelay, string(decoded.RelayGUID))
+	assert.Equal(t, testOrigin, string(decoded.OriginGUID))
+	assert.Equal(t, frequencies, decoded.Frequencies)
 }
 
 // Regression: Decode used to trust the length header over the datagram. A corrupt packet whose
