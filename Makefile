@@ -28,7 +28,7 @@ WHISPER_CPP_BUILD_DIR = $(WHISPER_CPP_PATH)/build_go
 LIBWHISPER_PATH = $(WHISPER_CPP_BUILD_DIR)/src/libwhisper.a
 WHISPER_H_PATH = $(WHISPER_CPP_PATH)/include/whisper.h
 WHISPER_CPP_REPO = https://github.com/ggml-org/whisper.cpp.git
-WHISPER_CPP_VERSION = v1.8.6
+WHISPER_CPP_VERSION = v1.9.5
 WHISPER_CPP_CMAKE_ARGS =
 
 # Compiler variables and flags
@@ -56,8 +56,9 @@ BUILD_VARS += CC=$(CC) CXX=$(CXX)
 LIBRARY_PATHS := $(LIBRARY_PATHS):$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src/ggml-metal:$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src/ggml-blas
 # Link OpenMP runtime for ggml-cpu on macOS (Go bindings only specify -fopenmp on Linux)
 BUILD_VARS += CGO_LDFLAGS=-fopenmp
+# whisper.cpp's Metal backend uses std::unique_ptr without including <memory>.
 WHISPER_CPP_CMAKE_ARGS = -DCMAKE_C_COMPILER=$(CC) -DCMAKE_CXX_COMPILER=$(CXX) \
-  -DCMAKE_C_FLAGS=-Wno-elaborated-enum-base -DCMAKE_CXX_FLAGS=-Wno-elaborated-enum-base
+  -DCMAKE_C_FLAGS=-Wno-elaborated-enum-base -DCMAKE_CXX_FLAGS="-Wno-elaborated-enum-base -include memory"
 endif
 
 # Windows-specific settings
