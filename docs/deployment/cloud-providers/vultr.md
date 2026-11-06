@@ -14,7 +14,7 @@ See [the admin guide](../../ADMIN.md#getting-help) for how to get help if you ha
 
 Install DCS on a Windows computer (either the client for singleplayer/hosted multiplayer use, or a dedicated server for multiplayer use).
 
-Install the TacView Exporter on the DCS machine. Within DCS, go to OPTIONS → SPECIAL → Tacview and enable Real-Time Telemetry.  (See https://www.tacview.net/documentation/dcs/en/)
+Install the TacView Exporter on the DCS machine. Within DCS, go to OPTIONS → SPECIAL → Tacview and enable Real-Time Telemetry. (See https://www.tacview.net/documentation/dcs/en/)
 
 Install SRS on a Windows computer. Start and configure the SRS Server. Ensure EAM mode is enabled and an EAM password is set.
 
@@ -56,7 +56,7 @@ If the configuration was correct, SkyEye should connect to your SRS server withi
 
 ## Reducing the Bill
 
-You pay for the SkyEye server on an hourly basis. You can delete the server when you're not playing DCS to reduce your bill. Note that it's not enough to power off the server; you must delete it. 
+You pay for the SkyEye server on an hourly basis. You can delete the server when you're not playing DCS to reduce your bill. Note that it's not enough to power off the server; you must delete it.
 
 You can recreate the server at any time by following the steps above; if you saved the customized `cloud-config.yaml` file, you can recreate the server in a few minutes.
 

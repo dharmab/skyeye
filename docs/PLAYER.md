@@ -12,15 +12,15 @@
 
 ### ⚠️ If the bot doesn't seem to respond to you
 
-* Double check you're saying "Anyface" or the GCI callsign at the start of your message. This is a surprisingly common mistake that players often don't realize they are making!
-* Ask another player for a radio check to ensure you are clearly audible.
+- Double check you're saying "Anyface" or the GCI callsign at the start of your message. This is a surprisingly common mistake that players often don't realize they are making!
+- Ask another player for a radio check to ensure you are clearly audible.
 
 ### ⚠️ If the bot responds but doesn't seem to see you on scope
 
-* Double check that your in-game name matches the callsign you are providing to the bot.
-* If you joined shortly after the mission started, try returning to spectators and re-slotting, or disconnecting and reconnecting. It seems that joining a mission too soon may sometimes make you invisible in TacView.
-* If you haven't moved your aircraft for a few minutes, try again after moving slightly. Sometimes TacView stops sending position updates for a stationary object to reduce bandwidth usage, and the bot may not consider you to be visible as a result.
-* If your aircraft took slight damage at some point, try returning to spectators and re-slotting. You may have become invisible due to the game marking your plane as destroyed.
+- Double check that your in-game name matches the callsign you are providing to the bot.
+- If you joined shortly after the mission started, try returning to spectators and re-slotting, or disconnecting and reconnecting. It seems that joining a mission too soon may sometimes make you invisible in TacView.
+- If you haven't moved your aircraft for a few minutes, try again after moving slightly. Sometimes TacView stops sending position updates for a stationary object to reduce bandwidth usage, and the bot may not consider you to be visible as a result.
+- If your aircraft took slight damage at some point, try returning to spectators and re-slotting. You may have become invisible due to the game marking your plane as destroyed.
 
 ## A Word of Warning
 
@@ -47,7 +47,7 @@ That is:
 1. A two or three syllable English word.
 2. One to three digits.
 3. A pipe character (`|`)
-3. Your non-callsign username.
+4. Your non-callsign username.
 
 Your callsign should be unique within a server. If multiple players have the same callsign, SkyEye will respond but you may receive inconsistent information. Note that callsigns are normalized in capitalization, numbers, and separation - "WARDOG 14", "Wardog 14", "wardog14" and "Wardog 1 4" are all considered to be the same callsign.
 
@@ -57,13 +57,13 @@ If your name contains any content within brackets `[]`, that content is ignored.
 
 Avoid:
 
-* Names that contain or are similar to brevity codewords, including "alpha", "radio", "comm", "bogey", "picture", "declare", "snaplock", "spiked", "bullseye". For example, "Spade" can be difficult to distinguish from "SPIKE"
-* Names that are hard to distinguish, like "Spare"/"Spear", "Jester"/"Gesture", "Witch"/"Which". The bot will make a best effort, but may be less accurate.
-* Names that sound similar to numbers. For example, "Knight" sounds similar to "Nine", "Fort" sounds like "Four"
-* Names that aren't widely recognized words in common parlance, like "Razgriz" or "Beskar". The bot will make a best effort, but may be less accurate.
-* Names without the 1-3 digits. The bot will make a best effort, but the digits make a very large difference in error correction! Each digit added to a callsign is equivalent to 2-3 letters in terms of improved accuracy.
-* Callsigns that are very short. If your callsign is only 2-3 characters, a single misheard letter will be an uncorrectable error. The two to three syllable rule of thumb tends to result in callsigns that are correctable when misheard.
-* Names in poor taste.
+- Names that contain or are similar to brevity codewords, including "alpha", "radio", "comm", "bogey", "picture", "declare", "snaplock", "spiked", "bullseye". For example, "Spade" can be difficult to distinguish from "SPIKE"
+- Names that are hard to distinguish, like "Spare"/"Spear", "Jester"/"Gesture", "Witch"/"Which". The bot will make a best effort, but may be less accurate.
+- Names that sound similar to numbers. For example, "Knight" sounds similar to "Nine", "Fort" sounds like "Four"
+- Names that aren't widely recognized words in common parlance, like "Razgriz" or "Beskar". The bot will make a best effort, but may be less accurate.
+- Names without the 1-3 digits. The bot will make a best effort, but the digits make a very large difference in error correction! Each digit added to a callsign is equivalent to 2-3 letters in terms of improved accuracy.
+- Callsigns that are very short. If your callsign is only 2-3 characters, a single misheard letter will be an uncorrectable error. The two to three syllable rule of thumb tends to result in callsigns that are correctable when misheard.
+- Names in poor taste.
 
 If your callsign doesn't follow this format, SkyEye makes a best effort to understand it while still applying its parser rules. A bare username like "Jeff" (with no numbers) may still work, but do not expect this to work reliably.
 
@@ -76,7 +76,7 @@ Strict callsigns are callsigns that meet the following criteria:
 1. An English word.
 2. **Exactly two digits.**
 3. A pipe character (`|`)
-3. Your non-callsign username.
+4. Your non-callsign username.
 
 SkyEye makes a best effort to combine broadcast calls for strict callsigns into flights and elements, as appropriate for the current situation. For example, instead of saying:
 
@@ -119,19 +119,19 @@ Example: "Anyface, Mobius One, Alpha Check" and "Anyface, Mobius One, good morni
 
 Some types of requests require you to provide numeric arguments.
 
-* Compass bearings must be given by speaking all three digits individually. Say "Zero Six Five", not "Six Five" or "Sixty-Five."
-* All other numbers should be given normally - "Seventeen", not "One Seven"
-* Do not use ICAO pronunciation; pronounce numbers normally. Say "Three", "Five", "Nine", not "Tree", "Fife", "Niner".
-* When providing bullseye coordinates, you may either say "bullseye" before the coordinates, or omit the word "bullseye". That is, both "Bullseye Zero Six Five, Ninety-Nine" and "Zero Six Five, Ninety-Nine" are acceptable.
-* When providing bullseye coordinates, speak at a steady and measured pace with a slight pause between each number. Not too fast, not too slow. Don't mush your numbers together.
-* If the bot has trouble understanding your bullseye coordinates, you may use the separators "at" or "altitude" between the range and altitude. That is "Bullseye Zero Six Five, Ninety-Nine, at Twelve Thousand"
+- Compass bearings must be given by speaking all three digits individually. Say "Zero Six Five", not "Six Five" or "Sixty-Five."
+- All other numbers should be given normally - "Seventeen", not "One Seven"
+- Do not use ICAO pronunciation; pronounce numbers normally. Say "Three", "Five", "Nine", not "Tree", "Fife", "Niner".
+- When providing bullseye coordinates, you may either say "bullseye" before the coordinates, or omit the word "bullseye". That is, both "Bullseye Zero Six Five, Ninety-Nine" and "Zero Six Five, Ninety-Nine" are acceptable.
+- When providing bullseye coordinates, speak at a steady and measured pace with a slight pause between each number. Not too fast, not too slow. Don't mush your numbers together.
+- If the bot has trouble understanding your bullseye coordinates, you may use the separators "at" or "altitude" between the range and altitude. That is "Bullseye Zero Six Five, Ninety-Nine, at Twelve Thousand"
 
 Tips:
 
-* Think about what you want to say before you say it.
-* Speak clearly at a measured pace, as if you were recording a vlog or talking to colleagues in a meeting room. Speaking too quickly or excessively slowly can confuse the bot.
-* If you misspeak, release your Push-to-Talk key and start over rather than trying to correct yourself.
-* Avoid excessive chatter on SkyEye frequencies. This may delay responses to actual requests.
+- Think about what you want to say before you say it.
+- Speak clearly at a measured pace, as if you were recording a vlog or talking to colleagues in a meeting room. Speaking too quickly or excessively slowly can confuse the bot.
+- If you misspeak, release your Push-to-Talk key and start over rather than trying to correct yourself.
+- Avoid excessive chatter on SkyEye frequencies. This may delay responses to actual requests.
 
 ## Available Requests
 
@@ -162,7 +162,7 @@ GOLIATH: "Yellow One Three, loud and clear"
 
 Tips:
 
-* Note that if your aircraft is still sitting on the ramp, you may not be visible on the radar scope yet.
+- Note that if your aircraft is still sitting on the ramp, you may not be visible on the radar scope yet.
 
 ### ALPHA CHECK
 
@@ -211,7 +211,6 @@ WARDOG 14: "Magic, Wardog One Four, vector to tanker"
 MAGIC: "Wardog One Four, nearest tanker, Shell One One, BRA 099/75, 22000, track east"
 ```
 
-
 ### BOGEY DOPE
 
 Keyword: `BOGEY`
@@ -243,9 +242,9 @@ GOLIATH: "Yellow One Three, group BRAA 188/45, 8000, hot, hostile, Eagle"
 
 Tips:
 
-* Make this request repeatedly during a BVR timeline to build and maintain situational awareness.
-* Note: Specific filters such as "MiG-29" or "Flanker" do **not** work. You can only filter to airplanes or helicopters.
-* If you are a fixed-wing aircraft, hostile fixed-wing aircraft are prioritized over hostile helicopters, regardless of range.
+- Make this request repeatedly during a BVR timeline to build and maintain situational awareness.
+- Note: Specific filters such as "MiG-29" or "Flanker" do **not** work. You can only filter to airplanes or helicopters.
+- If you are a fixed-wing aircraft, hostile fixed-wing aircraft are prioritized over hostile helicopters, regardless of range.
 
 ### DECLARE
 
@@ -282,7 +281,7 @@ DISCO: Eagle One Two, group bullseye 072/52, 8000, track north, hostile, Flogger
 
 Tips:
 
-* You **must** provide either bullseye or BRAA coordinates. Due to limitations within DCS, the bot cannot receive your locked/bugged target via datalink.
+- You **must** provide either bullseye or BRAA coordinates. Due to limitations within DCS, the bot cannot receive your locked/bugged target via datalink.
 
 ### PICTURE
 
@@ -310,9 +309,9 @@ GALAXY: "Galaxy, 6 groups. Group bullseye 211/27, 18000, track northwest, hostil
 
 Tips:
 
-* Repeat this call at regular intervals to maintain situational awareness.
-* Air combat is highly complex and the threat ranking algorithm is imperfect. The GCI might omit a highly dangerous adversary from the response. Exercise caution!
-* Be considerate of your allies on the channel. The response contains a great deal of useful information, but can occupy the channel for 20-30 seconds.
+- Repeat this call at regular intervals to maintain situational awareness.
+- Air combat is highly complex and the threat ranking algorithm is imperfect. The GCI might omit a highly dangerous adversary from the response. Exercise caution!
+- Be considerate of your allies on the channel. The response contains a great deal of useful information, but can occupy the channel for 20-30 seconds.
 
 ### SNAPLOCK
 
@@ -371,7 +370,7 @@ GOLIATH: "Yellow One Three, Goliath clean 360."
 
 Tips:
 
-* The accuracy of this call is imperfect. The information you receive is a best effort guess. The GCI may misidentify the actual source of the radar signal.
+- The accuracy of this call is imperfect. The information you receive is a best effort guess. The GCI may misidentify the actual source of the radar signal.
 
 ## Broadcast Calls
 

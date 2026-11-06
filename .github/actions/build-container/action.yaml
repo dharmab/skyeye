@@ -2,29 +2,29 @@ name: Setup
 description: Build and push Docker image
 inputs:
   registry:
-    description: 'The container registry to push the image to'
+    description: "The container registry to push the image to"
     required: true
-    default: 'ghcr.io'
+    default: "ghcr.io"
   registry-username:
-    description: 'The username to use to log in to the container registry'
+    description: "The username to use to log in to the container registry"
     required: true
   registry-password:
-    description: 'The password to use to log in to the container registry'
+    description: "The password to use to log in to the container registry"
     required: true
   image-name:
-    description: 'The name of the image to push'
+    description: "The name of the image to push"
     required: true
     default: ${{ github.repository }}
   target:
-    description: 'Image build stage to target'
+    description: "Image build stage to target"
     required: true
   skyeye-version:
-    description: 'Version to use in build args'
+    description: "Version to use in build args"
     required: true
   tag-suffix:
-    description: 'Suffix appended to image tags (e.g. -vulkan)'
+    description: "Suffix appended to image tags (e.g. -vulkan)"
     required: false
-    default: ''
+    default: ""
 runs:
   using: composite
   steps:

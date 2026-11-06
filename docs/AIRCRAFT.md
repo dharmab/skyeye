@@ -15,18 +15,18 @@ in the `aircraft-file` setting in SkyEye's configuration.
 
 Each entry supports the following properties:
 
-| Property | Required | Description |
-| --- | --- | --- |
-| `acmi_short_name` | Yes | The aircraft's `ShortName` in [Tacview/ACMI telemetry](https://raia-software-inc.gitbook.io/tacview/technical-documentation/acmi-telemetry-file-format). It must match exactly, including case and punctuation. |
-| `tags` | Yes | A list of tags describing the aircraft. See [Tags](#tags). |
-| `nato_reporting_name` | No | The NATO reporting name, e.g. `Flanker`, `Fulcrum`. Not all aircraft have one. |
-| `nickname` | No | A common nickname, e.g. `Warthog`, `Viper`, `Scooter`. Not all aircraft have one. |
-| `official_name` | No | The official name, e.g. `Thunderbolt II`, `Fighting Falcon`, `Skyhawk`. Not all aircraft have one. |
-| `platform_designation` | No | The platform designation, e.g. `A-10`, `F-16`, `A-4`. |
-| `type_designation` | No | The specific type designation, e.g. `A-10C`, `F-16C`, `A-4E`. |
-| `threat_radius_nm` | No | The threat radius in nautical miles. See [Threat radius](#threat-radius). |
-| `fuel_provider` | No | The refueling method this aircraft provides as a tanker. See [Refueling](#refueling). |
-| `fuel_receiver` | No | The refueling method this aircraft requires to take fuel. See [Refueling](#refueling). |
+| Property               | Required | Description                                                                                                                                                                                                     |
+| ---------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `acmi_short_name`      | Yes      | The aircraft's `ShortName` in [Tacview/ACMI telemetry](https://raia-software-inc.gitbook.io/tacview/technical-documentation/acmi-telemetry-file-format). It must match exactly, including case and punctuation. |
+| `tags`                 | Yes      | A list of tags describing the aircraft. See [Tags](#tags).                                                                                                                                                      |
+| `nato_reporting_name`  | No       | The NATO reporting name, e.g. `Flanker`, `Fulcrum`. Not all aircraft have one.                                                                                                                                  |
+| `nickname`             | No       | A common nickname, e.g. `Warthog`, `Viper`, `Scooter`. Not all aircraft have one.                                                                                                                               |
+| `official_name`        | No       | The official name, e.g. `Thunderbolt II`, `Fighting Falcon`, `Skyhawk`. Not all aircraft have one.                                                                                                              |
+| `platform_designation` | No       | The platform designation, e.g. `A-10`, `F-16`, `A-4`.                                                                                                                                                           |
+| `type_designation`     | No       | The specific type designation, e.g. `A-10C`, `F-16C`, `A-4E`.                                                                                                                                                   |
+| `threat_radius_nm`     | No       | The threat radius in nautical miles. See [Threat radius](#threat-radius).                                                                                                                                       |
+| `fuel_provider`        | No       | The refueling method this aircraft provides as a tanker. See [Refueling](#refueling).                                                                                                                           |
+| `fuel_receiver`        | No       | The refueling method this aircraft requires to take fuel. See [Refueling](#refueling).                                                                                                                          |
 
 ### Reporting Name
 
@@ -88,12 +88,11 @@ replaces the built-in one. This lets you customize the data for an aircraft that
 The example below adds the A-4 Skyhawk community mod. It is an attack aircraft that uses
 probe-and-drogue refueling, and its ACMI short name is `A-4E-C`.
 
-
 ```yaml
 - acmi_short_name: A-4E-C
   tags:
-  - fixed-wing
-  - attack
+    - fixed-wing
+    - attack
   platform_designation: A-4
   type_designation: A-4E
   official_name: Skyhawk

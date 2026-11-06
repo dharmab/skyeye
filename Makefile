@@ -1,4 +1,6 @@
 GO = go
+BUN ?= bun
+
 
 # Detect CPU architecture
 ifeq ($(shell uname -m),arm64)
@@ -190,6 +192,8 @@ install-fedora-dependencies:
 .PHONY: install-macos-dependencies
 install-macos-dependencies:
 	xcode-select --install || true
+	brew tap oven-sh/bun
+	brew trust --formula oven-sh/bun/bun
 	brew install \
 	  git \
 	  cmake \
@@ -197,7 +201,9 @@ install-macos-dependencies:
 	  pkg-config \
 	  go \
 	  libsoxr \
-	  opus
+	  opus \
+	  oven-sh/bun/bun
+
 
 .PHONY: download-whisper-%
 download-whisper-%:
@@ -269,7 +275,17 @@ fix: generate
 
 .PHONY: format
 format:
-	find . -name '*.go' -exec gofmt -s -w {} ';'
+	find . -path './third_party' -prune -o -name '*.go' -exec gofmt -s -w {} +
+	$(BUN) fmt
+
+.PHONY: check-format
+check-format:
+	@unformatted="$$(find . -path './third_party' -prune -o -name '*.go' -exec gofmt -s -l {} +)"; \
+	  if [ -n "$$unformatted" ]; then \
+	    printf '%s\n' "$$unformatted"; \
+	    echo 'Go files need formatting. Run make format.'; exit 1; \
+	  fi
+	$(BUN) fmt --check
 
 .PHONY: mostlyclean
 mostlyclean:

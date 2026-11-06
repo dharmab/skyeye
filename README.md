@@ -26,10 +26,10 @@ As of late 2025, SkyEye is currently **maintained but not actively developed**. 
 
 ## Getting Started
 
-* Players: See [the user guide](docs/PLAYER.md) for instructions on using the bot.
-* Server admins: See [the admin guide](docs/ADMIN.md) for a technical guide on deploying the bot.
-* Developers: See [the contributing guide](docs/CONTRIBUTING.md) for instructions on building, running and modifying the bot.
-* Please also see [the privacy statement](docs/PRIVACY.md) to understand how SkyEye uses your voice and gameplay data to function.
+- Players: See [the user guide](docs/PLAYER.md) for instructions on using the bot.
+- Server admins: See [the admin guide](docs/ADMIN.md) for a technical guide on deploying the bot.
+- Developers: See [the contributing guide](docs/CONTRIBUTING.md) for instructions on building, running and modifying the bot.
+- Please also see [the privacy statement](docs/PRIVACY.md) to understand how SkyEye uses your voice and gameplay data to function.
 
 ## Demonstration
 
@@ -78,9 +78,9 @@ There are a few different ways to run SkyEye.
 
 Generally, local speech recognition requires one of:
 
-* Any Apple Silicon Mac, such as a Mac Mini or MacBook Air/Pro.
-* A Windows or Linux computer with a GPU.
-* A Windows or Linux computer with a fast quad-core CPU from the last 2-3 CPU generations.
+- Any Apple Silicon Mac, such as a Mac Mini or MacBook Air/Pro.
+- A Windows or Linux computer with a GPU.
+- A Windows or Linux computer with a fast quad-core CPU from the last 2-3 CPU generations.
 
 Cloud speech recognition requirements are quite modest.
 
@@ -130,7 +130,7 @@ I have no plans to attempt an ATC bot due to limitations within DCS.
 
 AI aircraft in DCS cannot be directly commanded through scripting or external software and are incapable of safely operating in controlled airspace. For example, AI aircraft in DCS do not sequence for landing, and will only begin an approach if the entire approach and runway are clear. AI aircraft also cannot execute a hold or a missed approach, and they make no effort to maintain separation from other aircraft.
 
-While working on this software I spoke to a number of people who thought it would be as easy as feeding a bunch of PDFs to an LLM and it would magically become a capable Air Traffic Controller. This could not be further from the truth! 
+While working on this software I spoke to a number of people who thought it would be as easy as feeding a bunch of PDFs to an LLM and it would magically become a capable Air Traffic Controller. This could not be further from the truth!
 
 See this post from [Enhanced Radar](https://www.enhancedradar.com/) on the challenges of building AI for ATC: [link](https://news.ycombinator.com/item?id=43257323)
 
@@ -168,39 +168,39 @@ SkyEye is open source software. If you want a feature that I don't want to maint
 
 SkyEye would not be possible without these people and projects, for whom I am deeply appreciative:
 
-* [DCS-SRS](https://github.com/ciribob/DCS-SimpleRadioStandalone) by @ciribob. Ciribob also patiently answered many of my questions on SRS internals and provided helpful debugging tips whenever I ran into a block in the SRS integration.
-* [Tacview](https://www.tacview.net/) - specifically, [ACMI real time telemetry](https://www.tacview.net/documentation/realtime/en/) - provides the data feed from DCS World.
-* @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against SkyEye during early development, and Jones himself was also patient with my questions on Discord.
-* OpenAI's [Whisper](https://github.com/openai/whisper) provides speech-to-text. @ggerganov's [ggml](https://github.com/ggml-org/ggml) and [whisper.cpp](https://github.com/ggerganov/whisper.cpp) allows Whisper to be used locally without requiring cloud services or complex external software.
-* @rodaine's [numwords](https://github.com/rodaine/numwords) module is invaluable for parsing numeric quantities from voice input.
-* [Piper](https://github.com/rhasspy/piper) by the [Rhasspy](https://rhasspy.readthedocs.io/en/latest/) voice assistant project is used for speech-to-text on Windows and Linux.
-* The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for SkyEye on Windows and Linux.
-* @popey's dataset provides the masculine voice for SkyEye on Windows and Linux.
-* @amitybell's [embedded Piper module](https://github.com/amitybell/piper) makes distribution and implementation of Piper a breeze. @nabbl improved this module.
-* Apple's [Speech Synthesis Manager](https://developer.apple.com/documentation/applicationservices/speech_synthesis_manager) is used for text-to-speech on macOS.
-* @mattetti's [go-audio project](https://github.com/go-audio) is used for decoding AIFF audio.
-* The [Opus codec](https://opus-codec.org) and the [`hraban/opus`](https://github.com/hraban/opus) module provides audio compression for the SRS protocol.
-* @hbollon's [go-edlib](https://github.com/hbollon/go-edlib) module provides algorithms to help SkyEye understand when it slightly mishears/the user slightly misspeaks a callsign or command over the radio.
-* @lithammer's [shortuuid](https://github.com/lithammer/shortuuid) module provides a GUID implementation compatible with the SRS protocols.
-* @zaf's [resample](https://github.com/zaf/resample) module helps with audio format conversion between Piper and SRS.
-* @martinlindhe's [unit](https://github.com/martinlindhe/unit) module provides easy angular, length, speed and frequency unit conversion.
-* @paulmach's [orb](https://github.com/paulmach/orb) module provides a simple, flexible GIS library for analyzing the geometric relationships between aircraft.
-* @proway's [go-igrf](https://github.com/proway2/go-igrf) module implements the [International Geomagnetic Reference Field](https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html) used to correct for magnetic declination.
-* @rsc and @jba's [omap](https://github.com/jba/omap) module provides a data structure used as part of SkyEye's algorithm for combining player callsigns.
-* [Cobra](https://cobra.dev) is used for the CLI frontend, including configuration flags, help and examples. [Viper](https://github.com/spf13/viper) is used to load configuration from a file/environment variables.
-* [MSYS2](https://www.msys2.org/) provides a Windows build environment.
-* @bwmarrin's [discordgo](https://github.com/bwmarrin/discordgo) module provides the Discord tracing integration.
-* @pasztorpisti's [go-crc](https://github.com/pasztorpisti/go-crc) module provides algorithms for negotiating handshakes with TacView telemetry sources.
-* [Oto](https://github.com/ebitengine/oto) was helpful for debugging audio format conversion problems.
-* [zerolog](https://github.com/rs/zerolog) is helpful for general logging and printf debugging.
-* [testify](https://github.com/stretchr/testify) is used in unit tests.
-* [flock](https://github.com/gofrs/flock), maintained by [the Gofrs](https://github.com/gofrs), provides optional concurrency controls for running multiple instances of SkyEye on a single CPU.
-* Multiple DCS communities provide invaluable feedback and morale-booster energy:
-  * [Team Lima Kilo](https://github.com/team-limakilo/) and the Flashpoint Levant community
-  * The Hoggit Discord server
-  * [Digital Controllers](https://digital-controllers.com/)
-  * [1VSC](https://1stvsc.com/wing/)
-  * [CVW8](https://virtualcvw8.com/)
-  * @Frosty-nee
-* The _Ace Combat_ series by PROJECT ACES/Bandai Namco and _Project Wingman_ by Sector D2 are _massive_ influences on my interest in GCI/AWACS, and aviation in general. This project would not exist without the impact of _Ace Combat 04: Shattered Skies_.
-* And of course, [_DCS World_](https://www.digitalcombatsimulator.com/en/) is produced by Eagle Dynamics.
+- [DCS-SRS](https://github.com/ciribob/DCS-SimpleRadioStandalone) by @ciribob. Ciribob also patiently answered many of my questions on SRS internals and provided helpful debugging tips whenever I ran into a block in the SRS integration.
+- [Tacview](https://www.tacview.net/) - specifically, [ACMI real time telemetry](https://www.tacview.net/documentation/realtime/en/) - provides the data feed from DCS World.
+- @rurounijones's [OverlordBot](https://gitlab.com/overlordbot) was a useful reference against SkyEye during early development, and Jones himself was also patient with my questions on Discord.
+- OpenAI's [Whisper](https://github.com/openai/whisper) provides speech-to-text. @ggerganov's [ggml](https://github.com/ggml-org/ggml) and [whisper.cpp](https://github.com/ggerganov/whisper.cpp) allows Whisper to be used locally without requiring cloud services or complex external software.
+- @rodaine's [numwords](https://github.com/rodaine/numwords) module is invaluable for parsing numeric quantities from voice input.
+- [Piper](https://github.com/rhasspy/piper) by the [Rhasspy](https://rhasspy.readthedocs.io/en/latest/) voice assistant project is used for speech-to-text on Windows and Linux.
+- The [Jenny dataset by Dioco](https://github.com/dioco-group/jenny-tts-dataset) provides the feminine voice for SkyEye on Windows and Linux.
+- @popey's dataset provides the masculine voice for SkyEye on Windows and Linux.
+- @amitybell's [embedded Piper module](https://github.com/amitybell/piper) makes distribution and implementation of Piper a breeze. @nabbl improved this module.
+- Apple's [Speech Synthesis Manager](https://developer.apple.com/documentation/applicationservices/speech_synthesis_manager) is used for text-to-speech on macOS.
+- @mattetti's [go-audio project](https://github.com/go-audio) is used for decoding AIFF audio.
+- The [Opus codec](https://opus-codec.org) and the [`hraban/opus`](https://github.com/hraban/opus) module provides audio compression for the SRS protocol.
+- @hbollon's [go-edlib](https://github.com/hbollon/go-edlib) module provides algorithms to help SkyEye understand when it slightly mishears/the user slightly misspeaks a callsign or command over the radio.
+- @lithammer's [shortuuid](https://github.com/lithammer/shortuuid) module provides a GUID implementation compatible with the SRS protocols.
+- @zaf's [resample](https://github.com/zaf/resample) module helps with audio format conversion between Piper and SRS.
+- @martinlindhe's [unit](https://github.com/martinlindhe/unit) module provides easy angular, length, speed and frequency unit conversion.
+- @paulmach's [orb](https://github.com/paulmach/orb) module provides a simple, flexible GIS library for analyzing the geometric relationships between aircraft.
+- @proway's [go-igrf](https://github.com/proway2/go-igrf) module implements the [International Geomagnetic Reference Field](https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html) used to correct for magnetic declination.
+- @rsc and @jba's [omap](https://github.com/jba/omap) module provides a data structure used as part of SkyEye's algorithm for combining player callsigns.
+- [Cobra](https://cobra.dev) is used for the CLI frontend, including configuration flags, help and examples. [Viper](https://github.com/spf13/viper) is used to load configuration from a file/environment variables.
+- [MSYS2](https://www.msys2.org/) provides a Windows build environment.
+- @bwmarrin's [discordgo](https://github.com/bwmarrin/discordgo) module provides the Discord tracing integration.
+- @pasztorpisti's [go-crc](https://github.com/pasztorpisti/go-crc) module provides algorithms for negotiating handshakes with TacView telemetry sources.
+- [Oto](https://github.com/ebitengine/oto) was helpful for debugging audio format conversion problems.
+- [zerolog](https://github.com/rs/zerolog) is helpful for general logging and printf debugging.
+- [testify](https://github.com/stretchr/testify) is used in unit tests.
+- [flock](https://github.com/gofrs/flock), maintained by [the Gofrs](https://github.com/gofrs), provides optional concurrency controls for running multiple instances of SkyEye on a single CPU.
+- Multiple DCS communities provide invaluable feedback and morale-booster energy:
+  - [Team Lima Kilo](https://github.com/team-limakilo/) and the Flashpoint Levant community
+  - The Hoggit Discord server
+  - [Digital Controllers](https://digital-controllers.com/)
+  - [1VSC](https://1stvsc.com/wing/)
+  - [CVW8](https://virtualcvw8.com/)
+  - @Frosty-nee
+- The _Ace Combat_ series by PROJECT ACES/Bandai Namco and _Project Wingman_ by Sector D2 are _massive_ influences on my interest in GCI/AWACS, and aviation in general. This project would not exist without the impact of _Ace Combat 04: Shattered Skies_.
+- And of course, [_DCS World_](https://www.digitalcombatsimulator.com/en/) is produced by Eagle Dynamics.

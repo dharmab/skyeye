@@ -20,6 +20,12 @@ jobs:
         uses: ./.github/actions/setup
       - name: Build whisper.cpp
         uses: ./.github/actions/build-whisper
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+      - name: Check formatting
+        run: make check-format
       - name: Lint
         run: |
           make lint

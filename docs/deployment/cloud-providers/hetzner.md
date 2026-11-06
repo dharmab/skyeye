@@ -14,7 +14,7 @@ See [the admin guide](../../ADMIN.md#getting-help) for how to get help if you ha
 
 Install DCS on a Windows computer (either the client for singleplayer/hosted multiplayer use, or a dedicated server for multiplayer use).
 
-Install the TacView Exporter on the DCS machine. Within DCS, go to OPTIONS → SPECIAL → Tacview and enable Real-Time Telemetry.  (See https://www.tacview.net/documentation/dcs/en/)
+Install the TacView Exporter on the DCS machine. Within DCS, go to OPTIONS → SPECIAL → Tacview and enable Real-Time Telemetry. (See https://www.tacview.net/documentation/dcs/en/)
 
 Install SRS on a Windows computer. Start and configure the SRS Server. Ensure EAM mode is enabled and an EAM password is set.
 
@@ -32,20 +32,20 @@ Create the following rules:
 
 `INBOUND`
 
-|Description|Protocol|Port|Port Range|Comment
-|-|-|-|-|-|
-|SSH|TCP|22|||
-|ICMP|ICMP||||
+| Description | Protocol | Port | Port Range | Comment |
+| ----------- | -------- | ---- | ---------- | ------- |
+| SSH         | TCP      | 22   |            |         |
+| ICMP        | ICMP     |      |            |         |
 
 `OUTBOUND`
 
-|Description|Protocol|Port|Port Range|Comment
-|-|-|-|-|-|
-|SimpleRadio-Standalone Data|TCP|5002||Change if you use a non-standard SRS port.|
-|SimpleRadio-Standalone Audio|TCP|5002||Change if you use a non-standard SRS port.|
-|TacView Real-Time Telemetry|TCP|42674||Change if you use a non-standard TacView port.|
-|HTTPS|TCP|443|||
-|NTP|UDP|123|||
+| Description                  | Protocol | Port  | Port Range | Comment                                        |
+| ---------------------------- | -------- | ----- | ---------- | ---------------------------------------------- |
+| SimpleRadio-Standalone Data  | TCP      | 5002  |            | Change if you use a non-standard SRS port.     |
+| SimpleRadio-Standalone Audio | TCP      | 5002  |            | Change if you use a non-standard SRS port.     |
+| TacView Real-Time Telemetry  | TCP      | 42674 |            | Change if you use a non-standard TacView port. |
+| HTTPS                        | TCP      | 443   |            |                                                |
+| NTP                          | UDP      | 123   |            |                                                |
 
 Under "Apply to", select "Select Resource", then "Label". Type the new label "skyeye" into the box and click "Add Label Selection".
 
@@ -95,13 +95,13 @@ Copy the entire contents of the customized `cloud-config.yaml` file and paste it
 
 Set "Name" to something descriptive, like "skyeye-<dcs-server-name>".
 
-Click "Create & Buy Now". 
+Click "Create & Buy Now".
 
 If the configuration was correct, SkyEye should connect to your SRS server within a few minutes and announce itself with a SUNRISE broadcast. If you're comfortable with Linux, SSH into the server and check the service and logs with `systemctl status skyeye` and `journalctl -u skyeye` for any weird warnings or errors. Try some basic SkyEye commands such as a [RADIO CHECK](../../PLAYER.md#radio-check) and a [PICTURE](../../PLAYER.md#picture). Make sure the results you hear match what you see in the DCS F10 map.
 
 ## Reducing the Bill
 
-You pay for the SkyEye server on an hourly basis. You can delete the server when you're not playing DCS to reduce your bill. Note that it's not enough to power off the server; you must delete it. 
+You pay for the SkyEye server on an hourly basis. You can delete the server when you're not playing DCS to reduce your bill. Note that it's not enough to power off the server; you must delete it.
 
 You can recreate the server at any time by following the steps above; if you saved the customized `cloud-config.yaml` file, you can recreate the server in a few clicks.
 
