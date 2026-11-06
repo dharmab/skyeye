@@ -19,12 +19,12 @@ func (s Stack) String() string {
 }
 
 // Stacks creates altitude STACKS from altitudes.
-func Stacks(a ...unit.Length) []Stack {
-	for i, alt := range a {
-		a[i] = spatial.NormalizeAltitude(alt)
+func Stacks(altitudes ...unit.Length) []Stack {
+	for i, alt := range altitudes {
+		altitudes[i] = spatial.NormalizeAltitude(alt)
 	}
 	// reverse sort
-	slices.SortFunc(a, func(i, j unit.Length) int {
+	slices.SortFunc(altitudes, func(i, j unit.Length) int {
 		if i < j {
 			return -1
 		}
@@ -35,17 +35,17 @@ func Stacks(a ...unit.Length) []Stack {
 	})
 
 	stacks := []Stack{}
-	for i := len(a) - 1; i >= 0; i-- {
-		if a[i] == 0 {
+	for _, altitude := range slices.Backward(altitudes) {
+		if altitude == 0 {
 			continue
 		}
 		if len(stacks) == 0 {
-			stacks = append(stacks, Stack{Altitude: a[i], Count: 1})
+			stacks = append(stacks, Stack{Altitude: altitude, Count: 1})
 		} else {
 			j := len(stacks) - 1
 			highest := stacks[j].Altitude
-			if a[i] <= highest-9900*unit.Foot {
-				stacks = append(stacks, Stack{Altitude: a[i], Count: 1})
+			if altitude <= highest-9900*unit.Foot {
+				stacks = append(stacks, Stack{Altitude: altitude, Count: 1})
 			} else {
 				stacks[j].Count++
 			}

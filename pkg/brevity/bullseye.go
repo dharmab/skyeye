@@ -20,10 +20,8 @@ func NewBullseye(bearing bearings.Bearing, distance unit.Length) *Bullseye {
 		log.Warn().Stringer("bearing", bearing).Msg("bearing provided to NewBullseye should be magnetic")
 	}
 	return &Bullseye{
-		Vector: Vector{
-			bearing:  bearing,
-			distance: distance,
-		},
+		bearing:  bearing,
+		distance: distance,
 	}
 }
 

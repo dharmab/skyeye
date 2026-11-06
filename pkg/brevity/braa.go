@@ -29,11 +29,9 @@ func NewBRA(b bearings.Bearing, r unit.Length, a ...unit.Length) *BRA {
 		log.Warn().Stringer("bearing", b).Msg("bearing provided to NewBRA should be magnetic")
 	}
 	return &BRA{
-		Vector: Vector{
-			bearing:  b,
-			distance: r,
-		},
-		stacks: Stacks(a...),
+		bearing:  b,
+		distance: r,
+		stacks:   Stacks(a...),
 	}
 }
 
@@ -64,14 +62,10 @@ func NewBRAA(b bearings.Bearing, r unit.Length, altitudes []unit.Length, aspect 
 		log.Warn().Stringer("bearing", b).Msg("bearing provided to NewBRAA should be magnetic")
 	}
 	return &BRAA{
-		BRA: BRA{
-			Vector: Vector{
-				bearing:  b,
-				distance: r,
-			},
-			stacks: Stacks(altitudes...),
-		},
-		aspect: aspect,
+		bearing:  b,
+		distance: r,
+		stacks:   Stacks(altitudes...),
+		aspect:   aspect,
 	}
 }
 
