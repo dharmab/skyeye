@@ -2,29 +2,29 @@ name: Setup
 description: Build whisper.cpp
 inputs:
   whisper-cpp-repo:
-    description: 'The whisper.cpp repository to use'
+    description: "The whisper.cpp repository to use"
     required: true
-    default: 'ggml-org/whisper.cpp'
+    default: "ggml-org/whisper.cpp"
   whisper-cpp-version:
-    description: 'The version of whisper.cpp to use'
+    description: "The version of whisper.cpp to use"
     required: true
-    default: 'v1.9.5'
+    default: "v1.9.5"
   os:
-    description: 'The operating system to build for'
+    description: "The operating system to build for"
     required: true
-    default: 'linux'
+    default: "linux"
   arch:
-    description: 'The architecture to build for'
+    description: "The architecture to build for"
     required: true
-    default: 'amd64'
+    default: "amd64"
   shell:
-    description: 'The shell to use'
+    description: "The shell to use"
     required: true
-    default: 'bash'
+    default: "bash"
   make-args:
-    description: 'Extra arguments passed to make (e.g. GGML_VULKAN=1)'
+    description: "Extra arguments passed to make (e.g. GGML_VULKAN=1)"
     required: false
-    default: ''
+    default: ""
 runs:
   using: composite
   steps:

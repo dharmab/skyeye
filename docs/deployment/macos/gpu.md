@@ -98,7 +98,7 @@ telemetry-address: tacview.example.com:42674
 telemetry-password: yourtacviewpasswordhere
 srs-server-address: srs.example.com:5002
 srs-eam-password: yoursrspasswordhere
-use-system-voice: true  # Set to false if you didn't configure Siri Voice above
+use-system-voice: true # Set to false if you didn't configure Siri Voice above
 ```
 
 Run this command to start SkyEye:

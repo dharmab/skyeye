@@ -4,11 +4,11 @@ This is a technical article on how to deploy SkyEye, targeted at multiplayer ser
 
 For a step-by-step guide, see one of the deployment guides.
 
-|Operating System|Voice Recognition on CPU|Voice Recognition on GPU|Voice Recognition via Cloud API|
-|-|-|-|-|
-|macOS|N/A|[guide](deployment/macos/gpu.md)|N/A|
-|Windows|[guide](deployment/windows/cpu.md)|[guide](deployment/windows/gpu.md)|[guide](deployment/windows/api.md)|
-|Linux|[guide](deployment/linux/cpu.md)|[guide](deployment/linux/gpu.md)|[guide](deployment/linux/api.md)|
+| Operating System | Voice Recognition on CPU           | Voice Recognition on GPU           | Voice Recognition via Cloud API    |
+| ---------------- | ---------------------------------- | ---------------------------------- | ---------------------------------- |
+| macOS            | N/A                                | [guide](deployment/macos/gpu.md)   | N/A                                |
+| Windows          | [guide](deployment/windows/cpu.md) | [guide](deployment/windows/gpu.md) | [guide](deployment/windows/api.md) |
+| Linux            | [guide](deployment/linux/cpu.md)   | [guide](deployment/linux/gpu.md)   | [guide](deployment/linux/api.md)   |
 
 # Getting Help
 
@@ -30,7 +30,7 @@ I do not respond to direct messages on social media or the Eagle Dynamics forums
 
 ## System Architecture
 
-SkyEye can be deployed in three architectures: 
+SkyEye can be deployed in three architectures:
 
 - Local speech recognition on CPU, running SkyEye on a different PC from DCS
 - Local speech recognition on GPU, running SkyEye on either the same PC as or a different PC from DCS
@@ -77,7 +77,7 @@ If you have read all of the above, and are still serious about attempting this, 
 <details>
   <summary>I understand what I'm about to try is not supported and probably won't work</summary>
 
-  If you choose to try this anyway, configure Process Affinity to pin SkyEye to a set of dedicated CPU cores separate from any other CPU-intensive software. The easiest way to do this on Windows is by using the [CPU Affinities feature in Process Lasso](https://bitsum.com/processlasso-docs/#default_affinities).
+If you choose to try this anyway, configure Process Affinity to pin SkyEye to a set of dedicated CPU cores separate from any other CPU-intensive software. The easiest way to do this on Windows is by using the [CPU Affinities feature in Process Lasso](https://bitsum.com/processlasso-docs/#default_affinities).
 
 </details>
 
@@ -111,11 +111,11 @@ SkyEye is officially supported on Windows AMD64, Linux AMD64 and Apple Silicon. 
 
 When running on Windows or Linux with local speech recognition on CPU, SkyEye requires a fast, multithreaded, **dedicated** CPU, 3GB of RAM, and about 2GB of disk space. The CPU must have support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2).
 
-CPU Series|AVX2 Added In
--|-
-Intel Core|Haswell (2013)
-AMD|Excavator (2015)
-Intel Pentium/Celeron|Tiger Lake (2020)
+| CPU Series            | AVX2 Added In     |
+| --------------------- | ----------------- |
+| Intel Core            | Haswell (2013)    |
+| AMD                   | Excavator (2015)  |
+| Intel Pentium/Celeron | Tiger Lake (2020) |
 
 SkyEye currently only officially supports the AMD64 (x86-64) CPU architecture on Windows and Linux. ARM CPUs are not yet officially supported on these operating systems.
 
@@ -135,35 +135,35 @@ Intel Macs are not supported due to lack of available hardware for testing.
 
 Non-scientific local speech recognition performance:
 
-System|CPU|Speech Recognition Model|Speech Recognition Time (Synthetic benchmark)|Speech Recognition Time (In practice)
--|-|-|-|-
-Macbook Pro|Apple M4 Max|ggml-small.en.bin|0.09-0.13s|?
-Mac Mini|Apple M4|ggml-small.en.bin|0.25-0.5s|?
-Macbook Pro|Apple M4 Max|ggml-medium.en.bin|0.3-0.5s|?
-Macbook Air|Apple M4|ggml-small.en.bin|0.35-0.5s|0.5s
-Mac Mini|Apple M4|ggml-medium.en.bin|0.9-1.0s|?
-Macbook Air|Apple M4|ggml-medium.en.bin|1.1-1.5s|1.2-1.5s
-My current PC|AMD 5900X|ggml-small.en.bin|1.0-1.5s|1.5-2.0s
-My older PC|AMD 3900XT|ggml-small.en.bin|2-3s|?
-Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (4 dedicated cores)|ggml-small.en.bin|3.0-3.5s|3.0-3.5s
-My current PC|AMD 5900X|ggml-medium.en.bin|3.5-4.5s|4-5s
-Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (2 dedicated cores)|ggml-small.en.bin|5-6s|5.5-6.0s
-Hetzner CCX23|AMD EPYC (4 dedicated cores)|ggml-small.en.bin|5-6s|6-7s
-My older PC|AMD 3900XT|ggml-medium.en.bin|6.5-7.5s|?
-Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (4 dedicated cores)|ggml-medium.en.bin|9-10s|9-11s
-Hetzner CCX13|AMD EPYC (2 dedicated cores)|ggml-small.en.bin|7-8s|12-15s
-Vultr Optimized Cloud (CPU Optimized)|AMD EPYC Milan (2 dedicated cores)|ggml-medium.en.bin|?|17.5-18.0s
-Hetzner CCX23|AMD EPYC (4 dedicated cores)|ggml-medium.en.bin|16-17s|?
+| System                                | CPU                                | Speech Recognition Model | Speech Recognition Time (Synthetic benchmark) | Speech Recognition Time (In practice) |
+| ------------------------------------- | ---------------------------------- | ------------------------ | --------------------------------------------- | ------------------------------------- |
+| Macbook Pro                           | Apple M4 Max                       | ggml-small.en.bin        | 0.09-0.13s                                    | ?                                     |
+| Mac Mini                              | Apple M4                           | ggml-small.en.bin        | 0.25-0.5s                                     | ?                                     |
+| Macbook Pro                           | Apple M4 Max                       | ggml-medium.en.bin       | 0.3-0.5s                                      | ?                                     |
+| Macbook Air                           | Apple M4                           | ggml-small.en.bin        | 0.35-0.5s                                     | 0.5s                                  |
+| Mac Mini                              | Apple M4                           | ggml-medium.en.bin       | 0.9-1.0s                                      | ?                                     |
+| Macbook Air                           | Apple M4                           | ggml-medium.en.bin       | 1.1-1.5s                                      | 1.2-1.5s                              |
+| My current PC                         | AMD 5900X                          | ggml-small.en.bin        | 1.0-1.5s                                      | 1.5-2.0s                              |
+| My older PC                           | AMD 3900XT                         | ggml-small.en.bin        | 2-3s                                          | ?                                     |
+| Vultr Optimized Cloud (CPU Optimized) | AMD EPYC Milan (4 dedicated cores) | ggml-small.en.bin        | 3.0-3.5s                                      | 3.0-3.5s                              |
+| My current PC                         | AMD 5900X                          | ggml-medium.en.bin       | 3.5-4.5s                                      | 4-5s                                  |
+| Vultr Optimized Cloud (CPU Optimized) | AMD EPYC Milan (2 dedicated cores) | ggml-small.en.bin        | 5-6s                                          | 5.5-6.0s                              |
+| Hetzner CCX23                         | AMD EPYC (4 dedicated cores)       | ggml-small.en.bin        | 5-6s                                          | 6-7s                                  |
+| My older PC                           | AMD 3900XT                         | ggml-medium.en.bin       | 6.5-7.5s                                      | ?                                     |
+| Vultr Optimized Cloud (CPU Optimized) | AMD EPYC Milan (4 dedicated cores) | ggml-medium.en.bin       | 9-10s                                         | 9-11s                                 |
+| Hetzner CCX13                         | AMD EPYC (2 dedicated cores)       | ggml-small.en.bin        | 7-8s                                          | 12-15s                                |
+| Vultr Optimized Cloud (CPU Optimized) | AMD EPYC Milan (2 dedicated cores) | ggml-medium.en.bin       | ?                                             | 17.5-18.0s                            |
+| Hetzner CCX23                         | AMD EPYC (4 dedicated cores)       | ggml-medium.en.bin       | 16-17s                                        | ?                                     |
 
 SkyEye does not use the disk very much, so a particularly fast disk is not required.
 
 Examples of suitable servers include:
 
-* [Amazon EC2 Dedicated Instances](https://aws.amazon.com/ec2/pricing/dedicated-instances/)
-* GCP Compute Engine `c2d-highcpu-*`, `c3d-highcpu-*`, `c3-highcpu-*`, `c4-highcpu-*` instances
-* Hetzner CCX instances
-* [Vultr Optimized Cloud Compute (CPU Optimized)](https://www.vultr.com/pricing/#optimized-cloud-compute)
-* [Linode Dedicated CPU Instances](https://www.linode.com/pricing/#compute-dedicated)
+- [Amazon EC2 Dedicated Instances](https://aws.amazon.com/ec2/pricing/dedicated-instances/)
+- GCP Compute Engine `c2d-highcpu-*`, `c3d-highcpu-*`, `c3-highcpu-*`, `c4-highcpu-*` instances
+- Hetzner CCX instances
+- [Vultr Optimized Cloud Compute (CPU Optimized)](https://www.vultr.com/pricing/#optimized-cloud-compute)
+- [Linode Dedicated CPU Instances](https://www.linode.com/pricing/#compute-dedicated)
 
 As of 2026, cloud server prices have been increasing, so do your due diligence to compare prices.
 
@@ -236,8 +236,8 @@ whisper-model: whisper.bin
 
 SkyEye bundles two AI generated voices on Windows and Linux:
 
-* An Irish English feminine voice, based on ["Jenny" by Dioco](https://github.com/dioco-group/jenny-tts-dataset)
-* A British English masculine voice, based on [Alan Pope](https://popey.com/blog/)
+- An Irish English feminine voice, based on ["Jenny" by Dioco](https://github.com/dioco-group/jenny-tts-dataset)
+- A British English masculine voice, based on [Alan Pope](https://popey.com/blog/)
 
 You can select between these voices using the `voice` configuration option. If you do not select a voice, the two voices are rotated based on the wall clock time when SkyEye is started.
 
@@ -347,8 +347,8 @@ Lastly, I cannot predict how these locks work in combination with CPU Core Affin
 
 Once you've decided on an architecture, follow the deployment guide for your operating system and speech recognition method to install and configure SkyEye.
 
-|Operating System|Voice Recognition on CPU|Voice Recognition on GPU|Voice Recognition via Cloud API|
-|-|-|-|-|
-|macOS|N/A|[guide](deployment/macos/gpu.md)|N/A|
-|Windows|[guide](deployment/windows/cpu.md)|[guide](deployment/windows/gpu.md)|[guide](deployment/windows/api.md)|
-|Linux|[guide](deployment/linux/cpu.md)|[guide](deployment/linux/gpu.md)|[guide](deployment/linux/api.md)|
+| Operating System | Voice Recognition on CPU           | Voice Recognition on GPU           | Voice Recognition via Cloud API    |
+| ---------------- | ---------------------------------- | ---------------------------------- | ---------------------------------- |
+| macOS            | N/A                                | [guide](deployment/macos/gpu.md)   | N/A                                |
+| Windows          | [guide](deployment/windows/cpu.md) | [guide](deployment/windows/gpu.md) | [guide](deployment/windows/api.md) |
+| Linux            | [guide](deployment/linux/cpu.md)   | [guide](deployment/linux/gpu.md)   | [guide](deployment/linux/api.md)   |

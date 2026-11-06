@@ -114,6 +114,14 @@ Currently, SkyEye will read until the end of the file and continue running. To e
 
 ## Develop
 
+### Formatting
+
+[Bun](https://bun.com/) 1.4.4 is a development dependency for formatting Markdown, YAML, JSON, and other supported files. The platform dependency installation targets above install it; you can also run `make install-bun-dependencies` separately. Restart your terminal after installation so `bun` is on your `PATH` (including in the MSYS2 UCRT terminal on Windows).
+
+Run `make format` before submitting changes. This runs `gofmt` for Go files and `bun fmt` for Bun-supported files throughout the project. Files ignored by Git, including `third_party/whisper.cpp`, are automatically excluded by Bun.
+
+Run `make check-format` to check formatting without modifying files. Formatting is enforced in CI. Use Bun rather than a separate formatter for the file types it supports.
+
 ### Editor Settings
 
 The project comes already set up for development with Visual Studio Code, or from the command line using Make. If you prefer another IDE you will need to set the following environment variables in your editor:
@@ -183,7 +191,6 @@ SKYEYE_WHISPER_MODEL=$(pwd)/path/to/whisper-model.bin make benchmark-whisper
 ```
 
 <!-- TODO(vulkan): Document benchmarking the experimental Vulkan build with `make benchmark-whisper GGML_VULKAN=1`. -->
-
 
 ## Lint
 

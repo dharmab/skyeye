@@ -6,14 +6,15 @@ SkyEye is an AI-powered GCI bot for DCS World that uses Whisper speech recogniti
 
 ## Platform Support
 
-| Platform | Arch | Status | TTS | Linking | Runtime Deps |
-|----------|------|--------|-----|---------|--------------|
-| **Windows** | AMD64 | ✅ | Piper (embedded) | Static | None - fully portable exe |
-| **Linux** | AMD64 | ✅ | Piper (embedded) | Static whisper, dynamic opus/soxr | libopus0, libsoxr0 |
-| **macOS** | ARM64 | ✅ | System (Neural Engine) | Static whisper, dynamic opus/soxr | Homebrew opus, libsoxr |
-| macOS Intel | AMD64 | ❌ | - | - | No test hardware |
+| Platform    | Arch  | Status | TTS                    | Linking                           | Runtime Deps              |
+| ----------- | ----- | ------ | ---------------------- | --------------------------------- | ------------------------- |
+| **Windows** | AMD64 | ✅     | Piper (embedded)       | Static                            | None - fully portable exe |
+| **Linux**   | AMD64 | ✅     | Piper (embedded)       | Static whisper, dynamic opus/soxr | libopus0, libsoxr0        |
+| **macOS**   | ARM64 | ✅     | System (Neural Engine) | Static whisper, dynamic opus/soxr | Homebrew opus, libsoxr    |
+| macOS Intel | AMD64 | ❌     | -                      | -                                 | No test hardware          |
 
 **Key Differences:**
+
 - **Windows:** MUST build in MSYS2 UCRT64 (not cmd/PowerShell), static linking, portable binary
 - **Linux:** Standard Unix build, requires runtime libraries, good for containers
 - **macOS:** Requires Homebrew LLVM (not Apple Clang), Metal GPU acceleration (`GGML_METAL=1`), fastest speech recognition (0.09-1.5s), `--use-system-voice` flag available

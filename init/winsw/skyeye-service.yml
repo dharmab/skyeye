@@ -3,8 +3,8 @@ name: SkyEye GCI Bot
 description: SkyEye GCI Bot for DCS World
 download:
   - from: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en.bin?download=true"
-    to: '%BASE%/whisper.bin'
-workingdirectory: '%BASE%'
+    to: "%BASE%/whisper.bin"
+workingdirectory: "%BASE%"
 env:
   - name: NO_COLOR
     value: "1"

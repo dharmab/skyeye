@@ -1,4 +1,6 @@
 GO = go
+BUN ?= bun
+BUN_VERSION = 1.4.4
 
 # Detect CPU architecture
 ifeq ($(shell uname -m),arm64)
@@ -130,6 +132,8 @@ install-msys2-dependencies:
 	pacman -Syu --needed \
 	  git \
 	  base-devel \
+	  curl \
+	  unzip \
 	  $(MINGW_PACKAGE_PREFIX)-cmake \
 	  $(MINGW_PACKAGE_PREFIX)-toolchain \
 	  $(MINGW_PACKAGE_PREFIX)-go \
@@ -139,12 +143,15 @@ install-msys2-dependencies:
 	  $(MINGW_PACKAGE_PREFIX)-vulkan-loader \
 	  $(MINGW_PACKAGE_PREFIX)-shaderc \
 	  $(MINGW_PACKAGE_PREFIX)-spirv-headers
+	$(MAKE) install-bun-dependencies
 
 .PHONY: install-arch-linux-dependencies
 install-arch-linux-dependencies:
 	sudo pacman -Syu \
 	  git \
 	  base-devel \
+	  curl \
+	  unzip \
 	  cmake \
 	  go \
 	  opus \
@@ -153,6 +160,7 @@ install-arch-linux-dependencies:
 	  vulkan-icd-loader \
 	  shaderc \
 	  spirv-headers
+	$(MAKE) install-bun-dependencies
 
 .PHONY: install-debian-dependencies
 install-debian-dependencies:
@@ -160,6 +168,8 @@ install-debian-dependencies:
 	sudo apt-get install -y \
 	  git \
 	  build-essential \
+	  curl \
+	  unzip \
 	  cmake \
 	  golang-go \
 	  libopus-dev \
@@ -169,6 +179,7 @@ install-debian-dependencies:
 	  libvulkan-dev \
 	  glslc \
 	  spirv-headers
+	$(MAKE) install-bun-dependencies
 
 .PHONY: install-fedora-dependencies
 install-fedora-dependencies:
@@ -176,6 +187,8 @@ install-fedora-dependencies:
 	  git \
 	  development-tools \
 	  c-development \
+	  curl \
+	  unzip \
 	  cmake \
 	  golang \
 	  opus-devel \
@@ -186,10 +199,13 @@ install-fedora-dependencies:
 	  vulkan-loader-devel \
 	  glslc \
 	  spirv-headers-devel
+	$(MAKE) install-bun-dependencies
 
 .PHONY: install-macos-dependencies
 install-macos-dependencies:
 	xcode-select --install || true
+	brew tap oven-sh/bun
+	brew trust --formula oven-sh/bun/bun
 	brew install \
 	  git \
 	  cmake \
@@ -197,7 +213,20 @@ install-macos-dependencies:
 	  pkg-config \
 	  go \
 	  libsoxr \
-	  opus
+	  opus \
+	  oven-sh/bun/bun
+
+.PHONY: install-bun-dependencies
+install-bun-dependencies:
+ifeq ($(OS_DISTRIBUTION),macOS)
+	brew tap oven-sh/bun
+	brew trust --formula oven-sh/bun/bun
+	brew install oven-sh/bun/bun
+else ifeq ($(OS_DISTRIBUTION),Windows)
+	powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create((Invoke-RestMethod https://bun.com/install.ps1))) -Version $(BUN_VERSION)"
+else
+	curl -fsSL https://bun.com/install | bash -s -- bun-v$(BUN_VERSION)
+endif
 
 .PHONY: download-whisper-%
 download-whisper-%:
@@ -270,6 +299,13 @@ fix: generate
 .PHONY: format
 format:
 	find . -name '*.go' -exec gofmt -s -w {} ';'
+	$(BUN) fmt
+
+.PHONY: check-format
+check-format:
+	@test -z "$$(find . -name '*.go' -exec gofmt -s -l {} ';')" || \
+	  { echo 'Go files need formatting. Run make format.'; exit 1; }
+	$(BUN) fmt --check
 
 .PHONY: mostlyclean
 mostlyclean:

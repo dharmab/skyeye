@@ -20,7 +20,7 @@ Be sure to review the pricing of the "Whisper" audio model at https://openai.com
 
 Install DCS (either the client for singleplayer/hosted multiplayer use, or a dedicated server for multiplayer use).
 
-Install the TacView Exporter. Within DCS, go to OPTIONS → SPECIAL → Tacview and enable Real-Time Telemetry.  (See https://www.tacview.net/documentation/dcs/en/)
+Install the TacView Exporter. Within DCS, go to OPTIONS → SPECIAL → Tacview and enable Real-Time Telemetry. (See https://www.tacview.net/documentation/dcs/en/)
 
 Install SRS. Start and configure the SRS Server. Ensure EAM mode is enabled and an EAM password is set.
 
@@ -50,7 +50,7 @@ Next, run this command to start SkyEye:
 ./skyeye-service.exe start
 ```
 
-Confirm SkyEye is running using 
+Confirm SkyEye is running using
 
 ```powershell
 ./skyeye-service.exe status

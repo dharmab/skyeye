@@ -12,11 +12,11 @@ See [the admin guide](../../ADMIN.md#getting-help) for how to get help if you ha
 
 This guide requires a **second** Linux computer, separate from the one running DCS, TacView and SRS Server. The computer running SkyEye needs a fast, multithreaded, **dedicated** CPU with support for [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2), 3GB of RAM, and about 2GB of disk space.
 
-CPU Series|AVX2 Added In
--|-
-Intel Core|Haswell (2013)
-AMD|Excavator (2015)
-Intel Pentium/Celeron|Tiger Lake (2020)
+| CPU Series            | AVX2 Added In     |
+| --------------------- | ----------------- |
+| Intel Core            | Haswell (2013)    |
+| AMD                   | Excavator (2015)  |
+| Intel Pentium/Celeron | Tiger Lake (2020) |
 
 At least 4 dedicated CPU cores are recommended. Shared-core virtual machines are **not supported** and will result in high latency and stuttering audio.
 

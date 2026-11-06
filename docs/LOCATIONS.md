@@ -12,14 +12,14 @@ Example:
 
 ```yaml
 - names:
-  - Incirlik
-  - Home plate
+    - Incirlik
+    - Home plate
   latitude: 37.001166662
   longitude: 35.422164978
 
 - names:
-  - Hatay
-  - Divert option
+    - Hatay
+    - Divert option
   latitude: 36.362778
   longitude: 36.282222
 ```
