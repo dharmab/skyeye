@@ -59,7 +59,7 @@ Avoid:
 
 - Names that contain or are similar to brevity codewords, including "alpha", "radio", "comm", "bogey", "picture", "declare", "snaplock", "spiked", "bullseye". For example, "Spade" can be difficult to distinguish from "SPIKE"
 - Names that are hard to distinguish, like "Spare"/"Spear", "Jester"/"Gesture", "Witch"/"Which". The bot will make a best effort, but may be less accurate.
-- Names that sound similar to numbers. For example, "Knight" sounds similar to "Nine", "Fort" sounds like "Four"
+- Names that sound similar to numbers. For example, "Knight" sounds similar to "Nine", and "Fort" sounds like "Four"
 - Names that aren't widely recognized words in common parlance, like "Razgriz" or "Beskar". The bot will make a best effort, but may be less accurate.
 - Names without the 1-3 digits. The bot will make a best effort, but the digits make a very large difference in error correction! Each digit added to a callsign is equivalent to 2-3 letters in terms of improved accuracy.
 - Callsigns that are very short. If your callsign is only 2-3 characters, a single misheard letter will be an uncorrectable error. The two to three syllable rule of thumb tends to result in callsigns that are correctable when misheard.
@@ -98,7 +98,7 @@ May be shortened to:
 
 You can send a request to SkyEye by speaking on any SkyEye frequency in SRS. If the server operator has enabled DCS-gRPC integration, you may alternatively type the request into the in-game chat.[^f10]
 
-[^f10]: Why not using F10 commands, you may ask? Sadly, the F10 command menu only provides the code with your coalition and mission editor group, and not your specific aircraft/callsign/name. For most requests, SkyEye needs to identify the specific player, not just the mission editor group.
+[^f10]: Why not use F10 commands, you may ask? Sadly, the F10 command menu only provides the code with your coalition and mission editor group, and not your specific aircraft/callsign/name. For most requests, SkyEye needs to identify the specific player, not just the mission editor group.
 
 The format of the request is:
 
@@ -243,8 +243,8 @@ GOLIATH: "Yellow One Three, group BRAA 188/45, 8000, hot, hostile, Eagle"
 Tips:
 
 - Make this request repeatedly during a BVR timeline to build and maintain situational awareness.
-- Note: Specific filters such as "MiG-29" or "Flanker" do **not** work. You can only filter to airplanes or helicopters.
-- If you are a fixed-wing aircraft, hostile fixed-wing aircraft are prioritized over hostile helicopters, regardless of range.
+- Note: Specific filters such as "MiG-29" or "Flanker" do **not** work. You can only filter for airplanes or helicopters.
+- If you are operating a fixed-wing aircraft, hostile fixed-wing aircraft are prioritized over hostile helicopters, regardless of range.
 
 ### DECLARE
 
@@ -317,7 +317,7 @@ Tips:
 
 Keyword: `SNAPLOCK`
 
-Function: This is a faster form of DECLARE intended for use during a BVR timeline. You tell the GCI the BRA (bearing, range, altitude) of a threat on your radar scope. The GCI will look for a group in that area and response with information.
+Function: This is a faster form of DECLARE intended for use during a BVR timeline. You tell the GCI the BRA (bearing, range, altitude) of a threat on your radar scope. The GCI will look for a group in that area and respond with information.
 
 Use: IFF during a BVR timeline.
 
@@ -376,23 +376,23 @@ Tips:
 
 ### SUNRISE
 
-When the GCI controller comes online, it will announced that its services are available using the code word "SUNRISE".
+When the GCI controller comes online, it will announce that its services are available using the code word "SUNRISE".
 
 If you hear this in the middle of a mission, it probably means the bot crashed and had to be restarted!
 
 ### PICTURE
 
-Server operators may optionally configure the GCI controller to automatically broadcast a PICTURE at regular intervals. The content and format is the same as described in the PICTURE request above.
+Server operators may optionally configure the GCI controller to automatically broadcast a PICTURE at regular intervals. The content and format are the same as described in the PICTURE request above.
 
 Requesting a PICTURE will reset the interval on any automatic broadcast.
 
 ### THREAT
 
-The GCI controller monitors for threats which are near or approaching friendly aircraft. Any hostile aircraft within a pre-briefed range (default 25NM) is always considered a threat. At further ranges, the bandit's aircraft capabilities are also considered. Threat calls are broadcast every few minutes for as long as the threat criteria are met. THREAT calls about rotary-wing threats are only broadcast to other rotary-wing aircraft. A plane won't receive warnings about helicopter threats.
+The GCI controller monitors for threats which are near or approaching friendly aircraft. Any hostile aircraft within a pre-briefed range (default 25NM) is always considered a threat. At greater ranges, the bandit's aircraft capabilities are also considered. Threat calls are broadcast every few minutes for as long as the threat criteria are met. THREAT calls about rotary-wing threats are only broadcast to other rotary-wing aircraft. A plane won't receive warnings about helicopter threats.
 
 Threat locations are given in BRAA format if they are relevant to a single friendly aircraft, or in bullseye format if they are relevant to multiple friendly aircraft.
 
-Your own aircraft must be on a SkyEye SRS frequency, and using the same name in DCS and in SRS, to receive THREAT monitoring.
+To receive THREAT monitoring, you must tune your aircraft's radio to a SkyEye SRS frequency and use the same name in DCS and SRS.
 
 Examples:
 
@@ -408,7 +408,7 @@ GALAXY: HITMAN One One, threat bullseye 040/96, 10000, track south, hostile, 2 c
 
 If any fixed-wing threats close within 3 nautical miles of a friendly aircraft, the controller will transmit a MERGED call. MERGED calls only apply to fixed-wing threats. You won't receive a MERGED call about a helicopter threat.
 
-Your own aircraft must be on the SRS frequency, and using the same name in DCS and in SRS, to receive MERGED calls.
+To receive MERGED calls, you must tune your aircraft's radio to the SRS frequency and use the same name in DCS and SRS.
 
 You will only receive one MERGED call every 30 seconds. If you merge with multiple threats within 30 seconds, you will only receive one MERGED call.
 
