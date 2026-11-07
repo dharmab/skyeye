@@ -15,7 +15,7 @@ import (
 // A frequency segment containing each frequency the audio is transmitted on
 // A fixed segment containing metadata
 //
-// See SRS source code for packet encoding: https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/master/DCS-SR-Common/Network/UDPVoicePacket.cs
+// See SRS source code for packet encoding: https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/master/Common/Models/UDPVoicePacket.cs
 type Packet struct {
 	/* Headers */
 
@@ -60,7 +60,7 @@ type Packet struct {
 
 	// UnitID is the ID of the in-game unit that originated the packet.
 	//
-	// Bytes: PacketLength-58:PacketLength-53
+	// Bytes: PacketLength-57:PacketLength-53
 	//
 	// Length: 4 bytes
 	UnitID uint32
@@ -111,8 +111,14 @@ type Frequency struct {
 const (
 	// headerSegmentLength is the length of the header segment in bytes.
 	headerSegmentLength = 6
+	// unitIDLength is the length of the UnitID field in bytes.
+	unitIDLength = 4
+	// packetIDLength is the length of the PacketID field in bytes.
+	packetIDLength = 8
+	// hopsLength is the length of the Hops field in bytes.
+	hopsLength = 1
 	// fixedSegmentLength is the length of the fixed segment in bytes.
-	fixedSegmentLength = 58
+	fixedSegmentLength = unitIDLength + packetIDLength + hopsLength + types.GUIDLength + types.GUIDLength
 	// frequencyLength is the length of a Frequency in bytes.
 	frequencyLength = 10
 )
@@ -166,16 +172,16 @@ func (p *Packet) Encode() []byte {
 	}
 
 	/* Fixed Segment */
-	fixedSegmentPtr := p.PacketLength - fixedSegmentLength + 1
+	fixedSegmentPtr := p.PacketLength - fixedSegmentLength
 	unitIDPtr := fixedSegmentPtr
-	packetIDPtr := unitIDPtr + 4
+	packetIDPtr := unitIDPtr + unitIDLength
 	binary.LittleEndian.PutUint32(b[unitIDPtr:packetIDPtr], p.UnitID)
 
-	hopsPtr := packetIDPtr + 8
+	hopsPtr := packetIDPtr + packetIDLength
 	binary.LittleEndian.PutUint64(b[packetIDPtr:hopsPtr], p.PacketID)
 	b[hopsPtr] = p.Hops
 
-	relayIDPtr := hopsPtr + 1
+	relayIDPtr := hopsPtr + hopsLength
 	originIDPtr := relayIDPtr + types.GUIDLength
 	copy(b[relayIDPtr:originIDPtr], p.RelayGUID)
 	copy(b[originIDPtr:p.PacketLength], p.OriginGUID)
@@ -229,9 +235,9 @@ func Decode(b []byte) (packet *Packet, err error) {
 	// Therefore, we can easily decode the fixed segment by working backwards from the end of the packet.
 	originIDPtr := packetLength - types.GUIDLength
 	relayIDPtr := originIDPtr - types.GUIDLength
-	hopsPtr := relayIDPtr - 1
-	packetIDPtr := hopsPtr - 8
-	unitIDPtr := packetIDPtr - 4
+	hopsPtr := relayIDPtr - hopsLength
+	packetIDPtr := hopsPtr - packetIDLength
+	unitIDPtr := packetIDPtr - unitIDLength
 
 	// Store the packet headers and fixed segment in a VoicePacket struct.
 	packet = &Packet{

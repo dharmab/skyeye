@@ -1,6 +1,7 @@
 package voice
 
 import (
+	"bytes"
 	"encoding/binary"
 	"testing"
 
@@ -82,24 +83,43 @@ func TestPacketRoundTrip(t *testing.T) {
 	}
 }
 
-// A packet observed on a live SRS server, to pin the framing against the real protocol rather than
-// only against our own encoder.
-func TestDecodeMatchesObservedFraming(t *testing.T) {
+func TestDecodeMatchesSRSFraming(t *testing.T) {
 	t.Parallel()
-	packet := testPacket(make([]byte, 31), []Frequency{
-		{Frequency: 136_000_000},
-		{Frequency: 255_000_000},
-		{Frequency: 281_500_000},
-		{Frequency: 40_000_000, Modulation: 1},
-	})
-	encoded := packet.Encode()
+	// Assemble the SRS wire layout independently of our encoder and length constants.
+	var buffer bytes.Buffer
+	for _, field := range []any{
+		uint16(77),                 // Packet length.
+		uint16(4),                  // Audio segment length.
+		uint16(10),                 // Frequencies segment length.
+		[]byte{1, 2, 3, 4},         // Audio.
+		float64(40_000_000),        // Frequency in Hz.
+		byte(1),                    // FM modulation.
+		byte(4),                    // Encryption.
+		uint32(0x04030201),         // Unit ID.
+		uint64(0x0807060504030201), // Packet ID.
+		byte(2),                    // Hops.
+		[]byte(testRelay),
+		[]byte(testOrigin),
+	} {
+		require.NoError(t, binary.Write(&buffer, binary.LittleEndian, field))
+	}
+	wire := buffer.Bytes()
 
-	require.Len(t, encoded, 135, "header 6 + audio 31 + frequencies 40 + fixed 58")
-	decoded, err := Decode(encoded)
-	require.NoError(t, err)
-	assert.Equal(t, uint16(31), decoded.AudioSegmentLength)
-	assert.Equal(t, uint16(40), decoded.FrequenciesSegmentLength)
-	assert.Len(t, decoded.Frequencies, 4)
+	packet := NewPacket([]byte{1, 2, 3, 4}, []Frequency{
+		{Frequency: 40_000_000, Modulation: 1, Encryption: 4},
+	}, 0x04030201, 0x0807060504030201, 2,
+		[]byte(testRelay), []byte(testOrigin))
+
+	t.Run("decode", func(t *testing.T) {
+		t.Parallel()
+		decoded, err := Decode(wire)
+		require.NoError(t, err)
+		assert.Equal(t, &packet, decoded)
+	})
+	t.Run("encode", func(t *testing.T) {
+		t.Parallel()
+		assert.Equal(t, wire, packet.Encode())
+	})
 }
 
 // Regression: Decode used to trust the length header over the datagram. A corrupt packet whose
