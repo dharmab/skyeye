@@ -47,8 +47,8 @@ func (c *Client) waitForClearChannel() {
 		for _, receiver := range c.receivers {
 			if receiver.isReceivingTransmission() {
 				isReceiving = true
-				if receiver.deadline.After(deadline) {
-					deadline = receiver.deadline
+				if rxDeadline := receiver.deadlineAt(); rxDeadline.After(deadline) {
+					deadline = rxDeadline
 				}
 			}
 		}

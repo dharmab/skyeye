@@ -44,6 +44,10 @@ type Configuration struct {
 	SRSExternalAWACSModePassword string
 	// SRSFrequencies that the bot simultaneously receives and transmits on
 	SRSFrequencies []simpleradio.RadioFrequency
+	// SRSSplitTransmissionGracePeriod is how long to wait for another voice packet before treating
+	// a transmission as finished. Raising it makes the bot tolerate more packet loss before
+	// splitting one transmission into two, at the cost of responding slightly later.
+	SRSSplitTransmissionGracePeriod time.Duration
 	// EnableGRPC controls whether DCS-gRPC features are enabled
 	EnableGRPC bool
 	// GRPCAddress is the network address of the DCS-gRPC server (including port)

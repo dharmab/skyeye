@@ -80,7 +80,7 @@ func NewClient(config types.ClientConfiguration) (*Client, error) {
 
 	receivers := make(map[types.Radio]*receiver, len(config.Radios))
 	for _, radio := range config.Radios {
-		receivers[radio] = &receiver{}
+		receivers[radio] = newReceiver(config.SplitTransmissionGracePeriod)
 	}
 
 	client := &Client{
@@ -208,10 +208,16 @@ func (c *Client) Run(ctx context.Context, wg *sync.WaitGroup) error {
 	return nil
 }
 
-func (c *Client) getPeerName(guid types.GUID) (string, bool) {
+// getPeer looks up a peer's client info by GUID.
+func (c *Client) getPeer(guid types.GUID) (types.ClientInfo, bool) {
 	c.clientsLock.RLock()
 	defer c.clientsLock.RUnlock()
 	info, ok := c.clients[guid]
+	return info, ok
+}
+
+func (c *Client) getPeerName(guid types.GUID) (string, bool) {
+	info, ok := c.getPeer(guid)
 	if ok {
 		return info.Name, true
 	}

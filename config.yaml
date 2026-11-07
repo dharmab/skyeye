@@ -92,6 +92,15 @@
 # on the aux radio. Meanwhile, the F-16 can only tune 225.000-399.975 on COM1 and
 # 108.000-151.975 on COM2.
 #srs-frequencies: 251.0AM,133.0AM,30.0FM
+#
+# How long the GCI waits for more audio before deciding a transmission has
+# finished. SRS sends one packet every 40ms, so the default tolerates a fair
+# amount of packet loss before a single transmission is split into two.
+#
+# Raise this if players report the GCI mishearing or ignoring the end of long
+# transmissions on a lossy network. The cost is that the GCI waits slightly
+# longer before replying.
+#srs-split-transmission-grace-period: 300ms
 
 # DCS-gRPC (optional)
 # Enable DCS-gRPC features (requires https://github.com/DCS-gRPC/rust-server)
