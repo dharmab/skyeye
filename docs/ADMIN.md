@@ -217,7 +217,7 @@ recognizer: openai-whisper-api
 openai-api-key: APIKEYGOESHERE
 ```
 
-Valid values for `recognizer` are `openai-whisper-api`, `openai-gpt4o` and `openai-gpt4o-mini`. I do not recommend using the GPT4o options at this time, because the GPT4o models lack support for a feature called [prompting](https://platform.openai.com/docs/guides/speech-to-text#prompting) which SkyEye uses to drastically improve recognition of air combat brevity. In playtesting, the Whisper models currently provide significantly better results than the GPT4o models.
+Cloud values for `recognizer` are `openai-whisper-api`, `openai-gpt4o` and `openai-gpt4o-mini`. I do not recommend using the GPT4o options at this time, because the GPT4o models lack support for a feature called [prompting](https://platform.openai.com/docs/guides/speech-to-text#prompting) which SkyEye uses to drastically improve recognition of air combat brevity. In playtesting, the Whisper models currently provide significantly better results than the GPT4o models.
 
 ### Local Speech Recognition
 
@@ -229,6 +229,20 @@ Example configuration
 recognizer: openai-whisper-local
 whisper-model: whisper.bin
 ```
+
+### Apple Speech (macOS only)
+
+Select Apple's speech recognition with:
+
+```yaml
+recognizer: apple-speech
+```
+
+You can also use `--recognizer=apple-speech` or `SKYEYE_RECOGNIZER=apple-speech`. This option requires macOS; selecting it on Windows or Linux produces a configuration error. It requires neither `whisper-model` nor `openai-api-key`, and SkyEye does not load a Whisper model even if a model path is configured.
+
+This is an experimental, on-device-only English (en-US) backend. It never falls back to Apple's servers. English speech resources and on-device recognition support must be available on the Mac. Build with `make skyeye`, which embeds the Speech permission usage description. The first received transmission can prompt for Speech Recognition permission; allow it in System Settings > Privacy & Security > Speech Recognition if needed. Microphone permission is not needed because audio comes from SRS. Permission behavior can depend on the terminal or service launching SkyEye, so authorize and test interactively before unattended use.
+
+This selects speech-to-text only. The `use-system-voice` option controls speech synthesis independently. Local Whisper remains the default recognizer. The build still links Whisper, but this backend needs no Whisper model at runtime. See [implementation notes](../pkg/recognizer/apple.md) for limitations and manual validation.
 
 ## Speech Synthesis
 

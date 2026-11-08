@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.dharmab.skyeye</string>
+    <key>CFBundleName</key>
+    <string>SkyEye</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>SkyEye transcribes received radio transmissions using on-device speech recognition to respond to GCI commands.</string>
+</dict>
+</plist>
