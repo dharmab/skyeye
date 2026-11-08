@@ -228,13 +228,19 @@
 
 # TRACING
 #
-# Enable or diable tracing.
+# Enable or disable tracing.
 #enable-tracing: false
 #
 # Send traces to Discord by providing a webhook ID and token.
 # The format of the webhook URL is https://discord.com/api/webhooks/<id>/<token>
 #discord-webhook-id: idgoeshere
 #discord-webhook-token: tokengoeshere
+#
+# Optional config to disable certain traces to reduce noise.
+#enable-automatic-picture-tracing: true
+#enable-automatic-faded-tracing: true
+#enable-automatic-threat-tracing: true
+#
 
 # RUNTIME
 #

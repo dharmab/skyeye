@@ -27,6 +27,7 @@ func (a *Application) compose(ctx context.Context, in <-chan controller.Call, ou
 
 // composeCall handles a single call, publishing the composition to the output channel.
 func (a *Application) composeCall(ctx context.Context, call any, out chan<- Message[composer.NaturalLanguageResponse]) {
+	ctx = context.WithValue(ctx, traceCallKey{}, call)
 	ctx = traces.WithHandledAt(ctx, time.Now())
 	logger := log.With().Type("type", call).Any("params", call).Logger()
 	logger.Info().Msg("composing brevity call")

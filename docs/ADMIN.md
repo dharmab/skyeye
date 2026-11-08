@@ -276,6 +276,14 @@ SkyEye includes an optional feature to publish request traces to a Discord chann
 
 To enable this feature, first create a webhook in your Discord server (Server Settings > Integrations > Webhooks). Then, set the `enable-tracing`, `discord-webhook-id` and `discord-webhook-token` configuration options in SkyEye.
 
+Automatic broadcast traces can be independently disabled in the config to reduce noise:
+
+```yaml
+enable-automatic-picture-tracing: false
+enable-automatic-faded-tracing: false
+enable-automatic-threat-tracing: false
+```
+
 ## Custom Locations
 
 SkyEye includes an optional feature to define custom locations that players can reference in VECTOR TO requests. This can be useful for providing navigation assistance to airbases and other points of interest. See [LOCATIONS.md](LOCATIONS.md) for a guide.
