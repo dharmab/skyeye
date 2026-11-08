@@ -172,6 +172,12 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 	log.Info().Msg("constructing speech-to-text recognizer")
 	var speechRecognizer recognizer.Recognizer
 	switch config.Recognizer {
+	case conf.AppleSpeech:
+		var err error
+		speechRecognizer, err = recognizer.NewAppleSpeechRecognizer(config.Callsign, recognizerOpts...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to construct Apple Speech recognizer: %w", err)
+		}
 	case conf.WhisperLocal:
 		speechRecognizer = recognizer.NewWhisperRecognizer(config.WhisperModel, config.Callsign, recognizerOpts...)
 	case conf.WhisperAPI:
