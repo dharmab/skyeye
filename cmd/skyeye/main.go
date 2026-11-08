@@ -37,51 +37,54 @@ import (
 
 // Used for CLI configuration values.
 var (
-	configFile                   string
-	logLevel                     string
-	logFormat                    string
-	enableTranscriptionLogging   bool
-	acmiFile                     string
-	telemetryAddress             string
-	telemetryConnectionTimeout   time.Duration
-	telemetryPassword            string
-	srsAddress                   string
-	srsConnectionTimeout         time.Duration
-	srsExternalAWACSModePassword string
-	srsFrequencies               []string
-	enableGRPC                   bool
-	grpcAddress                  string
-	grpcAPIKey                   string
-	controllerCallsign           string
-	controllerCallsigns          []string
-	coalitionName                string
-	telemetryUpdateInterval      time.Duration
-	recognizerName               string
-	whisperModelPath             string
-	recognizerLockPath           string
-	openAIAPIKey                 string
-	voiceName                    string
-	useSystemVoice               bool
-	mute                         bool
-	voiceSpeed                   float64
-	voiceVolume                  float64
-	voicePauseLength             time.Duration
-	voiceLockPath                string
-	enableAutomaticPicture       bool
-	automaticPictureInterval     time.Duration
-	enableThreatMonitoring       bool
-	threatMonitoringInterval     time.Duration
-	threatMonitoringRequiresSRS  bool
-	mandatoryThreatRadiusNM      float64
-	threatBRAABearingSpreadDeg   float64
-	threatBRAARangeSpreadNM      float64
-	enableTracing                bool
-	discordWebhookID             string
-	discordWebhookToken          string
-	exitAfter                    time.Duration
-	enableTerrainDetection       bool
-	locationsFile                string
-	aircraftFile                 string
+	configFile                    string
+	logLevel                      string
+	logFormat                     string
+	enableTranscriptionLogging    bool
+	acmiFile                      string
+	telemetryAddress              string
+	telemetryConnectionTimeout    time.Duration
+	telemetryPassword             string
+	srsAddress                    string
+	srsConnectionTimeout          time.Duration
+	srsExternalAWACSModePassword  string
+	srsFrequencies                []string
+	enableGRPC                    bool
+	grpcAddress                   string
+	grpcAPIKey                    string
+	controllerCallsign            string
+	controllerCallsigns           []string
+	coalitionName                 string
+	telemetryUpdateInterval       time.Duration
+	recognizerName                string
+	whisperModelPath              string
+	recognizerLockPath            string
+	openAIAPIKey                  string
+	voiceName                     string
+	useSystemVoice                bool
+	mute                          bool
+	voiceSpeed                    float64
+	voiceVolume                   float64
+	voicePauseLength              time.Duration
+	voiceLockPath                 string
+	enableAutomaticPicture        bool
+	automaticPictureInterval      time.Duration
+	enableThreatMonitoring        bool
+	threatMonitoringInterval      time.Duration
+	threatMonitoringRequiresSRS   bool
+	mandatoryThreatRadiusNM       float64
+	threatBRAABearingSpreadDeg    float64
+	threatBRAARangeSpreadNM       float64
+	enableTracing                 bool
+	enableAutomaticPictureTracing bool
+	enableAutomaticFadedTracing   bool
+	enableAutomaticThreatTracing  bool
+	discordWebhookID              string
+	discordWebhookToken           string
+	exitAfter                     time.Duration
+	enableTerrainDetection        bool
+	locationsFile                 string
+	aircraftFile                  string
 )
 
 const (
@@ -176,6 +179,9 @@ func init() {
 		log.Fatal().Err(err).Msg("failed to mark flag as deprecated")
 	}
 	skyeye.MarkFlagsMutuallyExclusive("tracing", "enable-tracing")
+	skyeye.Flags().BoolVar(&enableAutomaticPictureTracing, "enable-automatic-picture-tracing", true, "Publish traces for automatic PICTURE broadcasts when tracing is enabled")
+	skyeye.Flags().BoolVar(&enableAutomaticFadedTracing, "enable-automatic-faded-tracing", true, "Publish traces for automatic FADED broadcasts when tracing is enabled")
+	skyeye.Flags().BoolVar(&enableAutomaticThreatTracing, "enable-automatic-threat-tracing", true, "Publish traces for automatic THREAT broadcasts when tracing is enabled")
 	skyeye.Flags().StringVar(&discordWebhookID, "discord-webhook-id", "", "Discord webhook ID for tracing")
 	skyeye.Flags().StringVar(&discordWebhookToken, "discord-webhook-token", "", "Discord webhook token for tracing")
 	skyeye.MarkFlagsRequiredTogether("discord-webhook-id", "discord-webhook-token")
@@ -434,49 +440,52 @@ func run(_ *cobra.Command, _ []string) {
 	customAircraft := loadAircraft()
 
 	config := conf.Configuration{
-		ACMIFile:                     acmiFile,
-		TelemetryAddress:             telemetryAddress,
-		TelemetryConnectionTimeout:   telemetryConnectionTimeout,
-		TelemetryClientName:          callsign,
-		TelemetryPassword:            telemetryPassword,
-		SRSAddress:                   srsAddress,
-		SRSConnectionTimeout:         srsConnectionTimeout,
-		SRSClientName:                fmt.Sprintf("GCI %s [BOT]", callsign),
-		SRSExternalAWACSModePassword: srsExternalAWACSModePassword,
-		SRSFrequencies:               parsedSRSFrequencies,
-		EnableTranscriptionLogging:   enableTranscriptionLogging,
-		Callsign:                     callsign,
-		Coalition:                    coalition,
-		RadarSweepInterval:           telemetryUpdateInterval,
-		Recognizer:                   conf.Recognizer(recognizerName),
-		RecognizerLock:               recognizerLock,
-		WhisperModel:                 whisperModel,
-		OpenAIAPIKey:                 openAIAPIKey,
-		Voice:                        voice,
-		UseSystemVoice:               useSystemVoice,
-		VoiceLock:                    voiceLock,
-		Mute:                         mute,
-		VoiceSpeed:                   voiceSpeed,
-		Volume:                       volume,
-		VoicePauseLength:             voicePauseLength,
-		EnableAutomaticPicture:       enableAutomaticPicture,
-		PictureBroadcastInterval:     automaticPictureInterval,
-		EnableThreatMonitoring:       enableThreatMonitoring,
-		ThreatMonitoringInterval:     threatMonitoringInterval,
-		ThreatMonitoringRequiresSRS:  threatMonitoringRequiresSRS,
-		MandatoryThreatRadius:        unit.Length(mandatoryThreatRadiusNM) * unit.NauticalMile,
-		ThreatBRAABearingSpread:      unit.Angle(threatBRAABearingSpreadDeg) * unit.Degree,
-		ThreatBRAARangeSpread:        unit.Length(threatBRAARangeSpreadNM) * unit.NauticalMile,
-		EnableTracing:                enableTracing,
-		DiscordWebhookID:             discordWebhookID,
-		DiscorbWebhookToken:          discordWebhookToken,
-		ExitAfter:                    exitAfter,
-		EnableGRPC:                   enableGRPC,
-		GRPCAddress:                  grpcAddress,
-		GRPCAPIKey:                   grpcAPIKey,
-		EnableTerrainDetection:       enableTerrainDetection,
-		Locations:                    locs,
-		CustomAircraft:               customAircraft,
+		ACMIFile:                      acmiFile,
+		TelemetryAddress:              telemetryAddress,
+		TelemetryConnectionTimeout:    telemetryConnectionTimeout,
+		TelemetryClientName:           callsign,
+		TelemetryPassword:             telemetryPassword,
+		SRSAddress:                    srsAddress,
+		SRSConnectionTimeout:          srsConnectionTimeout,
+		SRSClientName:                 fmt.Sprintf("GCI %s [BOT]", callsign),
+		SRSExternalAWACSModePassword:  srsExternalAWACSModePassword,
+		SRSFrequencies:                parsedSRSFrequencies,
+		EnableTranscriptionLogging:    enableTranscriptionLogging,
+		Callsign:                      callsign,
+		Coalition:                     coalition,
+		RadarSweepInterval:            telemetryUpdateInterval,
+		Recognizer:                    conf.Recognizer(recognizerName),
+		RecognizerLock:                recognizerLock,
+		WhisperModel:                  whisperModel,
+		OpenAIAPIKey:                  openAIAPIKey,
+		Voice:                         voice,
+		UseSystemVoice:                useSystemVoice,
+		VoiceLock:                     voiceLock,
+		Mute:                          mute,
+		VoiceSpeed:                    voiceSpeed,
+		Volume:                        volume,
+		VoicePauseLength:              voicePauseLength,
+		EnableAutomaticPicture:        enableAutomaticPicture,
+		PictureBroadcastInterval:      automaticPictureInterval,
+		EnableThreatMonitoring:        enableThreatMonitoring,
+		ThreatMonitoringInterval:      threatMonitoringInterval,
+		ThreatMonitoringRequiresSRS:   threatMonitoringRequiresSRS,
+		MandatoryThreatRadius:         unit.Length(mandatoryThreatRadiusNM) * unit.NauticalMile,
+		ThreatBRAABearingSpread:       unit.Angle(threatBRAABearingSpreadDeg) * unit.Degree,
+		ThreatBRAARangeSpread:         unit.Length(threatBRAARangeSpreadNM) * unit.NauticalMile,
+		EnableTracing:                 enableTracing,
+		EnableAutomaticPictureTracing: enableAutomaticPictureTracing,
+		EnableAutomaticFadedTracing:   enableAutomaticFadedTracing,
+		EnableAutomaticThreatTracing:  enableAutomaticThreatTracing,
+		DiscordWebhookID:              discordWebhookID,
+		DiscorbWebhookToken:           discordWebhookToken,
+		ExitAfter:                     exitAfter,
+		EnableGRPC:                    enableGRPC,
+		GRPCAddress:                   grpcAddress,
+		GRPCAPIKey:                    grpcAPIKey,
+		EnableTerrainDetection:        enableTerrainDetection,
+		Locations:                     locs,
+		CustomAircraft:                customAircraft,
 	}
 
 	log.Info().Msg("starting application")

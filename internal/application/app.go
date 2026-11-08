@@ -66,6 +66,13 @@ type Application struct {
 	enableTranscriptionLogging bool
 	// tracers are destinations where traces are sent when tracing is enabled
 	tracers []traces.Tracer
+	// enableAutomaticPictureTracing controls whether automatic PICTURE broadcasts publish traces.
+	// Player-requested PICTURE responses are traced regardless of this setting.
+	enableAutomaticPictureTracing bool
+	// enableAutomaticFadedTracing controls whether automatic FADED broadcasts publish traces.
+	enableAutomaticFadedTracing bool
+	// enableAutomaticThreatTracing controls whether automatic THREAT broadcasts publish traces.
+	enableAutomaticThreatTracing bool
 
 	starts  chan sim.Started
 	updates chan sim.Updated
@@ -237,25 +244,28 @@ func NewApplication(config conf.Configuration) (*Application, error) {
 
 	log.Info().Msg("constructing application")
 	app := &Application{
-		callsign:                   config.Callsign,
-		enableTranscriptionLogging: config.EnableTranscriptionLogging,
-		chatListener:               chatListener,
-		srsClient:                  srsClient,
-		telemetryClient:            telemetryClient,
-		recognizer:                 speechRecognizer,
-		recognizerLock:             config.RecognizerLock,
-		parser:                     requestParser,
-		radar:                      rdr,
-		controller:                 gciController,
-		composer:                   responseComposer,
-		speaker:                    synthesizer,
-		speakerLock:                config.VoiceLock,
-		volume:                     config.Volume,
-		tracers:                    tracers,
-		starts:                     starts,
-		updates:                    updates,
-		fades:                      fades,
-		exitAfter:                  config.ExitAfter,
+		callsign:                      config.Callsign,
+		enableTranscriptionLogging:    config.EnableTranscriptionLogging,
+		chatListener:                  chatListener,
+		srsClient:                     srsClient,
+		telemetryClient:               telemetryClient,
+		recognizer:                    speechRecognizer,
+		recognizerLock:                config.RecognizerLock,
+		parser:                        requestParser,
+		radar:                         rdr,
+		controller:                    gciController,
+		composer:                      responseComposer,
+		speaker:                       synthesizer,
+		speakerLock:                   config.VoiceLock,
+		volume:                        config.Volume,
+		tracers:                       tracers,
+		enableAutomaticPictureTracing: config.EnableAutomaticPictureTracing,
+		enableAutomaticFadedTracing:   config.EnableAutomaticFadedTracing,
+		enableAutomaticThreatTracing:  config.EnableAutomaticThreatTracing,
+		starts:                        starts,
+		updates:                       updates,
+		fades:                         fades,
+		exitAfter:                     config.ExitAfter,
 	}
 	return app, nil
 }
@@ -412,6 +422,9 @@ func (a *Application) updateBullseyes() {
 
 // trace the given request context using all configured tracers.
 func (a *Application) trace(ctx context.Context) {
+	if !a.shouldTrace(ctx) {
+		return
+	}
 	if !a.enableTranscriptionLogging {
 		ctx = traces.WithoutRequestText(ctx)
 	}

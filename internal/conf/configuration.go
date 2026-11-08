@@ -108,6 +108,12 @@ type Configuration struct {
 	CustomAircraft []encyclopedia.Aircraft
 	// EnableTracing controls whether to publish traces
 	EnableTracing bool
+	// EnableAutomaticPictureTracing controls whether to publish traces for automatic PICTURE broadcasts.
+	EnableAutomaticPictureTracing bool
+	// EnableAutomaticFadedTracing controls whether to publish traces for automatic FADED broadcasts.
+	EnableAutomaticFadedTracing bool
+	// EnableAutomaticThreatTracing controls whether to publish traces for automatic THREAT broadcasts.
+	EnableAutomaticThreatTracing bool
 	// DiscordWebhookID is the ID of the Discord webhook
 	DiscordWebhookID string
 	// DiscordWebhookToken is the token for the Discord webhook
