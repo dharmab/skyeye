@@ -146,6 +146,7 @@ var replacementLUT = map[string]string{
 	"book it out":        bogeyDope,
 	"book it up":         bogeyDope,
 	"booy dope":          bogeyDope,
+	"booyi dope":         bogeyDope,
 	"bop do":             bogeyDope,
 	"boqido":             bogeyDope,
 	"boti":               bogeyDope,
