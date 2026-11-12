@@ -29,21 +29,21 @@ runs:
   using: composite
   steps:
     - name: Log in to the Container registry
-      uses: docker/login-action@v3
+      uses: docker/login-action@v3.7.0
       with:
         registry: ${{ inputs.registry }}
         username: ${{ inputs.registry-username }}
         password: ${{ inputs.registry-password }}
     - name: Extract metadata (tags, labels) for Docker
       id: meta
-      uses: docker/metadata-action@v5
+      uses: docker/metadata-action@v5.10.0
       with:
         images: ${{ inputs.registry }}/${{ inputs.image-name }}
         flavor: |
           suffix=${{ inputs.tag-suffix }},onlatest=true
     - name: Build and push Docker image
       id: push
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v6.19.2
       with:
         build-args: |
           SKYEYE_VERSION: ${{ inputs.skyeye-version }}
@@ -52,7 +52,7 @@ runs:
         labels: ${{ steps.meta.outputs.labels }}
         push: true
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v1
+      uses: actions/attest-build-provenance@v1.4.4
       with:
         subject-name: ${{ inputs.registry }}/${{ inputs.image-name }}
         subject-digest: ${{ steps.push.outputs.digest }}
