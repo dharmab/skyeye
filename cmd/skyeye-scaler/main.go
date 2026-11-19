@@ -147,6 +147,19 @@ func run() error {
 		}
 	})
 
+	// The SRS client decodes voice on its frequencies and blocks until each transmission is read. The scaler has no use
+	// for the audio, but if it is never read the receive pipeline backs up until the UDP reader stalls, pings stop
+	// being received and the client reconnects forever.
+	wg.Go(func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-srsClient.Receive():
+			}
+		}
+	})
+
 	client := &http.Client{Timeout: webhookTimeout}
 
 	ticker := time.NewTicker(scaleInterval)
