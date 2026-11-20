@@ -92,8 +92,12 @@ func run() error {
 	cli.SetupZerolog(logLevel, logFormat)
 	log.Info().Msg("Starting SkyEye Autoscaler")
 
-	if stopDelay > scaleInterval {
-		log.Fatal().Msg("stop-delay must be shorter than scale-interval")
+	// Start the stop-delay clock now. Otherwise the first webhook call, made before the SRS client has synced,
+	// sees 0 players and an infinite timeSincePlayers and sends "stop", killing a running SkyEye on every restart.
+	playersSeenAt = time.Now()
+
+	if stopDelay < scaleInterval {
+		log.Fatal().Msg("stop-delay must not be shorter than scale-interval")
 	}
 
 	parsedFrequencies := cli.LoadFrequencies(srsFrequencies)
@@ -131,7 +135,7 @@ func run() error {
 		s := <-interuptChan
 		log.Info().Any("signal", s).Msg("received shutdown signal")
 		cancel()
-		wg.Wait()
+		waitWithTimeout(&wg, shutdownTimeout)
 		os.Exit(0)
 	}()
 
@@ -140,6 +144,19 @@ func run() error {
 		if err != nil {
 			log.Error().Err(err).Msg("failed to run SRS client")
 			cancel()
+		}
+	})
+
+	// The SRS client decodes voice on its frequencies and blocks until each transmission is read. The scaler has no use
+	// for the audio, but if it is never read the receive pipeline backs up until the UDP reader stalls, pings stop
+	// being received and the client reconnects forever.
+	wg.Go(func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-srsClient.Receive():
+			}
 		}
 	})
 
@@ -152,11 +169,28 @@ func run() error {
 		select {
 		case <-ctx.Done():
 			log.Info().Msg("stopping application due to context cancelation")
-			wg.Wait()
+			waitWithTimeout(&wg, shutdownTimeout)
 			return fmt.Errorf("stopping application due to context cancelation: %w", ctx.Err())
 		case <-ticker.C:
 			callWebhook(ctx, client, srsClient)
 		}
+	}
+}
+
+// shutdownTimeout bounds how long to wait for the SRS client goroutines after cancellation. They can block
+// forever on a dead socket, which left the process hanging instead of exiting so it could be restarted.
+const shutdownTimeout = 5 * time.Second
+
+func waitWithTimeout(wg *sync.WaitGroup, timeout time.Duration) {
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(timeout):
+		log.Warn().Stringer("timeout", timeout).Msg("timed out waiting for goroutines to stop")
 	}
 }
 
