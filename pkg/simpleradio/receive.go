@@ -12,6 +12,8 @@ import (
 
 // receiver buffers incoming transmissions on a single radio frequency.
 type receiver struct {
+	// radio is the frequency this receiver listens on.
+	radio types.Radio
 	// lock protects the receiver's state.
 	lock sync.RWMutex
 	// buffer of received voice packets.
@@ -58,6 +60,20 @@ func (r *receiver) receive(packet *voice.Packet) {
 	r.packetNumber = packet.PacketID
 }
 
+// isFollowing checks if the receiver is buffering a transmission from the given origin.
+func (r *receiver) isFollowing(origin types.GUID) bool {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	return r.origin == origin
+}
+
+// isIdle checks if the receiver is not buffering any transmission.
+func (r *receiver) isIdle() bool {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	return r.origin == "" && r.packetNumber == 0
+}
+
 // hasTransmission checks if the receiver has a complete transmission buffered.
 func (r *receiver) hasTransmission() bool {
 	r.lock.RLock()
@@ -98,6 +114,47 @@ const maxRxPackets = int(MaxTransmissionDuration / frameLength)
 // thrashing due to transmissions too short to contain any useful content.
 const minRxDuration = 1 * time.Second // 1s is whisper.cpp's minimum duration, it errors for any samples shorter than this.
 
+// routeVoicePacket buffers a voice packet into a single receiver tuned to one of the packet's frequencies.
+//
+// A transmitter often transmits on several of our frequencies at once (SkyEye itself transmits on all of them). The
+// packet must only be buffered once, otherwise the same transmission is decoded, logged and recognized once per
+// frequency. The packet goes to the receiver already buffering a transmission from the same origin, or else to the
+// first idle receiver on a matching frequency, in configuration order.
+func (c *Client) routeVoicePacket(packet *voice.Packet) {
+	origin := types.GUID(packet.OriginGUID)
+	var target *receiver
+	for _, receiver := range c.receivers {
+		if !isTunedTo(receiver.radio, packet.Frequencies) {
+			continue
+		}
+		if receiver.isFollowing(origin) {
+			target = receiver
+			break
+		}
+		if target == nil && receiver.isIdle() {
+			target = receiver
+		}
+	}
+	if target != nil {
+		target.receive(packet)
+	}
+}
+
+// isTunedTo checks if the radio matches any of the given packet frequencies.
+func isTunedTo(radio types.Radio, frequencies []voice.Frequency) bool {
+	for _, frequency := range frequencies {
+		testRadio := types.Radio{
+			Frequency:   frequency.Frequency,
+			Modulation:  types.Modulation(frequency.Modulation),
+			IsEncrypted: frequency.Encryption != 0,
+		}
+		if testRadio.IsSameFrequency(radio) {
+			return true
+		}
+	}
+	return false
+}
+
 // receiveVoice listens for incoming UDP voice packets, decodes them into VoicePacket structs, and routes them to the out channel for audio decoding.
 func (c *Client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- []voice.Packet) {
 	// t is a ticker which triggers the check for the end of a transmission.
@@ -125,18 +182,7 @@ func (c *Client) receiveVoice(ctx context.Context, in <-chan []byte, out chan<- 
 				}
 			}
 
-			for radio, receiver := range c.receivers {
-				for _, frequency := range packet.Frequencies {
-					testRadio := types.Radio{
-						Frequency:   frequency.Frequency,
-						Modulation:  types.Modulation(frequency.Modulation),
-						IsEncrypted: frequency.Encryption != 0,
-					}
-					if testRadio.IsSameFrequency(radio) {
-						receiver.receive(packet)
-					}
-				}
-			}
+			c.routeVoicePacket(packet)
 		case <-t.C:
 			// Check if everyone has stopped talking.
 			if len(in) == 0 {

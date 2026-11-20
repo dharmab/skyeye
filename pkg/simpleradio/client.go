@@ -58,8 +58,8 @@ type Client struct {
 	rxChan chan Transmission
 	// txChan is a channel where outgoing transmissions are buffered.
 	txChan chan Transmission
-	// receivers tracks the state of each radio we are listening to.
-	receivers map[types.Radio]*receiver
+	// receivers tracks the state of each radio we are listening to, in configuration order.
+	receivers []*receiver
 	// packetNumber is incremented for each voice packet transmitted.
 	packetNumber uint64
 	// txLock prevents multiple outgoing transmissions from occurring simultaneously. It must be acquired before writing
@@ -78,9 +78,9 @@ type Client struct {
 func NewClient(config types.ClientConfiguration) (*Client, error) {
 	guid := types.NewGUID()
 
-	receivers := make(map[types.Radio]*receiver, len(config.Radios))
+	receivers := make([]*receiver, 0, len(config.Radios))
 	for _, radio := range config.Radios {
-		receivers[radio] = &receiver{}
+		receivers = append(receivers, &receiver{radio: radio})
 	}
 
 	client := &Client{
