@@ -16,6 +16,7 @@ import (
 type Recognizer string
 
 const (
+	AppleSpeech  Recognizer = "apple-speech"
 	WhisperLocal Recognizer = "openai-whisper-local"
 	WhisperAPI   Recognizer = "openai-whisper-api"
 	GPT4o        Recognizer = "openai-gpt4o"
@@ -63,7 +64,7 @@ type Configuration struct {
 	Recognizer Recognizer
 	// RecognizerLock is a file-based lock to control multiple instances running the recognizer at the same time.
 	RecognizerLock *flock.Flock
-	// WhisperModel is a whisper.cpp model used for Speech To Text. It may be nil if OpenAI API transcription is configured.
+	// WhisperModel is a whisper.cpp model used for Speech To Text. It is nil unless local Whisper transcription is configured.
 	WhisperModel *whisper.Model
 	// OpenAIAPIKey is the API key for the OpenAI API. It may be empty if local transcription is configured.
 	OpenAIAPIKey string

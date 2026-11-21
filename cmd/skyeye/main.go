@@ -131,11 +131,11 @@ func init() {
 	skyeye.Flags().Var(coalitionFlag, "coalition", "GCI coalition (blue, red)")
 
 	// Speech-to-text
-	recognizerFlag := cli.NewEnum(&recognizerName, "Recognizer", string(conf.WhisperLocal), string(conf.WhisperAPI), string(conf.GPT4o), string(conf.GPT4oMini))
-	skyeye.Flags().Var(recognizerFlag, "recognizer", "Speech-to-text recognizer to use")
+	recognizerFlag := cli.NewEnum(&recognizerName, "Recognizer", string(conf.WhisperLocal), string(conf.WhisperAPI), string(conf.GPT4o), string(conf.GPT4oMini), string(conf.AppleSpeech))
+	skyeye.Flags().Var(recognizerFlag, "recognizer", "Speech-to-text recognizer to use (apple-speech requires macOS)")
 	skyeye.Flags().StringVar(&whisperModelPath, "whisper-model", "", "Path to whisper.cpp model")
 	skyeye.Flags().StringVar(&openAIAPIKey, "openai-api-key", "", "API key for OpenAPI AI")
-	skyeye.MarkFlagsOneRequired("whisper-model", "openai-api-key")
+
 	skyeye.Flags().StringVar(&recognizerLockPath, "recognizer-lock-path", "", "Path to lock file for concurrent speech-to-text when using multiple instances")
 
 	// Text-to-speech
@@ -392,6 +392,26 @@ func loadAircraft() []encyclopedia.Aircraft {
 func preRun(cmd *cobra.Command, _ []string) error {
 	if err := initializeConfig(cmd); err != nil {
 		return fmt.Errorf("failed to initialize config: %w", err)
+	}
+	return validateRecognizer(conf.Recognizer(recognizerName), runtime.GOOS, whisperModelPath, openAIAPIKey)
+}
+
+func validateRecognizer(recognizer conf.Recognizer, goos, modelPath, apiKey string) error {
+	switch recognizer {
+	case conf.AppleSpeech:
+		if goos != "darwin" {
+			return fmt.Errorf("recognizer apple-speech is only supported on macOS (darwin), not %s", goos)
+		}
+	case conf.WhisperLocal:
+		if modelPath == "" {
+			return fmt.Errorf("whisper-model is required when recognizer is set to %s", recognizer)
+		}
+	case conf.WhisperAPI, conf.GPT4o, conf.GPT4oMini:
+		if apiKey == "" {
+			return fmt.Errorf("openai-api-key is required when recognizer is set to %s", recognizer)
+		}
+	default:
+		return fmt.Errorf("unknown recognizer %q", recognizer)
 	}
 	return nil
 }

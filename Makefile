@@ -58,6 +58,9 @@ BUILD_VARS += CC=$(CC) CXX=$(CXX)
 LIBRARY_PATHS := $(LIBRARY_PATHS):$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src/ggml-metal:$(ABS_WHISPER_CPP_BUILD_DIR)/ggml/src/ggml-blas
 # Link OpenMP runtime for ggml-cpu on macOS (Go bindings only specify -fopenmp on Linux)
 BUILD_VARS += CGO_LDFLAGS=-fopenmp
+# Give command-line Apple Speech requests a privacy usage description.
+LDFLAGS += -extldflags "-Wl,-sectcreate,__TEXT,__info_plist,$(abspath cmd/skyeye/Info.plist)"
+SKYEYE_SOURCES += cmd/skyeye/Info.plist $(wildcard pkg/recognizer/apple*.m pkg/recognizer/apple*.h)
 # whisper.cpp's Metal backend uses std::unique_ptr without including <memory>.
 WHISPER_CPP_CMAKE_ARGS = -DCMAKE_C_COMPILER=$(CC) -DCMAKE_CXX_COMPILER=$(CXX) \
   -DCMAKE_C_FLAGS=-Wno-elaborated-enum-base -DCMAKE_CXX_FLAGS="-Wno-elaborated-enum-base -include memory"
